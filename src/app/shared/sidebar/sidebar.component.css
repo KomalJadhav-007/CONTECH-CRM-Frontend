@@ -1,6 +1,6 @@
 .sidebar-nav {
   width: 260px;
-  background: rgba(11, 17, 33, 0.95);
+  background: #ffffff;
   border-right: 1px solid var(--border-color);
   padding: 1.5rem 1rem;
   display: flex;
@@ -21,6 +21,7 @@
   letter-spacing: 0.08em;
   color: var(--text-subtle);
   padding: 0 0.75rem;
+  text-transform: uppercase;
 }
 
 .nav-list {
@@ -47,13 +48,14 @@
 }
 
 .nav-item:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: #f1f5f9;
   color: var(--text-main);
   transform: translateX(3px);
 }
 
 .nav-item.active {
-  background: linear-gradient(90deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.03));
-  color: #fbbf24;
-  border-left: 3px solid #f59e0b;
+  background: #fef3c7;
+  color: #b45309;
+  border-left: 3px solid #d97706;
+  font-weight: 700;
 }

@@ -13,8 +13,8 @@
   gap: 0.5rem;
   font-size: 0.75rem;
   font-weight: 800;
-  color: #f87171;
-  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  background: #fee2e2;
   padding: 0.25rem 0.65rem;
   border-radius: 4px;
   margin-bottom: 0.4rem;
@@ -32,9 +32,9 @@
 }
 
 .alert-success-banner {
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  color: #34d399;
+  background: #d1fae5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
   padding: 0.85rem 1.25rem;
   border-radius: var(--radius-md);
   margin-bottom: 1.5rem;
@@ -62,20 +62,20 @@
 .budget-badge {
   font-family: var(--font-mono);
   font-weight: 700;
-  color: #38bdf8;
+  color: #0284c7;
 }
 
-.text-danger { color: #f87171; }
-.text-amber { color: #fbbf24; }
-.text-cyan { color: #38bdf8; }
-.text-emerald { color: #34d399; }
+.text-danger { color: #dc2626; }
+.text-amber { color: #d97706; }
+.text-cyan { color: #0284c7; }
+.text-emerald { color: #059669; }
 
 /* Modal Backdrop */
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(8px);
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -86,8 +86,10 @@
 .modal-card {
   width: 100%;
   max-width: 520px;
-  background: #0f172a;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
   padding: 1.75rem;
 }
 
@@ -101,6 +103,7 @@
 .modal-title {
   font-size: 1.15rem;
   font-weight: 700;
+  color: var(--text-main);
 }
 
 .close-btn {

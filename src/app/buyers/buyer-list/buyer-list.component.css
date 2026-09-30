@@ -30,6 +30,7 @@
 
 .buyer-link {
   color: var(--text-main);
+  font-weight: 600;
   transition: color var(--transition-fast);
 }
 
@@ -41,11 +42,13 @@
 .budget-tag {
   font-family: var(--font-mono);
   font-weight: 700;
-  color: #38bdf8;
+  color: #0284c7;
 }
 
 .bhk-tag {
-  background: rgba(255, 255, 255, 0.05);
+  background: #f1f5f9;
+  border: 1px solid var(--border-color);
+  color: #334155;
   padding: 0.2rem 0.5rem;
   border-radius: 4px;
   font-size: 0.75rem;

@@ -32,8 +32,8 @@
 }
 
 .filter-pill {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #f1f5f9;
+  border: 1px solid var(--border-color);
   color: var(--text-muted);
   padding: 0.35rem 0.85rem;
   font-size: 0.8rem;
@@ -45,14 +45,14 @@
 
 .filter-pill:hover, .filter-pill.active {
   background: var(--primary);
-  color: #090d16;
+  color: #ffffff;
   border-color: var(--primary);
 }
 
 .time-slot-tag {
   font-size: 0.75rem;
   color: var(--primary);
-  font-weight: 600;
+  font-weight: 700;
   margin-top: 0.2rem;
 }
 
@@ -68,9 +68,9 @@
 }
 
 .pill-btn {
-  background: rgba(239, 68, 68, 0.12);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #f87171;
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #b91c1c;
   font-size: 0.7rem;
   font-weight: 700;
   padding: 0.2rem 0.45rem;
@@ -80,9 +80,9 @@
 }
 
 .pill-btn.verified {
-  background: rgba(16, 185, 129, 0.15);
-  border-color: rgba(16, 185, 129, 0.4);
-  color: #34d399;
+  background: #d1fae5;
+  border: 1px solid #a7f3d0;
+  color: #047857;
 }
 
 .pill-btn:hover {
