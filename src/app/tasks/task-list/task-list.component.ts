@@ -1,0 +1,53 @@
+import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
+import { TaskService } from '../task.service';
+
+@Component({
+  selector: 'app-task-list',
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterModule],
+  templateUrl: './task-list.component.html',
+  styleUrl: './task-list.component.css'
+})
+export class TaskListComponent implements OnInit {
+  private taskService = inject(TaskService);
+
+  loading = true;
+  tasks: any[] = [];
+  filterStatus = 'PENDING';
+
+  ngOnInit(): void {
+    this.loadTasks();
+  }
+
+  loadTasks(): void {
+    this.loading = true;
+    const params: any = {};
+    if (this.filterStatus) params.status = this.filterStatus;
+
+    this.taskService.getTasks(params).subscribe({
+      next: (res) => {
+        this.loading = false;
+        if (res.success) {
+          this.tasks = res.tasks;
+        }
+      },
+      error: () => {
+        this.loading = false;
+      }
+    });
+  }
+
+  completeTask(task: any): void {
+    this.taskService.completeTask(task.id).subscribe({
+      next: (res) => {
+        if (res.success) {
+          task.status = 'COMPLETED';
+          this.loadTasks();
+        }
+      }
+    });
+  }
+}

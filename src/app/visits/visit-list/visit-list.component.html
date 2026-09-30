@@ -1,0 +1,139 @@
+<div class="page-wrapper">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Site Visit Command Hub</h1>
+      <p class="page-subtitle">Zero-confusion booking, cab dispatch logistics, and 4-way stakeholder confirmation tracking</p>
+    </div>
+    <div class="header-actions">
+      <a routerLink="/visits/book" class="btn btn-primary">+ Schedule Site Visit</a>
+    </div>
+  </div>
+
+  <!-- Visits Filter & Radar -->
+  <div class="glass-card" style="margin-bottom: 1.5rem;">
+    <div class="filters-bar">
+      <span class="filter-title">Filter By Status:</span>
+      <button class="filter-pill" [class.active]="filterStatus === ''" (click)="filterStatus = ''; loadVisits()">All Visits</button>
+      <button class="filter-pill" [class.active]="filterStatus === 'SCHEDULED'" (click)="filterStatus = 'SCHEDULED'; loadVisits()">Scheduled</button>
+      <button class="filter-pill" [class.active]="filterStatus === 'IN_PROGRESS'" (click)="filterStatus = 'IN_PROGRESS'; loadVisits()">In Progress</button>
+      <button class="filter-pill" [class.active]="filterStatus === 'COMPLETED'" (click)="filterStatus = 'COMPLETED'; loadVisits()">Completed</button>
+    </div>
+  </div>
+
+  <!-- Visits Table -->
+  <div class="glass-card">
+    <div class="data-table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Date & Time</th>
+            <th>Buyer Name</th>
+            <th>Project / Gallery</th>
+            <th>Sales Rep</th>
+            <th>Cab / Driver</th>
+            <th style="text-align: center;">4-Way Confirmations (Click to Verify)</th>
+            <th>Status</th>
+            <th>In-Visit Discovery</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let visit of visits">
+            <td>
+              <strong>{{ visit.scheduled_date }}</strong>
+              <div class="time-slot-tag">{{ visit.time_slot }}</div>
+            </td>
+            <td>
+              <a [routerLink]="['/buyers', visit.buyer_id]" class="buyer-link">
+                <strong>{{ visit.buyer?.full_name }}</strong>
+              </a>
+              <div class="sub-text">{{ visit.buyer?.phone }}</div>
+            </td>
+            <td>
+              <strong>{{ visit.project?.name }}</strong>
+              <div class="sub-text">{{ visit.project?.location }}</div>
+            </td>
+            <td>{{ visit.salesRep?.name || 'Unassigned' }}</td>
+            <td>
+              <span *ngIf="visit.cab_required">
+                🚗 {{ visit.cab_number || 'Cab Assigned' }}
+                <div class="sub-text">{{ visit.driver?.name || 'Driver assigned' }}</div>
+              </span>
+              <span *ngIf="!visit.cab_required" class="text-muted">Self-Drive</span>
+            </td>
+
+            <!-- 4-Way Interactive Confirmation Pills (UC-04) -->
+            <td style="text-align: center;">
+              <div class="confirmation-pills">
+                <button
+                  type="button"
+                  class="pill-btn"
+                  [class.verified]="visit.customer_confirmed"
+                  (click)="toggleConfirmation(visit, 'customer_confirmed')"
+                  title="Toggle Customer Confirmation"
+                >
+                  <span>{{ visit.customer_confirmed ? '✓' : '✗' }}</span> Customer
+                </button>
+
+                <button
+                  type="button"
+                  class="pill-btn"
+                  [class.verified]="visit.rep_confirmed"
+                  (click)="toggleConfirmation(visit, 'rep_confirmed')"
+                  title="Toggle Sales Rep Confirmation"
+                >
+                  <span>{{ visit.rep_confirmed ? '✓' : '✗' }}</span> Rep
+                </button>
+
+                <button
+                  type="button"
+                  class="pill-btn"
+                  [class.verified]="visit.driver_confirmed"
+                  (click)="toggleConfirmation(visit, 'driver_confirmed')"
+                  title="Toggle Driver Confirmation"
+                >
+                  <span>{{ visit.driver_confirmed ? '✓' : '✗' }}</span> Driver
+                </button>
+
+                <button
+                  type="button"
+                  class="pill-btn"
+                  [class.verified]="visit.site_confirmed"
+                  (click)="toggleConfirmation(visit, 'site_confirmed')"
+                  title="Toggle Site Gallery Slot Confirmation"
+                >
+                  <span>{{ visit.site_confirmed ? '✓' : '✗' }}</span> Site
+                </button>
+              </div>
+            </td>
+
+            <td>
+              <span
+                class="badge"
+                [ngClass]="{
+                  'badge-success': visit.status === 'COMPLETED',
+                  'badge-warning': visit.status === 'SCHEDULED',
+                  'badge-cyan': visit.status === 'IN_PROGRESS',
+                  'badge-danger': visit.status === 'CANCELLED'
+                }"
+              >
+                {{ visit.status }}
+              </span>
+            </td>
+
+            <td>
+              <a [routerLink]="['/visits/discovery', visit.id]" class="btn btn-secondary btn-sm">
+                📝 Capture In-Visit &rarr;
+              </a>
+            </td>
+          </tr>
+
+          <tr *ngIf="visits.length === 0">
+            <td colspan="8" class="text-center text-muted" style="padding: 2.5rem;">
+              No site visits scheduled for this filter.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,23 @@
+<header class="navbar-header">
+  <div class="brand-section">
+    <div class="brand-badge">Contech CRM</div>
+    <span class="brand-subtitle">Revenue Guardian</span>
+  </div>
+
+  <div class="actions-section" *ngIf="currentUser$ | async as user">
+    <div class="live-indicator">
+      <span class="pulse-dot"></span>
+      <span>Control Radar Active</span>
+    </div>
+
+    <div class="user-profile-tag">
+      <div class="user-avatar">{{ user.name.charAt(0) }}</div>
+      <div class="user-info">
+        <span class="user-name">{{ user.name }}</span>
+        <span class="user-role badge badge-cyan">{{ user.role }}</span>
+      </div>
+    </div>
+
+    <button class="btn btn-secondary btn-sm" (click)="logout()">Sign Out</button>
+  </div>
+</header>

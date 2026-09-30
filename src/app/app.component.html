@@ -1,0 +1,17 @@
+<div class="app-layout" [class.auth-layout]="isAuthPage()">
+  <!-- Main Platform Shell (Navbar + Sidebar + Content) -->
+  <ng-container *ngIf="!isAuthPage()">
+    <app-navbar></app-navbar>
+    <div class="app-body">
+      <app-sidebar></app-sidebar>
+      <main class="main-content">
+        <router-outlet></router-outlet>
+      </main>
+    </div>
+  </ng-container>
+
+  <!-- Clean Full-Screen Layout for Login -->
+  <ng-container *ngIf="isAuthPage()">
+    <router-outlet></router-outlet>
+  </ng-container>
+</div>

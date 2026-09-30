@@ -1,0 +1,51 @@
+<div class="page-wrapper">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Platform & Slot Capacity Configuration</h1>
+      <p class="page-subtitle">Control Tower threshold limits, automated scoring toggles, and property gallery limits</p>
+    </div>
+  </div>
+
+  <div *ngIf="savedMessage" class="alert-success-banner">
+    ✅ {{ savedMessage }}
+  </div>
+
+  <div class="content-grid-2">
+    <!-- Platform Settings -->
+    <div class="glass-card">
+      <h2 class="card-title">Revenue Guardian Engine Rules</h2>
+      <div class="settings-list">
+        <div *ngFor="let s of settings" class="setting-item">
+          <div>
+            <div class="setting-key">{{ s.key }}</div>
+            <div class="setting-desc">{{ s.description }}</div>
+          </div>
+          <div class="setting-control">
+            <input type="text" class="form-control" [(ngModel)]="s.value" (blur)="saveSetting(s)" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Properties and Capacity Limits (EC-01) -->
+    <div class="glass-card">
+      <h2 class="card-title">Project Site Gallery Capacity Limits</h2>
+      <p class="text-muted" style="margin-bottom: 1rem;">
+        Enforces maximum concurrent visitors per hour slot to prevent overcrowded lounges.
+      </p>
+
+      <div class="projects-capacity-list">
+        <div *ngFor="let p of projects" class="project-cap-card">
+          <div class="project-info">
+            <strong>{{ p.name }}</strong>
+            <div class="sub-text">{{ p.location }}</div>
+          </div>
+          <div class="capacity-tag">
+            <span>Max Slots / Hour:</span>
+            <strong>{{ p.max_slots_per_hour }} Visits</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,193 @@
+<div class="page-wrapper">
+  <div class="page-header">
+    <div>
+      <div class="radar-tag">
+        <span class="status-dot red"></span>
+        <span>LIVE REVENUE GUARDIAN RADAR</span>
+      </div>
+      <h1 class="page-title">Operations Control Tower</h1>
+      <p class="page-subtitle">Instant detection of neglected hot deals, unconfirmed cabs, and revenue leakage bottlenecks</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="loadRadar()">🔄 Scan Radar</button>
+    </div>
+  </div>
+
+  <div *ngIf="successMessage" class="alert-success-banner">
+    ✅ {{ successMessage }}
+  </div>
+
+  <!-- Radar Health & Risk Metrics -->
+  <div class="metrics-grid">
+    <div class="glass-card metric-card danger">
+      <span class="metric-label">REVENUE AT RISK (>48H INACTION)</span>
+      <div class="metric-value">₹{{ (radarData.summary.revenue_at_risk_lacs / 100).toFixed(2) }} <span class="unit">Cr</span></div>
+      <span class="metric-trend text-danger">{{ radarData.summary.neglected_buyers_count }} High-Intent Deals Idle</span>
+    </div>
+
+    <div class="glass-card metric-card amber">
+      <span class="metric-label">AT-RISK SITE VISITS (TODAY)</span>
+      <div class="metric-value">{{ radarData.summary.at_risk_visits_today }}</div>
+      <span class="metric-trend text-amber">Incomplete 4-way confirmations</span>
+    </div>
+
+    <div class="glass-card metric-card cyan">
+      <span class="metric-label">OVERDUE FOLLOW-UP TASKS</span>
+      <div class="metric-value">{{ radarData.summary.overdue_tasks_count }}</div>
+      <span class="metric-trend text-cyan">Exceeded 4-hour countdown SLA</span>
+    </div>
+
+    <div class="glass-card metric-card emerald">
+      <span class="metric-label">PIPELINE HEALTH INDEX</span>
+      <div class="metric-value">{{ radarData.summary.health_score }}<span class="unit">/100</span></div>
+      <span class="metric-trend text-emerald">Calculated across all sales touchpoints</span>
+    </div>
+  </div>
+
+  <!-- Neglected Hot Buyers Section (UC-07) -->
+  <div class="section-container">
+    <div class="glass-card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">🚨 Neglected High-Intent Buyers (>48h Inaction)</h2>
+          <p class="card-subtext">These ready-to-buy customers are at immediate risk of slipping to competing developers.</p>
+        </div>
+        <span class="badge badge-high">{{ radarData.neglected_buyers.length }} Critical Alerts</span>
+      </div>
+
+      <div class="data-table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Buyer Name</th>
+              <th>Phone</th>
+              <th>Budget Max</th>
+              <th>Timeframe</th>
+              <th>Current Assigned Rep</th>
+              <th>Intent Score</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let buyer of radarData.neglected_buyers">
+              <td><strong>{{ buyer.full_name }}</strong></td>
+              <td>{{ buyer.phone }}</td>
+              <td><span class="budget-badge">₹{{ buyer.budget_max_lacs }} Lacs</span></td>
+              <td>{{ buyer.buying_timeframe }}</td>
+              <td>{{ buyer.assignedRep?.name || 'Unassigned' }}</td>
+              <td><span class="badge badge-high">{{ buyer.intent_score }}/100</span></td>
+              <td>
+                <button class="btn btn-danger btn-sm" (click)="openRescueModal(buyer)">
+                  Rescue Deal &rarr;
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="radarData.neglected_buyers.length === 0">
+              <td colspan="7" class="text-center text-muted" style="padding: 2rem;">
+                ✨ Zero neglected buyers detected! All high-intent deals are actively nurtured.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- At-Risk Imminent Site Visits -->
+  <div class="section-container" style="margin-top: 1.5rem;">
+    <div class="glass-card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">⚠️ At-Risk Site Visits (Missing 4-Way Confirmations)</h2>
+          <p class="card-subtext">Prevent dispatching empty cabs and wasting driver resources.</p>
+        </div>
+        <span class="badge badge-warning">{{ radarData.at_risk_visits.length }} Visits</span>
+      </div>
+
+      <div class="data-table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Buyer</th>
+              <th>Time Slot</th>
+              <th>Customer Confirmed</th>
+              <th>Rep Confirmed</th>
+              <th>Driver Confirmed</th>
+              <th>Site Gallery</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let visit of radarData.at_risk_visits">
+              <td><strong>{{ visit.buyer?.full_name }}</strong></td>
+              <td>{{ visit.time_slot }}</td>
+              <td>
+                <span class="badge" [ngClass]="visit.customer_confirmed ? 'badge-success' : 'badge-danger'">
+                  {{ visit.customer_confirmed ? 'YES' : 'PENDING' }}
+                </span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="visit.rep_confirmed ? 'badge-success' : 'badge-danger'">
+                  {{ visit.rep_confirmed ? 'YES' : 'PENDING' }}
+                </span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="visit.driver_confirmed ? 'badge-success' : 'badge-danger'">
+                  {{ visit.driver_confirmed ? 'YES' : 'PENDING' }}
+                </span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="visit.site_confirmed ? 'badge-success' : 'badge-danger'">
+                  {{ visit.site_confirmed ? 'YES' : 'PENDING' }}
+                </span>
+              </td>
+              <td>
+                <a [routerLink]="['/visits']" class="btn btn-secondary btn-sm">Resolve in Hub</a>
+              </td>
+            </tr>
+            <tr *ngIf="radarData.at_risk_visits.length === 0">
+              <td colspan="7" class="text-center text-muted" style="padding: 2rem;">
+                ✅ All today's visits have 100% 4-way confirmations!
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rescue Deal Modal (Direct HTML implementation per standards) -->
+  <div *ngIf="selectedBuyerForRescue" class="modal-backdrop">
+    <div class="modal-card glass-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Rescue Deal: {{ selectedBuyerForRescue.full_name }}</h3>
+        <button class="close-btn" (click)="closeRescueModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted" style="margin-bottom: 1rem;">
+          This buyer has had zero phone callbacks for >48 hours. Reassigning immediately to an available senior representative.
+        </p>
+
+        <div class="form-group">
+          <label class="form-label">Reassign To Active Rep</label>
+          <select class="form-control" [(ngModel)]="reassignedRepId">
+            <option [ngValue]="3">Amit Verma (Senior Sales Rep)</option>
+            <option [ngValue]="2">Priya Nair (Sales Manager)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Intervention Action Notes</label>
+          <textarea class="form-control" rows="3" [(ngModel)]="rescueActionNotes"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeRescueModal()">Cancel</button>
+        <button class="btn btn-primary" [disabled]="resolving" (click)="executeRescue()">
+          <span *ngIf="!resolving">Confirm Reassignment & Rescue</span>
+          <span *ngIf="resolving">Processing...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

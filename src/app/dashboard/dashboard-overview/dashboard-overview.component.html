@@ -1,0 +1,93 @@
+<div class="page-wrapper">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Executive Revenue Command Center</h1>
+      <p class="page-subtitle">Real-time pipeline valuation, site visit velocity & revenue leakage protection</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="loadStats()">🔄 Refresh Live Data</button>
+      <a routerLink="/visits/book" class="btn btn-primary">+ Schedule Site Visit</a>
+    </div>
+  </div>
+
+  <!-- Key Metrics Row -->
+  <div class="metrics-grid">
+    <div class="glass-card metric-card">
+      <span class="metric-label">TOTAL ACTIVE PIPELINE</span>
+      <div class="metric-value">₹{{ stats.total_pipeline_cr }} <span class="unit">Cr</span></div>
+      <span class="metric-trend text-muted">{{ stats.total_buyers }} Registered Buyers in System</span>
+    </div>
+
+    <div class="glass-card metric-card cyan">
+      <span class="metric-label">HIGH-INTENT HOT BUYERS</span>
+      <div class="metric-value">{{ stats.high_intent_buyers }}</div>
+      <span class="metric-trend text-cyan">Urgent attention & <30-day closing potential</span>
+    </div>
+
+    <div class="glass-card metric-card emerald">
+      <span class="metric-label">BOOKED SALES VALUE</span>
+      <div class="metric-value">₹{{ stats.booked_revenue_cr }} <span class="unit">Cr</span></div>
+      <span class="metric-trend text-emerald">{{ stats.booked_deals }} Deals Closed Successfully</span>
+    </div>
+
+    <div class="glass-card metric-card danger">
+      <span class="metric-label">VISIT CONVERSION RATE</span>
+      <div class="metric-value">{{ stats.conversion_rate_percent }}%</div>
+      <span class="metric-trend text-amber">{{ stats.completed_site_visits }} Visits Completed</span>
+    </div>
+  </div>
+
+  <!-- Analytics & Visual Breakdown -->
+  <div class="content-grid-2">
+    <!-- Active Site Visits Radar -->
+    <div class="glass-card">
+      <div class="card-header">
+        <h2 class="card-title">Site Visit Execution Engine</h2>
+        <span class="badge badge-success">{{ stats.active_site_visits }} In Flight Today</span>
+      </div>
+      <div class="card-body">
+        <p class="text-muted" style="margin-bottom: 1.25rem;">
+          Contech CRM verifies all 4 stakeholders (Buyer, Sales Rep, Driver, Site Gallery) before dispatching luxury cabs to prevent expensive no-shows.
+        </p>
+
+        <div class="action-banner">
+          <div class="banner-icon">🎯</div>
+          <div class="banner-text">
+            <strong>4-Way Zero-Confusion Confirmation</strong>
+            <p>Every scheduled site visit is verified at T-24h and T-2h intervals with strict driver journey checkpoints.</p>
+          </div>
+          <a routerLink="/visits" class="btn btn-secondary btn-sm">Open Visit Hub &rarr;</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Objections & In-Visit Intelligence -->
+    <div class="glass-card">
+      <div class="card-header">
+        <h2 class="card-title">In-Visit Objection Radar</h2>
+        <span class="badge badge-warning">Live Field Feedback</span>
+      </div>
+      <div class="card-body">
+        <p class="text-muted" style="margin-bottom: 1rem;">
+          Aggregated reasons why buyers hesitate during site walkthroughs:
+        </p>
+
+        <div class="objections-list">
+          <div *ngFor="let objKey of getObjectionKeys()" class="objection-item">
+            <div class="obj-header">
+              <span class="obj-name">{{ objKey }}</span>
+              <span class="obj-count">{{ stats.objections_breakdown[objKey] }} Instances</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" [style.width.%]="(stats.objections_breakdown[objKey] / (stats.total_buyers || 1)) * 100"></div>
+            </div>
+          </div>
+
+          <div *ngIf="getObjectionKeys().length === 0" class="text-muted text-center" style="padding: 2rem 0;">
+            No objections recorded yet. In-visit discovery data will appear here in real time.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,144 @@
+.driver-portal-wrapper {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.driver-header {
+  text-align: center;
+  margin-bottom: 1.75rem;
+}
+
+.driver-badge {
+  display: inline-block;
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--primary);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.25rem 0.65rem;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.driver-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.driver-subtitle {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.alert-success-banner {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #34d399;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1.25rem;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.trips-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.trip-card {
+  padding: 1.5rem;
+}
+
+.trip-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.trip-time {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.passenger-section {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.passenger-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.35rem;
+}
+
+.phone-link {
+  display: inline-block;
+  color: #38bdf8;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.route-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1rem;
+  border-radius: var(--radius-md);
+}
+
+.route-stop {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.stop-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 0.35rem;
+  flex-shrink: 0;
+}
+
+.stop-dot.pickup { background: #38bdf8; box-shadow: 0 0 8px #38bdf8; }
+.stop-dot.drop { background: #34d399; box-shadow: 0 0 8px #34d399; }
+
+.stop-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--text-subtle);
+  letter-spacing: 0.05em;
+}
+
+.stop-address {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.route-line {
+  width: 2px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.15);
+  margin-left: 4px;
+}
+
+.journey-actions {
+  margin-top: 1rem;
+}
+
+.btn-journey {
+  width: 100%;
+  padding: 0.85rem;
+  font-size: 0.95rem;
+}

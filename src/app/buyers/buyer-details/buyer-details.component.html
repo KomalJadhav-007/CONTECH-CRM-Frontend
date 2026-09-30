@@ -1,0 +1,166 @@
+<div class="page-wrapper" *ngIf="buyer">
+  <div class="page-header">
+    <div>
+      <div class="status-indicator-tag">
+        <span class="badge" [ngClass]="{
+          'badge-high': buyer.intent_urgency === 'HIGH',
+          'badge-medium': buyer.intent_urgency === 'MEDIUM',
+          'badge-low': buyer.intent_urgency === 'LOW'
+        }">
+          Score {{ buyer.intent_score }}/100 • {{ buyer.intent_urgency }} Urgency
+        </span>
+        <span class="badge badge-cyan">{{ buyer.lead_status }}</span>
+      </div>
+      <h1 class="page-title">{{ buyer.full_name }}</h1>
+      <p class="page-subtitle">Dossier #DAR-B{{ buyer.id }} • Managed by {{ buyer.assignedRep?.name || 'Unassigned' }}</p>
+    </div>
+    <div class="header-actions">
+      <a routerLink="/buyers" class="btn btn-secondary">&larr; Back</a>
+      <a [routerLink]="['/visits/book']" [queryParams]="{ buyer_id: buyer.id }" class="btn btn-primary">
+        + Book Site Visit
+      </a>
+    </div>
+  </div>
+
+  <div class="dossier-grid">
+    <!-- Left Column: Buyer Parameters -->
+    <div class="dossier-left">
+      <div class="glass-card">
+        <h2 class="card-title">Customer 360° Profile</h2>
+        <div class="info-list">
+          <div class="info-item">
+            <span class="info-label">Phone Number</span>
+            <span class="info-value">{{ buyer.phone }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Email Address</span>
+            <span class="info-value">{{ buyer.email || 'N/A' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Current Residence</span>
+            <span class="info-value">{{ buyer.current_residence || 'Not recorded' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Workplace Location</span>
+            <span class="info-value">{{ buyer.workplace_location || 'Not recorded' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Budget Range</span>
+            <span class="info-value text-cyan">₹{{ buyer.budget_min_lacs }} - {{ buyer.budget_max_lacs }} Lacs</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Preferred Unit</span>
+            <span class="info-value">{{ buyer.preferred_bhk }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Buying Timeframe</span>
+            <span class="info-value">{{ buyer.buying_timeframe }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Family Size</span>
+            <span class="info-value">{{ buyer.family_size }} Members</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card" style="margin-top: 1.5rem;">
+        <h2 class="card-title">AI Intent Diagnosis & Next Best Step</h2>
+        <div class="recommendation-box">
+          <div class="rec-icon">💡</div>
+          <div class="rec-content">
+            <strong>Recommended Next Action</strong>
+            <p *ngIf="buyer.intent_urgency === 'HIGH'">
+              Urgent: Schedule site visit with luxury cab pickup within 24 hours. High probability of closing this week.
+            </p>
+            <p *ngIf="buyer.intent_urgency === 'MEDIUM'">
+              Send customized 3D floor plans and 360° virtual walkthrough video on WhatsApp. Follow up in 48h.
+            </p>
+            <p *ngIf="buyer.intent_urgency === 'LOW'">
+              Nurture with monthly construction milestone updates and festive pricing newsletters.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Site Visits & Tasks Timeline -->
+    <div class="dossier-right">
+      <!-- Site Visits History -->
+      <div class="glass-card">
+        <div class="card-header">
+          <h2 class="card-title">Site Visit Journeys & In-Visit Notes</h2>
+          <span class="badge badge-cyan">{{ (buyer.siteVisits || []).length }} Visits</span>
+        </div>
+
+        <div class="visits-timeline" *ngIf="(buyer.siteVisits || []).length > 0">
+          <div *ngFor="let visit of buyer.siteVisits" class="visit-card">
+            <div class="visit-header">
+              <div>
+                <strong>{{ visit.project?.name || 'Site Visit' }}</strong>
+                <span class="visit-date">{{ visit.scheduled_date }} ({{ visit.time_slot }})</span>
+              </div>
+              <span class="badge" [ngClass]="visit.status === 'COMPLETED' ? 'badge-success' : 'badge-warning'">
+                {{ visit.status }}
+              </span>
+            </div>
+
+            <!-- In-Visit Discovery & Shortlisted Units -->
+            <div *ngIf="visit.discovery" class="discovery-box">
+              <div class="discovery-title">🎯 In-Visit Shortlist & Objections:</div>
+              <div class="discovery-item">
+                <span class="label">Shortlisted Unit:</span>
+                <span>{{ visit.discovery.shortlisted_units || 'None' }}</span>
+              </div>
+              <div class="discovery-item" *ngIf="visit.discovery.objection_notes">
+                <span class="label">Objection [{{ visit.discovery.objection_category }}]:</span>
+                <span class="text-amber">{{ visit.discovery.objection_notes }}</span>
+              </div>
+              <div class="discovery-item" *ngIf="visit.discovery.recommended_action">
+                <span class="label">Sales Strategy:</span>
+                <span>{{ visit.discovery.recommended_action }}</span>
+              </div>
+            </div>
+
+            <div class="visit-actions" style="margin-top: 0.75rem;">
+              <a [routerLink]="['/visits/discovery', visit.id]" class="btn btn-secondary btn-sm">
+                📝 Update Discovery & Outcome
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="(buyer.siteVisits || []).length === 0" class="text-center text-muted" style="padding: 2rem;">
+          No site visits scheduled yet for this buyer.
+        </div>
+      </div>
+
+      <!-- Follow-up Tasks -->
+      <div class="glass-card" style="margin-top: 1.5rem;">
+        <div class="card-header">
+          <h2 class="card-title">Follow-up SLA & Reminders</h2>
+          <span class="badge badge-warning">{{ (buyer.tasks || []).length }} Tasks</span>
+        </div>
+
+        <div class="tasks-timeline">
+          <div *ngFor="let task of buyer.tasks" class="task-card">
+            <div class="task-header">
+              <strong>{{ task.title }}</strong>
+              <span class="badge" [ngClass]="task.status === 'COMPLETED' ? 'badge-success' : 'badge-danger'">
+                {{ task.status }}
+              </span>
+            </div>
+            <p class="task-desc">{{ task.description }}</p>
+            <div class="task-footer">
+              <span>Assigned: {{ task.assignedUser?.name }}</span>
+              <span class="task-due">Due: {{ task.due_at | date:'short' }}</span>
+            </div>
+          </div>
+
+          <div *ngIf="(buyer.tasks || []).length === 0" class="text-center text-muted" style="padding: 2rem;">
+            No pending tasks.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

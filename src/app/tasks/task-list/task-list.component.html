@@ -1,0 +1,99 @@
+<div class="page-wrapper">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Follow-Up SLA Reminders & Countdown Engine</h1>
+      <p class="page-subtitle">Guaranteed post-visit turnaround with strict 4-hour countdown timers to stop deal leakage</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="loadTasks()">🔄 Refresh Tasks</button>
+    </div>
+  </div>
+
+  <div class="glass-card" style="margin-bottom: 1.5rem;">
+    <div class="filters-bar">
+      <span class="filter-title">Filter By Status:</span>
+      <button class="filter-pill" [class.active]="filterStatus === 'PENDING'" (click)="filterStatus = 'PENDING'; loadTasks()">Pending SLAs</button>
+      <button class="filter-pill" [class.active]="filterStatus === 'COMPLETED'" (click)="filterStatus = 'COMPLETED'; loadTasks()">Completed</button>
+      <button class="filter-pill" [class.active]="filterStatus === ''" (click)="filterStatus = ''; loadTasks()">All Tasks</button>
+    </div>
+  </div>
+
+  <div class="glass-card">
+    <div class="data-table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Task & Follow-up Requirement</th>
+            <th>Buyer Context</th>
+            <th>Countdown SLA</th>
+            <th>Priority</th>
+            <th>Assigned Rep</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let task of tasks">
+            <td>
+              <strong>{{ task.title }}</strong>
+              <div class="sub-text">{{ task.description }}</div>
+            </td>
+            <td>
+              <a [routerLink]="['/buyers', task.buyer_id]" class="buyer-link" *ngIf="task.buyer">
+                <strong>{{ task.buyer.full_name }}</strong>
+              </a>
+              <div class="sub-text">{{ task.buyer?.preferred_bhk }} (Max ₹{{ task.buyer?.budget_max_lacs }}L)</div>
+            </td>
+            <td>
+              <div *ngIf="task.status === 'PENDING'">
+                <div *ngIf="!task.is_overdue" class="countdown-tag countdown-active">
+                  ⏳ {{ task.hours_remaining }}h Remaining
+                </div>
+                <div *ngIf="task.is_overdue" class="countdown-tag countdown-overdue">
+                  🚨 OVERDUE
+                </div>
+                <div class="sub-text">Target: {{ task.due_at | date:'shortTime' }}</div>
+              </div>
+              <div *ngIf="task.status === 'COMPLETED'" class="text-emerald">
+                ✓ Completed
+              </div>
+            </td>
+            <td>
+              <span
+                class="badge"
+                [ngClass]="{
+                  'badge-danger': task.priority === 'CRITICAL' || task.priority === 'URGENT',
+                  'badge-warning': task.priority === 'HIGH',
+                  'badge-cyan': task.priority === 'NORMAL'
+                }"
+              >
+                {{ task.priority }}
+              </span>
+            </td>
+            <td>{{ task.assignedUser?.name || 'Unassigned' }}</td>
+            <td>
+              <span class="badge" [ngClass]="task.status === 'COMPLETED' ? 'badge-success' : 'badge-warning'">
+                {{ task.status }}
+              </span>
+            </td>
+            <td>
+              <button
+                *ngIf="task.status === 'PENDING'"
+                class="btn btn-primary btn-sm"
+                (click)="completeTask(task)"
+              >
+                Mark Done &check;
+              </button>
+            </td>
+          </tr>
+
+          <tr *ngIf="tasks.length === 0">
+            <td colspan="7" class="text-center text-muted" style="padding: 2.5rem;">
+              No follow-up tasks found for this status.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
