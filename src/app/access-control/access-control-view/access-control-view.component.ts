@@ -37,6 +37,15 @@ export class AccessControlViewComponent implements OnInit {
   hasUnsavedChanges = false;
   cloneSourceRole = '';
 
+  showAddRoleModal = false;
+  newRole = {
+    name: '',
+    badge: 'Custom',
+    color: '#0284c7',
+    description: '',
+    cloneFrom: 'Account Executive'
+  };
+
   ngOnInit(): void {
     this.rolePermissions = this.accessService.getCurrentMatrix();
     this.accessService.permissions$.subscribe(matrix => {
@@ -159,6 +168,69 @@ export class AccessControlViewComponent implements OnInit {
     this.rolePermissions = this.accessService.resetRoleToDefault(this.selectedRole);
     this.hasUnsavedChanges = false;
     this.showNotification(`Reset "${this.selectedRole}" to default permissions.`, 'info');
+  }
+
+  isCustomRole(role: string): boolean {
+    return this.accessService.isCustomRole(role);
+  }
+
+  openAddRoleModal(): void {
+    this.newRole = {
+      name: '',
+      badge: 'Custom',
+      color: '#0284c7',
+      description: '',
+      cloneFrom: 'Account Executive'
+    };
+    this.showAddRoleModal = true;
+  }
+
+  closeAddRoleModal(): void {
+    this.showAddRoleModal = false;
+  }
+
+  createCustomRole(): void {
+    if (!this.newRole.name.trim()) return;
+    const name = this.newRole.name.trim();
+
+    if (this.roles.includes(name)) {
+      this.showNotification(`A role named "${name}" already exists.`, 'warn');
+      return;
+    }
+
+    this.accessService.addCustomRole(
+      name,
+      {
+        badge: this.newRole.badge || 'Custom',
+        color: this.newRole.color || '#0284c7',
+        description: this.newRole.description || 'Custom security profile.'
+      },
+      this.newRole.cloneFrom
+    ).subscribe({
+      next: () => {
+        this.selectedRole = name;
+        this.showAddRoleModal = false;
+        this.showNotification(`Role "${name}" created and saved to database.`, 'success');
+      }
+    });
+  }
+
+  deleteCurrentRole(): void {
+    if (!this.isCustomRole(this.selectedRole)) {
+      this.showNotification(`Default system role "${this.selectedRole}" cannot be deleted.`, 'warn');
+      return;
+    }
+
+    const toDelete = this.selectedRole;
+    const confirmed = window.confirm(`Permanently delete custom role "${toDelete}" and all its permissions from the database?`);
+    if (!confirmed) return;
+
+    this.accessService.deleteCustomRole(toDelete).subscribe({
+      next: () => {
+        this.selectedRole = 'Account Executive';
+        this.showNotification(`Custom role "${toDelete}" deleted from database.`, 'success');
+      }
+    });
   }
 
   saveExplicitly(): void {

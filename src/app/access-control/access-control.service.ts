@@ -27,7 +27,7 @@ export class AccessControlService {
   private apiUrl = 'http://localhost:5000/api/settings/permissions';
   private storageKey = 'contech_access_control_permissions';
 
-  readonly roles: string[] = [
+  defaultRoles: string[] = [
     'Org Admin',
     'Sales Head',
     'Sales Manager',
@@ -37,7 +37,17 @@ export class AccessControlService {
     'Executive Viewer'
   ];
 
-  readonly roleMetadata: { [role: string]: RoleMeta } = {
+  roles: string[] = [
+    'Org Admin',
+    'Sales Head',
+    'Sales Manager',
+    'Account Executive',
+    'Site Visit Coordinator',
+    'Driver',
+    'Executive Viewer'
+  ];
+
+  roleMetadata: { [role: string]: RoleMeta } = {
     'Org Admin': {
       name: 'Org Admin',
       badge: 'Superuser',
@@ -285,7 +295,21 @@ export class AccessControlService {
 
     if (!incoming || typeof incoming !== 'object') return result;
 
-    for (const role of this.roles) {
+    const allRoles = Array.from(new Set([...this.roles, ...Object.keys(incoming || {})]));
+    for (const role of allRoles) {
+      if (!this.roles.includes(role)) {
+        this.roles.push(role);
+      }
+      if (!this.roleMetadata[role]) {
+        this.roleMetadata[role] = {
+          name: role,
+          badge: 'Custom',
+          color: '#4f46e5',
+          description: 'Custom defined platform role profile.',
+          usersCount: 0
+        };
+      }
+
       if (!result[role]) result[role] = {};
       for (const mod of this.modules) {
         if (!result[role][mod]) result[role][mod] = {};
@@ -318,6 +342,48 @@ export class AccessControlService {
         return of({ success: true, localOnly: true });
       })
     );
+  }
+
+  addCustomRole(roleName: string, meta?: Partial<RoleMeta>, cloneFrom?: string): Observable<any> {
+    if (!this.roles.includes(roleName)) {
+      this.roles.push(roleName);
+    }
+    this.roleMetadata[roleName] = {
+      name: roleName,
+      badge: meta?.badge || 'Custom',
+      color: meta?.color || '#0284c7',
+      description: meta?.description || 'Custom defined role profile.',
+      usersCount: 0
+    };
+
+    const matrix = this.getCurrentMatrix();
+    matrix[roleName] = {};
+    this.modules.forEach(mod => {
+      matrix[roleName][mod] = {};
+      this.permissionColumns.forEach(col => {
+        matrix[roleName][mod][col] = cloneFrom && matrix[cloneFrom]?.[mod]?.[col] ? true : false;
+      });
+    });
+
+    return this.savePermissions(matrix);
+  }
+
+  deleteCustomRole(roleName: string): Observable<any> {
+    if (this.defaultRoles.includes(roleName)) {
+      return of({ success: false, message: 'Default roles cannot be deleted' });
+    }
+
+    this.roles = this.roles.filter(r => r !== roleName);
+    delete this.roleMetadata[roleName];
+
+    const matrix = this.getCurrentMatrix();
+    delete matrix[roleName];
+
+    return this.savePermissions(matrix);
+  }
+
+  isCustomRole(roleName: string): boolean {
+    return !this.defaultRoles.includes(roleName);
   }
 
   resetRoleToDefault(role: string): PermissionMatrix {

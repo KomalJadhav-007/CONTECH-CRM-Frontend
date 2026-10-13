@@ -9,6 +9,9 @@
       </p>
     </div>
     <div class="header-actions">
+      <button *ngIf="isCustomRole(selectedRole)" type="button" class="btn-action-danger" (click)="deleteCurrentRole()" title="Delete this custom role">
+        <span>Delete Role</span>
+      </button>
       <button type="button" class="btn-action-outline" (click)="exportMatrix()" title="Export JSON audit report">
         <span>Export Matrix</span>
       </button>
@@ -34,6 +37,10 @@
       >
         <span class="role-tab-name">{{ r }}</span>
         <span class="role-tab-badge" *ngIf="roleMetadata[r]" [style.borderColor]="roleMetadata[r].color">{{ roleMetadata[r].badge }}</span>
+      </button>
+
+      <button type="button" class="btn-add-role-tab" (click)="openAddRoleModal()" title="Create custom role">
+        <span>+ Add Role</span>
       </button>
     </div>
   </div>
@@ -208,6 +215,40 @@
         <div class="legend-item"><strong>APPROVE:</strong> Authorize discounts, approvals, and stage changes.</div>
         <div class="legend-item"><strong>EXPORT:</strong> Download spreadsheets, PDF brochures, and CSV exports.</div>
         <div class="legend-item"><strong>CONFIGURE:</strong> Manage automation triggers, algorithms, and rules.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD ROLE MODAL -->
+  <div *ngIf="showAddRoleModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Create New Custom Role</h3>
+        <button type="button" class="close-btn" (click)="closeAddRoleModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-field">
+          <label class="modal-label">Role Name *</label>
+          <input type="text" [(ngModel)]="newRole.name" class="modal-input" placeholder="e.g. Operations Lead, Telecaller, Partner" />
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Badge Label</label>
+          <input type="text" [(ngModel)]="newRole.badge" class="modal-input" placeholder="e.g. Operations, Caller, Broker" />
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Description</label>
+          <input type="text" [(ngModel)]="newRole.description" class="modal-input" placeholder="Describe role authority and responsibilities" />
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Clone Initial Permissions From</label>
+          <select [(ngModel)]="newRole.cloneFrom" class="modal-select">
+            <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-cancel" (click)="closeAddRoleModal()">Cancel</button>
+        <button type="button" class="btn-modal-create" (click)="createCustomRole()">Create Role</button>
       </div>
     </div>
   </div>
