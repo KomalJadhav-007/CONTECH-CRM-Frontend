@@ -1,14 +1,24 @@
 <div class="team-page-wrapper">
   <!-- Header -->
   <div class="team-header">
-    <div class="section-tag">ADMINISTRATION</div>
-    <h1 class="page-title">Team &amp; Users</h1>
-    <p class="page-subtitle">
-      One role per user, project access scoped per person. Deactivation is blocked while a user still owns open pipeline.
-    </p>
+    <div class="header-left">
+      <div class="section-tag">ADMINISTRATION</div>
+      <h1 class="page-title">Team &amp; Users</h1>
+      <p class="page-subtitle">
+        One role per user, project access scoped per person. Deactivation is blocked while a user still owns open pipeline.
+      </p>
+    </div>
+    <div class="header-actions">
+      <a routerLink="/access-control" class="btn-action-outline" title="Manage role-based permission matrix">
+        <span class="icon">🛡️</span> Access Control Matrix
+      </a>
+      <button type="button" class="btn-action-primary" (click)="openAddUserModal()">
+        <span class="icon">+</span> Add New User
+      </button>
+    </div>
   </div>
 
-  <!-- 3 Stat Cards -->
+  <!-- 3 Stat Cards (matches UI) -->
   <div class="stats-grid-3">
     <div class="stat-card">
       <div class="card-label">USERS</div>
@@ -24,19 +34,31 @@
     </div>
   </div>
 
-  <!-- Search Input -->
-  <div class="search-row">
-    <input
-      type="text"
-      [(ngModel)]="searchQuery"
-      class="search-input"
-      placeholder="Search name, email or designation"
-    />
+  <!-- Search & Role Filter Row -->
+  <div class="controls-row">
+    <div class="search-box">
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        class="search-input"
+        placeholder="Search name, email or designation"
+      />
+    </div>
+    <div class="filter-box">
+      <label class="filter-label">Filter by Role:</label>
+      <select [(ngModel)]="selectedRoleFilter" class="filter-select">
+        <option value="ALL">All Roles ({{ users.length }})</option>
+        <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+      </select>
+    </div>
   </div>
 
   <!-- Feedback Message Banner -->
-  <div *ngIf="feedbackMessage" class="feedback-banner">
-    {{ feedbackMessage }}
+  <div *ngIf="feedbackMessage" class="feedback-banner" [ngClass]="'feedback-' + feedbackType">
+    <span class="feedback-icon" *ngIf="feedbackType === 'success'">✓</span>
+    <span class="feedback-icon" *ngIf="feedbackType === 'warn'">⚠️</span>
+    <span class="feedback-icon" *ngIf="feedbackType === 'info'">ℹ️</span>
+    <span class="feedback-text">{{ feedbackMessage }}</span>
   </div>
 
   <!-- Users Table -->
@@ -47,7 +69,7 @@
           <tr>
             <th>USER</th>
             <th>DESIGNATION</th>
-            <th>ROLE</th>
+            <th>ROLE (ACCESS CONTROL)</th>
             <th>STATUS</th>
             <th>LAST LOGIN</th>
             <th>ACTIONS</th>
@@ -56,38 +78,324 @@
         <tbody>
           <tr *ngFor="let u of filteredUsers">
             <td>
-              <div class="user-full-name">{{ u.name }}</div>
-              <div class="user-email">{{ u.email }}</div>
+              <div class="user-cell">
+                <div class="user-avatar" [style.backgroundColor]="getRoleColor(u.role) + '20'" [style.color]="getRoleColor(u.role)">
+                  {{ getInitials(u.name) }}
+                </div>
+                <div class="user-meta">
+                  <div class="user-full-name">{{ u.name }}</div>
+                  <div class="user-email">{{ u.email }}</div>
+                  <div class="user-phone" *ngIf="u.phone">{{ u.phone }}</div>
+                </div>
+              </div>
             </td>
-            <td class="designation-cell">{{ u.designation }}</td>
-            <td>
-              <select [(ngModel)]="u.role" (ngModelChange)="onRoleChange(u)" class="role-select">
-                <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
-              </select>
+            <td class="designation-cell">
+              <span class="designation-badge">{{ u.designation }}</span>
             </td>
             <td>
-              <button
-                type="button"
-                class="btn-deactivate"
-                (click)="toggleDeactivate(u)"
-              >
-                {{ u.status === 'active' ? 'Deactivate' : 'Activate' }}
-              </button>
+              <div class="role-cell-wrapper">
+                <select
+                  [(ngModel)]="u.role"
+                  (ngModelChange)="onRoleChange(u)"
+                  class="role-select"
+                  [style.borderLeftColor]="getRoleColor(u.role)"
+                >
+                  <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+                </select>
+                <span
+                  class="role-badge-tag"
+                  [style.color]="getRoleColor(u.role)"
+                  [style.backgroundColor]="getRoleColor(u.role) + '15'"
+                >
+                  {{ getRoleBadge(u.role) }}
+                </span>
+              </div>
+            </td>
+            <td>
+              <div class="status-cell">
+                <span class="status-pill" [class.status-active]="u.status === 'active'" [class.status-inactive]="u.status !== 'active'">
+                  {{ u.status === 'active' ? 'Active' : 'Inactive' }}
+                </span>
+                <button
+                  type="button"
+                  class="btn-deactivate"
+                  (click)="toggleDeactivate(u)"
+                >
+                  {{ u.status === 'active' ? 'Deactivate' : 'Activate' }}
+                </button>
+              </div>
             </td>
             <td class="last-login-cell">{{ u.last_login }}</td>
             <td>
-              <button
-                type="button"
-                class="btn-delete-user"
-                (click)="deleteUser(u)"
-                title="Delete user from database"
-              >
-                Delete
-              </button>
+              <div class="action-buttons-cell">
+                <button
+                  type="button"
+                  class="btn-edit-user"
+                  (click)="openEditUserModal(u)"
+                  title="Edit user details"
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  class="btn-delete-user"
+                  (click)="deleteUser(u)"
+                  title="Delete user from database"
+                >
+                  Delete
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="filteredUsers.length === 0">
+            <td colspan="6" class="empty-table-cell">
+              No team members match your filter criteria.
             </td>
           </tr>
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: ADD NEW USER (GOVERNED BY ACCESS CONTROL) -->
+  <!-- ============================================== -->
+  <div *ngIf="showAddUserModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <div class="modal-supertitle">USER PROVISIONING</div>
+          <h2 class="modal-title">Add New User</h2>
+          <p class="modal-subtitle">
+            Configure account credentials. Operational permissions and module rights are inherited from Access Control.
+          </p>
+        </div>
+        <button type="button" class="btn-close-modal" (click)="closeAddUserModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Error Alert -->
+        <div *ngIf="addUserError" class="modal-error-alert">
+          {{ addUserError }}
+        </div>
+
+        <!-- 2-Column Info Grid -->
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">Full Name <span class="required">*</span></label>
+            <input
+              type="text"
+              [(ngModel)]="newUser.name"
+              class="form-input"
+              placeholder="e.g. Aditi Sen"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Work Email <span class="required">*</span></label>
+            <input
+              type="email"
+              [(ngModel)]="newUser.email"
+              class="form-input"
+              placeholder="e.g. aditi.sen@contechcrm.com"
+            />
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            <input
+              type="text"
+              [(ngModel)]="newUser.phone"
+              class="form-input"
+              placeholder="e.g. +91 98765 43210"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Designation / Title</label>
+            <input
+              type="text"
+              [(ngModel)]="newUser.designation"
+              class="form-input"
+              placeholder="e.g. Senior Property Advisor"
+            />
+          </div>
+        </div>
+
+        <!-- Role Selection (from Access Control) -->
+        <div class="form-group role-selection-group">
+          <div class="label-with-meta">
+            <label class="form-label">Access Control Role <span class="required">*</span></label>
+            <span class="role-count-info">{{ roles.length }} roles available</span>
+          </div>
+          <select [(ngModel)]="newUser.role" class="form-select role-picker-select">
+            <option *ngFor="let r of roles" [value]="r">
+              {{ r }} ({{ getRoleBadge(r) }})
+            </option>
+          </select>
+        </div>
+
+        <!-- LIVE ACCESS CONTROL PREVIEW CARD -->
+        <div class="access-preview-card" [style.borderLeftColor]="newUserRoleSummary.meta.color">
+          <div class="preview-header">
+            <div class="preview-role-tag">
+              <span class="preview-role-name">{{ newUserRoleSummary.meta.name }}</span>
+              <span
+                class="preview-badge"
+                [style.backgroundColor]="newUserRoleSummary.meta.color + '20'"
+                [style.color]="newUserRoleSummary.meta.color"
+              >
+                {{ newUserRoleSummary.meta.badge }}
+              </span>
+            </div>
+            <span class="preview-rule">Enforced by Access Control Matrix</span>
+          </div>
+
+          <p class="preview-description">{{ newUserRoleSummary.meta.description }}</p>
+
+          <div class="preview-details">
+            <div class="preview-detail-item">
+              <span class="preview-detail-label">Permitted Modules ({{ newUserRoleSummary.grantedModules.length }}):</span>
+              <div class="module-chips-list">
+                <span class="module-chip" *ngFor="let m of newUserRoleSummary.grantedModules.slice(0, 7)">
+                  {{ m }}
+                </span>
+                <span class="module-chip more" *ngIf="newUserRoleSummary.grantedModules.length > 7">
+                  +{{ newUserRoleSummary.grantedModules.length - 7 }} more
+                </span>
+              </div>
+            </div>
+
+            <div class="preview-detail-item">
+              <span class="preview-detail-label">Active Capabilities:</span>
+              <div class="action-badges-list">
+                <span class="action-pill" *ngFor="let a of newUserRoleSummary.activeActions">
+                  {{ a }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="preview-footer-note">
+            💡 Permissions for <strong>{{ newUser.role }}</strong> are managed globally.
+            <a routerLink="/access-control" (click)="closeAddUserModal()" class="preview-link">
+              Customize permissions in Access Control →
+            </a>
+          </div>
+        </div>
+
+        <!-- Password and Active State -->
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">Initial Password</label>
+            <input
+              type="text"
+              [(ngModel)]="newUser.password"
+              class="form-input font-mono"
+              placeholder="Default: Contech@2026"
+            />
+            <span class="field-hint">User will be prompted to change on first login</span>
+          </div>
+          <div class="form-group checkbox-group">
+            <label class="checkbox-container">
+              <input type="checkbox" [(ngModel)]="newUser.is_active" />
+              <span class="checkbox-label">
+                <strong>Active Account</strong>
+                <span class="checkbox-desc">User can immediately authenticate and access authorized modules</span>
+              </span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-cancel" (click)="closeAddUserModal()">Cancel</button>
+        <button type="button" class="btn-modal-submit" (click)="submitAddUser()" [disabled]="isSubmitting">
+          <span *ngIf="!isSubmitting">Create &amp; Provision User</span>
+          <span *ngIf="isSubmitting">Provisioning...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: EDIT USER DETAILS & ACCESS CONTROL ROLE -->
+  <!-- ============================================== -->
+  <div *ngIf="showEditUserModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <div class="modal-supertitle">USER CONFIGURATION</div>
+          <h2 class="modal-title">Edit User Profile</h2>
+          <p class="modal-subtitle">Update identity, designation, and assigned Access Control role profile.</p>
+        </div>
+        <button type="button" class="btn-close-modal" (click)="closeEditUserModal()">&times;</button>
+      </div>
+
+      <div class="modal-body" *ngIf="editingUser">
+        <div *ngIf="editUserError" class="modal-error-alert">{{ editUserError }}</div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">Full Name <span class="required">*</span></label>
+            <input type="text" [(ngModel)]="editingUser.name" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Work Email <span class="required">*</span></label>
+            <input type="email" [(ngModel)]="editingUser.email" class="form-input" />
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            <input type="text" [(ngModel)]="editingUser.phone" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Designation</label>
+            <input type="text" [(ngModel)]="editingUser.designation" class="form-input" />
+          </div>
+        </div>
+
+        <div class="form-group role-selection-group">
+          <label class="form-label">Assigned Access Control Role</label>
+          <select [(ngModel)]="editingUser.role" class="form-select role-picker-select">
+            <option *ngFor="let r of roles" [value]="r">{{ r }} ({{ getRoleBadge(r) }})</option>
+          </select>
+        </div>
+
+        <!-- Role Preview for editing user -->
+        <div class="access-preview-card" *ngIf="editingUserRoleSummary" [style.borderLeftColor]="editingUserRoleSummary.meta.color">
+          <div class="preview-header">
+            <div class="preview-role-tag">
+              <span class="preview-role-name">{{ editingUserRoleSummary.meta.name }}</span>
+              <span class="preview-badge" [style.backgroundColor]="editingUserRoleSummary.meta.color + '20'" [style.color]="editingUserRoleSummary.meta.color">
+                {{ editingUserRoleSummary.meta.badge }}
+              </span>
+            </div>
+            <span class="preview-rule">Live Access Control Enforcement</span>
+          </div>
+          <p class="preview-description">{{ editingUserRoleSummary.meta.description }}</p>
+        </div>
+
+        <div class="form-group checkbox-group">
+          <label class="checkbox-container">
+            <input type="checkbox" [checked]="editingUser.status === 'active'" (change)="editingUser.status = editingUser.status === 'active' ? 'inactive' : 'active'" />
+            <span class="checkbox-label">
+              <strong>Account Active</strong>
+              <span class="checkbox-desc">Enable or suspend system access for this user</span>
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-cancel" (click)="closeEditUserModal()">Cancel</button>
+        <button type="button" class="btn-modal-submit" (click)="submitEditUser()" [disabled]="isEditing">
+          <span *ngIf="!isEditing">Save Changes</span>
+          <span *ngIf="isEditing">Saving...</span>
+        </button>
+      </div>
     </div>
   </div>
 </div>

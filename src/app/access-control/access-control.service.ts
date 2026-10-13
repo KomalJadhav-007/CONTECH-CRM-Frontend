@@ -153,6 +153,7 @@ export class AccessControlService {
 
   constructor() {
     this.loadInitialPermissions();
+    this.fetchUserCounts();
   }
 
   getDefaultPermissions(): PermissionMatrix {
@@ -402,6 +403,86 @@ export class AccessControlService {
     this.permissionsSubject.next(defaults);
     localStorage.setItem(this.storageKey, JSON.stringify(defaults));
     return defaults;
+  }
+
+  updateRoleUserCounts(counts: { [role: string]: number }): void {
+    // Reset all counts first
+    for (const role of this.roles) {
+      if (this.roleMetadata[role]) {
+        this.roleMetadata[role].usersCount = 0;
+      }
+    }
+    for (const [role, count] of Object.entries(counts)) {
+      if (this.roleMetadata[role]) {
+        this.roleMetadata[role].usersCount = count;
+      }
+    }
+  }
+
+  fetchUserCounts(): void {
+    this.http.get<any>('http://localhost:5000/api/users').pipe(
+      catchError(() => of({ success: false, users: [] }))
+    ).subscribe(res => {
+      if (res && res.success && res.users) {
+        const counts: { [role: string]: number } = {};
+        for (const u of res.users) {
+          const rName = this.normalizeRoleName(u.role ? (u.role.name || u.role.code) : '');
+          if (rName) {
+            counts[rName] = (counts[rName] || 0) + 1;
+          }
+        }
+        this.updateRoleUserCounts(counts);
+      }
+    });
+  }
+
+  normalizeRoleName(nameOrCode: string): string {
+    if (!nameOrCode) return 'Account Executive';
+    const upper = nameOrCode.toUpperCase();
+    if (upper === 'ADMIN' || upper.includes('ADMINISTRATOR') || upper === 'ORG ADMIN') return 'Org Admin';
+    if (upper === 'DIRECTOR' || upper.includes('MANAGING DIRECTOR') || upper === 'SALES HEAD') return 'Sales Head';
+    if (upper === 'SALES_MANAGER' || upper.includes('SALES MANAGER')) return 'Sales Manager';
+    if (upper === 'SALES_REP' || upper.includes('SALES REPRESENTATIVE') || upper === 'ACCOUNT EXECUTIVE') return 'Account Executive';
+    if (upper === 'COORDINATOR' || upper.includes('LOGISTICS') || upper === 'SITE VISIT COORDINATOR') return 'Site Visit Coordinator';
+    if (upper === 'DRIVER') return 'Driver';
+    if (upper === 'VIEWER' || upper === 'EXECUTIVE VIEWER') return 'Executive Viewer';
+    const found = this.roles.find(r => r.toLowerCase() === nameOrCode.toLowerCase());
+    return found || nameOrCode;
+  }
+
+  getRoleSummary(role: string): { meta: RoleMeta; grantedModules: string[]; activeActions: string[] } {
+    const meta = this.roleMetadata[role] || {
+      name: role,
+      badge: 'Custom',
+      color: '#0284c7',
+      description: 'Custom access profile.',
+      usersCount: 0
+    };
+
+    const matrix = this.getCurrentMatrix();
+    const rolePermissions = matrix[role] || {};
+    const grantedModules: string[] = [];
+    const activeActionsSet = new Set<string>();
+
+    for (const mod of this.modules) {
+      const perms = rolePermissions[mod];
+      if (perms) {
+        let hasAny = false;
+        for (const col of this.permissionColumns) {
+          if (perms[col]) {
+            hasAny = true;
+            activeActionsSet.add(col);
+          }
+        }
+        if (hasAny) grantedModules.push(mod);
+      }
+    }
+
+    return {
+      meta,
+      grantedModules,
+      activeActions: Array.from(activeActionsSet)
+    };
   }
 
   checkPermission(role: string, module: string, action: string): boolean {
