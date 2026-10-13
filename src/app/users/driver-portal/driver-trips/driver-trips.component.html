@@ -1,0 +1,125 @@
+<div class="page-wrapper driver-portal-wrapper">
+  <div class="driver-header">
+    <div class="driver-badge">🚗 DRIVER PORTAL</div>
+    <h1 class="driver-title">My Daily Site Visit Trips</h1>
+    <p class="driver-subtitle">Live passenger pickup coordinates &amp; one-touch journey tracking</p>
+  </div>
+
+  <div *ngIf="statusMessage" class="alert-success-banner">
+    ✅ {{ statusMessage }}
+  </div>
+
+  <div class="trips-list" *ngIf="trips.length > 0">
+    <mat-card *ngFor="let trip of trips" class="trip-card">
+      <mat-card-header class="trip-top-bar">
+        <span class="trip-time">⏰ {{ trip.siteVisit?.time_slot }}</span>
+        <span
+          class="badge"
+          [ngClass]="{
+            'badge-success': trip.trip_status === 'COMPLETED' || trip.trip_status === 'DROPPED_AT_SITE',
+            'badge-cyan': trip.trip_status === 'STARTED' || trip.trip_status === 'ARRIVED_PICKUP' || trip.trip_status === 'PASSENGER_ONBOARD',
+            'badge-warning': trip.trip_status === 'ASSIGNED'
+          }"
+        >
+          {{ trip.trip_status }}
+        </span>
+      </mat-card-header>
+
+      <mat-card-content>
+        <!-- Passenger Details -->
+        <div class="passenger-section">
+          <div class="passenger-name">👤 {{ trip.passenger_name }}</div>
+          <a [href]="'tel:' + trip.passenger_phone" class="phone-link">
+            📞 Call Passenger: {{ trip.passenger_phone }}
+          </a>
+        </div>
+
+        <!-- Route Timeline -->
+        <div class="route-box">
+          <div class="route-stop">
+            <div class="stop-dot pickup"></div>
+            <div>
+              <div class="stop-label">PICKUP LOCATION</div>
+              <div class="stop-address">{{ trip.pickup_address }}</div>
+            </div>
+          </div>
+
+          <div class="route-line"></div>
+
+          <div class="route-stop">
+            <div class="stop-dot drop"></div>
+            <div>
+              <div class="stop-label">DESTINATION SITE GALLERY</div>
+              <div class="stop-address">{{ trip.drop_address }}</div>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions class="journey-actions">
+        <button
+          mat-raised-button
+          color="primary"
+          *ngIf="trip.trip_status === 'ASSIGNED'"
+          class="btn-journey"
+          [disabled]="updatingId === trip.id"
+          (click)="updateStatus(trip, 'STARTED')"
+        >
+          🚀 Start Trip to Buyer Location
+        </button>
+
+        <button
+          mat-raised-button
+          color="primary"
+          *ngIf="trip.trip_status === 'STARTED'"
+          class="btn-journey"
+          [disabled]="updatingId === trip.id"
+          (click)="updateStatus(trip, 'ARRIVED_PICKUP')"
+        >
+          📍 Arrived at Buyer House
+        </button>
+
+        <button
+          mat-raised-button
+          color="primary"
+          *ngIf="trip.trip_status === 'ARRIVED_PICKUP'"
+          class="btn-journey"
+          [disabled]="updatingId === trip.id"
+          (click)="updateStatus(trip, 'PASSENGER_ONBOARD')"
+        >
+          👥 Passenger Onboard &amp; Heading to Site
+        </button>
+
+        <button
+          mat-raised-button
+          color="primary"
+          *ngIf="trip.trip_status === 'PASSENGER_ONBOARD'"
+          class="btn-journey"
+          [disabled]="updatingId === trip.id"
+          (click)="updateStatus(trip, 'DROPPED_AT_SITE')"
+        >
+          🏁 Dropped Buyer at Sales Gallery
+        </button>
+
+        <button
+          mat-stroked-button
+          *ngIf="trip.trip_status === 'DROPPED_AT_SITE'"
+          class="btn-journey"
+          [disabled]="updatingId === trip.id"
+          (click)="updateStatus(trip, 'COMPLETED')"
+        >
+          ✅ Complete Return Journey
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <mat-card *ngIf="trips.length === 0" class="empty-portal-card text-center">
+    <mat-card-content style="padding: 2rem 1rem;">
+      <div style="font-size: 2.75rem; margin-bottom: 0.75rem;">🎉</div>
+      <h2 class="empty-title">No Pending Trips Assigned</h2>
+      <p class="empty-subtitle">You are all caught up for today.</p>
+    </mat-card-content>
+  </mat-card>
+</div>
+

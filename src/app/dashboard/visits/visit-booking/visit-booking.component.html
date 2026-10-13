@@ -1,0 +1,136 @@
+<div class="booking-page-wrapper">
+  <!-- Top Bar / Header -->
+  <div class="booking-header">
+    <div class="header-titles">
+      <h1 class="page-title">Schedule Site Visit &amp; Cab Pickup</h1>
+      <p class="page-subtitle">
+        Capacity-enforced time slots with real-time driver allocation and automatic 4-way verification trigger
+      </p>
+    </div>
+    <div class="header-actions">
+      <a routerLink="/visits" class="btn-back">&larr; Back to Hub</a>
+    </div>
+  </div>
+
+  <!-- Form Card -->
+  <div class="booking-card">
+    <form (ngSubmit)="onSubmit()">
+      <div *ngIf="errorMessage" class="error-alert">
+        {{ errorMessage }}
+      </div>
+
+      <!-- Section 1: Buyer & Project Selection -->
+      <div class="form-section">
+        <div class="section-heading">1. BUYER &amp; PROJECT SELECTION</div>
+        <div class="form-grid-2">
+          <div class="form-field">
+            <label class="field-label">SELECT REGISTERED BUYER</label>
+            <select class="custom-select" [(ngModel)]="bookingData.buyer_id" name="buyer_id">
+              <option *ngFor="let b of buyers" [ngValue]="b.id">
+                {{ b.full_name }} ({{ b.phone }}) &mdash; {{ b.preferred_bhk }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label class="field-label">DESTINATION PROPERTY EXPERIENCE CENTRE</label>
+            <select class="custom-select" [(ngModel)]="bookingData.project_id" name="project_id">
+              <option [ngValue]="1">Contech Crown Heights (Whitefield)</option>
+              <option [ngValue]="2">Contech Skyline Elegance (Indiranagar)</option>
+              <option [ngValue]="3">Contech Greenfield Sanctuary (Sarjapur)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Date, Time Slot & Capacity Check -->
+      <div class="form-section">
+        <div class="section-heading">2. DATE, TIME SLOT &amp; CAPACITY CHECK</div>
+        <div class="form-grid-3">
+          <div class="form-field">
+            <label class="field-label">VISIT DATE</label>
+            <input
+              type="date"
+              class="custom-input"
+              [(ngModel)]="bookingData.scheduled_date"
+              name="scheduled_date"
+              required
+            />
+          </div>
+
+          <div class="form-field">
+            <label class="field-label">AVAILABLE TIME SLOT</label>
+            <select class="custom-select" [(ngModel)]="bookingData.time_slot" name="time_slot">
+              <option value="09:30 AM - 11:00 AM (Morning Slot)">09:30 AM - 11:00 AM (Morning Slot)</option>
+              <option value="11:00 AM - 12:30 PM (Peak Slot)">11:00 AM - 12:30 PM (Peak Slot)</option>
+              <option value="02:00 PM - 03:30 PM (Afternoon Slot)">02:00 PM - 03:30 PM (Afternoon Slot)</option>
+              <option value="04:00 PM - 05:30 PM (Evening Sunset Slot)">04:00 PM - 05:30 PM (Evening Sunset Slot)</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label class="field-label">ASSIGNED SALES EXECUTIVE</label>
+            <select class="custom-select" [(ngModel)]="bookingData.sales_rep_id" name="sales_rep_id">
+              <option [ngValue]="3">Amit Verma (Senior Sales Rep)</option>
+              <option [ngValue]="2">Priya Nair (Sales Manager)</option>
+              <option [ngValue]="4">Sneha Joshi (Sales Associate)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: Luxury Cab Pickup Logistics -->
+      <div class="form-section">
+        <div class="section-heading">3. LUXURY CAB PICKUP LOGISTICS</div>
+        <div class="form-grid-2">
+          <div class="form-field">
+            <label class="field-label">CAB PICKUP REQUIRED?</label>
+            <select class="custom-select" [(ngModel)]="bookingData.cab_required" name="cab_required">
+              <option [ngValue]="true">Yes, Dispatch Company Vehicle</option>
+              <option [ngValue]="false">No, Buyer Will Drive Directly</option>
+            </select>
+          </div>
+
+          <div class="form-field" *ngIf="bookingData.cab_required">
+            <label class="field-label">ASSIGNED COMPANY DRIVER</label>
+            <select class="custom-select" [(ngModel)]="bookingData.driver_id" name="driver_id">
+              <option [ngValue]="5">Ramesh Gowda (Toyota Innova Crysta - KA-01-MJ-8822)</option>
+              <option [ngValue]="6">Suresh Kumar (Honda City - KA-03-AB-1234)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-field full-width" *ngIf="bookingData.cab_required">
+          <label class="field-label">BUYER PICKUP ADDRESS</label>
+          <input
+            type="text"
+            class="custom-input"
+            [(ngModel)]="bookingData.pickup_address"
+            name="pickup_address"
+            placeholder="Customer Residence / Office"
+          />
+        </div>
+
+        <div class="form-field full-width">
+          <label class="field-label">SPECIAL VISIT NOTES</label>
+          <textarea
+            class="custom-textarea"
+            rows="3"
+            [(ngModel)]="bookingData.notes"
+            name="notes"
+            placeholder="Confirm buyer preferred floor plan copies ready in sales lounge."
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- Submit / Actions -->
+      <div class="form-footer">
+        <a routerLink="/visits" class="btn-cancel">Cancel</a>
+        <button type="submit" [disabled]="loading" class="btn-submit">
+          <span *ngIf="!loading">Confirm Booking &amp; Trigger 4-Way Verification &rarr;</span>
+          <span *ngIf="loading">Scheduling...</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

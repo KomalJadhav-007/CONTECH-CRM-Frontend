@@ -1,67 +1,137 @@
 <aside class="sidebar-nav">
-  <div class="nav-group">
-    <span class="nav-label">COMMAND & CONTROL</span>
-    <ul class="nav-list">
-      <li>
-        <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
-          <span class="nav-icon">📊</span>
-          <span>Executive Dashboard</span>
-        </a>
-      </li>
-      <li *ngIf="hasRole(['DIRECTOR', 'SALES_MANAGER'])">
-        <a routerLink="/control-tower" routerLinkActive="active" class="nav-item">
-          <span class="nav-icon">🚨</span>
-          <span>Control Tower Radar</span>
-        </a>
-      </li>
-    </ul>
+  <div class="brand-box">
+    <div class="brand-title">CONTECH CRM</div>
+    <div class="brand-subtitle">Revenue Leakage &amp; Site Visit Intelligence</div>
   </div>
 
-  <div class="nav-group">
-    <span class="nav-label">SITE VISIT OPERATIONS</span>
-    <ul class="nav-list">
-      <li>
-        <a routerLink="/buyers" routerLinkActive="active" class="nav-item">
-          <span class="nav-icon">👥</span>
-          <span>Customer 360 Dossiers</span>
-        </a>
-      </li>
-      <li>
-        <a routerLink="/visits" routerLinkActive="active" class="nav-item">
-          <span class="nav-icon">🚗</span>
-          <span>Site Visit Hub</span>
-        </a>
-      </li>
-      <li>
-        <a routerLink="/tasks" routerLinkActive="active" class="nav-item">
-          <span class="nav-icon">⏱️</span>
-          <span>Follow-Up Reminders</span>
-        </a>
-      </li>
-      <li>
-        <a routerLink="/my-trips" routerLinkActive="active" class="nav-item">
-          <span class="nav-icon">📱</span>
-          <span>Driver Portal</span>
-        </a>
-      </li>
-    </ul>
+  <div class="sidebar-scroll">
+    <!-- INTELLIGENCE -->
+    <div class="nav-group">
+      <button type="button" class="nav-header-btn" (click)="toggleSection('intelligence')">
+        <span class="nav-label">INTELLIGENCE</span>
+        <span class="chevron" [class.rotated]="!isExpanded('intelligence')">&#9662;</span>
+      </button>
+      <ul class="nav-list" *ngIf="isExpanded('intelligence')">
+        <li>
+          <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-item">
+            <span>Command Center</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/control-tower" routerLinkActive="active" class="nav-item">
+            <span>Revenue Leakage</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/high-intent" routerLinkActive="active" class="nav-item">
+            <span>High-Intent Radar</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/analytics" routerLinkActive="active" class="nav-item">
+            <span>Analytics</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- PIPELINE -->
+    <div class="nav-group">
+      <button type="button" class="nav-header-btn" (click)="toggleSection('pipeline')">
+        <span class="nav-label">PIPELINE</span>
+        <span class="chevron" [class.rotated]="!isExpanded('pipeline')">&#9662;</span>
+      </button>
+      <ul class="nav-list" *ngIf="isExpanded('pipeline')">
+        <li>
+          <a routerLink="/buyers" routerLinkActive="active" class="nav-item">
+            <span>Prospects</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/tasks" routerLinkActive="active" class="nav-item">
+            <span>Follow-ups</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/control-tower" routerLinkActive="active" class="nav-item">
+            <span>Alerts</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- SITE VISIT OPS -->
+    <div class="nav-group">
+      <button type="button" class="nav-header-btn" (click)="toggleSection('siteVisitOps')">
+        <span class="nav-label">SITE VISIT OPS</span>
+        <span class="chevron" [class.rotated]="!isExpanded('siteVisitOps')">&#9662;</span>
+      </button>
+      <ul class="nav-list" *ngIf="isExpanded('siteVisitOps')">
+        <li>
+          <a routerLink="/visits" routerLinkActive="active" class="nav-item">
+            <span>Site Visits</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/control-tower" routerLinkActive="active" class="nav-item">
+            <span>Control Tower</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/my-trips" routerLinkActive="active" class="nav-item">
+            <span>My Trips</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- ADMINISTRATION -->
+    <div class="nav-group" *ngIf="hasRole(['DIRECTOR', 'ADMIN', 'SALES_MANAGER'])">
+      <button type="button" class="nav-header-btn" (click)="toggleSection('administration')">
+        <span class="nav-label">ADMINISTRATION</span>
+        <span class="chevron" [class.rotated]="!isExpanded('administration')">&#9662;</span>
+      </button>
+      <ul class="nav-list" *ngIf="isExpanded('administration')">
+        <li>
+          <a routerLink="/projects" routerLinkActive="active" class="nav-item">
+            <span>Projects</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/visits" routerLinkActive="active" class="nav-item">
+            <span>Fleet &amp; Drivers</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/team" routerLinkActive="active" class="nav-item">
+            <span>Team</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/access-control" routerLinkActive="active" class="nav-item">
+            <span>Access Control</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/settings" routerLinkActive="active" class="nav-item">
+            <span>Settings</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/audit-logs" routerLinkActive="active" class="nav-item">
+            <span>Audit Logs</span>
+          </a>
+        </li>
+      </ul>
+    </div>
   </div>
 
-  <div class="nav-group" *ngIf="hasRole(['DIRECTOR', 'ADMIN'])">
-    <span class="nav-label">ADMINISTRATION</span>
-    <ul class="nav-list">
-      <li>
-        <a routerLink="/users" routerLinkActive="active" class="nav-item">
-          <span class="nav-icon">🛡️</span>
-          <span>Sales & Crew Team</span>
-        </a>
-      </li>
-      <li>
-        <a routerLink="/settings" routerLinkActive="active" class="nav-item">
-          <span class="nav-icon">⚙️</span>
-          <span>Slot & Capacity Engine</span>
-        </a>
-      </li>
-    </ul>
+
+  <div class="sidebar-footer">
+    <div class="user-info" *ngIf="currentUser$ | async as user">
+      <div class="user-name">{{ user.name }}</div>
+      <div class="user-role">{{ user.role }}</div>
+    </div>
+    <button type="button" class="btn-logout" (click)="logout()">Sign Out</button>
   </div>
 </aside>

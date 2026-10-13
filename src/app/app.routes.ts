@@ -13,43 +13,73 @@ export const routes: Routes = [
     loadChildren: () => import('./dashboard/dashboard.routes').then(m => m.DASHBOARD_ROUTES)
   },
   {
+    path: 'analytics',
+    canActivate: [authGuard],
+    loadComponent: () => import('./dashboard/analytics/revenue-analytics.component').then(m => m.RevenueAnalyticsComponent)
+  },
+
+  {
+    path: 'high-intent',
+    canActivate: [authGuard],
+    loadComponent: () => import('./dashboard/high-intent/high-intent-radar.component').then(m => m.HighIntentRadarComponent)
+  },
+  {
     path: 'control-tower',
     canActivate: [authGuard, roleGuard],
     data: { roles: ['DIRECTOR', 'SALES_MANAGER', 'ADMIN'] },
-    loadChildren: () => import('./control-tower/control-tower.routes').then(m => m.CONTROL_TOWER_ROUTES)
+    loadChildren: () => import('./dashboard/control-tower/control-tower.routes').then(m => m.CONTROL_TOWER_ROUTES)
   },
   {
     path: 'buyers',
     canActivate: [authGuard],
-    loadChildren: () => import('./buyers/buyer.routes').then(m => m.BUYER_ROUTES)
+    loadChildren: () => import('./dashboard/buyers/buyer.routes').then(m => m.BUYER_ROUTES)
   },
   {
     path: 'visits',
     canActivate: [authGuard],
-    loadChildren: () => import('./visits/visit.routes').then(m => m.VISIT_ROUTES)
+    loadChildren: () => import('./dashboard/visits/visit.routes').then(m => m.VISIT_ROUTES)
   },
   {
     path: 'my-trips',
     canActivate: [authGuard],
-    loadChildren: () => import('./driver-portal/driver-trip.routes').then(m => m.DRIVER_TRIP_ROUTES)
+    loadChildren: () => import('./users/driver-portal/driver-trip.routes').then(m => m.DRIVER_TRIP_ROUTES)
   },
   {
     path: 'tasks',
     canActivate: [authGuard],
-    loadChildren: () => import('./tasks/task.routes').then(m => m.TASK_ROUTES)
+    loadChildren: () => import('./dashboard/tasks/task.routes').then(m => m.TASK_ROUTES)
+  },
+  {
+    path: 'projects',
+    canActivate: [authGuard],
+    loadComponent: () => import('./settings/projects/projects.component').then(m => m.ProjectsComponent)
+  },
+  {
+    path: 'team',
+    canActivate: [authGuard],
+    loadComponent: () => import('./users/user-list/user-list.component').then(m => m.UserListComponent)
   },
   {
     path: 'users',
-    canActivate: [authGuard, roleGuard],
-    data: { roles: ['DIRECTOR', 'ADMIN'] },
-    loadChildren: () => import('./users/user.routes').then(m => m.USER_ROUTES)
+    canActivate: [authGuard],
+    loadComponent: () => import('./users/user-list/user-list.component').then(m => m.UserListComponent)
+  },
+  {
+    path: 'access-control',
+    canActivate: [authGuard],
+    loadChildren: () => import('./access-control/access-control.routes').then(m => m.ACCESS_CONTROL_ROUTES)
   },
   {
     path: 'settings',
-    canActivate: [authGuard, roleGuard],
-    data: { roles: ['DIRECTOR', 'ADMIN'] },
-    loadChildren: () => import('./settings/settings.routes').then(m => m.SETTING_ROUTES)
+    canActivate: [authGuard],
+    loadComponent: () => import('./settings/settings-view/settings-view.component').then(m => m.SettingsViewComponent)
   },
+  {
+    path: 'audit-logs',
+    canActivate: [authGuard],
+    loadComponent: () => import('./settings/audit-logs/audit-logs.component').then(m => m.AuditLogsComponent)
+  },
+
   {
     path: '',
     redirectTo: 'dashboard',

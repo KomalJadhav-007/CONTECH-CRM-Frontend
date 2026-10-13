@@ -1,0 +1,94 @@
+<div class="radar-page-wrapper">
+  <!-- Header -->
+  <div class="radar-header">
+    <div class="category-tag">INTELLIGENCE</div>
+    <h1 class="page-title">High-Intent Radar</h1>
+    <p class="page-subtitle">
+      Ranked by the Contech CRM Buyer Score. The top of this list is where revenue leaks fastest when nobody acts.
+    </p>
+  </div>
+
+  <!-- 4 Stat Cards -->
+  <div class="stats-grid-4">
+    <div class="stat-card very-high-card">
+      <div class="card-label">VERY HIGH INTENT</div>
+      <div class="card-value">{{ stats.very_high_intent }}</div>
+    </div>
+    <div class="stat-card unassigned-card">
+      <div class="card-label">UNASSIGNED HIGH INTENT</div>
+      <div class="card-value">{{ stats.unassigned_high_intent }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="card-label">SLA BREACHED</div>
+      <div class="card-value">{{ stats.sla_breached }}</div>
+    </div>
+    <div class="stat-card revenue-card">
+      <div class="card-label">REVENUE AT RISK (VERY HIGH)</div>
+      <div class="card-value">₹{{ stats.revenue_at_risk_cr }} Cr</div>
+    </div>
+  </div>
+
+  <!-- Filter Row -->
+  <div class="filter-row">
+    <select [(ngModel)]="selectedBand" class="filter-select">
+      <option value="all">All bands</option>
+      <option value="very_high">Very High Intent</option>
+      <option value="high">High Intent</option>
+    </select>
+
+    <select [(ngModel)]="selectedOwner" class="filter-select">
+      <option value="all">All owners</option>
+      <option *ngFor="let o of owners" [value]="o">{{ o }}</option>
+    </select>
+  </div>
+
+  <!-- Table Section -->
+  <div class="table-section-title">32 BUYERS</div>
+
+  <div class="table-card">
+    <div class="table-responsive">
+      <table class="radar-table">
+        <thead>
+          <tr>
+            <th>BUYER</th>
+            <th>SCORE</th>
+            <th>BUDGET</th>
+            <th>NEXT BEST ACTION</th>
+            <th>DUE</th>
+            <th>REVENUE AT RISK</th>
+            <th>OWNER</th>
+            <th class="text-right"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let b of filteredBuyers">
+            <td>
+              <div class="buyer-name">{{ b.name }}</div>
+              <div class="buyer-meta">{{ b.stage }} &middot; {{ b.source }}</div>
+            </td>
+            <td>
+              <div class="score-pill">
+                <span class="score-num">{{ b.score }}</span>
+                <span class="score-delta">&#9650; {{ b.delta }}</span>
+              </div>
+            </td>
+            <td class="budget-cell">{{ b.budget }}</td>
+            <td class="action-cell">{{ b.next_action }}</td>
+            <td>
+              <span class="due-badge">{{ b.due }}</span>
+            </td>
+            <td class="risk-cell">{{ b.at_risk }}</td>
+            <td>
+              <select [(ngModel)]="b.owner" (ngModelChange)="onOwnerChange()" class="owner-select">
+                <option *ngFor="let o of owners" [value]="o">{{ o }}</option>
+              </select>
+            </td>
+            <td class="text-right">
+              <button type="button" class="btn-open" (click)="openBuyer(b.id)">Open</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

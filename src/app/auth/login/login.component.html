@@ -1,59 +1,149 @@
-<div class="login-page-container">
-  <div class="login-card glass-card">
-    <div class="brand-header">
-      <div class="logo-mark">Contech CRM</div>
-      <h1 class="portal-title">Revenue Guardian & Site Visit Platform</h1>
-      <p class="portal-tagline">Real Estate Digital Command Center</p>
+<div class="auth-wrapper">
+  <!-- Left Side: Dark Hero Panel -->
+  <div class="auth-hero-panel">
+    <div class="hero-header">
+      <span class="hero-brand">CONTECH CRM</span>
     </div>
 
-    <!-- Quick Role Tester -->
-    <div class="role-selector-container">
-      <span class="selector-title">Select Demo Account:</span>
-      <div class="role-buttons">
-        <button type="button" class="role-chip" (click)="quickLogin('director')">Director</button>
-        <button type="button" class="role-chip" (click)="quickLogin('manager')">Manager</button>
-        <button type="button" class="role-chip" (click)="quickLogin('rep')">Sales Rep</button>
-        <button type="button" class="role-chip" (click)="quickLogin('driver')">Driver</button>
+    <div class="hero-content">
+      <h1 class="hero-title">
+        From Intent to Visit.<br />
+        From Visit to Revenue.
+      </h1>
+      <p class="hero-description">
+        AI-powered real estate revenue leakage and site visit intelligence.
+        Contech CRM scores buyer intent, protects every scheduled visit and
+        converts operational failure into recovered revenue.
+      </p>
+    </div>
+
+    <div class="hero-features">
+      <div class="feature-item">
+        <h4 class="feature-title">BUYER SCORE</h4>
+        <p class="feature-desc">Rules-based intent engine</p>
+      </div>
+      <div class="feature-item">
+        <h4 class="feature-title">LEAKAGE ENGINE</h4>
+        <p class="feature-desc">10 detection categories</p>
+      </div>
+      <div class="feature-item">
+        <h4 class="feature-title">VISIT CONTROL TOWER</h4>
+        <p class="feature-desc">Readiness before revenue</p>
       </div>
     </div>
+  </div>
 
-    <form (ngSubmit)="onSubmit()" class="login-form">
-      <div *ngIf="errorMessage" class="error-alert">
+  <!-- Right Side: Sign In Form Panel -->
+  <div class="auth-form-panel">
+    <div class="form-container">
+      <div class="form-header">
+        <h2 class="form-title">Sign in to Contech CRM</h2>
+        <p class="form-subtitle">Enterprise revenue intelligence for real estate sales teams.</p>
+      </div>
+
+      <!-- Explore Live Demo Button -->
+      <button type="button" class="btn-live-demo" (click)="exploreLiveDemo()">
+        <span class="demo-btn-main">Explore live demo — no signup</span>
+        <span class="demo-btn-sub">Signs you in instantly as an Org Admin at ABC Realty with full demo data.</span>
+      </button>
+
+      <!-- Tabs -->
+      <div class="auth-tabs">
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="activeTab === 'signin'"
+          (click)="activeTab = 'signin'"
+        >
+          Sign In
+        </button>
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="activeTab === 'signup'"
+          (click)="activeTab = 'signup'"
+        >
+          Create account
+        </button>
+      </div>
+
+      <div *ngIf="errorMessage" class="error-banner">
         {{ errorMessage }}
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Email Address</label>
-        <input
-          type="email"
-          name="email"
-          [(ngModel)]="email"
-          required
-          class="form-control"
-          placeholder="name@contechcrm.com"
-        />
-      </div>
+      <!-- Sign In Form -->
+      <form (ngSubmit)="onSubmit()" class="auth-form" *ngIf="activeTab === 'signin'">
+        <div class="form-field">
+          <label class="field-label">Work email</label>
+          <input
+            type="email"
+            name="email"
+            [(ngModel)]="email"
+            required
+            class="input-box"
+            placeholder="you@company.com"
+          />
+        </div>
 
-      <div class="form-group">
-        <label class="form-label">Password</label>
-        <input
-          type="password"
-          name="password"
-          [(ngModel)]="password"
-          required
-          class="form-control"
-          placeholder="••••••••"
-        />
-      </div>
+        <div class="form-field">
+          <div class="field-label-row">
+            <label class="field-label">Password</label>
+            <a href="javascript:void(0)" class="forgot-link">Forgot password?</a>
+          </div>
+          <input
+            type="password"
+            name="password"
+            [(ngModel)]="password"
+            required
+            class="input-box"
+            placeholder="••••••••"
+          />
+        </div>
 
-      <button
-        type="submit"
-        [disabled]="loading"
-        class="btn btn-primary btn-block submit-btn"
-      >
-        <span *ngIf="!loading">Secure Sign In &rarr;</span>
-        <span *ngIf="loading">Authenticating...</span>
-      </button>
-    </form>
+        <button type="submit" [disabled]="loading" class="btn-signin">
+          <span *ngIf="!loading">Sign in</span>
+          <span *ngIf="loading">Signing in...</span>
+        </button>
+
+        <button type="button" class="btn-google" (click)="exploreLiveDemo()">
+          Continue with Google
+        </button>
+      </form>
+
+      <!-- Create Account Form -->
+      <form (ngSubmit)="onSubmit()" class="auth-form" *ngIf="activeTab === 'signup'">
+        <div class="form-field">
+          <label class="field-label">Full Name</label>
+          <input type="text" class="input-box" placeholder="Your name" />
+        </div>
+        <div class="form-field">
+          <label class="field-label">Work email</label>
+          <input type="email" class="input-box" placeholder="you@company.com" />
+        </div>
+        <div class="form-field">
+          <label class="field-label">Password</label>
+          <input type="password" class="input-box" placeholder="Create password" />
+        </div>
+        <button type="submit" class="btn-signin">Create Account</button>
+      </form>
+
+      <!-- Demo Accounts Grid -->
+      <div class="demo-accounts-box">
+        <div class="demo-accounts-title">DEMO ACCOUNTS — ABC REALTY</div>
+        <div class="demo-accounts-grid">
+          <button
+            type="button"
+            *ngFor="let acc of demoAccounts"
+            class="demo-account-chip"
+            (click)="selectDemoAccount(acc)"
+          >
+            {{ acc.label }}
+          </button>
+        </div>
+        <div class="demo-password-hint">
+          Password for all demo accounts: <code>password123</code>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

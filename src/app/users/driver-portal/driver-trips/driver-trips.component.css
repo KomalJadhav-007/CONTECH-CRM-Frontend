@@ -23,11 +23,13 @@
 .driver-title {
   font-size: 1.5rem;
   font-weight: 800;
+  color: #0f172a;
 }
 
 .driver-subtitle {
-  color: var(--text-muted);
+  color: #64748b;
   font-size: 0.85rem;
+  margin-top: 0.25rem;
 }
 
 .alert-success-banner {
@@ -50,6 +52,10 @@
 
 .trip-card {
   padding: 1.5rem;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
 }
 
 .trip-top-bar {
@@ -137,10 +143,35 @@
 
 .journey-actions {
   margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .btn-journey {
   width: 100%;
-  padding: 0.85rem;
-  font-size: 0.95rem;
+  padding: 0.85rem !important;
+  font-size: 0.95rem !important;
 }
+
+/* Empty State Card */
+.empty-portal-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+  padding: 2.5rem 1rem !important;
+}
+
+.empty-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.empty-subtitle {
+  color: #64748b;
+  font-size: 0.875rem;
+  margin-top: 0.35rem;
+}
+

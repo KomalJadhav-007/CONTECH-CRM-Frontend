@@ -1,51 +1,97 @@
-<div class="page-wrapper">
-  <div class="page-header">
-    <div>
-      <h1 class="page-title">Platform & Slot Capacity Configuration</h1>
-      <p class="page-subtitle">Control Tower threshold limits, automated scoring toggles, and property gallery limits</p>
-    </div>
+<div class="settings-page-wrapper">
+  <!-- Top Header -->
+  <div class="settings-header">
+    <div class="section-tag">ADMINISTRATION</div>
+    <h1 class="page-title">Settings</h1>
+    <p class="page-subtitle">
+      Organisation profile, branding, and the scoring configuration behind every buyer score.
+    </p>
   </div>
 
-  <div *ngIf="savedMessage" class="alert-success-banner">
-    ✅ {{ savedMessage }}
+  <div *ngIf="savedMessage" class="success-banner">
+    {{ savedMessage }}
   </div>
 
-  <div class="content-grid-2">
-    <!-- Platform Settings -->
-    <div class="glass-card">
-      <h2 class="card-title">Revenue Guardian Engine Rules</h2>
-      <div class="settings-list">
-        <div *ngFor="let s of settings" class="setting-item">
-          <div>
-            <div class="setting-key">{{ s.key }}</div>
-            <div class="setting-desc">{{ s.description }}</div>
-          </div>
-          <div class="setting-control">
-            <input type="text" class="form-control" [(ngModel)]="s.value" (blur)="saveSetting(s)" />
-          </div>
+  <!-- Top Two Columns: Organisation & My Profile -->
+  <div class="two-col-grid">
+    <!-- ORGANISATION -->
+    <div class="card-box">
+      <div class="card-box-title">ORGANISATION</div>
+      <div class="org-fields-grid">
+        <div class="info-group">
+          <label class="info-label">NAME</label>
+          <div class="info-val">{{ org.name }}</div>
+        </div>
+        <div class="info-group">
+          <label class="info-label">SLUG</label>
+          <div class="info-val">{{ org.slug }}</div>
+        </div>
+        <div class="info-group">
+          <label class="info-label">YOUR EMAIL</label>
+          <div class="info-val">{{ org.email }}</div>
+        </div>
+        <div class="info-group">
+          <label class="info-label">ACCOUNT STATUS</label>
+          <div class="info-val status-val">{{ org.status }}</div>
         </div>
       </div>
     </div>
 
-    <!-- Properties and Capacity Limits (EC-01) -->
-    <div class="glass-card">
-      <h2 class="card-title">Project Site Gallery Capacity Limits</h2>
-      <p class="text-muted" style="margin-bottom: 1rem;">
-        Enforces maximum concurrent visitors per hour slot to prevent overcrowded lounges.
-      </p>
-
-      <div class="projects-capacity-list">
-        <div *ngFor="let p of projects" class="project-cap-card">
-          <div class="project-info">
-            <strong>{{ p.name }}</strong>
-            <div class="sub-text">{{ p.location }}</div>
+    <!-- MY PROFILE -->
+    <div class="card-box">
+      <div class="card-box-title">MY PROFILE</div>
+      <form (ngSubmit)="saveProfile()" class="profile-form">
+        <div class="form-row-2">
+          <div class="form-field">
+            <label class="field-label">First name</label>
+            <input type="text" [(ngModel)]="profile.firstName" name="firstName" class="input-field" />
           </div>
-          <div class="capacity-tag">
-            <span>Max Slots / Hour:</span>
-            <strong>{{ p.max_slots_per_hour }} Visits</strong>
+          <div class="form-field">
+            <label class="field-label">Last name</label>
+            <input type="text" [(ngModel)]="profile.lastName" name="lastName" class="input-field" />
           </div>
         </div>
+        <div class="form-row-2">
+          <div class="form-field">
+            <label class="field-label">Mobile</label>
+            <input type="text" [(ngModel)]="profile.mobile" name="mobile" class="input-field" />
+          </div>
+          <div class="form-field">
+            <label class="field-label">Designation</label>
+            <input type="text" [(ngModel)]="profile.designation" name="designation" class="input-field" />
+          </div>
+        </div>
+        <button type="submit" class="btn-dark-save">Save profile</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- SCORING CONFIGURATION -->
+  <div class="card-box scoring-card">
+    <div class="card-box-title">SCORING CONFIGURATION</div>
+    <div class="scoring-sub">Contech CRM Buyer Score v1 &mdash; Rules-Based Intelligence</div>
+
+    <div class="scoring-grid-4">
+      <div class="score-input-box">
+        <label class="score-label">PROFILE FIT</label>
+        <input type="number" [(ngModel)]="scoring.profileFit" class="score-input" />
+      </div>
+      <div class="score-input-box">
+        <label class="score-label">DIGITAL INTENT</label>
+        <input type="number" [(ngModel)]="scoring.digitalIntent" class="score-input" />
+      </div>
+      <div class="score-input-box">
+        <label class="score-label">REQUIREMENT BUDGET FIT</label>
+        <input type="number" [(ngModel)]="scoring.requirementBudgetFit" class="score-input" />
+      </div>
+      <div class="score-input-box">
+        <label class="score-label">READINESS MOMENTUM</label>
+        <input type="number" [(ngModel)]="scoring.readinessMomentum" class="score-input" />
       </div>
     </div>
+
+    <p class="scoring-footnote">
+      Weights are versioned with the engine so historic scores remain explainable. A future ML model can replace the rules without changing any screen.
+    </p>
   </div>
 </div>

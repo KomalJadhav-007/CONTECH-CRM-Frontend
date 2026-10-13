@@ -1,0 +1,114 @@
+<div class="prospects-page-wrapper">
+  <!-- Header -->
+  <div class="page-title-row">
+    <div>
+      <div class="section-tag">PIPELINE</div>
+      <h1 class="page-title">Prospects</h1>
+      <p class="page-subtitle">
+        Buyer records enriched with the Contech CRM Buyer Score, next best action and estimated revenue at risk.
+      </p>
+    </div>
+    <div class="top-actions">
+      <button type="button" class="btn-export" (click)="exportCSV()">Export CSV</button>
+      <button type="button" class="btn-new" routerLink="/buyers/new">+ New prospect</button>
+    </div>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="filters-bar">
+    <input
+      type="text"
+      [(ngModel)]="searchQuery"
+      class="filter-search-input"
+      placeholder="Search name, mobile or email"
+    />
+
+    <select [(ngModel)]="selectedStage" class="filter-dropdown">
+      <option value="all">All stages</option>
+      <option value="Qualified">Qualified</option>
+      <option value="High Intent">High Intent</option>
+      <option value="Booking Intent">Booking Intent</option>
+      <option value="Site Visit Scheduled">Site Visit Scheduled</option>
+      <option value="Negotiation">Negotiation</option>
+      <option value="Visit Completed">Visit Completed</option>
+    </select>
+
+    <select [(ngModel)]="selectedSource" class="filter-dropdown">
+      <option value="all">All sources</option>
+      <option value="SimpliQualify">SimpliQualify</option>
+      <option value="Google Ads">Google Ads</option>
+      <option value="Referral">Referral</option>
+      <option value="Instagram">Instagram</option>
+      <option value="Website">Website</option>
+      <option value="Property Portal">Property Portal</option>
+      <option value="Meta Ads">Meta Ads</option>
+    </select>
+
+    <select [(ngModel)]="selectedIntentBand" class="filter-dropdown">
+      <option value="all">All intent bands</option>
+      <option value="very_high">Very High Intent</option>
+      <option value="high">High Intent</option>
+      <option value="qualified">Qualified</option>
+    </select>
+
+    <select [(ngModel)]="selectedOwner" class="filter-dropdown">
+      <option value="all">All owners</option>
+      <option value="Unassigned">Unassigned</option>
+      <option value="Sneha Joshi">Sneha Joshi</option>
+      <option value="Amit Kulkarni">Amit Kulkarni</option>
+      <option value="Kavya Rao">Kavya Rao</option>
+      <option value="Rohit Patil">Rohit Patil</option>
+      <option value="Nikhil Shinde">Nikhil Shinde</option>
+    </select>
+  </div>
+
+  <!-- Prospects Table -->
+  <div class="table-card">
+    <div class="table-responsive">
+      <table class="prospects-table">
+        <thead>
+          <tr>
+            <th>BUYER</th>
+            <th>SCORE</th>
+            <th>STAGE</th>
+            <th>REQUIREMENT</th>
+            <th>OWNER</th>
+            <th>NEXT BEST ACTION</th>
+            <th class="text-right">AT RISK</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of filteredProspects">
+            <td>
+              <div class="buyer-name">{{ p.name }}</div>
+              <div class="buyer-contact">{{ p.source }} &middot; {{ p.phone }}</div>
+            </td>
+            <td>
+              <div class="score-pill">
+                <span class="score-num">{{ p.score }}</span>
+                <span class="score-delta">&#9650; {{ p.delta }}</span>
+              </div>
+            </td>
+            <td>
+              <span class="stage-badge">{{ p.stage }}</span>
+            </td>
+            <td>
+              <div class="req-bhk">{{ p.bhk }}</div>
+              <div class="req-budget">{{ p.budget }}</div>
+            </td>
+            <td>
+              <span class="owner-pill" [class.unassigned]="p.owner === 'Unassigned'">
+                {{ p.owner }}
+              </span>
+            </td>
+            <td>
+              <div class="action-text">{{ p.next_action }}</div>
+              <div class="sla-text" *ngIf="p.sla_breached">SLA breached &middot; {{ p.sla_time }}</div>
+            </td>
+            <td class="text-right risk-value">{{ p.at_risk }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

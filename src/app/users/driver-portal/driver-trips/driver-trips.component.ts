@@ -2,15 +2,20 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatIconModule } from '@angular/material/icon';
 import { DriverTripService } from '../driver-trip.service';
 
 @Component({
   selector: 'app-driver-trips',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, MatCardModule, MatButtonModule, MatChipsModule, MatIconModule],
   templateUrl: './driver-trips.component.html',
   styleUrl: './driver-trips.component.css'
 })
+
 export class DriverTripsComponent implements OnInit {
   private tripService = inject(DriverTripService);
 

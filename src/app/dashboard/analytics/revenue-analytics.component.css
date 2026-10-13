@@ -1,0 +1,268 @@
+.analytics-wrapper {
+  padding: 2.25rem 2.5rem;
+  max-width: 1560px;
+  margin: 0 auto;
+  font-family: var(--font-main);
+  color: #0f172a;
+}
+
+/* Top Header */
+.analytics-header {
+  margin-bottom: 2rem;
+}
+
+.category-tag {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.page-title {
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.page-subtitle {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-top: 0.35rem;
+  line-height: 1.45;
+}
+
+/* 8 Metrics Cards Grid */
+.analytics-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.metric-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 1.15rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100px;
+}
+
+.metric-card.high-intent-card {
+  border-left: 3px solid #16a34a;
+}
+
+.metric-card.revenue-risk-card {
+  border-left: 3px solid #dc2626;
+}
+
+.card-top-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.card-main-value {
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0.35rem 0;
+  line-height: 1.2;
+}
+
+.card-sub-label {
+  font-size: 0.74rem;
+  color: #64748b;
+}
+
+/* Generic Section Card */
+.section-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.75rem;
+}
+
+.section-header {
+  margin-bottom: 1.25rem;
+}
+
+.section-title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #0f172a;
+  text-transform: uppercase;
+}
+
+.section-subtitle {
+  font-size: 0.74rem;
+  color: #64748b;
+  margin-top: 0.2rem;
+}
+
+/* Pipeline Funnel */
+.funnel-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.funnel-row {
+  display: grid;
+  grid-template-columns: 180px 1fr 40px 60px;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.funnel-label {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #475569;
+}
+
+.funnel-bar-area {
+  width: 100%;
+  height: 18px;
+  background: #f8fafc;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.funnel-bar {
+  height: 100%;
+  background: #0b1329;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.funnel-count {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0f172a;
+  text-align: right;
+}
+
+.funnel-dropoff {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #64748b;
+  text-align: right;
+}
+
+.funnel-dropoff.negative {
+  color: #ef4444;
+}
+
+/* Intent Band Distribution */
+.intent-bands-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+}
+
+.intent-band-item {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 80px;
+}
+
+.band-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.band-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-top: 0.35rem;
+}
+
+/* Split Tables */
+.tables-split-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.75rem;
+}
+
+.tables-split-grid .section-card {
+  margin-bottom: 0;
+}
+
+.table-scroll-wrap {
+  overflow-x: auto;
+}
+
+.analytics-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.analytics-table th {
+  text-align: left;
+  padding: 0.65rem 0.5rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #64748b;
+  border-bottom: 1px solid #e2e8f0;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.analytics-table td {
+  padding: 0.7rem 0.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #475569;
+}
+
+.analytics-table tbody tr:hover td {
+  background: #f8fafc;
+}
+
+.name-cell {
+  font-weight: 600;
+  color: #0f172a !important;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.font-medium {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+@media (max-width: 1200px) {
+  .analytics-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .tables-split-grid {
+    grid-template-columns: 1fr;
+  }
+  .intent-bands-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .funnel-row {
+    grid-template-columns: 140px 1fr 35px 55px;
+  }
+}

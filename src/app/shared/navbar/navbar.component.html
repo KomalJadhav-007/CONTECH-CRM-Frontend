@@ -1,23 +1,105 @@
 <header class="navbar-header">
-  <div class="brand-section">
-    <div class="brand-badge">Contech CRM</div>
-    <span class="brand-subtitle">Revenue Guardian</span>
+  <div class="tagline-section">
+    <span class="platform-tagline">FROM INTENT TO VISIT. FROM VISIT TO REVENUE.</span>
   </div>
 
-  <div class="actions-section" *ngIf="currentUser$ | async as user">
-    <div class="live-indicator">
-      <span class="pulse-dot"></span>
-      <span>Control Radar Active</span>
+  <div class="user-section">
+    <!-- Clickable User Profile Widget -->
+    <div
+      class="user-profile-widget"
+      (click)="toggleProfileDetails(); $event.stopPropagation()"
+      title="Click to view user profile details"
+      role="button"
+      tabindex="0"
+    >
+      <ng-container *ngIf="currentUser$ | async as user; else defaultUser">
+        <div class="user-meta">
+          <span class="user-name">{{ user.name || 'Rajesh Sharma' }}</span>
+          <span class="user-role">{{ user.role || 'DIRECTOR' }}</span>
+        </div>
+        <div class="user-avatar">{{ getInitials(user.name) }}</div>
+      </ng-container>
+
+      <ng-template #defaultUser>
+        <div class="user-meta">
+          <span class="user-name">Rajesh Sharma</span>
+          <span class="user-role">DIRECTOR</span>
+        </div>
+        <div class="user-avatar">RS</div>
+      </ng-template>
     </div>
 
-    <div class="user-profile-tag">
-      <div class="user-avatar">{{ user.name.charAt(0) }}</div>
-      <div class="user-info">
-        <span class="user-name">{{ user.name }}</span>
-        <span class="user-role badge badge-cyan">{{ user.role }}</span>
+    <button type="button" class="btn-signout" (click)="logout()">Sign out</button>
+
+    <!-- Profile Details Popover Modal -->
+    <div
+      class="profile-popover"
+      *ngIf="showProfileModal"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="popover-header">
+        <div class="popover-avatar">
+          <ng-container *ngIf="currentUser$ | async as user; else defaultAvatar">
+            {{ getInitials(user.name) }}
+          </ng-container>
+          <ng-template #defaultAvatar>RS</ng-template>
+        </div>
+        <div class="popover-user-main">
+          <ng-container *ngIf="currentUser$ | async as user; else defaultHeader">
+            <h3 class="popover-name">{{ getCleanName(user.name) }}</h3>
+            <div class="popover-role-badge">{{ user.role || 'DIRECTOR' }}</div>
+          </ng-container>
+          <ng-template #defaultHeader>
+            <h3 class="popover-name">Rajesh Sharma</h3>
+            <div class="popover-role-badge">DIRECTOR</div>
+          </ng-template>
+        </div>
+        <button type="button" class="btn-close-popover" (click)="closeProfileModal()" title="Close">&times;</button>
+      </div>
+
+      <div class="popover-body">
+        <div class="detail-row">
+          <span class="detail-label">Email</span>
+          <span class="detail-value">
+            <ng-container *ngIf="currentUser$ | async as user">{{ user.email || 'rajesh@contech.demo' }}</ng-container>
+          </span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Mobile</span>
+          <span class="detail-value">+91 98200 10001</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Organisation</span>
+          <span class="detail-value">ABC Realty &middot; Whitefield</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Access Level</span>
+          <span class="detail-value status-active">Full Director &amp; Executive Access</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Status</span>
+          <span class="detail-badge-active">Active</span>
+        </div>
+      </div>
+
+      <div class="popover-links">
+        <a routerLink="/settings" (click)="closeProfileModal()" class="popover-nav-item">
+          <span>⚙️ Organisation Settings</span>
+        </a>
+        <a routerLink="/access-control" (click)="closeProfileModal()" class="popover-nav-item">
+          <span>🛡️ Access Control &amp; Permissions</span>
+        </a>
+        <a routerLink="/team" (click)="closeProfileModal()" class="popover-nav-item">
+          <span>👥 Team &amp; Sales Users</span>
+        </a>
+        <a routerLink="/audit-logs" (click)="closeProfileModal()" class="popover-nav-item">
+          <span>📋 Security &amp; Audit Logs</span>
+        </a>
+      </div>
+
+      <div class="popover-footer">
+        <button type="button" class="btn-popover-logout" (click)="logout()">Sign Out of Platform</button>
       </div>
     </div>
-
-    <button class="btn btn-secondary btn-sm" (click)="logout()">Sign Out</button>
   </div>
 </header>

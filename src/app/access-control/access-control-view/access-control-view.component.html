@@ -1,0 +1,214 @@
+<div class="access-control-wrapper">
+  <!-- Top Page Header -->
+  <div class="access-header">
+    <div class="header-left">
+      <div class="section-tag">ADMINISTRATION &bull; SECURITY</div>
+      <h1 class="page-title">Access Control</h1>
+      <p class="page-subtitle">
+        Configure granular role-based permissions and access rights across all platform modules and operational workflows.
+      </p>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="btn-action-outline" (click)="exportMatrix()" title="Export JSON audit report">
+        <span>Export Matrix</span>
+      </button>
+      <button type="button" class="btn-action-outline" (click)="resetCurrentRole()" title="Reset role to default">
+        <span>Reset Defaults</span>
+      </button>
+      <button type="button" class="btn-action-primary" (click)="saveExplicitly()" [disabled]="isSaving">
+        <span *ngIf="!isSaving">Save Changes</span>
+        <span *ngIf="isSaving">Saving...</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Role Selection Navigation Tabs -->
+  <div class="role-tabs-bar">
+    <div class="role-tabs-list">
+      <button
+        type="button"
+        *ngFor="let r of roles"
+        class="role-tab-btn"
+        [class.active]="selectedRole === r"
+        (click)="selectRole(r)"
+      >
+        <span class="role-tab-name">{{ r }}</span>
+        <span class="role-tab-badge" *ngIf="roleMetadata[r]" [style.borderColor]="roleMetadata[r].color">{{ roleMetadata[r].badge }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Role Profile Overview Card -->
+  <div class="role-overview-card" [style.borderLeftColor]="currentRoleMeta.color">
+    <div class="role-overview-main">
+      <div class="role-badge-row">
+        <span class="role-title-text">{{ currentRoleMeta.name }}</span>
+        <span class="role-tag" [style.backgroundColor]="currentRoleMeta.color + '15'" [style.color]="currentRoleMeta.color">
+          {{ currentRoleMeta.badge }}
+        </span>
+        <span class="role-status-dot">Enforced in Real-Time</span>
+      </div>
+      <p class="role-description-text">{{ currentRoleMeta.description }}</p>
+    </div>
+    <div class="role-stats-grid">
+      <div class="stat-box">
+        <div class="stat-number">{{ getGrantedCount(selectedRole) }} / {{ getTotalPossible() }}</div>
+        <div class="stat-label">Active Permissions</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-number">{{ getCoveragePercent(selectedRole) }}%</div>
+        <div class="stat-label">Access Coverage</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-number">{{ currentRoleMeta.usersCount }}</div>
+        <div class="stat-label">Assigned Users</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Banner -->
+  <div *ngIf="notificationMessage" class="matrix-notification-banner" [ngClass]="'notification-' + notificationType">
+    <span class="notification-icon">
+      <ng-container [ngSwitch]="notificationType">
+        <span *ngSwitchCase="'success'">✓</span>
+        <span *ngSwitchCase="'warn'">⚠️</span>
+        <span *ngSwitchDefault>ℹ️</span>
+      </ng-container>
+    </span>
+    <span class="notification-text">{{ notificationMessage }}</span>
+  </div>
+
+  <!-- MAIN PERMISSION MATRIX CARD -->
+  <div class="card-box matrix-card">
+    <!-- Matrix Card Header (matches screenshot UI) -->
+    <div class="matrix-header">
+      <div class="matrix-title-area">
+        <div class="card-box-title">PERMISSION MATRIX</div>
+        <p class="matrix-sub">Changes apply immediately to every user with the role</p>
+      </div>
+
+      <div class="matrix-actions-right">
+        <div class="matrix-quick-btns">
+          <button type="button" class="btn-subtle" (click)="grantAllForRole()">Grant All</button>
+          <button type="button" class="btn-subtle" (click)="revokeAllForRole()">Revoke All</button>
+        </div>
+
+        <div class="matrix-role-selector">
+          <select [(ngModel)]="selectedRole" (ngModelChange)="onRoleChange()" class="role-select">
+            <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+          </select>
+        </div>
+
+        <!-- Clone from another role quick action -->
+        <div class="matrix-clone-group">
+          <select [(ngModel)]="cloneSourceRole" (ngModelChange)="clonePermissionsFrom(cloneSourceRole)" class="clone-select">
+            <option value="">Clone from...</option>
+            <option *ngFor="let r of roles" [value]="r" [disabled]="r === selectedRole">{{ r }}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter & Search Toolbar -->
+    <div class="matrix-toolbar">
+      <div class="toolbar-search">
+        <input
+          type="text"
+          [(ngModel)]="searchQuery"
+          placeholder="Filter modules (e.g. Prospects, Site Visits)..."
+          class="search-input"
+        />
+        <button *ngIf="searchQuery" (click)="searchQuery = ''" class="clear-search-btn">&times;</button>
+      </div>
+
+      <div class="category-pills">
+        <button
+          type="button"
+          *ngFor="let cat of categories"
+          class="cat-pill-btn"
+          [class.active]="selectedCategory === cat"
+          (click)="selectedCategory = cat"
+        >
+          {{ cat }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Matrix Table -->
+    <div class="table-responsive">
+      <table class="matrix-table" *ngIf="rolePermissions[selectedRole]">
+        <thead>
+          <tr>
+            <th class="module-col-header">
+              <span>MODULE</span>
+            </th>
+            <th *ngFor="let col of permissionColumns" class="text-center col-header-cell">
+              <div class="col-header-content">
+                <span class="col-name">{{ col }}</span>
+                <button
+                  type="button"
+                  class="col-toggle-btn"
+                  (click)="toggleColumn(col)"
+                  [title]="'Toggle all ' + col + ' permissions'"
+                >
+                  &#8693;
+                </button>
+              </div>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let mod of filteredModules" class="module-row">
+            <td class="module-name-cell">
+              <div class="module-title-wrap">
+                <span class="module-name">{{ mod }}</span>
+                <span class="module-cat-tag" *ngIf="moduleCategories[mod]">
+                  {{ moduleCategories[mod] }}
+                </span>
+                <button
+                  type="button"
+                  class="row-quick-toggle"
+                  (click)="toggleRow(mod)"
+                  [title]="'Toggle all permissions for ' + mod"
+                >
+                  {{ isAllGrantedForModule(mod) ? 'Revoke All' : 'Grant All' }}
+                </button>
+              </div>
+            </td>
+            <td *ngFor="let col of permissionColumns" class="text-center cell-checkbox">
+              <label class="checkbox-wrapper">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="rolePermissions[selectedRole][mod][col]"
+                  (ngModelChange)="togglePermission(mod, col)"
+                  class="matrix-checkbox"
+                  [attr.aria-label]="selectedRole + ' ' + mod + ' ' + col"
+                />
+              </label>
+            </td>
+          </tr>
+          <tr *ngIf="filteredModules.length === 0">
+            <td [attr.colspan]="permissionColumns.length + 1" class="empty-state-cell">
+              No modules match your search filter "<strong>{{ searchQuery }}</strong>"
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Permission Guide Footer -->
+    <div class="matrix-legend">
+      <div class="legend-title">PERMISSION GUIDE</div>
+      <div class="legend-grid">
+        <div class="legend-item"><strong>VIEW:</strong> Read data, dashboards, and view detail records.</div>
+        <div class="legend-item"><strong>CREATE:</strong> Register new prospects, bookings, and tasks.</div>
+        <div class="legend-item"><strong>EDIT:</strong> Modify existing records, update milestones, and edit notes.</div>
+        <div class="legend-item"><strong>DELETE:</strong> Soft-delete or archive records.</div>
+        <div class="legend-item"><strong>ASSIGN:</strong> Delegate leads, dispatch drivers, and assign tasks.</div>
+        <div class="legend-item"><strong>APPROVE:</strong> Authorize discounts, approvals, and stage changes.</div>
+        <div class="legend-item"><strong>EXPORT:</strong> Download spreadsheets, PDF brochures, and CSV exports.</div>
+        <div class="legend-item"><strong>CONFIGURE:</strong> Manage automation triggers, algorithms, and rules.</div>
+      </div>
+    </div>
+  </div>
+</div>

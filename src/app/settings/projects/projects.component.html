@@ -1,0 +1,126 @@
+<div class="admin-page-wrapper">
+  <!-- Top Header -->
+  <div class="admin-header">
+    <div class="section-tag">ADMINISTRATION</div>
+    <h1 class="page-title">Projects</h1>
+    <p class="page-subtitle">
+      The project master behind every prospect, slot and site visit. Capacity here caps how much intent you can convert.
+    </p>
+  </div>
+
+  <!-- 4 Stat Cards -->
+  <div class="stats-grid-4">
+    <div class="stat-card">
+      <div class="card-label">PROJECTS</div>
+      <div class="card-value">{{ stats.projects }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="card-label">ACTIVE</div>
+      <div class="card-value">{{ stats.active }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="card-label">DAILY VISIT CAPACITY</div>
+      <div class="card-value">{{ stats.daily_capacity }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="card-label">BOOKING VALUE</div>
+      <div class="card-value">₹{{ stats.booking_value }} Cr</div>
+    </div>
+  </div>
+
+  <!-- ADD PROJECT FORM -->
+  <div class="form-card">
+    <div class="form-card-title">ADD PROJECT</div>
+    <form (ngSubmit)="addProject()" class="project-form">
+      <div class="form-row-4">
+        <div class="form-field">
+          <label class="field-label">Name</label>
+          <input type="text" [(ngModel)]="newProject.name" name="name" required class="input-field" />
+        </div>
+        <div class="form-field">
+          <label class="field-label">Developer</label>
+          <input type="text" [(ngModel)]="newProject.developer" name="developer" class="input-field" />
+        </div>
+        <div class="form-field">
+          <label class="field-label">Location</label>
+          <input type="text" [(ngModel)]="newProject.location" name="location" class="input-field" />
+        </div>
+        <div class="form-field">
+          <label class="field-label">Address</label>
+          <input type="text" [(ngModel)]="newProject.address" name="address" class="input-field" />
+        </div>
+      </div>
+
+      <div class="form-row-4">
+        <div class="form-field">
+          <label class="field-label">Configurations (comma separated)</label>
+          <input type="text" [(ngModel)]="newProject.configurations" name="configurations" class="input-field" placeholder="2 BHK, 3 BHK" />
+        </div>
+        <div class="form-field">
+          <label class="field-label">Daily visit capacity</label>
+          <input type="number" [(ngModel)]="newProject.daily_capacity" name="daily_capacity" class="input-field" />
+        </div>
+        <div class="form-field">
+          <label class="field-label">Working hours</label>
+          <input type="text" [(ngModel)]="newProject.working_hours" name="working_hours" class="input-field" placeholder="10:00 AM - 7:00 PM" />
+        </div>
+        <div class="form-field">
+          <label class="field-label">Status</label>
+          <select [(ngModel)]="newProject.status" name="status" class="input-field select-field">
+            <option value="active">active</option>
+            <option value="inactive">inactive</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-submit">Add project</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- PROJECT REGISTER TABLE -->
+  <div class="table-card">
+    <div class="table-card-title">PROJECT REGISTER</div>
+    <div class="table-responsive">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>PROJECT</th>
+            <th>LOCATION</th>
+            <th>CONFIGURATIONS</th>
+            <th class="text-right">CAPACITY/DAY</th>
+            <th class="text-right">ACTIVE PIPELINE</th>
+            <th class="text-right">UPCOMING VISITS</th>
+            <th class="text-right">BOOKINGS</th>
+            <th>STATUS</th>
+            <th class="text-right"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of projects">
+            <td>
+              <div class="proj-name">{{ p.name }}</div>
+              <div class="proj-dev">{{ p.developer }}</div>
+            </td>
+            <td>{{ p.location }}</td>
+            <td>{{ p.configurations }}</td>
+            <td class="text-right">{{ p.capacity_per_day }}</td>
+            <td class="text-right">{{ p.active_pipeline }}</td>
+            <td class="text-right">{{ p.upcoming_visits }}</td>
+            <td class="text-right">
+              <div>{{ p.bookings }}</div>
+              <div class="booking-val-sub" *ngIf="p.booking_value !== '₹0'">{{ p.booking_value }}</div>
+            </td>
+            <td>
+              <span class="status-pill active">{{ p.status }}</span>
+            </td>
+            <td class="text-right">
+              <button type="button" class="btn-edit">Edit</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

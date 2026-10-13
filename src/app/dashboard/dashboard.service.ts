@@ -12,4 +12,9 @@ export class DashboardService {
   getExecutiveStats(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/stats`);
   }
+
+  getRevenueAnalytics(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/analytics`);
+  }
 }
+

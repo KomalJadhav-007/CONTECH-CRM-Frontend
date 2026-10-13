@@ -1,90 +1,165 @@
-<div class="page-wrapper">
-  <div class="page-header">
-    <div>
-      <h1 class="page-title">Executive Revenue Command Center</h1>
-      <p class="page-subtitle">Real-time pipeline valuation, site visit velocity & revenue leakage protection</p>
+<div class="command-center-wrapper">
+  <!-- Top Header -->
+  <div class="command-header">
+    <div class="header-left">
+      <div class="brand-tag">CONTECH CRM</div>
+      <h1 class="page-title">Revenue Command Center</h1>
+      <p class="page-subtitle">
+        Contech CRM Buyer Score v1 — Rules-Based Intelligence. Every figure below is derived from live pipeline, visit and operational data for your access scope.
+      </p>
     </div>
-    <div class="header-actions">
-      <button class="btn btn-secondary" (click)="loadStats()">🔄 Refresh Live Data</button>
-      <a routerLink="/visits/book" class="btn btn-primary">+ Schedule Site Visit</a>
-    </div>
-  </div>
-
-  <!-- Key Metrics Row -->
-  <div class="metrics-grid">
-    <div class="glass-card metric-card">
-      <span class="metric-label">TOTAL ACTIVE PIPELINE</span>
-      <div class="metric-value">₹{{ stats.total_pipeline_cr }} <span class="unit">Cr</span></div>
-      <span class="metric-trend text-muted">{{ stats.total_buyers }} Registered Buyers in System</span>
-    </div>
-
-    <div class="glass-card metric-card cyan">
-      <span class="metric-label">HIGH-INTENT HOT BUYERS</span>
-      <div class="metric-value">{{ stats.high_intent_buyers }}</div>
-      <span class="metric-trend text-cyan">Urgent attention & <30-day closing potential</span>
-    </div>
-
-    <div class="glass-card metric-card emerald">
-      <span class="metric-label">BOOKED SALES VALUE</span>
-      <div class="metric-value">₹{{ stats.booked_revenue_cr }} <span class="unit">Cr</span></div>
-      <span class="metric-trend text-emerald">{{ stats.booked_deals }} Deals Closed Successfully</span>
-    </div>
-
-    <div class="glass-card metric-card danger">
-      <span class="metric-label">VISIT CONVERSION RATE</span>
-      <div class="metric-value">{{ stats.conversion_rate_percent }}%</div>
-      <span class="metric-trend text-amber">{{ stats.completed_site_visits }} Visits Completed</span>
+    <div class="header-right">
+      <a routerLink="/control-tower" class="btn-dark">Open Leakage Register</a>
+      <a routerLink="/visits/book" class="btn-outline">Schedule Visit</a>
     </div>
   </div>
 
-  <!-- Analytics & Visual Breakdown -->
-  <div class="content-grid-2">
-    <!-- Active Site Visits Radar -->
-    <div class="glass-card">
-      <div class="card-header">
-        <h2 class="card-title">Site Visit Execution Engine</h2>
-        <span class="badge badge-success">{{ stats.active_site_visits }} In Flight Today</span>
+  <!-- REVENUE SIGNALS HEADER -->
+  <div class="signals-header">
+    <span class="signals-title">REVENUE SIGNALS</span>
+    <span class="signals-subtitle">Estimated revenue at risk = property value × conversion probability</span>
+  </div>
+
+  <!-- 8 SIGNAL KPI CARDS GRID -->
+  <div class="signals-grid">
+    <!-- Card 1: Estimated Revenue at Risk -->
+    <a routerLink="/control-tower" class="signal-card at-risk-card interactive">
+      <div class="card-top-label">ESTIMATED REVENUE AT RISK</div>
+      <div class="card-main-value text-red">₹{{ stats.revenue_at_risk_cr }} Cr</div>
+      <div class="card-sub-label">{{ stats.open_leakage_items }} open leakage items</div>
+    </a>
+
+    <!-- Card 2: High-Intent Buyers -->
+    <a routerLink="/buyers" class="signal-card interactive">
+      <div class="card-top-label">HIGH-INTENT BUYERS</div>
+      <div class="card-main-value">{{ stats.high_intent_buyers }}</div>
+      <div class="card-sub-label">{{ stats.unassigned_high_intent }} unassigned</div>
+    </a>
+
+    <!-- Card 3: SLA Breaches -->
+    <a routerLink="/tasks" class="signal-card interactive">
+      <div class="card-top-label">SLA BREACHES</div>
+      <div class="card-main-value">{{ stats.sla_breaches }}</div>
+      <div class="card-sub-label">Next best action overdue</div>
+    </a>
+
+    <!-- Card 4: Visits at Risk -->
+    <a routerLink="/visits" class="signal-card interactive">
+      <div class="card-top-label">VISITS AT RISK</div>
+      <div class="card-main-value">{{ stats.visits_at_risk }}</div>
+      <div class="card-sub-label">{{ stats.scheduled_today }} visits scheduled today</div>
+    </a>
+
+    <!-- Card 5: Active Pipeline -->
+    <a routerLink="/buyers" class="signal-card interactive">
+      <div class="card-top-label">ACTIVE PIPELINE</div>
+      <div class="card-main-value">{{ stats.active_pipeline }}</div>
+      <div class="card-sub-label">Prospects in your scope</div>
+    </a>
+
+    <!-- Card 6: Open Alerts -->
+    <a routerLink="/control-tower" class="signal-card interactive">
+      <div class="card-top-label">OPEN ALERTS</div>
+      <div class="card-main-value">{{ stats.open_alerts }}</div>
+      <div class="card-sub-label">Awaiting acknowledgement</div>
+    </a>
+
+    <!-- Card 7: My Open Follow-Ups -->
+    <a routerLink="/tasks" class="signal-card interactive">
+      <div class="card-top-label">MY OPEN FOLLOW-UPS</div>
+      <div class="card-main-value">{{ stats.open_follow_ups }}</div>
+      <div class="card-sub-label">{{ stats.overdue_follow_ups }} overdue</div>
+    </a>
+
+    <!-- Card 8: Pipeline Value -->
+    <a routerLink="/analytics" class="signal-card interactive">
+      <div class="card-top-label">PIPELINE VALUE</div>
+      <div class="card-main-value">₹{{ stats.pipeline_value_cr }} Cr</div>
+      <div class="card-sub-label">Sum of prospect property values</div>
+    </a>
+  </div>
+
+
+  <!-- BOTTOM TWO-COLUMN SECTION -->
+  <div class="bottom-split-grid">
+    <!-- Left Column: TOP REVENUE LEAKAGE -->
+    <div class="leakage-panel">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">TOP REVENUE LEAKAGE</h2>
+          <p class="panel-sub">Ranked by severity, then by estimated revenue at risk</p>
+        </div>
+        <a routerLink="/control-tower" class="view-all-link">View all</a>
       </div>
-      <div class="card-body">
-        <p class="text-muted" style="margin-bottom: 1.25rem;">
-          Contech CRM verifies all 4 stakeholders (Buyer, Sales Rep, Driver, Site Gallery) before dispatching luxury cabs to prevent expensive no-shows.
-        </p>
 
-        <div class="action-banner">
-          <div class="banner-icon">🎯</div>
-          <div class="banner-text">
-            <strong>4-Way Zero-Confusion Confirmation</strong>
-            <p>Every scheduled site visit is verified at T-24h and T-2h intervals with strict driver journey checkpoints.</p>
+      <div class="table-container">
+        <table class="leakage-table">
+          <thead>
+            <tr>
+              <th>BUYER</th>
+              <th>CATEGORY</th>
+              <th>REASON</th>
+              <th>AT RISK</th>
+              <th>SEVERITY</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of stats.top_revenue_leakage">
+              <td>
+                <div class="buyer-name">{{ item.buyer_name }}</div>
+                <div class="buyer-stage">{{ item.stage }}</div>
+              </td>
+              <td>
+                <span class="category-pill">{{ item.category }}</span>
+              </td>
+              <td class="reason-cell">{{ item.reason }}</td>
+              <td class="at-risk-cell">{{ item.at_risk }}</td>
+              <td>
+                <span class="severity-badge-critical">
+                  <span class="crit-dot"></span>
+                  {{ item.severity }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Right Column: TODAY'S VISITS + HIGH-INTENT RADAR -->
+    <div class="right-panel-stack">
+      <!-- TODAY'S VISITS -->
+      <div class="visit-panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">TODAY'S VISITS</h2>
+            <p class="panel-sub">{{ todayDateStr }}</p>
           </div>
-          <a routerLink="/visits" class="btn btn-secondary btn-sm">Open Visit Hub &rarr;</a>
+        </div>
+        <div class="empty-visits-box">
+          No visits scheduled today.
         </div>
       </div>
-    </div>
 
-    <!-- Objections & In-Visit Intelligence -->
-    <div class="glass-card">
-      <div class="card-header">
-        <h2 class="card-title">In-Visit Objection Radar</h2>
-        <span class="badge badge-warning">Live Field Feedback</span>
-      </div>
-      <div class="card-body">
-        <p class="text-muted" style="margin-bottom: 1rem;">
-          Aggregated reasons why buyers hesitate during site walkthroughs:
-        </p>
-
-        <div class="objections-list">
-          <div *ngFor="let objKey of getObjectionKeys()" class="objection-item">
-            <div class="obj-header">
-              <span class="obj-name">{{ objKey }}</span>
-              <span class="obj-count">{{ stats.objections_breakdown[objKey] }} Instances</span>
-            </div>
-            <div class="progress-bar-bg">
-              <div class="progress-bar-fill" [style.width.%]="(stats.objections_breakdown[objKey] / (stats.total_buyers || 1)) * 100"></div>
-            </div>
+      <!-- HIGH-INTENT RADAR -->
+      <div class="radar-panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">HIGH-INTENT RADAR</h2>
+            <p class="panel-sub">Score 71+ requires action inside SLA</p>
           </div>
+        </div>
 
-          <div *ngIf="getObjectionKeys().length === 0" class="text-muted text-center" style="padding: 2rem 0;">
-            No objections recorded yet. In-visit discovery data will appear here in real time.
+        <div class="radar-list">
+          <div class="radar-item" *ngFor="let buyer of stats.high_intent_radar">
+            <div class="radar-info">
+              <div class="radar-buyer-name">{{ buyer.buyer_name }}</div>
+              <div class="radar-action">{{ buyer.action }} &middot; {{ buyer.time_ago }}</div>
+            </div>
+            <div class="radar-score-pill">
+              <span class="score-num">{{ buyer.score }}</span>
+              <span class="score-delta">&#9650; {{ buyer.delta }}</span>
+            </div>
           </div>
         </div>
       </div>
