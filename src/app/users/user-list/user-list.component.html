@@ -34,6 +34,11 @@
     />
   </div>
 
+  <!-- Feedback Message Banner -->
+  <div *ngIf="feedbackMessage" class="feedback-banner">
+    {{ feedbackMessage }}
+  </div>
+
   <!-- Users Table -->
   <div class="table-card">
     <div class="table-responsive">
@@ -45,6 +50,7 @@
             <th>ROLE</th>
             <th>STATUS</th>
             <th>LAST LOGIN</th>
+            <th>ACTIONS</th>
           </tr>
         </thead>
         <tbody>
@@ -55,7 +61,7 @@
             </td>
             <td class="designation-cell">{{ u.designation }}</td>
             <td>
-              <select [(ngModel)]="u.role" class="role-select">
+              <select [(ngModel)]="u.role" (ngModelChange)="onRoleChange(u)" class="role-select">
                 <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
               </select>
             </td>
@@ -69,6 +75,16 @@
               </button>
             </td>
             <td class="last-login-cell">{{ u.last_login }}</td>
+            <td>
+              <button
+                type="button"
+                class="btn-delete-user"
+                (click)="deleteUser(u)"
+                title="Delete user from database"
+              >
+                Delete
+              </button>
+            </td>
           </tr>
         </tbody>
       </table>

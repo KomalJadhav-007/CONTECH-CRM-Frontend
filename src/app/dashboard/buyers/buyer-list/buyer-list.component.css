@@ -253,3 +253,129 @@
 .text-right {
   text-align: right;
 }
+
+.buyer-link {
+  color: #0f172a;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.buyer-link:hover {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.feedback-banner {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #166534;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.actions-cell {
+  white-space: nowrap;
+}
+
+.btn-action-edit {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+  font-size: 0.74rem;
+  font-weight: 500;
+  padding: 0.25rem 0.65rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-action-edit:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.btn-action-delete {
+  background: #ffffff;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  font-size: 0.74rem;
+  font-weight: 500;
+  padding: 0.25rem 0.65rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-left: 0.4rem;
+}
+
+.btn-action-delete:hover {
+  background: #fef2f2;
+  border-color: #f87171;
+}
+
+.btn-save-inline {
+  background: #0f172a;
+  border: 1px solid #0f172a;
+  color: #ffffff;
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 0.25rem 0.65rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-save-inline:hover {
+  background: #1e293b;
+}
+
+.btn-cancel-inline {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #64748b;
+  font-size: 0.74rem;
+  font-weight: 500;
+  padding: 0.25rem 0.65rem;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 0.4rem;
+}
+
+.inline-input {
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  color: #0f172a;
+  background: #ffffff;
+  outline: none;
+}
+
+.inline-input.sub-input {
+  margin-top: 0.25rem;
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.inline-input:focus {
+  border-color: #0f172a;
+}
+
+.inline-select {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  font-size: 0.76rem;
+  color: #0f172a;
+  background: #ffffff;
+  outline: none;
+}
+
+.editing-row {
+  background-color: #f8fafc;
+}

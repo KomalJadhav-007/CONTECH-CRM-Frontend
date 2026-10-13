@@ -16,4 +16,16 @@ export class SettingsService {
   updateSetting(key: string, value: string): Observable<any> {
     return this.http.put<any>(this.apiUrl, { key, value });
   }
+
+  createProject(data: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/projects`, data);
+  }
+
+  updateProject(id: number, data: any): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/projects/${id}`, data);
+  }
+
+  deleteProject(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/projects/${id}`);
+  }
 }

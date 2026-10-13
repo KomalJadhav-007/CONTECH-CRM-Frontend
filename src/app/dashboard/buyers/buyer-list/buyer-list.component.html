@@ -14,6 +14,11 @@
     </div>
   </div>
 
+  <!-- Feedback Message Banner -->
+  <div *ngIf="feedbackMessage" class="feedback-banner">
+    {{ feedbackMessage }}
+  </div>
+
   <!-- Filter Bar -->
   <div class="filters-bar">
     <input
@@ -75,37 +80,89 @@
             <th>OWNER</th>
             <th>NEXT BEST ACTION</th>
             <th class="text-right">AT RISK</th>
+            <th class="text-right">ACTIONS</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let p of filteredProspects">
-            <td>
-              <div class="buyer-name">{{ p.name }}</div>
-              <div class="buyer-contact">{{ p.source }} &middot; {{ p.phone }}</div>
-            </td>
-            <td>
-              <div class="score-pill">
-                <span class="score-num">{{ p.score }}</span>
-                <span class="score-delta">&#9650; {{ p.delta }}</span>
-              </div>
-            </td>
-            <td>
-              <span class="stage-badge">{{ p.stage }}</span>
-            </td>
-            <td>
-              <div class="req-bhk">{{ p.bhk }}</div>
-              <div class="req-budget">{{ p.budget }}</div>
-            </td>
-            <td>
-              <span class="owner-pill" [class.unassigned]="p.owner === 'Unassigned'">
-                {{ p.owner }}
-              </span>
-            </td>
-            <td>
-              <div class="action-text">{{ p.next_action }}</div>
-              <div class="sla-text" *ngIf="p.sla_breached">SLA breached &middot; {{ p.sla_time }}</div>
-            </td>
-            <td class="text-right risk-value">{{ p.at_risk }}</td>
+          <tr *ngFor="let p of filteredProspects" [class.editing-row]="editingBuyerId === p.id">
+            <!-- Normal Mode -->
+            <ng-container *ngIf="editingBuyerId !== p.id">
+              <td>
+                <div class="buyer-name">
+                  <a [routerLink]="['/buyers', p.id]" class="buyer-link">{{ p.name }}</a>
+                </div>
+                <div class="buyer-contact">{{ p.source }} &middot; {{ p.phone }}</div>
+              </td>
+              <td>
+                <div class="score-pill">
+                  <span class="score-num">{{ p.score }}</span>
+                  <span class="score-delta">&#9650; {{ p.delta }}</span>
+                </div>
+              </td>
+              <td>
+                <span class="stage-badge">{{ p.stage }}</span>
+              </td>
+              <td>
+                <div class="req-bhk">{{ p.bhk }}</div>
+                <div class="req-budget">{{ p.budget }}</div>
+              </td>
+              <td>
+                <span class="owner-pill" [class.unassigned]="p.owner === 'Unassigned'">
+                  {{ p.owner }}
+                </span>
+              </td>
+              <td>
+                <div class="action-text">{{ p.next_action }}</div>
+                <div class="sla-text" *ngIf="p.sla_breached">SLA breached &middot; {{ p.sla_time }}</div>
+              </td>
+              <td class="text-right risk-value">{{ p.at_risk }}</td>
+              <td class="text-right actions-cell">
+                <button type="button" class="btn-action-edit" (click)="startEdit(p)">Edit</button>
+                <button type="button" class="btn-action-delete" (click)="deleteBuyer(p)" title="Delete buyer from database">Delete</button>
+              </td>
+            </ng-container>
+
+            <!-- Edit Mode -->
+            <ng-container *ngIf="editingBuyerId === p.id">
+              <td>
+                <input type="text" [(ngModel)]="editForm.name" class="inline-input" placeholder="Full name" />
+                <input type="text" [(ngModel)]="editForm.phone" class="inline-input sub-input" placeholder="Phone" />
+              </td>
+              <td>
+                <div class="score-pill">
+                  <span class="score-num">{{ p.score }}</span>
+                </div>
+              </td>
+              <td>
+                <select [(ngModel)]="editForm.stage" class="inline-select">
+                  <option value="Qualified">Qualified</option>
+                  <option value="High Intent">High Intent</option>
+                  <option value="Booking Intent">Booking Intent</option>
+                  <option value="Site Visit Scheduled">Site Visit Scheduled</option>
+                  <option value="Negotiation">Negotiation</option>
+                  <option value="Visit Completed">Visit Completed</option>
+                </select>
+              </td>
+              <td>
+                <select [(ngModel)]="editForm.bhk" class="inline-select">
+                  <option value="1 BHK">1 BHK</option>
+                  <option value="2 BHK">2 BHK</option>
+                  <option value="3 BHK">3 BHK</option>
+                  <option value="4 BHK">4 BHK</option>
+                </select>
+              </td>
+              <td>
+                <span class="owner-pill">{{ p.owner }}</span>
+              </td>
+              <td>
+                <div class="action-text">{{ p.next_action }}</div>
+              </td>
+              <td class="text-right risk-value">{{ p.at_risk }}</td>
+              <td class="text-right actions-cell">
+                <button type="button" class="btn-save-inline" (click)="saveEdit(p)">Save</button>
+                <button type="button" class="btn-cancel-inline" (click)="cancelEdit()">Cancel</button>
+              </td>
+            </ng-container>
           </tr>
         </tbody>
       </table>

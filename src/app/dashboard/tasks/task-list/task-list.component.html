@@ -9,6 +9,11 @@
     </div>
   </div>
 
+  <!-- Feedback Banner -->
+  <div *ngIf="feedbackMessage" class="feedback-banner">
+    {{ feedbackMessage }}
+  </div>
+
   <div class="glass-card" style="margin-bottom: 1.5rem;">
     <div class="filters-bar">
       <span class="filter-title">Filter By Status:</span>
@@ -59,16 +64,21 @@
               </div>
             </td>
             <td>
-              <span
-                class="badge"
+              <select
+                [ngModel]="task.priority"
+                (ngModelChange)="updateTaskPriority(task, $event)"
+                class="priority-select"
                 [ngClass]="{
                   'badge-danger': task.priority === 'CRITICAL' || task.priority === 'URGENT',
                   'badge-warning': task.priority === 'HIGH',
                   'badge-cyan': task.priority === 'NORMAL'
                 }"
               >
-                {{ task.priority }}
-              </span>
+                <option value="CRITICAL">CRITICAL</option>
+                <option value="URGENT">URGENT</option>
+                <option value="HIGH">HIGH</option>
+                <option value="NORMAL">NORMAL</option>
+              </select>
             </td>
             <td>{{ task.assignedUser?.name || 'Unassigned' }}</td>
             <td>
@@ -76,13 +86,21 @@
                 {{ task.status }}
               </span>
             </td>
-            <td>
+            <td style="white-space: nowrap;">
               <button
                 *ngIf="task.status === 'PENDING'"
                 class="btn btn-primary btn-sm"
                 (click)="completeTask(task)"
               >
                 Mark Done &check;
+              </button>
+              <button
+                class="btn btn-danger-sm"
+                style="margin-left: 0.4rem;"
+                (click)="deleteTask(task)"
+                title="Delete task from database"
+              >
+                Delete
               </button>
             </td>
           </tr>

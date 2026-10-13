@@ -8,6 +8,11 @@
     </p>
   </div>
 
+  <!-- Feedback Message Banner -->
+  <div *ngIf="feedbackMessage" class="feedback-banner">
+    {{ feedbackMessage }}
+  </div>
+
   <!-- 4 Stat Cards -->
   <div class="stats-grid-4">
     <div class="stat-card">
@@ -98,26 +103,60 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let p of projects">
-            <td>
-              <div class="proj-name">{{ p.name }}</div>
-              <div class="proj-dev">{{ p.developer }}</div>
-            </td>
-            <td>{{ p.location }}</td>
-            <td>{{ p.configurations }}</td>
-            <td class="text-right">{{ p.capacity_per_day }}</td>
-            <td class="text-right">{{ p.active_pipeline }}</td>
-            <td class="text-right">{{ p.upcoming_visits }}</td>
-            <td class="text-right">
-              <div>{{ p.bookings }}</div>
-              <div class="booking-val-sub" *ngIf="p.booking_value !== '₹0'">{{ p.booking_value }}</div>
-            </td>
-            <td>
-              <span class="status-pill active">{{ p.status }}</span>
-            </td>
-            <td class="text-right">
-              <button type="button" class="btn-edit">Edit</button>
-            </td>
+          <tr *ngFor="let p of projects" [class.editing-row]="editingProjectId === p.id">
+            <!-- Normal Mode -->
+            <ng-container *ngIf="editingProjectId !== p.id">
+              <td>
+                <div class="proj-name">{{ p.name }}</div>
+                <div class="proj-dev">{{ p.developer }}</div>
+              </td>
+              <td>{{ p.location }}</td>
+              <td>{{ p.configurations }}</td>
+              <td class="text-right">{{ p.capacity_per_day }}</td>
+              <td class="text-right">{{ p.active_pipeline }}</td>
+              <td class="text-right">{{ p.upcoming_visits }}</td>
+              <td class="text-right">
+                <div>{{ p.bookings }}</div>
+                <div class="booking-val-sub" *ngIf="p.booking_value !== '₹0'">{{ p.booking_value }}</div>
+              </td>
+              <td>
+                <span class="status-pill" [class.active]="p.status === 'active'" [class.inactive]="p.status === 'inactive'">{{ p.status }}</span>
+              </td>
+              <td class="text-right action-cell">
+                <button type="button" class="btn-edit" (click)="startEdit(p)">Edit</button>
+                <button type="button" class="btn-delete" (click)="deleteProject(p)" title="Delete project from database">Delete</button>
+              </td>
+            </ng-container>
+
+            <!-- Edit Mode -->
+            <ng-container *ngIf="editingProjectId === p.id">
+              <td>
+                <input type="text" [(ngModel)]="editForm.name" class="inline-input" placeholder="Project name" />
+                <input type="text" [(ngModel)]="editForm.developer" class="inline-input sub-input" placeholder="Developer" />
+              </td>
+              <td>
+                <input type="text" [(ngModel)]="editForm.location" class="inline-input" placeholder="Location" />
+              </td>
+              <td>
+                <input type="text" [(ngModel)]="editForm.configurations" class="inline-input" placeholder="2 BHK, 3 BHK" />
+              </td>
+              <td class="text-right">
+                <input type="number" [(ngModel)]="editForm.daily_capacity" class="inline-input text-right" style="width: 70px;" />
+              </td>
+              <td class="text-right">{{ p.active_pipeline }}</td>
+              <td class="text-right">{{ p.upcoming_visits }}</td>
+              <td class="text-right">{{ p.bookings }}</td>
+              <td>
+                <select [(ngModel)]="editForm.status" class="inline-select">
+                  <option value="active">active</option>
+                  <option value="inactive">inactive</option>
+                </select>
+              </td>
+              <td class="text-right action-cell">
+                <button type="button" class="btn-save-inline" (click)="saveEdit(p)">Save</button>
+                <button type="button" class="btn-cancel-inline" (click)="cancelEdit()">Cancel</button>
+              </td>
+            </ng-container>
           </tr>
         </tbody>
       </table>

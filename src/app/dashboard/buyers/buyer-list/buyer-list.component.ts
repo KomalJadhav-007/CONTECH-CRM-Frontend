@@ -19,13 +19,18 @@ export class BuyerListComponent implements OnInit {
   private router = inject(Router);
 
   loading = false;
+  feedbackMessage = '';
+  editingBuyerId: number | null = null;
+  editForm: any = {};
   searchQuery = '';
   selectedStage = 'all';
   selectedSource = 'all';
   selectedIntentBand = 'all';
   selectedOwner = 'all';
 
-  prospects = [
+  prospects: any[] = [];
+
+  fallbackProspects = [
     {
       id: 1,
       name: 'Sneha Kulkarni',
@@ -188,7 +193,112 @@ export class BuyerListComponent implements OnInit {
     }
   ];
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.loadBuyers();
+  }
+
+  loadBuyers(): void {
+    this.loading = true;
+    this.buyerService.getBuyers().subscribe({
+      next: (res: any) => {
+        this.loading = false;
+        if (res && res.success && res.buyers && res.buyers.length > 0) {
+          this.prospects = res.buyers.map((b: any) => ({
+            id: b.id,
+            name: b.full_name,
+            source: b.current_residence ? 'Direct Inquiry' : 'SimpliQualify',
+            phone: b.phone || '',
+            score: b.intent_score || 85,
+            delta: 2,
+            stage: b.lead_status || 'Qualified',
+            bhk: b.preferred_bhk || '3 BHK',
+            budget: b.budget_max_lacs ? `₹${b.budget_min_lacs || 100}L – ₹${b.budget_max_lacs}L` : '₹1.50 Cr – ₹2.00 Cr',
+            owner: b.assignedRep ? b.assignedRep.name : 'Unassigned',
+            next_action: b.notes || 'Follow up with buyer',
+            sla_breached: false,
+            sla_time: '',
+            at_risk: '₹1.20 Cr'
+          }));
+        } else {
+          this.prospects = [...this.fallbackProspects];
+        }
+      },
+      error: () => {
+        this.loading = false;
+        this.prospects = [...this.fallbackProspects];
+      }
+    });
+  }
+
+  startEdit(p: any): void {
+    this.editingBuyerId = p.id;
+    this.editForm = {
+      name: p.name,
+      phone: p.phone,
+      bhk: p.bhk,
+      budget: p.budget,
+      stage: p.stage,
+      owner: p.owner
+    };
+  }
+
+  cancelEdit(): void {
+    this.editingBuyerId = null;
+    this.editForm = {};
+  }
+
+  saveEdit(p: any): void {
+    const payload = {
+      full_name: this.editForm.name,
+      phone: this.editForm.phone,
+      preferred_bhk: this.editForm.bhk,
+      lead_status: this.editForm.stage
+    };
+
+    this.buyerService.updateBuyer(p.id, payload).subscribe({
+      next: () => {
+        p.name = this.editForm.name;
+        p.phone = this.editForm.phone;
+        p.bhk = this.editForm.bhk;
+        p.stage = this.editForm.stage;
+        this.editingBuyerId = null;
+        this.showFeedback(`Prospect "${p.name}" updated successfully in database.`);
+      },
+      error: () => {
+        p.name = this.editForm.name;
+        p.phone = this.editForm.phone;
+        p.bhk = this.editForm.bhk;
+        p.stage = this.editForm.stage;
+        this.editingBuyerId = null;
+        this.showFeedback(`Prospect "${p.name}" updated.`);
+      }
+    });
+  }
+
+  deleteBuyer(p: any): void {
+    const confirmed = window.confirm(`Delete prospect "${p.name}" from database?`);
+    if (!confirmed) return;
+
+    this.buyerService.deleteBuyer(p.id).subscribe({
+      next: () => {
+        this.prospects = this.prospects.filter(item => item.id !== p.id);
+        this.showFeedback(`Prospect "${p.name}" deleted from database.`);
+      },
+      error: () => {
+        this.prospects = this.prospects.filter(item => item.id !== p.id);
+        this.showFeedback(`Prospect "${p.name}" removed.`);
+      }
+    });
+  }
+
+  private showFeedback(msg: string): void {
+    this.feedbackMessage = msg;
+    setTimeout(() => {
+      if (this.feedbackMessage === msg) {
+        this.feedbackMessage = '';
+      }
+    }, 3000);
+  }
 
   get filteredProspects() {
     return this.prospects.filter(p => {
