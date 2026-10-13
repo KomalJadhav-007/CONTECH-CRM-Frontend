@@ -28,4 +28,8 @@ export class SettingsService {
   deleteProject(id: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/projects/${id}`);
   }
+
+  getAuditLogs(params?: any): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/audit-logs`, { params });
+  }
 }
