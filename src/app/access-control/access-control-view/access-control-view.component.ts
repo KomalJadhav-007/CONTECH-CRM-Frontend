@@ -4,13 +4,32 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { AccessControlService, PermissionMatrix, RoleMeta } from '../access-control.service';
 
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatIconModule } from '@angular/material/icon';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatTooltipModule } from '@angular/material/tooltip';
+
 @Component({
   selector: 'app-access-control-view',
   standalone: true,
   imports: [
     CommonModule,
     FormsModule,
-    RouterModule
+    RouterModule,
+    MatCardModule,
+    MatButtonModule,
+    MatChipsModule,
+    MatIconModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatCheckboxModule,
+    MatTooltipModule
   ],
   templateUrl: './access-control-view.component.html',
   styleUrl: './access-control-view.component.css'

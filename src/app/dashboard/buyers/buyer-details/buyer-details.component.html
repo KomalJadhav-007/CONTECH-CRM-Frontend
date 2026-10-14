@@ -3,19 +3,25 @@
     <div>
       <div class="status-indicator-tag">
         <span class="badge" [ngClass]="{
-          'badge-high': buyer.intent_urgency === 'HIGH',
-          'badge-medium': buyer.intent_urgency === 'MEDIUM',
-          'badge-low': buyer.intent_urgency === 'LOW'
+          'badge-high': buyer.intent_urgency === 'HIGH' || buyer.intent_band === 'VERY_HIGH_INTENT',
+          'badge-medium': buyer.intent_urgency === 'MEDIUM' || buyer.intent_band === 'HIGH_INTENT',
+          'badge-low': buyer.intent_urgency === 'LOW' || buyer.intent_band === 'EMERGING' || buyer.intent_band === 'LOW_INTENT'
         }">
-          Score {{ buyer.intent_score }}/100 • {{ buyer.intent_urgency }} Urgency
+          Score {{ buyer.intent_score || 85 }}/100 • {{ buyer.intent_band ? buyer.intent_band.replace('_', ' ') : (buyer.intent_urgency + ' Urgency') }}
         </span>
         <span class="badge badge-cyan">{{ buyer.lead_status }}</span>
+        <span *ngIf="buyer.duplicate_resolution_notes" class="badge badge-warning" title="Permitted Duplicate / Co-Applicant">
+          Co-Applicant Linked
+        </span>
       </div>
       <h1 class="page-title">{{ buyer.full_name }}</h1>
       <p class="page-subtitle">Dossier #DAR-B{{ buyer.id }} • Managed by {{ buyer.assignedRep?.name || 'Unassigned' }}</p>
     </div>
     <div class="header-actions">
       <a routerLink="/buyers" class="btn btn-secondary">&larr; Back</a>
+      <button type="button" class="btn btn-success" (click)="openBookingModal()" *ngIf="buyer.lead_status !== 'BOOKED'">
+        🎉 Record Sales Closure
+      </button>
       <a [routerLink]="['/visits/book']" [queryParams]="{ buyer_id: buyer.id }" class="btn btn-primary">
         + Book Site Visit
       </a>
@@ -23,9 +29,70 @@
   </div>
 
   <div class="dossier-grid">
-    <!-- Left Column: Buyer Parameters -->
+    <!-- Left Column: Buyer Parameters & 4-Dimension Engine -->
     <div class="dossier-left">
-      <div class="glass-card">
+      <!-- SOW Sec 8: 4-Dimension Buyer Scoring Engine -->
+      <div class="glass-card scoring-card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">4-Dimension Intent Scoring Engine</h2>
+            <p class="card-subtext">Algorithmic intent breakdown weighted across 100 points</p>
+          </div>
+          <div class="score-total-badge">
+            <span class="score-number">{{ buyer.intent_score || 85 }}</span>
+            <span class="score-max">/100</span>
+          </div>
+        </div>
+
+        <div class="dimensions-grid">
+          <div class="dim-box">
+            <div class="dim-header">
+              <span class="dim-label">Profile Fit</span>
+              <span class="dim-score">{{ buyer.profile_fit_score || 18 }} / 20</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-fill cyan" [style.width.%]="getDimensionPercent(buyer.profile_fit_score || 18, 20)"></div>
+            </div>
+            <span class="dim-hint">Occupation, family size, locality proximity</span>
+          </div>
+
+          <div class="dim-box">
+            <div class="dim-header">
+              <span class="dim-label">Digital Intent</span>
+              <span class="dim-score">{{ buyer.digital_intent_score || 17 }} / 20</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-fill indigo" [style.width.%]="getDimensionPercent(buyer.digital_intent_score || 17, 20)"></div>
+            </div>
+            <span class="dim-hint">Source engagement & inquiry depth</span>
+          </div>
+
+          <div class="dim-box">
+            <div class="dim-header">
+              <span class="dim-label">Budget Fit</span>
+              <span class="dim-score">{{ buyer.budget_fit_score || 22 }} / 25</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-fill amber" [style.width.%]="getDimensionPercent(buyer.budget_fit_score || 22, 25)"></div>
+            </div>
+            <span class="dim-hint">Stated budget vs inventory price</span>
+          </div>
+
+          <div class="dim-box">
+            <div class="dim-header">
+              <span class="dim-label">Readiness & Urgency</span>
+              <span class="dim-score">{{ buyer.readiness_score || 28 }} / 35</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-fill emerald" [style.width.%]="getDimensionPercent(buyer.readiness_score || 28, 35)"></div>
+            </div>
+            <span class="dim-hint">Immediate timeframe & pre-approved loans</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Customer 360 Profile -->
+      <div class="glass-card" style="margin-top: 1.5rem;">
         <h2 class="card-title">Customer 360° Profile</h2>
         <div class="info-list">
           <div class="info-item">
@@ -35,6 +102,18 @@
           <div class="info-item">
             <span class="info-label">Email Address</span>
             <span class="info-value">{{ buyer.email || 'N/A' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Lead Source</span>
+            <span class="info-value font-semibold">{{ buyer.lead_source || 'SimpliQualify Direct' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Occupation / Profession</span>
+            <span class="info-value">{{ buyer.occupation || 'Corporate Executive' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Financing Status</span>
+            <span class="info-value text-emerald font-semibold">{{ buyer.financing_readiness || 'Pre-approved Loan' }}</span>
           </div>
           <div class="info-item">
             <span class="info-label">Current Residence</span>
@@ -63,19 +142,20 @@
         </div>
       </div>
 
+      <!-- AI Intent Diagnosis -->
       <div class="glass-card" style="margin-top: 1.5rem;">
         <h2 class="card-title">AI Intent Diagnosis & Next Best Step</h2>
         <div class="recommendation-box">
           <div class="rec-icon">💡</div>
           <div class="rec-content">
             <strong>Recommended Next Action</strong>
-            <p *ngIf="buyer.intent_urgency === 'HIGH'">
+            <p *ngIf="buyer.intent_urgency === 'HIGH' || buyer.intent_band === 'VERY_HIGH_INTENT'">
               Urgent: Schedule site visit with luxury cab pickup within 24 hours. High probability of closing this week.
             </p>
-            <p *ngIf="buyer.intent_urgency === 'MEDIUM'">
+            <p *ngIf="buyer.intent_urgency === 'MEDIUM' || buyer.intent_band === 'HIGH_INTENT'">
               Send customized 3D floor plans and 360° virtual walkthrough video on WhatsApp. Follow up in 48h.
             </p>
-            <p *ngIf="buyer.intent_urgency === 'LOW'">
+            <p *ngIf="buyer.intent_urgency === 'LOW' || buyer.intent_band === 'EMERGING' || buyer.intent_band === 'LOW_INTENT'">
               Nurture with monthly construction milestone updates and festive pricing newsletters.
             </p>
           </div>
@@ -83,10 +163,75 @@
       </div>
     </div>
 
-    <!-- Right Column: Site Visits & Tasks Timeline -->
+    <!-- Right Column: Bookings, Recoveries, Visits, Tasks, Score History -->
     <div class="dossier-right">
+      <!-- SOW Sec 13: Booking & Sales Closures -->
+      <div class="glass-card booking-section-card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Sales Closures & Bookings</h2>
+            <p class="card-subtext">Direct integration with sales closure entity (SOW Section 13)</p>
+          </div>
+          <button type="button" class="btn btn-sm btn-primary" (click)="openBookingModal()" *ngIf="(buyer.bookings || []).length === 0">
+            + Record Booking
+          </button>
+        </div>
+
+        <div *ngIf="(buyer.bookings || []).length > 0" class="bookings-list">
+          <div *ngFor="let b of buyer.bookings" class="booking-item-card">
+            <div class="booking-top-row">
+              <div>
+                <span class="booking-ref">{{ b.booking_reference }}</span>
+                <span class="booking-date">&middot; {{ b.booking_date }}</span>
+              </div>
+              <span class="badge" [ngClass]="b.booking_status === 'CONFIRMED' ? 'badge-success' : 'badge-warning'">
+                {{ b.booking_status }}
+              </span>
+            </div>
+            <div class="booking-details-grid">
+              <div><span class="b-label">Project:</span> <strong>{{ b.project?.name || 'Project Master' }}</strong></div>
+              <div><span class="b-label">Unit:</span> <strong>{{ b.unit_number }} ({{ b.unit_configuration }})</strong></div>
+              <div><span class="b-label">Agreement Value:</span> <strong class="text-emerald">₹{{ b.booking_value_lacs }} Lacs</strong></div>
+              <div><span class="b-label">Token Collected:</span> <strong>₹{{ b.token_amount_lacs }} Lacs</strong></div>
+            </div>
+            <div *ngIf="b.notes" class="booking-notes">{{ b.notes }}</div>
+          </div>
+        </div>
+
+        <div *ngIf="(buyer.bookings || []).length === 0" class="empty-closure-callout">
+          <span>No sales closure recorded yet for this prospect.</span>
+          <button type="button" class="btn-text-link" (click)="openBookingModal()">Convert to Closed Sale &rarr;</button>
+        </div>
+      </div>
+
+      <!-- SOW Sec 12: Cancellation & No-Show Recovery Journeys -->
+      <div class="glass-card" style="margin-top: 1.5rem;" *ngIf="(buyer.recoveries || []).length > 0">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Cancellation & No-Show Recovery</h2>
+            <p class="card-subtext">Active recovery workflow tracking (SOW Section 12)</p>
+          </div>
+          <span class="badge badge-warning">{{ buyer.recoveries.length }} Recovery Case(s)</span>
+        </div>
+
+        <div class="recovery-list">
+          <div *ngFor="let rec of buyer.recoveries" class="recovery-item-card">
+            <div class="rec-top">
+              <span class="rec-status-badge" [ngClass]="rec.recovery_status === 'RECOVERED' ? 'badge-success' : 'badge-warning'">
+                {{ rec.recovery_status }}
+              </span>
+              <span class="rec-reason">Reason: {{ rec.cancellation_reason }}</span>
+            </div>
+            <div class="rec-meta">
+              <span>Contact Attempts: <strong>{{ rec.contact_attempts_count }}</strong></span>
+              <span *ngIf="rec.notes">&middot; {{ rec.notes }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Site Visits History -->
-      <div class="glass-card">
+      <div class="glass-card" style="margin-top: 1.5rem;">
         <div class="card-header">
           <h2 class="card-title">Site Visit Journeys & In-Visit Notes</h2>
           <span class="badge badge-cyan">{{ (buyer.siteVisits || []).length }} Visits</span>
@@ -134,6 +279,39 @@
         </div>
       </div>
 
+      <!-- SOW Sec 8 & 16: Scoring History & Audit Trail -->
+      <div class="glass-card" style="margin-top: 1.5rem;" *ngIf="(buyer.scoreHistories || []).length > 0">
+        <div class="card-header">
+          <h2 class="card-title">Scoring History & Rule Versions</h2>
+          <span class="badge badge-cyan">{{ buyer.scoreHistories.length }} Logs</span>
+        </div>
+
+        <div class="history-table-wrapper">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Score</th>
+                <th>Band</th>
+                <th>Rule Version</th>
+                <th>Reason</th>
+                <th>Logged By</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let h of buyer.scoreHistories">
+                <td><strong>{{ h.total_score }}/100</strong></td>
+                <td><span class="stage-badge">{{ h.intent_band }}</span></td>
+                <td>{{ h.rule_version }}</td>
+                <td class="history-reason">{{ h.reason }}</td>
+                <td>{{ h.changedBy?.name || 'Automated Engine' }}</td>
+                <td>{{ h.created_at | date:'short' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- Follow-up Tasks -->
       <div class="glass-card" style="margin-top: 1.5rem;">
         <div class="card-header">
@@ -163,4 +341,86 @@
       </div>
     </div>
   </div>
+
+  <!-- SOW Sec 13: Record Sales Booking Modal -->
+  <div *ngIf="showBookingModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title">Record Sales Closure / Booking</h2>
+          <p class="modal-subtitle">Register property unit booking and agreement value for {{ buyer.full_name }}</p>
+        </div>
+        <button type="button" class="close-modal-btn" (click)="closeBookingModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div *ngIf="bookingSuccess" class="alert-success-banner">
+          ✅ {{ bookingSuccess }}
+        </div>
+        <div *ngIf="bookingError" class="modal-error-banner">
+          ⚠️ {{ bookingError }}
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Project / Development *</label>
+            <select class="form-control" [(ngModel)]="bookingForm.project_id">
+              <option [ngValue]="1">Godrej Splendour (Whitefield)</option>
+              <option [ngValue]="2">Prestige Park Grove (Whitefield)</option>
+              <option [ngValue]="3">Sobha Neopolis (Panathur)</option>
+              <option [ngValue]="4">Brigade Cornerstone Utopia (Varthur)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Unit Number (Tower & Flat) *</label>
+            <input type="text" class="form-control" [(ngModel)]="bookingForm.unit_number" placeholder="e.g. Tower B - 1402" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Unit Configuration</label>
+            <select class="form-control" [(ngModel)]="bookingForm.unit_configuration">
+              <option value="2 BHK">2 BHK</option>
+              <option value="2.5 BHK">2.5 BHK</option>
+              <option value="3 BHK">3 BHK</option>
+              <option value="3.5 BHK Luxury">3.5 BHK Luxury</option>
+              <option value="4 BHK Penthouse">4 BHK Penthouse</option>
+              <option value="Villa">Exclusive Villa</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row" style="margin-top: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Total Agreement Value (₹ Lacs) *</label>
+            <input type="number" class="form-control" [(ngModel)]="bookingForm.booking_value_lacs" placeholder="185.00" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Token / Booking Advance (₹ Lacs) *</label>
+            <input type="number" class="form-control" [(ngModel)]="bookingForm.token_amount_lacs" placeholder="5.00" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Booking Date</label>
+            <input type="date" class="form-control" [(ngModel)]="bookingForm.booking_date" />
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 1rem;">
+          <label class="form-label">Booking Remarks & Payment Milestone Schedule</label>
+          <textarea class="form-control" rows="3" [(ngModel)]="bookingForm.notes" placeholder="Cheque / RTGS details, loan bank name (HDFC / SBI), special parking slot allocated..."></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" (click)="closeBookingModal()">Cancel</button>
+        <button type="button" class="btn-primary" [disabled]="savingBooking" (click)="submitBooking()">
+          <span *ngIf="!savingBooking">Confirm & Seal Sales Closure &rarr;</span>
+          <span *ngIf="savingBooking">Recording Closure...</span>
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
+

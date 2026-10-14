@@ -9,6 +9,11 @@
     </div>
   </div>
 
+  <!-- Feedback Banner -->
+  <div *ngIf="feedbackMessage" class="alert-success-banner" style="margin-bottom: 1.5rem;">
+    ✅ {{ feedbackMessage }}
+  </div>
+
   <!-- Visits Filter & Radar -->
   <div class="glass-card" style="margin-bottom: 1.5rem;">
     <div class="filters-bar">
@@ -17,6 +22,7 @@
       <button class="filter-pill" [class.active]="filterStatus === 'SCHEDULED'" (click)="filterStatus = 'SCHEDULED'; loadVisits()">Scheduled</button>
       <button class="filter-pill" [class.active]="filterStatus === 'IN_PROGRESS'" (click)="filterStatus = 'IN_PROGRESS'; loadVisits()">In Progress</button>
       <button class="filter-pill" [class.active]="filterStatus === 'COMPLETED'" (click)="filterStatus = 'COMPLETED'; loadVisits()">Completed</button>
+      <button class="filter-pill" [class.active]="filterStatus === 'CANCELLED'" (click)="filterStatus = 'CANCELLED'; loadVisits()">Cancelled / Recoveries</button>
     </div>
   </div>
 
@@ -32,8 +38,8 @@
             <th>Sales Rep</th>
             <th>Cab / Driver</th>
             <th style="text-align: center;">4-Way Confirmations (Click to Verify)</th>
-            <th>Status</th>
-            <th>In-Visit Discovery</th>
+            <th>Status & Recovery</th>
+            <th>In-Visit & Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -113,17 +119,43 @@
                   'badge-success': visit.status === 'COMPLETED',
                   'badge-warning': visit.status === 'SCHEDULED',
                   'badge-cyan': visit.status === 'IN_PROGRESS',
-                  'badge-danger': visit.status === 'CANCELLED'
+                  'badge-danger': visit.status === 'CANCELLED' || visit.status === 'NO_SHOW'
                 }"
               >
                 {{ visit.status }}
               </span>
+              <!-- SOW Sec 12: Recovery indicator for cancelled/no-show -->
+              <div *ngIf="visit.status === 'CANCELLED' || visit.status === 'NO_SHOW'" style="margin-top: 0.35rem;">
+                <span class="badge badge-warning" style="font-size: 0.68rem;">
+                  {{ visit.status === 'NO_SHOW' ? '⚡ 30m SLA Recovery' : '⏱️ 2h SLA Recovery' }}
+                </span>
+              </div>
             </td>
 
             <td>
-              <a [routerLink]="['/visits/discovery', visit.id]" class="btn btn-secondary btn-sm">
-                📝 Capture In-Visit &rarr;
-              </a>
+              <div class="row-actions-group">
+                <a [routerLink]="['/visits/discovery', visit.id]" class="btn btn-secondary btn-sm" *ngIf="visit.status !== 'CANCELLED' && visit.status !== 'NO_SHOW'">
+                  📝 In-Visit &rarr;
+                </a>
+                <button
+                  type="button"
+                  class="btn-cancel-visit"
+                  *ngIf="visit.status === 'SCHEDULED' || visit.status === 'IN_PROGRESS'"
+                  (click)="openCancelModal(visit, false)"
+                  title="Cancel visit and initiate recovery"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  class="btn-noshow-visit"
+                  *ngIf="visit.status === 'SCHEDULED' || visit.status === 'IN_PROGRESS'"
+                  (click)="openCancelModal(visit, true)"
+                  title="Mark buyer as no-show"
+                >
+                  No-Show
+                </button>
+              </div>
             </td>
           </tr>
 
@@ -136,4 +168,73 @@
       </table>
     </div>
   </div>
+
+  <!-- SOW Sec 12: Cancellation & No-Show Recovery Modal -->
+  <div *ngIf="showCancelModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title">
+            {{ cancelForm.status === 'NO_SHOW' ? '🚨 Mark Visit No-Show & Trigger 30m Recovery' : '⚠️ Cancel Visit & Initiate 2h Recovery' }}
+          </h2>
+          <p class="modal-subtitle">
+            Visit #{{ selectedVisitForCancel?.id }} &middot; {{ selectedVisitForCancel?.buyer?.full_name }} ({{ selectedVisitForCancel?.project?.name }})
+          </p>
+        </div>
+        <button type="button" class="close-modal-btn" (click)="closeCancelModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div *ngIf="cancelError" class="modal-error-banner">
+          ⚠️ {{ cancelError }}
+        </div>
+
+        <div class="recovery-info-callout">
+          <strong>SOW Section 12 SLA Compliance:</strong>
+          <p class="sub-text" *ngIf="cancelForm.status === 'NO_SHOW'">
+            No-Show events automatically initiate an urgent 30-minute recovery countdown task assigned to the sales representative to preserve buyer interest before lead turns cold.
+          </p>
+          <p class="sub-text" *ngIf="cancelForm.status === 'CANCELLED'">
+            Cancellations trigger an automatic 2-hour recovery workflow to contact the buyer, document objection causes, and reschedule to a guaranteed alternative slot.
+          </p>
+        </div>
+
+        <div class="form-group" style="margin-top: 1rem;">
+          <label class="form-label">Primary Cancellation / No-Show Reason *</label>
+          <select class="form-control" [(ngModel)]="cancelForm.reason">
+            <option value="Buyer requested reschedule due to work conflict">Buyer requested reschedule due to work conflict</option>
+            <option value="Buyer unresponsive at scheduled pickup time">Buyer unresponsive at scheduled pickup time</option>
+            <option value="Severe traffic congestion or heavy rain delay">Severe traffic congestion or heavy rain delay</option>
+            <option value="Company cab / logistics breakdown">Company cab / logistics breakdown</option>
+            <option value="Buyer booked with competitor developer">Buyer booked with competitor developer</option>
+            <option value="Personal / family medical emergency">Personal / family medical emergency</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-top: 1rem;">
+          <label class="form-label">Recovery Action Notes & Proposed Reschedule Window</label>
+          <textarea
+            class="form-control"
+            rows="3"
+            [(ngModel)]="cancelForm.notes"
+            placeholder="Notes on buyer's objection or preferred alternate weekend for priority luxury pickup..."
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" (click)="closeCancelModal()">Dismiss</button>
+        <button
+          type="button"
+          class="btn-danger-confirm"
+          [disabled]="cancelling"
+          (click)="submitCancellationRecovery()"
+        >
+          <span *ngIf="!cancelling">Confirm {{ cancelForm.status }} &amp; Trigger Recovery SLA &rarr;</span>
+          <span *ngIf="cancelling">Triggering Recovery...</span>
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
+

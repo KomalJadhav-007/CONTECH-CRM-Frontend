@@ -5,13 +5,34 @@ import { RouterModule } from '@angular/router';
 import { UserService } from '../user.service';
 import { AccessControlService, RoleMeta } from '../../access-control/access-control.service';
 
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatBadgeModule } from '@angular/material/badge';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+
 @Component({
   selector: 'app-user-list',
   standalone: true,
   imports: [
     CommonModule,
     FormsModule,
-    RouterModule
+    RouterModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatChipsModule,
+    MatBadgeModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatTooltipModule,
+    MatProgressBarModule
   ],
   templateUrl: './user-list.component.html',
   styleUrl: './user-list.component.css'
@@ -66,6 +87,20 @@ export class UserListComponent implements OnInit {
     this.loadUsers();
   }
 
+  // Reassignment Safeguard Modal State (SOW Sec 5)
+  showReassignModal = false;
+  isReassigning = false;
+  reassignError = '';
+  reassignUser: any = null;
+  reassignStats: any = null;
+  selectedReassignTargetId: number | null = null;
+  reassignAction: 'deactivate' | 'delete' = 'deactivate';
+
+  get otherActiveUsers(): any[] {
+    if (!this.reassignUser) return this.users.filter(u => u.status === 'active');
+    return this.users.filter(u => u.status === 'active' && u.id !== this.reassignUser.id);
+  }
+
   loadUsers(): void {
     this.loading = true;
     this.userService.getUsers().subscribe({
@@ -79,6 +114,8 @@ export class UserListComponent implements OnInit {
             phone: u.phone || '',
             designation: u.role ? u.role.name : 'Team Member',
             role: this.accessControlService.normalizeRoleName(u.role ? (u.role.name || u.role.code) : ''),
+            manager_id: u.manager_id,
+            manager_name: u.manager ? u.manager.name : (u.manager_name || 'None'),
             status: u.is_active ? 'active' : 'inactive',
             last_login: u.last_login_at ? new Date(u.last_login_at).toLocaleDateString() : 'Never'
           }));
@@ -288,7 +325,30 @@ export class UserListComponent implements OnInit {
   }
 
   toggleDeactivate(user: any): void {
-    const newStatus = user.status === 'active' ? 'inactive' : 'active';
+    if (user.status === 'active') {
+      // Deactivating: check open assignments safeguard first
+      this.userService.getOpenAssignments(user.id).subscribe({
+        next: (res: any) => {
+          if (res && res.has_open_items) {
+            this.reassignUser = user;
+            this.reassignStats = res;
+            this.reassignAction = 'deactivate';
+            this.selectedReassignTargetId = this.otherActiveUsers.length > 0 ? this.otherActiveUsers[0].id : null;
+            this.showReassignModal = true;
+          } else {
+            this.executeStatusChange(user, 'inactive');
+          }
+        },
+        error: () => {
+          this.executeStatusChange(user, 'inactive');
+        }
+      });
+    } else {
+      this.executeStatusChange(user, 'active');
+    }
+  }
+
+  private executeStatusChange(user: any, newStatus: string): void {
     user.status = newStatus;
     this.updateStats();
 
@@ -296,28 +356,96 @@ export class UserListComponent implements OnInit {
       next: () => {
         this.showFeedback(`User ${user.name} is now ${newStatus} in database.`, 'info');
       },
-      error: () => {
-        this.showFeedback(`User status updated.`, 'info');
+      error: (err: any) => {
+        this.showFeedback(err.error?.message || 'Failed to update user status.', 'warn');
+        this.loadUsers();
       }
     });
   }
 
   deleteUser(user: any): void {
-    const confirmDelete = window.confirm(`Permanently remove user "${user.name}" (${user.email}) from database?`);
-    if (!confirmDelete) return;
+    this.userService.getOpenAssignments(user.id).subscribe({
+      next: (res: any) => {
+        if (res && res.has_open_items) {
+          this.reassignUser = user;
+          this.reassignStats = res;
+          this.reassignAction = 'delete';
+          this.selectedReassignTargetId = this.otherActiveUsers.length > 0 ? this.otherActiveUsers[0].id : null;
+          this.showReassignModal = true;
+        } else {
+          const confirmDelete = window.confirm(`Permanently remove user "${user.name}" (${user.email}) from database?`);
+          if (!confirmDelete) return;
 
-    this.userService.deleteUser(user.id).subscribe({
-      next: () => {
-        this.users = this.users.filter(u => u.id !== user.id);
-        this.updateStats();
-        this.showFeedback(`User "${user.name}" removed from database.`, 'warn');
+          this.userService.deleteUser(user.id).subscribe({
+            next: () => {
+              this.users = this.users.filter(u => u.id !== user.id);
+              this.updateStats();
+              this.showFeedback(`User "${user.name}" removed from database.`, 'warn');
+            },
+            error: (err: any) => {
+              this.showFeedback(err.error?.message || 'Failed to delete user.', 'warn');
+            }
+          });
+        }
       },
       error: () => {
-        this.users = this.users.filter(u => u.id !== user.id);
-        this.updateStats();
-        this.showFeedback(`User "${user.name}" removed.`, 'warn');
+        this.showFeedback('Could not verify open assignments.', 'warn');
       }
     });
+  }
+
+  confirmReassignment(): void {
+    if (!this.reassignUser || !this.selectedReassignTargetId) {
+      this.reassignError = 'Please select an active team member to transfer assignments to.';
+      return;
+    }
+
+    this.isReassigning = true;
+    this.reassignError = '';
+
+    if (this.reassignAction === 'deactivate') {
+      this.userService.updateUser(this.reassignUser.id, {
+        is_active: false,
+        reassign_to_user_id: this.selectedReassignTargetId
+      }).subscribe({
+        next: () => {
+          this.isReassigning = false;
+          this.showReassignModal = false;
+          this.reassignUser.status = 'inactive';
+          this.updateStats();
+          this.showFeedback(`Safeguard completed: Transferred all open records and deactivated ${this.reassignUser.name}.`, 'success');
+          this.reassignUser = null;
+        },
+        error: (err: any) => {
+          this.isReassigning = false;
+          this.reassignError = err.error?.message || 'Failed to reassign records.';
+        }
+      });
+    } else {
+      this.userService.deleteUser(this.reassignUser.id, {
+        reassign_to_user_id: this.selectedReassignTargetId
+      }).subscribe({
+        next: () => {
+          this.isReassigning = false;
+          this.showReassignModal = false;
+          this.users = this.users.filter(u => u.id !== this.reassignUser.id);
+          this.updateStats();
+          this.showFeedback(`Safeguard completed: Transferred all open records and removed ${this.reassignUser.name}.`, 'success');
+          this.reassignUser = null;
+        },
+        error: (err: any) => {
+          this.isReassigning = false;
+          this.reassignError = err.error?.message || 'Failed to transfer and delete user.';
+        }
+      });
+    }
+  }
+
+  closeReassignModal(): void {
+    this.showReassignModal = false;
+    this.reassignUser = null;
+    this.reassignStats = null;
+    this.reassignError = '';
   }
 
   getInitials(name: string): string {

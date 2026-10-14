@@ -120,3 +120,21 @@
   gap: 0.75rem;
   margin-top: 1.5rem;
 }
+
+@keyframes spinSync {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin-icon {
+  animation: spinSync 0.85s linear infinite;
+}
+
+.btn-scan-radar {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.4rem !important;
+  font-weight: 600 !important;
+  height: 40px !important;
+}
+

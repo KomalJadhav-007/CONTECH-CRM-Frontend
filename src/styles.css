@@ -323,3 +323,72 @@ button, input, select, textarea {
 .status-dot.green { background: #059669; box-shadow: 0 0 6px rgba(5, 150, 105, 0.4); }
 .status-dot.amber { background: #d97706; box-shadow: 0 0 6px rgba(217, 119, 6, 0.4); }
 .status-dot.red { background: #dc2626; box-shadow: 0 0 6px rgba(220, 38, 38, 0.4); }
+
+/* ==========================================================================
+   Angular Material Global Customizations & Design Alignment
+   ========================================================================== */
+
+.mat-mdc-card {
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: var(--shadow-sm) !important;
+  background-color: var(--bg-surface) !important;
+}
+
+.mat-mdc-button,
+.mat-mdc-outlined-button,
+.mat-mdc-raised-button,
+.mat-mdc-flat-button {
+  font-family: var(--font-main) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
+  border-radius: 6px !important;
+}
+
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-flat-button.mat-primary {
+  background-color: var(--primary) !important;
+  color: #ffffff !important;
+}
+
+.mat-mdc-raised-button.mat-primary:hover,
+.mat-mdc-flat-button.mat-primary:hover {
+  background-color: var(--primary-hover) !important;
+}
+
+.mat-mdc-form-field {
+  font-family: var(--font-main) !important;
+}
+
+.mat-mdc-form-field-outline {
+  color: var(--border-color) !important;
+}
+
+.mat-mdc-form-field.mat-focused .mat-mdc-form-field-focus-overlay {
+  opacity: 0.02 !important;
+}
+
+.mat-mdc-chip {
+  font-family: var(--font-main) !important;
+  font-weight: 600 !important;
+  font-size: 0.75rem !important;
+}
+
+.mat-mdc-tab-group {
+  font-family: var(--font-main) !important;
+}
+
+.mat-mdc-tab .mdc-tab__text-label {
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
+}
+
+.mat-mdc-progress-bar .mdc-linear-progress__bar-inner {
+  border-color: var(--primary) !important;
+}
+
+.mat-badge-content {
+  font-family: var(--font-main) !important;
+  font-weight: 700 !important;
+}
+

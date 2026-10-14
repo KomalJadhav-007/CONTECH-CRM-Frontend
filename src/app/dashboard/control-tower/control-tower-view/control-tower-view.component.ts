@@ -4,10 +4,35 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ControlTowerService } from '../control-tower.service';
 
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatBadgeModule } from '@angular/material/badge';
+
 @Component({
   selector: 'app-control-tower-view',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterModule,
+    MatCardModule,
+    MatButtonModule,
+    MatChipsModule,
+    MatIconModule,
+    MatProgressBarModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatTooltipModule,
+    MatBadgeModule
+  ],
   templateUrl: './control-tower-view.component.html',
   styleUrl: './control-tower-view.component.css'
 })
@@ -32,23 +57,33 @@ export class ControlTowerViewComponent implements OnInit {
   reassignedRepId = 3;
   rescueActionNotes = 'Reassigned to active senior rep for urgent priority callback';
   resolving = false;
+  isScanning = false;
   successMessage = '';
 
   ngOnInit(): void {
-    this.loadRadar();
+    this.loadRadar(false);
   }
 
-  loadRadar(): void {
+  loadRadar(isUserClick: boolean = false): void {
     this.loading = true;
+    this.isScanning = true;
     this.controlTowerService.getLiveRadarStatus().subscribe({
       next: (res) => {
         this.loading = false;
+        this.isScanning = false;
         if (res.success && res.data) {
           this.radarData = res.data;
+          if (isUserClick) {
+            this.successMessage = `Live Radar Scan Complete: Audited ${res.data.summary?.total_exceptions_count || 0} operational exception(s). Pipeline health index: ${res.data.summary?.health_score || 100}/100.`;
+            setTimeout(() => {
+              this.successMessage = '';
+            }, 4500);
+          }
         }
       },
       error: () => {
         this.loading = false;
+        this.isScanning = false;
       }
     });
   }

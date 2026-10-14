@@ -1,0 +1,238 @@
+<div class="audit-page-wrapper">
+  <div class="audit-header">
+    <div class="header-left">
+      <div class="section-tag">ADMINISTRATION</div>
+      <h1 class="page-title">Audit Log</h1>
+      <p class="page-subtitle">
+        Every privileged action is recorded with actor, module, record and before/after values. Entries cannot be edited or deleted.
+      </p>
+    </div>
+    <div class="header-actions">
+      <button mat-stroked-button (click)="refreshCurrentTab()">
+        <mat-icon>refresh</mat-icon> Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- Tab Switcher (SOW Sec 16: Audit Trail & In-App Alerts) -->
+  <div class="audit-tabs-bar">
+    <button
+      mat-button
+      class="tab-btn"
+      [class.active]="activeTab === 'AUDIT_LOGS'"
+      (click)="activeTab = 'AUDIT_LOGS'"
+    >
+      <mat-icon>receipt_long</mat-icon> Security &amp; Activity Audit Trail ({{ logs.length }})
+    </button>
+    <button
+      mat-button
+      class="tab-btn"
+      [class.active]="activeTab === 'IN_APP_ALERTS'"
+      (click)="activeTab = 'IN_APP_ALERTS'; loadAlerts()"
+    >
+      <mat-icon [matBadge]="unackAlertsCount" [matBadgeHidden]="unackAlertsCount === 0" matBadgeColor="warn">notifications</mat-icon>
+      In-App Leakage Alerts ({{ alerts.length }})
+    </button>
+  </div>
+
+  <!-- TAB 1: AUDIT LOGS -->
+  <ng-container *ngIf="activeTab === 'AUDIT_LOGS'">
+    <!-- 4 Audit Summary Cards -->
+    <div class="audit-stats-grid">
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="card-label">TOTAL AUDIT EVENTS</div>
+          <div class="card-value">{{ logs.length }}</div>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="card-label">SECURITY & ACCESS</div>
+          <div class="card-value">{{ countByModule(['SETTINGS', 'ACCESS_CONTROL']) }}</div>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="card-label">PIPELINE & PROSPECTS</div>
+          <div class="card-value">{{ countByModule(['BUYERS', 'VISITS', 'BOOKINGS']) }}</div>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="card-label">INTEGRITY STATUS</div>
+          <div class="card-value text-emerald">100% Immutable</div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-row">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search actor, action or record details</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input
+          matInput
+          [(ngModel)]="searchQuery"
+          (ngModelChange)="onFilterChange()"
+          placeholder="e.g. USER_DELETED, Vikram"
+        />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="module-field">
+        <mat-label>Filter by Module</mat-label>
+        <mat-select [(ngModel)]="selectedModule" (ngModelChange)="onFilterChange()">
+          <mat-option value="all">All modules</mat-option>
+          <mat-option value="BUYERS">Buyers / Pipeline</mat-option>
+          <mat-option value="BOOKINGS">Bookings &amp; Sales Closures</mat-option>
+          <mat-option value="VISITS">Site Visits</mat-option>
+          <mat-option value="RECOVERY">Recoveries</mat-option>
+          <mat-option value="SETTINGS">Settings &amp; Access Control</mat-option>
+          <mat-option value="PROJECTS">Projects</mat-option>
+          <mat-option value="USERS">Team &amp; Roles</mat-option>
+          <mat-option value="CONTROL_TOWER">Control Tower</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Logs Table -->
+    <mat-card class="table-card" *ngIf="filteredLogs.length > 0">
+      <div class="table-responsive">
+        <table class="audit-table">
+          <thead>
+            <tr>
+              <th>TIMESTAMP</th>
+              <th>ACTOR</th>
+              <th>MODULE</th>
+              <th>ACTION</th>
+              <th>DETAILS &amp; AUDIT TRAIL</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let log of filteredLogs">
+              <td class="time-cell">
+                {{ log.created_at | date:'medium' }}
+              </td>
+              <td>
+                <div class="actor-name">{{ log.user?.name || 'System Admin' }}</div>
+                <div class="actor-email">{{ log.user?.email || 'admin@contechcrm.com' }}</div>
+              </td>
+              <td>
+                <span class="module-badge" [ngClass]="getModuleBadgeClass(log.module)">
+                  {{ log.module }}
+                </span>
+              </td>
+              <td>
+                <span class="action-tag">{{ log.action }}</span>
+              </td>
+              <td class="details-cell">
+                <div class="details-text">{{ log.details }}</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </mat-card>
+
+    <!-- Empty State Box -->
+    <div class="empty-state-box" *ngIf="!loading && filteredLogs.length === 0">
+      <div class="empty-title">No audit entries found</div>
+      <div class="empty-sub">No privileged changes match your search or module filter.</div>
+    </div>
+  </ng-container>
+
+  <!-- TAB 2: IN-APP ALERTS -->
+  <ng-container *ngIf="activeTab === 'IN_APP_ALERTS'">
+    <!-- Alert Summary Cards -->
+    <div class="audit-stats-grid">
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="card-label">TOTAL IN-APP ALERTS</div>
+          <div class="card-value">{{ alerts.length }}</div>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="card-label">CRITICAL SEVERITY</div>
+          <div class="card-value" style="color: #dc2626;">{{ criticalAlertsCount }}</div>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="card-label">UNACKNOWLEDGED</div>
+          <div class="card-value" style="color: #d97706;">{{ unackAlertsCount }}</div>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="card-label">SYSTEM HEALTH</div>
+          <div class="card-value text-emerald">{{ unackAlertsCount === 0 ? 'Optimal' : 'Interventions Pending' }}</div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <mat-card class="table-card" *ngIf="alerts.length > 0">
+      <div class="table-responsive">
+        <table class="audit-table">
+          <thead>
+            <tr>
+              <th>TIMESTAMP</th>
+              <th>SEVERITY</th>
+              <th>CATEGORY</th>
+              <th>ALERT TITLE &amp; MESSAGE</th>
+              <th>STATUS</th>
+              <th class="text-right">ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let alert of alerts">
+              <td class="time-cell">{{ alert.created_at | date:'short' }}</td>
+              <td>
+                <span class="severity-tag" [ngClass]="alert.severity === 'CRITICAL' ? 'crit' : 'warn'">
+                  {{ alert.severity }}
+                </span>
+              </td>
+              <td><strong>{{ alert.category || alert.alert_type }}</strong></td>
+              <td>
+                <div style="font-weight: 600; color: #0f172a;">{{ alert.title }}</div>
+                <div style="font-size: 0.78rem; color: #64748b; margin-top: 0.15rem;">{{ alert.message }}</div>
+              </td>
+              <td>
+                <span class="status-pill" [class.active-pill]="!alert.is_acknowledged" [class.resolved-pill]="alert.is_resolved">
+                  {{ alert.is_resolved ? 'RESOLVED' : alert.is_acknowledged ? 'ACKNOWLEDGED' : 'ACTIVE' }}
+                </span>
+              </td>
+              <td class="text-right">
+                <button
+                  mat-stroked-button
+                  color="primary"
+                  *ngIf="!alert.is_acknowledged"
+                  (click)="ackAlert(alert)"
+                  style="margin-right: 0.5rem;"
+                >
+                  ✓ Acknowledge
+                </button>
+                <button
+                  mat-flat-button
+                  color="accent"
+                  *ngIf="!alert.is_resolved"
+                  (click)="resolveAlert(alert)"
+                >
+                  Resolve
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </mat-card>
+
+    <div class="empty-state-box" *ngIf="!loading && alerts.length === 0">
+      <div class="empty-title">Zero active in-app alerts</div>
+      <div class="empty-sub">All operational exceptions and SLA breaches have been cleared.</div>
+    </div>
+  </ng-container>
+
+  <div class="loading-state" *ngIf="loading">
+    Loading events and alerts from database...
+  </div>
+</div>

@@ -28,74 +28,119 @@ export class AccessControlService {
   private storageKey = 'contech_access_control_permissions';
 
   defaultRoles: string[] = [
+    'Super Admin',
     'Org Admin',
+    'Owner / CXO',
     'Sales Head',
+    'Marketing Head',
+    'CRM Head',
     'Sales Manager',
     'Account Executive',
+    'Inside Sales',
     'Site Visit Coordinator',
     'Driver',
     'Executive Viewer'
   ];
 
   roles: string[] = [
+    'Super Admin',
     'Org Admin',
+    'Owner / CXO',
     'Sales Head',
+    'Marketing Head',
+    'CRM Head',
     'Sales Manager',
     'Account Executive',
+    'Inside Sales',
     'Site Visit Coordinator',
     'Driver',
     'Executive Viewer'
   ];
 
   roleMetadata: { [role: string]: RoleMeta } = {
+    'Super Admin': {
+      name: 'Super Admin',
+      badge: 'Root',
+      color: '#4f46e5',
+      description: 'Universal platform super-administrator with root privileges across all accounts and tenants.',
+      usersCount: 1
+    },
     'Org Admin': {
       name: 'Org Admin',
       badge: 'Superuser',
       color: '#7c3aed',
-      description: 'Universal administrative and security configuration authority across the entire tenant.',
+      description: 'Universal administrative and security configuration authority across the entire organization.',
       usersCount: 2
+    },
+    'Owner / CXO': {
+      name: 'Owner / CXO',
+      badge: 'Executive',
+      color: '#0284c7',
+      description: 'Managing Director / Owner with high-level revenue radar, portfolio valuation and leakage alerts.',
+      usersCount: 1
     },
     'Sales Head': {
       name: 'Sales Head',
       badge: 'Director',
       color: '#2563eb',
       description: 'Strategic leadership authority for pipeline oversight, approvals, team quotas, and scoring rules.',
-      usersCount: 3
+      usersCount: 2
+    },
+    'Marketing Head': {
+      name: 'Marketing Head',
+      badge: 'Marketing',
+      color: '#ec4899',
+      description: 'Lead source attribution, campaign ROI analysis, and high-intent prospect influx tracking.',
+      usersCount: 1
+    },
+    'CRM Head': {
+      name: 'CRM Head',
+      badge: 'Governance',
+      color: '#8b5cf6',
+      description: 'Customer journey governance, pipeline stage compliance, and long-term buyer retention.',
+      usersCount: 1
     },
     'Sales Manager': {
       name: 'Sales Manager',
       badge: 'Management',
       color: '#0891b2',
       description: 'Team lead oversight for site visits, allocations, deal tracking, and daily follow-up escalation.',
-      usersCount: 6
+      usersCount: 3
     },
     'Account Executive': {
       name: 'Account Executive',
       badge: 'Sales Rep',
       color: '#059669',
       description: 'Field & site sales representatives managing client visits, buyer qualification, and shortlisted flats.',
-      usersCount: 14
+      usersCount: 6
+    },
+    'Inside Sales': {
+      name: 'Inside Sales',
+      badge: 'Pre-Sales',
+      color: '#10b981',
+      description: 'Telecalling team qualifying inbound inquiries, logging requirements, and scheduling site visits.',
+      usersCount: 4
     },
     'Site Visit Coordinator': {
       name: 'Site Visit Coordinator',
       badge: 'Operations',
       color: '#d97706',
       description: 'Logistics and scheduling lead managing vehicle fleets, pickup dispatch, and coordinator tasks.',
-      usersCount: 5
+      usersCount: 2
     },
     'Driver': {
       name: 'Driver',
       badge: 'Fleet',
       color: '#475569',
       description: 'Chauffeur and transport team focused on buyer transit execution, mileage logs, and trip statuses.',
-      usersCount: 8
+      usersCount: 3
     },
     'Executive Viewer': {
       name: 'Executive Viewer',
       badge: 'Read Only',
       color: '#64748b',
       description: 'Board members and external stakeholders with analytical reporting and read-only audit oversight.',
-      usersCount: 4
+      usersCount: 2
     }
   };
 
@@ -170,11 +215,55 @@ export class AccessControlService {
       });
     });
 
-    // 2. Org Admin: All True
-    this.modules.forEach(mod => {
-      this.permissionColumns.forEach(col => {
-        matrix['Org Admin'][mod][col] = true;
+    // 2. Super Admin & Org Admin: All True
+    ['Super Admin', 'Org Admin'].forEach(r => {
+      this.modules.forEach(mod => {
+        this.permissionColumns.forEach(col => {
+          matrix[r][mod][col] = true;
+        });
       });
+    });
+
+    // 2b. Owner / CXO
+    this.modules.forEach(mod => {
+      matrix['Owner / CXO'][mod]['VIEW'] = true;
+      matrix['Owner / CXO'][mod]['EXPORT'] = true;
+      matrix['Owner / CXO'][mod]['APPROVE'] = true;
+      matrix['Owner / CXO'][mod]['ASSIGN'] = true;
+      if (['Dashboard', 'Revenue Leakage', 'Analytics'].includes(mod)) {
+        matrix['Owner / CXO'][mod]['CONFIGURE'] = true;
+      }
+    });
+
+    // 2c. Marketing Head
+    this.modules.forEach(mod => {
+      matrix['Marketing Head'][mod]['VIEW'] = true;
+      if (['Prospects', 'Buyer Persona', 'AI Buyer Score', 'Analytics'].includes(mod)) {
+        matrix['Marketing Head'][mod]['CREATE'] = true;
+        matrix['Marketing Head'][mod]['EDIT'] = true;
+        matrix['Marketing Head'][mod]['EXPORT'] = true;
+      }
+    });
+
+    // 2d. CRM Head
+    this.modules.forEach(mod => {
+      matrix['CRM Head'][mod]['VIEW'] = true;
+      matrix['CRM Head'][mod]['EXPORT'] = true;
+      if (['Prospects', 'Buyer Persona', 'Site Visits', 'Follow-ups', 'Alerts'].includes(mod)) {
+        matrix['CRM Head'][mod]['CREATE'] = true;
+        matrix['CRM Head'][mod]['EDIT'] = true;
+        matrix['CRM Head'][mod]['APPROVE'] = true;
+      }
+    });
+
+    // 2e. Inside Sales
+    ['Dashboard', 'Prospects', 'Buyer Persona', 'AI Buyer Score', 'Site Visits', 'Follow-ups', 'Alerts'].forEach(mod => {
+      matrix['Inside Sales'][mod]['VIEW'] = true;
+    });
+    ['Prospects', 'Buyer Persona', 'Site Visits', 'Follow-ups'].forEach(mod => {
+      matrix['Inside Sales'][mod]['CREATE'] = true;
+      matrix['Inside Sales'][mod]['EDIT'] = true;
+      matrix['Inside Sales'][mod]['ASSIGN'] = true;
     });
 
     // 3. Sales Head

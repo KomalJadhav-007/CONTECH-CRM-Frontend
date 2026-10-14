@@ -8,6 +8,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
+import { MatIconModule } from '@angular/material/icon';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { SettingsService } from '../settings.service';
 
 @Component({
@@ -22,7 +25,10 @@ import { SettingsService } from '../settings.service';
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    MatTableModule
+    MatTableModule,
+    MatIconModule,
+    MatChipsModule,
+    MatProgressBarModule
   ],
   templateUrl: './projects.component.html',
   styleUrl: './projects.component.css'
@@ -68,15 +74,18 @@ export class ProjectsComponent implements OnInit {
           this.projects = res.projects.map((p: any) => ({
             id: p.id,
             name: p.name,
-            developer: p.developer || 'ABC Realty',
-            location: p.location || 'Pune',
-            configurations: p.configurations || '2 BHK, 3 BHK',
-            capacity_per_day: p.daily_capacity || 10,
-            active_pipeline: 0,
+            developer: p.developer || 'Contech Developments Pvt Ltd',
+            location: p.location || 'Bengaluru',
+            address: p.address || '',
+            configurations: p.configurations || '2 BHK, 3 BHK, 4 BHK',
+            capacity_per_day: p.daily_capacity || 20,
+            working_hours: p.operating_hours || '09:00 AM - 07:00 PM',
+            blackout_periods: p.blackout_periods || 'None',
+            active_pipeline: p.total_units || 0,
             upcoming_visits: 0,
-            bookings: 0,
-            booking_value: '₹0',
-            status: p.is_active ? 'active' : 'inactive'
+            bookings: (p.total_units - p.available_units) > 0 ? (p.total_units - p.available_units) : 0,
+            booking_value: p.starting_price_lacs ? `₹${p.starting_price_lacs}L+` : '₹0',
+            status: (p.status === 'ACTIVE' || p.is_active !== false) ? 'active' : 'inactive'
           }));
         } else {
           this.loadFallbackProjects();

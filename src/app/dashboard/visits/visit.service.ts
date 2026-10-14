@@ -21,6 +21,10 @@ export class VisitService {
     return this.http.post<any>(`${this.apiUrl}/book`, data);
   }
 
+  updateSiteVisit(id: number, data: any): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/${id}`, data);
+  }
+
   updateConfirmations(id: number, confirmations: any): Observable<any> {
     return this.http.patch<any>(`${this.apiUrl}/${id}/confirmations`, confirmations);
   }
@@ -28,4 +32,17 @@ export class VisitService {
   recordDiscovery(id: number, data: any): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/${id}/discovery`, data);
   }
+
+  getVehicles(params?: any): Observable<any> {
+    return this.http.get<any>('http://localhost:5000/api/vehicles', { params });
+  }
+
+  getRecoveries(params?: any): Observable<any> {
+    return this.http.get<any>('http://localhost:5000/api/recoveries', { params });
+  }
+
+  logRecoveryAttempt(id: number, data: any): Observable<any> {
+    return this.http.post<any>(`http://localhost:5000/api/recoveries/${id}/attempt`, data);
+  }
 }
+

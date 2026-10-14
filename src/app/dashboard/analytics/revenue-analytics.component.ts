@@ -5,12 +5,25 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatIconModule } from '@angular/material/icon';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { DashboardService } from '../dashboard.service';
 
 @Component({
   selector: 'app-revenue-analytics',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatCardModule, MatButtonModule, MatTableModule, MatProgressBarModule],
+  imports: [
+    CommonModule,
+    RouterModule,
+    MatCardModule,
+    MatButtonModule,
+    MatTableModule,
+    MatProgressBarModule,
+    MatIconModule,
+    MatChipsModule,
+    MatTooltipModule
+  ],
   templateUrl: './revenue-analytics.component.html',
   styleUrl: './revenue-analytics.component.css'
 })

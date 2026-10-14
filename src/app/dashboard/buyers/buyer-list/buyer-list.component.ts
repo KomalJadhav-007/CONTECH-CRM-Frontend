@@ -5,12 +5,33 @@ import { RouterModule, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatIconModule } from '@angular/material/icon';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatBadgeModule } from '@angular/material/badge';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { BuyerService } from '../buyer.service';
 
 @Component({
   selector: 'app-buyer-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, MatCardModule, MatButtonModule, MatChipsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterModule,
+    MatCardModule,
+    MatButtonModule,
+    MatChipsModule,
+    MatIconModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatTooltipModule,
+    MatBadgeModule,
+    MatProgressBarModule
+  ],
   templateUrl: './buyer-list.component.html',
   styleUrl: './buyer-list.component.css'
 })
@@ -328,21 +349,155 @@ export class BuyerListComponent implements OnInit {
     });
   }
 
+  showImportModal = false;
+  parsedCsvRows: any[] = [];
+  importStats: any = null;
+  importing = false;
+  importError = '';
+  selectedFileName = '';
+
+  openImportModal(): void {
+    this.showImportModal = true;
+    this.parsedCsvRows = [];
+    this.importStats = null;
+    this.importError = '';
+    this.selectedFileName = '';
+  }
+
+  closeImportModal(): void {
+    this.showImportModal = false;
+    this.parsedCsvRows = [];
+    this.importStats = null;
+    this.importError = '';
+    this.selectedFileName = '';
+  }
+
+  downloadTemplate(): void {
+    this.buyerService.getCsvTemplate().subscribe({
+      next: (res) => {
+        if (res.csv) {
+          const blob = new Blob([res.csv], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = res.filename || 'contech_buyers_template.csv';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }
+      },
+      error: () => {
+        const fallback = 'full_name,phone,email,budget_min_lacs,budget_max_lacs,preferred_bhk,buying_timeframe,lead_source,financing_readiness,occupation,current_residence,workplace_location,notes\n' +
+          'Sunil Gavaskar,+91 98200 11223,sunil.g@example.com,150,220,3 BHK,<30 days,Google Ads,Pre-approved Loan,Business / Entrepreneur,Indiranagar Bengaluru,Whitefield Tech Park,Interested in east-facing tower\n';
+        const blob = new Blob([fallback], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'contech_buyers_template.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    });
+  }
+
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    this.selectedFileName = file.name;
+    this.importError = '';
+    this.importStats = null;
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      try {
+        const text = e.target.result;
+        const lines = text.split(/\r\n|\n/).filter((l: string) => l.trim().length > 0);
+        if (lines.length < 2) {
+          this.importError = 'CSV file must have a header row and at least one data row.';
+          return;
+        }
+
+        const headers = lines[0].split(',').map((h: string) => h.trim().replace(/^"|"$/g, ''));
+        const rows: any[] = [];
+
+        for (let i = 1; i < lines.length; i++) {
+          const currentLine = lines[i].split(',').map((cell: string) => cell.trim().replace(/^"|"$/g, ''));
+          if (currentLine.length === headers.length || currentLine.length >= 2) {
+            const rowObj: any = {};
+            headers.forEach((h: string, idx: number) => {
+              rowObj[h] = currentLine[idx] || '';
+            });
+            rows.push(rowObj);
+          }
+        }
+
+        this.parsedCsvRows = rows;
+      } catch (err: any) {
+        this.importError = 'Failed to parse CSV file: ' + err.message;
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  executeImport(): void {
+    if (this.parsedCsvRows.length === 0) {
+      this.importError = 'Please upload a valid CSV file with buyer rows first.';
+      return;
+    }
+
+    this.importing = true;
+    this.importError = '';
+
+    this.buyerService.importBuyersFromCsv(this.parsedCsvRows).subscribe({
+      next: (res) => {
+        this.importing = false;
+        if (res.success) {
+          this.importStats = res.results;
+          this.loadBuyers();
+          this.showFeedback(`Import finished: ${res.results.imported_count} imported, ${res.results.duplicate_count} duplicates skipped.`);
+        } else {
+          this.importError = res.message || 'Import failed';
+        }
+      },
+      error: (err) => {
+        this.importing = false;
+        this.importError = err.error?.message || 'Failed to import CSV';
+      }
+    });
+  }
+
   exportCSV() {
     const csvRows = [
-      ['Buyer', 'Score', 'Stage', 'Requirement', 'Budget', 'Owner', 'Next Best Action', 'At Risk']
+      ['Buyer', 'Score', 'Intent Band', 'Stage', 'Phone', 'Requirement', 'Budget', 'Owner', 'Source', 'Next Best Action', 'At Risk']
     ];
     this.prospects.forEach(p => {
-      csvRows.push([p.name, p.score.toString(), p.stage, p.bhk, p.budget, p.owner, p.next_action, p.at_risk]);
+      csvRows.push([
+        `"${p.name || ''}"`,
+        p.score?.toString() || '0',
+        `"${p.score >= 90 ? 'VERY HIGH INTENT' : p.score >= 80 ? 'HIGH INTENT' : p.score >= 65 ? 'QUALIFIED' : 'EMERGING'}"`,
+        `"${p.stage || ''}"`,
+        `"${p.phone || ''}"`,
+        `"${p.bhk || ''}"`,
+        `"${p.budget || ''}"`,
+        `"${p.owner || ''}"`,
+        `"${p.source || ''}"`,
+        `"${(p.next_action || '').replace(/"/g, '""')}"`,
+        `"${p.at_risk || ''}"`
+      ]);
     });
     const csvContent = 'data:text/csv;charset=utf-8,' + csvRows.map(e => e.join(',')).join('\n');
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', 'prospects_export.csv');
+    link.setAttribute('download', 'contech_prospects_export.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   }
 }
+
 

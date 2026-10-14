@@ -9,7 +9,16 @@
       <p class="page-subtitle">Instant detection of neglected hot deals, unconfirmed cabs, and revenue leakage bottlenecks</p>
     </div>
     <div class="header-actions">
-      <button class="btn btn-secondary" (click)="loadRadar()">🔄 Scan Radar</button>
+      <button
+        mat-stroked-button
+        color="primary"
+        class="btn-scan-radar"
+        (click)="loadRadar(true)"
+        [disabled]="isScanning"
+      >
+        <mat-icon [class.spin-icon]="isScanning">sync</mat-icon>
+        <span>{{ isScanning ? 'Scanning Radar...' : 'Scan Radar' }}</span>
+      </button>
     </div>
   </div>
 
@@ -21,7 +30,7 @@
   <div class="metrics-grid">
     <div class="glass-card metric-card danger">
       <span class="metric-label">REVENUE AT RISK (>48H INACTION)</span>
-      <div class="metric-value">₹{{ (radarData.summary.revenue_at_risk_lacs / 100).toFixed(2) }} <span class="unit">Cr</span></div>
+      <div class="metric-value">₹{{ radarData.summary.gross_pipeline_at_risk_cr || ((radarData.summary.revenue_at_risk_lacs || 0) / 100).toFixed(2) }} <span class="unit">Cr</span></div>
       <span class="metric-trend text-danger">{{ radarData.summary.neglected_buyers_count }} High-Intent Deals Idle</span>
     </div>
 

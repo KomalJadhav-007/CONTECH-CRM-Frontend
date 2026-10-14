@@ -81,21 +81,38 @@
 
       <!-- Section 3: Luxury Cab Pickup Logistics -->
       <div class="form-section">
-        <div class="section-heading">3. LUXURY CAB PICKUP LOGISTICS</div>
+        <div class="section-heading">3. FLEET VEHICLE &amp; CAB PICKUP LOGISTICS (SOW SEC 11)</div>
         <div class="form-grid-2">
           <div class="form-field">
             <label class="field-label">CAB PICKUP REQUIRED?</label>
             <select class="custom-select" [(ngModel)]="bookingData.cab_required" name="cab_required">
-              <option [ngValue]="true">Yes, Dispatch Company Vehicle</option>
-              <option [ngValue]="false">No, Buyer Will Drive Directly</option>
+              <option [ngValue]="true">Yes, Dispatch Company Fleet Vehicle</option>
+              <option [ngValue]="false">No, Buyer Will Drive Directly (Self-Drive)</option>
             </select>
           </div>
 
           <div class="form-field" *ngIf="bookingData.cab_required">
-            <label class="field-label">ASSIGNED COMPANY DRIVER</label>
+            <label class="field-label">SELECT FLEET VEHICLE MASTER</label>
+            <select class="custom-select" [ngModel]="selectedVehicleId" (ngModelChange)="onVehicleSelect($event)" name="selectedVehicleId">
+              <option [ngValue]="null">-- Select Company Vehicle --</option>
+              <option *ngFor="let v of vehicles" [ngValue]="v.id">
+                {{ v.model }} &middot; {{ v.registration_number }} ({{ v.seating_capacity }} seats, {{ v.assignedDriver?.name || 'Driver on Duty' }})
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid-2" *ngIf="bookingData.cab_required" style="margin-top: 1rem;">
+          <div class="form-field">
+            <label class="field-label">DISPATCHED CAB REGISTRATION NO.</label>
+            <input type="text" class="custom-input" [(ngModel)]="bookingData.cab_number" name="cab_number" placeholder="KA-01-MJ-8822" />
+          </div>
+
+          <div class="form-field">
+            <label class="field-label">ASSIGNED DRIVER</label>
             <select class="custom-select" [(ngModel)]="bookingData.driver_id" name="driver_id">
-              <option [ngValue]="5">Ramesh Gowda (Toyota Innova Crysta - KA-01-MJ-8822)</option>
-              <option [ngValue]="6">Suresh Kumar (Honda City - KA-03-AB-1234)</option>
+              <option [ngValue]="5">Ramesh Gowda (Verified Driver)</option>
+              <option [ngValue]="6">Suresh Kumar (Verified Driver)</option>
             </select>
           </div>
         </div>

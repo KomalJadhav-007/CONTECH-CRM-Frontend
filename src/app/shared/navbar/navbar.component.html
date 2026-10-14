@@ -4,6 +4,69 @@
   </div>
 
   <div class="user-section">
+    <!-- SOW Sec 16: In-App Alerts Bell Center -->
+    <button
+      mat-icon-button
+      class="alert-bell-mat-btn"
+      (click)="toggleAlerts(); $event.stopPropagation()"
+      matTooltip="Live In-App Leakage & Operations Alerts"
+      [matBadge]="unacknowledgedCount"
+      [matBadgeHidden]="unacknowledgedCount === 0"
+      matBadgeColor="warn"
+    >
+      <mat-icon>notifications</mat-icon>
+    </button>
+
+    <!-- Alert Notifications Popover -->
+    <div class="alerts-popover" *ngIf="showAlertModal" (click)="$event.stopPropagation()">
+      <div class="alerts-popover-header">
+        <div>
+          <h3 class="alerts-title">Control Tower Alerts</h3>
+          <span class="alerts-subtitle">{{ unacknowledgedCount }} active operational exceptions</span>
+        </div>
+        <button type="button" class="btn-close-popover" (click)="closeAlertModal()">&times;</button>
+      </div>
+
+      <div class="alerts-list">
+        <div *ngFor="let alert of alerts" class="alert-item" [class.unack]="!alert.is_acknowledged">
+          <div class="alert-top">
+            <span class="severity-pill" [ngClass]="alert.severity === 'CRITICAL' ? 'crit' : 'warn'">
+              {{ alert.severity }}
+            </span>
+            <span class="alert-time">{{ alert.created_at | date:'shortTime' }}</span>
+          </div>
+          <div class="alert-heading">{{ alert.title }}</div>
+          <div class="alert-msg">{{ alert.message }}</div>
+          <div class="alert-actions">
+            <button
+              type="button"
+              class="btn-alert-ack"
+              *ngIf="!alert.is_acknowledged"
+              (click)="ackAlert(alert)"
+            >
+              ✓ Acknowledge
+            </button>
+            <button
+              type="button"
+              class="btn-alert-resolve"
+              (click)="resolveAlert(alert)"
+            >
+              Resolve
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="alerts.length === 0" class="no-alerts-msg">
+          ✨ No active alerts. Pipeline is clear!
+        </div>
+      </div>
+
+      <div class="alerts-footer">
+        <a routerLink="/control-tower" (click)="closeAlertModal()" class="footer-link">Go to Control Tower &rarr;</a>
+        <a routerLink="/audit-logs" (click)="closeAlertModal()" class="footer-link">Audit Trail &rarr;</a>
+      </div>
+    </div>
+
     <!-- Clickable User Profile Widget -->
     <div
       class="user-profile-widget"
@@ -29,7 +92,9 @@
       </ng-template>
     </div>
 
-    <button type="button" class="btn-signout" (click)="logout()">Sign out</button>
+    <button mat-stroked-button color="warn" class="btn-signout-mat" (click)="logout()">
+      <mat-icon>logout</mat-icon> Sign out
+    </button>
 
     <!-- Profile Details Popover Modal -->
     <div

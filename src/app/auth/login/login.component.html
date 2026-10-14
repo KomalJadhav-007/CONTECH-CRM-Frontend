@@ -42,14 +42,17 @@
       </div>
 
       <!-- Explore Live Demo Button -->
-      <button type="button" class="btn-live-demo" (click)="exploreLiveDemo()">
-        <span class="demo-btn-main">Explore live demo — no signup</span>
-        <span class="demo-btn-sub">Signs you in instantly as an Org Admin at ABC Realty with full demo data.</span>
+      <button mat-flat-button class="btn-live-demo" (click)="exploreLiveDemo()">
+        <div class="demo-btn-content">
+          <span class="demo-btn-main">Explore live demo — no signup</span>
+          <span class="demo-btn-sub">Signs you in instantly as an Org Admin with full demo data.</span>
+        </div>
       </button>
 
       <!-- Tabs -->
       <div class="auth-tabs">
         <button
+          mat-button
           type="button"
           class="tab-btn"
           [class.active]="activeTab === 'signin'"
@@ -58,6 +61,7 @@
           Sign In
         </button>
         <button
+          mat-button
           type="button"
           class="tab-btn"
           [class.active]="activeTab === 'signup'"
@@ -67,77 +71,95 @@
         </button>
       </div>
 
+      <mat-progress-bar *ngIf="loading" mode="indeterminate" class="auth-progress"></mat-progress-bar>
+
       <div *ngIf="errorMessage" class="error-banner">
         {{ errorMessage }}
       </div>
 
-      <!-- Sign In Form -->
+      <!-- Sign In Form with Angular Material -->
       <form (ngSubmit)="onSubmit()" class="auth-form" *ngIf="activeTab === 'signin'">
-        <div class="form-field">
-          <label class="field-label">Work email</label>
+        <mat-form-field appearance="outline" class="w-full mat-field-custom">
+          <mat-label>Work email</mat-label>
+          <mat-icon matPrefix>email</mat-icon>
           <input
+            matInput
             type="email"
             name="email"
             [(ngModel)]="email"
             required
-            class="input-box"
             placeholder="you@company.com"
           />
-        </div>
+        </mat-form-field>
 
-        <div class="form-field">
-          <div class="field-label-row">
-            <label class="field-label">Password</label>
-            <a href="javascript:void(0)" class="forgot-link">Forgot password?</a>
-          </div>
+        <mat-form-field appearance="outline" class="w-full mat-field-custom">
+          <mat-label>Password</mat-label>
+          <mat-icon matPrefix>lock</mat-icon>
           <input
-            type="password"
+            matInput
+            [type]="hidePassword ? 'password' : 'text'"
             name="password"
             [(ngModel)]="password"
             required
-            class="input-box"
             placeholder="••••••••"
           />
-        </div>
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            (click)="hidePassword = !hidePassword"
+            [attr.aria-label]="'Hide password'"
+            [attr.aria-pressed]="hidePassword"
+          >
+            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+        </mat-form-field>
 
-        <button type="submit" [disabled]="loading" class="btn-signin">
-          <span *ngIf="!loading">Sign in</span>
+        <button mat-flat-button color="primary" type="submit" [disabled]="loading" class="btn-signin-mat">
+          <span *ngIf="!loading">Sign in to Console</span>
           <span *ngIf="loading">Signing in...</span>
         </button>
 
-        <button type="button" class="btn-google" (click)="exploreLiveDemo()">
-          Continue with Google
+        <button mat-stroked-button type="button" class="btn-google-mat" (click)="exploreLiveDemo()">
+          <mat-icon>domain</mat-icon> Continue with Enterprise Demo
         </button>
       </form>
 
-      <!-- Create Account Form -->
+      <!-- Create Account Form with Angular Material -->
       <form (ngSubmit)="onSubmit()" class="auth-form" *ngIf="activeTab === 'signup'">
-        <div class="form-field">
-          <label class="field-label">Full Name</label>
-          <input type="text" class="input-box" placeholder="Your name" />
-        </div>
-        <div class="form-field">
-          <label class="field-label">Work email</label>
-          <input type="email" class="input-box" placeholder="you@company.com" />
-        </div>
-        <div class="form-field">
-          <label class="field-label">Password</label>
-          <input type="password" class="input-box" placeholder="Create password" />
-        </div>
-        <button type="submit" class="btn-signin">Create Account</button>
+        <mat-form-field appearance="outline" class="w-full mat-field-custom">
+          <mat-label>Full Name</mat-label>
+          <mat-icon matPrefix>person</mat-icon>
+          <input matInput type="text" placeholder="Your name" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full mat-field-custom">
+          <mat-label>Work email</mat-label>
+          <mat-icon matPrefix>email</mat-icon>
+          <input matInput type="email" placeholder="you@company.com" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full mat-field-custom">
+          <mat-label>Create Password</mat-label>
+          <mat-icon matPrefix>lock</mat-icon>
+          <input matInput type="password" placeholder="Create password" />
+        </mat-form-field>
+
+        <button mat-flat-button color="primary" type="submit" class="btn-signin-mat">Create Account</button>
       </form>
 
-      <!-- Demo Accounts Grid -->
+      <!-- Demo Accounts with Material Chips -->
       <div class="demo-accounts-box">
-        <div class="demo-accounts-title">DEMO ACCOUNTS — ABC REALTY</div>
-        <div class="demo-accounts-grid">
+        <div class="demo-accounts-title">DEMO ACCOUNTS — SELECT ROLE TO TEST</div>
+        <div class="demo-accounts-chips">
           <button
+            mat-stroked-button
             type="button"
             *ngFor="let acc of demoAccounts"
-            class="demo-account-chip"
+            class="demo-chip-btn"
             (click)="selectDemoAccount(acc)"
           >
-            {{ acc.label }}
+            <mat-icon class="chip-icon">badge</mat-icon> {{ acc.label }}
           </button>
         </div>
         <div class="demo-password-hint">

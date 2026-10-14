@@ -5,12 +5,25 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatBadgeModule } from '@angular/material/badge';
 import { DashboardService } from '../dashboard.service';
 
 @Component({
   selector: 'app-dashboard-overview',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatCardModule, MatButtonModule, MatTooltipModule, MatChipsModule],
+  imports: [
+    CommonModule,
+    RouterModule,
+    MatCardModule,
+    MatButtonModule,
+    MatTooltipModule,
+    MatChipsModule,
+    MatIconModule,
+    MatProgressBarModule,
+    MatBadgeModule
+  ],
   templateUrl: './dashboard-overview.component.html',
   styleUrl: './dashboard-overview.component.css'
 })

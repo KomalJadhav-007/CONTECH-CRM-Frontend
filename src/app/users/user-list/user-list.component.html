@@ -70,6 +70,7 @@
             <th>USER</th>
             <th>DESIGNATION</th>
             <th>ROLE (ACCESS CONTROL)</th>
+            <th>REPORTING MANAGER</th>
             <th>STATUS</th>
             <th>LAST LOGIN</th>
             <th>ACTIONS</th>
@@ -110,6 +111,11 @@
                   {{ getRoleBadge(u.role) }}
                 </span>
               </div>
+            </td>
+            <td>
+              <span class="designation-badge" style="background: rgba(148, 163, 184, 0.1); border-color: rgba(148, 163, 184, 0.2);">
+                👤 {{ u.manager_name }}
+              </span>
             </td>
             <td>
               <div class="status-cell">
@@ -394,6 +400,62 @@
         <button type="button" class="btn-modal-submit" (click)="submitEditUser()" [disabled]="isEditing">
           <span *ngIf="!isEditing">Save Changes</span>
           <span *ngIf="isEditing">Saving...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REASSIGNMENT SAFEGUARD MODAL (SOW Sec 5) -->
+  <div class="modal-backdrop" *ngIf="showReassignModal">
+    <div class="modal-card safeguard-modal-card">
+      <div class="modal-header safeguard-modal-header">
+        <div>
+          <div class="safeguard-badge">DEACTIVATION SAFEGUARD (SOW SEC 5)</div>
+          <h2 class="modal-title safeguard-title">🛡️ Deactivation Safeguard Triggered</h2>
+          <p class="modal-subtitle safeguard-subtitle">Open leads, site visits &amp; tasks must be safely transferred before user disposition.</p>
+        </div>
+        <button type="button" class="btn-close-modal" (click)="closeReassignModal()">&times;</button>
+      </div>
+
+      <div class="modal-body" *ngIf="reassignStats">
+        <div class="safeguard-warning-box">
+          <div class="safeguard-warning-title">
+            <strong>{{ reassignUser?.name }}</strong> currently owns active pipeline records that cannot be orphaned:
+          </div>
+          <div class="safeguard-stats-grid">
+            <div class="safeguard-stat-pill">
+              <span class="safeguard-stat-count">{{ reassignStats.open_buyers }}</span>
+              <span class="safeguard-stat-label">Active Buyer Prospects</span>
+            </div>
+            <div class="safeguard-stat-pill">
+              <span class="safeguard-stat-count">{{ reassignStats.open_visits }}</span>
+              <span class="safeguard-stat-label">Upcoming Site Visits</span>
+            </div>
+            <div class="safeguard-stat-pill">
+              <span class="safeguard-stat-count">{{ reassignStats.open_tasks }}</span>
+              <span class="safeguard-stat-label">Pending Follow-up Tasks</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group safeguard-form-group">
+          <label class="form-label safeguard-label">Select Active Colleague to Transfer All Records To:</label>
+          <select [(ngModel)]="selectedReassignTargetId" class="form-select safeguard-select">
+            <option *ngFor="let target of otherActiveUsers" [value]="target.id">
+              {{ target.name }} ({{ target.role }})
+            </option>
+          </select>
+          <small class="safeguard-help-text">All active prospects, site visits, and SLA tasks will be atomically transferred to this user.</small>
+        </div>
+
+        <div *ngIf="reassignError" class="modal-error-alert safeguard-error-alert">{{ reassignError }}</div>
+      </div>
+
+      <div class="modal-footer safeguard-modal-footer">
+        <button type="button" class="btn-modal-cancel" (click)="closeReassignModal()">Cancel</button>
+        <button type="button" class="btn-safeguard-submit" (click)="confirmReassignment()" [disabled]="isReassigning || !selectedReassignTargetId">
+          <span *ngIf="!isReassigning">Transfer All &amp; Confirm</span>
+          <span *ngIf="isReassigning">Transferring...</span>
         </button>
       </div>
     </div>

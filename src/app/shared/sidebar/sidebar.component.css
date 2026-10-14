@@ -109,6 +109,40 @@
   font-weight: 500;
   color: #94a3b8;
   transition: all 0.15s ease;
+  text-decoration: none;
+}
+
+.nav-icon {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  margin-right: 0.65rem;
+  color: #64748b;
+  transition: color 0.15s ease;
+}
+
+.nav-item:hover .nav-icon {
+  color: #f1f5f9;
+}
+
+.nav-item.active .nav-icon {
+  color: #f59e0b;
+}
+
+.btn-logout-mat {
+  font-size: 0.75rem !important;
+  padding: 0 0.5rem !important;
+  height: 32px !important;
+  line-height: 32px !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+.btn-logout-mat .mat-icon {
+  font-size: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
+  margin-right: 4px;
 }
 
 .nav-item:hover {

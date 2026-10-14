@@ -16,6 +16,28 @@
           {{ errorMessage }}
         </div>
 
+        <!-- SOW Sec 6: Duplicate Detection Alert Card -->
+        <div *ngIf="duplicateInfo" class="duplicate-alert-card">
+          <div class="duplicate-header">
+            <span class="warning-icon">⚠️</span>
+            <div>
+              <strong class="duplicate-title">Potential Duplicate Prospect Detected!</strong>
+              <p class="duplicate-desc">
+                A prospect record with matching contact details already exists in the CRM:
+                <strong>{{ duplicateInfo.full_name }}</strong> ({{ duplicateInfo.phone }} &middot; {{ duplicateInfo.email || 'No email' }}).
+                Managed by <strong>{{ duplicateInfo.assignedRep?.name || 'Unassigned' }}</strong> with Buyer Score <strong>{{ duplicateInfo.intent_score || '85' }}/100</strong>.
+              </p>
+            </div>
+          </div>
+          <div class="duplicate-actions">
+            <a [routerLink]="['/buyers', duplicateInfo.id]" class="btn-dup-secondary">View Existing Dossier &rarr;</a>
+            <button type="button" class="btn-dup-override" (click)="allowDuplicateProceed()">
+              Proceed as Permitted Duplicate / Co-Applicant
+            </button>
+            <button type="button" class="btn-dup-dismiss" (click)="dismissDuplicateWarning()">Dismiss</button>
+          </div>
+        </div>
+
         <div class="form-section-title">1. Contact & Demographic Details</div>
         <div class="form-row">
           <div class="form-group">
@@ -25,12 +47,27 @@
 
           <div class="form-group">
             <label class="form-label">Phone Number *</label>
-            <input type="text" class="form-control" [(ngModel)]="buyerData.phone" name="phone" placeholder="+91 98800 12345" required />
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="buyerData.phone"
+              name="phone"
+              (blur)="checkDuplicateContact()"
+              placeholder="+91 98800 12345"
+              required
+            />
           </div>
 
           <div class="form-group">
             <label class="form-label">Email Address</label>
-            <input type="email" class="form-control" [(ngModel)]="buyerData.email" name="email" placeholder="rahul@example.com" />
+            <input
+              type="email"
+              class="form-control"
+              [(ngModel)]="buyerData.email"
+              name="email"
+              (blur)="checkDuplicateContact()"
+              placeholder="rahul@example.com"
+            />
           </div>
         </div>
 
@@ -51,7 +88,7 @@
           </div>
         </div>
 
-        <div class="form-section-title" style="margin-top: 1.5rem;">2. Buying Intent & Configuration Preferences</div>
+        <div class="form-section-title" style="margin-top: 1.5rem;">2. Buying Intent & 4-Dimension Attributes (SOW Sec 8)</div>
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Min Budget (₹ Lacs)</label>
@@ -82,6 +119,43 @@
               <option value="1-3 months">1 - 3 Months</option>
               <option value="3-6 months">3 - 6 Months</option>
               <option value=">6 months">&gt; 6 Months</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Lead Acquisition Source</label>
+            <select class="form-control" [(ngModel)]="buyerData.lead_source" name="lead_source">
+              <option value="SimpliQualify">SimpliQualify AI Direct</option>
+              <option value="Google Ads">Google Search Ads</option>
+              <option value="Meta Ads">Meta / Instagram Ads</option>
+              <option value="Referral">Customer Referral</option>
+              <option value="Website">Developer Website Organic</option>
+              <option value="Property Portal">MagicBricks / 99acres</option>
+              <option value="Broker">Channel Partner / Broker</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Occupation / Profile Fit</label>
+            <select class="form-control" [(ngModel)]="buyerData.occupation" name="occupation">
+              <option value="Salaried IT/Corporate">Salaried IT / Tech Corporate</option>
+              <option value="Business / Entrepreneur">Business Owner / Entrepreneur</option>
+              <option value="Doctor / Medical">Doctor / Healthcare Specialist</option>
+              <option value="CA / Finance">Chartered Accountant / Investment Banking</option>
+              <option value="NRI">NRI / Overseas Investor</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Financing & Fund Readiness</label>
+            <select class="form-control" [(ngModel)]="buyerData.financing_readiness" name="financing_readiness">
+              <option value="Pre-approved Loan">Bank Pre-approved Loan (Ready)</option>
+              <option value="Self-funded">100% Self-Funded / Equity</option>
+              <option value="Applied for Loan">Loan Application Underway</option>
+              <option value="Exploring Loan">Exploring Home Loan Rates</option>
+              <option value="Not Ready">Not Yet Arranged</option>
             </select>
           </div>
         </div>

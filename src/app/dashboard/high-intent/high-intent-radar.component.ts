@@ -7,6 +7,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-high-intent-radar',
@@ -19,7 +22,10 @@ import { MatChipsModule } from '@angular/material/chips';
     MatButtonModule,
     MatSelectModule,
     MatFormFieldModule,
-    MatChipsModule
+    MatChipsModule,
+    MatIconModule,
+    MatProgressBarModule,
+    MatTooltipModule
   ],
   templateUrl: './high-intent-radar.component.html',
   styleUrl: './high-intent-radar.component.css'

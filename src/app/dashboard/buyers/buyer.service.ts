@@ -28,4 +28,29 @@ export class BuyerService {
   deleteBuyer(id: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/${id}`);
   }
+
+  checkDuplicate(phone?: string, email?: string, exclude_id?: number): Observable<any> {
+    const params: any = {};
+    if (phone) params.phone = phone;
+    if (email) params.email = email;
+    if (exclude_id) params.exclude_id = exclude_id;
+    return this.http.get<any>(`${this.apiUrl}/check-duplicate`, { params });
+  }
+
+  getCsvTemplate(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/csv-template`);
+  }
+
+  importBuyersFromCsv(rows: any[]): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/import-csv`, { rows });
+  }
+
+  recordBooking(data: any): Observable<any> {
+    return this.http.post<any>('http://localhost:5000/api/bookings', data);
+  }
+
+  getBookings(params?: any): Observable<any> {
+    return this.http.get<any>('http://localhost:5000/api/bookings', { params });
+  }
 }
+

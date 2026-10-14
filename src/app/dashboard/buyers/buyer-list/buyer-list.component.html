@@ -9,7 +9,8 @@
       </p>
     </div>
     <div class="top-actions">
-      <button type="button" class="btn-export" (click)="exportCSV()">Export CSV</button>
+      <button type="button" class="btn-export" (click)="openImportModal()">📥 Import CSV</button>
+      <button type="button" class="btn-export" (click)="exportCSV()">📤 Export CSV</button>
       <button type="button" class="btn-new" routerLink="/buyers/new">+ New prospect</button>
     </div>
   </div>
@@ -168,4 +169,103 @@
       </table>
     </div>
   </div>
+
+  <!-- CSV Bulk Import Modal (SOW Sec 6) -->
+  <div *ngIf="showImportModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title">Bulk Prospect CSV Import</h2>
+          <p class="modal-subtitle">Upload CSV to bulk create prospect profiles with automated 4-dimension intent scoring</p>
+        </div>
+        <button type="button" class="close-modal-btn" (click)="closeImportModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="template-download-box">
+          <div>
+            <strong>Need the CSV Template?</strong>
+            <p class="sub-text">Download the official pre-formatted template with headers matching SOW Section 6 specifications.</p>
+          </div>
+          <button type="button" class="btn-download-tpl" (click)="downloadTemplate()">📥 Download Template</button>
+        </div>
+
+        <div class="upload-zone">
+          <input type="file" accept=".csv" (change)="onFileSelected($event)" id="csvFileInput" class="file-input" />
+          <label for="csvFileInput" class="upload-label">
+            <span class="upload-icon">📄</span>
+            <span class="upload-title">{{ selectedFileName || 'Choose a .CSV file or drag & drop here' }}</span>
+            <span class="upload-hint">Supported columns: full_name, phone, email, budget_min_lacs, budget_max_lacs, preferred_bhk, buying_timeframe, lead_source, financing_readiness</span>
+          </label>
+        </div>
+
+        <div *ngIf="importError" class="modal-error-banner">
+          ⚠️ {{ importError }}
+        </div>
+
+        <!-- Import Statistics Result -->
+        <div *ngIf="importStats" class="import-stats-box">
+          <div class="stat-pill success">
+            <span class="stat-count">{{ importStats.imported_count }}</span>
+            <span class="stat-label">Imported Successfully</span>
+          </div>
+          <div class="stat-pill warning">
+            <span class="stat-count">{{ importStats.duplicate_count }}</span>
+            <span class="stat-label">Duplicates Skipped</span>
+          </div>
+          <div class="stat-pill danger" *ngIf="importStats.error_count > 0">
+            <span class="stat-count">{{ importStats.error_count }}</span>
+            <span class="stat-label">Errors Encountered</span>
+          </div>
+        </div>
+
+        <!-- Preview Table -->
+        <div *ngIf="parsedCsvRows.length > 0 && !importStats" class="preview-section">
+          <div class="preview-title">
+            <span>Rows Preview ({{ parsedCsvRows.length }} prospects detected)</span>
+          </div>
+          <div class="preview-table-wrapper">
+            <table class="preview-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Full Name</th>
+                  <th>Phone</th>
+                  <th>Budget</th>
+                  <th>BHK</th>
+                  <th>Timeframe</th>
+                  <th>Source</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of parsedCsvRows.slice(0, 5); let i = index">
+                  <td>{{ i + 1 }}</td>
+                  <td><strong>{{ row.full_name || row['Full Name'] || row.name }}</strong></td>
+                  <td>{{ row.phone || row['Phone Number'] || row.contact }}</td>
+                  <td>₹{{ row.budget_min_lacs || '100' }} - {{ row.budget_max_lacs || '200' }}L</td>
+                  <td>{{ row.preferred_bhk || '3 BHK' }}</td>
+                  <td>{{ row.buying_timeframe || '<30 days' }}</td>
+                  <td>{{ row.lead_source || 'CSV Import' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" (click)="closeImportModal()">Close</button>
+        <button
+          type="button"
+          class="btn-confirm-import"
+          [disabled]="importing || parsedCsvRows.length === 0"
+          (click)="executeImport()"
+        >
+          <span *ngIf="!importing">Start Bulk Import ({{ parsedCsvRows.length }} rows) &rarr;</span>
+          <span *ngIf="importing">Importing Prospects...</span>
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
+

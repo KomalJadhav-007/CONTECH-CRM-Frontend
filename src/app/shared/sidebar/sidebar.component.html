@@ -13,22 +13,26 @@
       </button>
       <ul class="nav-list" *ngIf="isExpanded('intelligence')">
         <li>
-          <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-item">
+          <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-item" matRipple>
+            <mat-icon class="nav-icon">speed</mat-icon>
             <span>Command Center</span>
           </a>
         </li>
         <li>
-          <a routerLink="/control-tower" routerLinkActive="active" class="nav-item">
+          <a routerLink="/control-tower" routerLinkActive="active" class="nav-item" matRipple>
+            <mat-icon class="nav-icon">radar</mat-icon>
             <span>Revenue Leakage</span>
           </a>
         </li>
         <li>
-          <a routerLink="/high-intent" routerLinkActive="active" class="nav-item">
+          <a routerLink="/high-intent" routerLinkActive="active" class="nav-item" matRipple>
+            <mat-icon class="nav-icon">trending_up</mat-icon>
             <span>High-Intent Radar</span>
           </a>
         </li>
         <li>
-          <a routerLink="/analytics" routerLinkActive="active" class="nav-item">
+          <a routerLink="/analytics" routerLinkActive="active" class="nav-item" matRipple>
+            <mat-icon class="nav-icon">bar_chart</mat-icon>
             <span>Analytics</span>
           </a>
         </li>
@@ -43,17 +47,20 @@
       </button>
       <ul class="nav-list" *ngIf="isExpanded('pipeline')">
         <li>
-          <a routerLink="/buyers" routerLinkActive="active" class="nav-item">
+          <a routerLink="/buyers" routerLinkActive="active" class="nav-item" matRipple>
+            <mat-icon class="nav-icon">people</mat-icon>
             <span>Prospects</span>
           </a>
         </li>
         <li>
-          <a routerLink="/tasks" routerLinkActive="active" class="nav-item">
+          <a routerLink="/tasks" routerLinkActive="active" class="nav-item" matRipple>
+            <mat-icon class="nav-icon">task_alt</mat-icon>
             <span>Follow-ups</span>
           </a>
         </li>
         <li>
-          <a routerLink="/control-tower" routerLinkActive="active" class="nav-item">
+          <a routerLink="/control-tower" routerLinkActive="active" class="nav-item" matRipple>
+            <mat-icon class="nav-icon">notifications_active</mat-icon>
             <span>Alerts</span>
           </a>
         </li>
@@ -68,17 +75,20 @@
       </button>
       <ul class="nav-list" *ngIf="isExpanded('siteVisitOps')">
         <li>
-          <a routerLink="/visits" routerLinkActive="active" class="nav-item">
+          <a routerLink="/visits" routerLinkActive="active" class="nav-item" matRipple>
+            <mat-icon class="nav-icon">calendar_month</mat-icon>
             <span>Site Visits</span>
           </a>
         </li>
         <li>
-          <a routerLink="/control-tower" routerLinkActive="active" class="nav-item">
+          <a routerLink="/control-tower" routerLinkActive="active" class="nav-item" matRipple>
+            <mat-icon class="nav-icon">control_camera</mat-icon>
             <span>Control Tower</span>
           </a>
         </li>
         <li>
-          <a routerLink="/my-trips" routerLinkActive="active" class="nav-item">
+          <a routerLink="/my-trips" routerLinkActive="active" class="nav-item" matRipple>
+            <mat-icon class="nav-icon">directions_car</mat-icon>
             <span>My Trips</span>
           </a>
         </li>
@@ -93,32 +103,38 @@
       </button>
       <ul class="nav-list" *ngIf="isExpanded('administration')">
         <li>
-          <a routerLink="/projects" routerLinkActive="active" class="nav-item">
+          <a routerLink="/projects" routerLinkActive="active" class="nav-item" matRipple>
+            <mat-icon class="nav-icon">domain</mat-icon>
             <span>Projects</span>
           </a>
         </li>
         <li>
-          <a routerLink="/visits" routerLinkActive="active" class="nav-item">
+          <a routerLink="/visits" routerLinkActive="active" class="nav-item" matRipple>
+            <mat-icon class="nav-icon">commute</mat-icon>
             <span>Fleet &amp; Drivers</span>
           </a>
         </li>
         <li>
-          <a routerLink="/team" routerLinkActive="active" class="nav-item">
+          <a routerLink="/team" routerLinkActive="active" class="nav-item" matRipple>
+            <mat-icon class="nav-icon">group</mat-icon>
             <span>Team</span>
           </a>
         </li>
         <li>
-          <a routerLink="/access-control" routerLinkActive="active" class="nav-item">
+          <a routerLink="/access-control" routerLinkActive="active" class="nav-item" matRipple>
+            <mat-icon class="nav-icon">lock</mat-icon>
             <span>Access Control</span>
           </a>
         </li>
         <li>
-          <a routerLink="/settings" routerLinkActive="active" class="nav-item">
+          <a routerLink="/settings" routerLinkActive="active" class="nav-item" matRipple>
+            <mat-icon class="nav-icon">settings</mat-icon>
             <span>Settings</span>
           </a>
         </li>
         <li>
-          <a routerLink="/audit-logs" routerLinkActive="active" class="nav-item">
+          <a routerLink="/audit-logs" routerLinkActive="active" class="nav-item" matRipple>
+            <mat-icon class="nav-icon">history</mat-icon>
             <span>Audit Logs</span>
           </a>
         </li>
@@ -126,12 +142,13 @@
     </div>
   </div>
 
-
   <div class="sidebar-footer">
     <div class="user-info" *ngIf="currentUser$ | async as user">
       <div class="user-name">{{ user.name }}</div>
       <div class="user-role">{{ user.role }}</div>
     </div>
-    <button type="button" class="btn-logout" (click)="logout()">Sign Out</button>
+    <button mat-stroked-button color="warn" class="btn-logout-mat" (click)="logout()">
+      <mat-icon>logout</mat-icon> Sign Out
+    </button>
   </div>
 </aside>
