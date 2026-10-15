@@ -22,8 +22,20 @@ export class DriverTripsComponent implements OnInit {
 
   loading = true;
   trips: any[] = [];
+  filterStatus = '';
   updatingId: number | null = null;
   statusMessage = '';
+
+  get filteredTrips(): any[] {
+    if (!this.filterStatus) return this.trips;
+    if (this.filterStatus === 'ACTIVE') {
+      return this.trips.filter(t => t.trip_status !== 'COMPLETED');
+    }
+    if (this.filterStatus === 'COMPLETED') {
+      return this.trips.filter(t => t.trip_status === 'COMPLETED' || t.trip_status === 'DROPPED_AT_SITE');
+    }
+    return this.trips;
+  }
 
   ngOnInit(): void {
     this.loadTrips();

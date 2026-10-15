@@ -1,61 +1,138 @@
-.driver-portal-wrapper {
-  max-width: 600px;
+.prospects-page-wrapper {
+  padding: 1.75rem 2.25rem 3rem 2.25rem;
+  max-width: 1560px;
   margin: 0 auto;
-}
-
-.driver-header {
-  text-align: center;
-  margin-bottom: 1.75rem;
-}
-
-.driver-badge {
-  display: inline-block;
-  background: #fef3c7;
-  color: #b45309;
-  border: 1px solid #fde68a;
-  font-size: 0.75rem;
-  font-weight: 800;
-  padding: 0.25rem 0.65rem;
-  border-radius: 4px;
-  margin-bottom: 0.5rem;
-}
-
-.driver-title {
-  font-size: 1.5rem;
-  font-weight: 800;
+  font-family: var(--font-main, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif);
   color: #0f172a;
 }
 
-.driver-subtitle {
+/* Page Header matching Prospects / Pipeline */
+.page-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.75rem;
+  gap: 1rem;
+}
+
+.section-tag {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
   color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.page-title {
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.page-subtitle {
   font-size: 0.85rem;
-  margin-top: 0.25rem;
+  color: #64748b;
+  margin-top: 0.35rem;
+  line-height: 1.45;
 }
 
-.alert-success-banner {
-  background: #d1fae5;
-  border: 1px solid #a7f3d0;
-  color: #065f46;
-  padding: 0.75rem 1rem;
-  border-radius: var(--radius-md);
-  margin-bottom: 1.25rem;
-  text-align: center;
+.top-actions {
+  display: flex;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.btn-export {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+  font-size: 0.8rem;
   font-weight: 600;
-  font-size: 0.875rem;
+  padding: 0.45rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
-.trips-list {
+.btn-export:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+/* Feedback Banner */
+.feedback-banner {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #166534;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Filter Bar matching Prospects / Tasks / Visits */
+.filters-bar {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.filter-tab {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 0.42rem 0.95rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filter-tab:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.filter-tab.active {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #ffffff;
+}
+
+/* Trips Grid */
+.trips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 1.25rem;
+}
+
+/* Trip Card */
+.trip-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  justify-content: space-between;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
-.trip-card {
-  padding: 1.5rem;
-  background: #ffffff !important;
-  border: 1px solid #e2e8f0 !important;
-  border-radius: 8px !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+.trip-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border-color: #cbd5e1;
 }
 
 .trip-top-bar {
@@ -65,113 +142,242 @@
   margin-bottom: 1rem;
 }
 
-.trip-time {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--primary);
+.trip-time-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
+.trip-time {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.cab-tag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #475569;
+  background: #f1f5f9;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+/* Status Badges */
+.stage-badge {
+  display: inline-block;
+  border-radius: 4px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.stage-scheduled {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #b45309;
+}
+
+.stage-completed {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #166534;
+}
+
+.stage-progress {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+}
+
+/* Passenger Section */
 .passenger-section {
   background: #f8fafc;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  padding: 1rem;
-  margin-bottom: 1.25rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 0.75rem 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.passenger-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .passenger-name {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text-main);
-  margin-bottom: 0.35rem;
-}
-
-.phone-link {
-  display: inline-block;
-  color: #0284c7;
-  font-size: 0.85rem;
   font-weight: 600;
+  color: #0f172a;
+  font-size: 0.85rem;
 }
 
+.btn-phone {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.15s ease;
+}
+
+.btn-phone:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+/* Route Timeline */
 .route-box {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
   background: #f8fafc;
-  border: 1px solid var(--border-color);
-  padding: 1rem;
-  border-radius: var(--radius-md);
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 0.85rem;
+  margin-bottom: 1.15rem;
 }
 
 .route-stop {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
+  gap: 0.65rem;
 }
 
 .stop-dot {
-  width: 10px;
-  height: 10px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   margin-top: 0.35rem;
   flex-shrink: 0;
 }
 
-.stop-dot.pickup { background: #0284c7; box-shadow: 0 0 6px rgba(2, 132, 199, 0.4); }
-.stop-dot.drop { background: #059669; box-shadow: 0 0 6px rgba(5, 150, 105, 0.4); }
+.stop-dot.pickup {
+  background: #0284c7;
+  box-shadow: 0 0 5px rgba(2, 132, 199, 0.4);
+}
+
+.stop-dot.drop {
+  background: #16a34a;
+  box-shadow: 0 0 5px rgba(22, 163, 74, 0.4);
+}
 
 .stop-label {
-  font-size: 0.7rem;
-  font-weight: 800;
-  color: var(--text-subtle);
-  letter-spacing: 0.05em;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #64748b;
+  text-transform: uppercase;
 }
 
 .stop-address {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: var(--text-main);
+  color: #0f172a;
+  margin-top: 0.1rem;
+  line-height: 1.35;
 }
 
 .route-line {
   width: 2px;
-  height: 16px;
+  height: 14px;
   background: #cbd5e1;
-  margin-left: 4px;
+  margin-left: 3.5px;
+  margin-top: 0.2rem;
+  margin-bottom: 0.2rem;
 }
 
+/* Journey Actions */
 .journey-actions {
-  margin-top: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  margin-top: auto;
 }
 
-.btn-journey {
+.btn-journey-action {
   width: 100%;
-  padding: 0.85rem !important;
-  font-size: 0.95rem !important;
+  background: #0f172a;
+  border: 1px solid #0f172a;
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.55rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.btn-journey-action:hover {
+  background: #1e293b;
+  border-color: #1e293b;
+}
+
+.btn-journey-action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-journey-completed {
+  background: #15803d;
+  border-color: #15803d;
+}
+
+.btn-journey-completed:hover {
+  background: #166534;
+  border-color: #166534;
+}
+
+.btn-journey-done {
+  width: 100%;
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #166534;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.55rem 1rem;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Empty State Card */
-.empty-portal-card {
-  background: #ffffff !important;
-  border: 1px solid #e2e8f0 !important;
-  border-radius: 8px !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
-  padding: 2.5rem 1rem !important;
+.table-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.empty-card {
+  padding: 3rem 1.5rem;
+}
+
+.empty-state {
+  text-align: center;
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+.empty-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .empty-title {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 700;
   color: #0f172a;
 }
 
 .empty-subtitle {
+  font-size: 0.85rem;
   color: #64748b;
-  font-size: 0.875rem;
   margin-top: 0.35rem;
+  line-height: 1.45;
 }
-

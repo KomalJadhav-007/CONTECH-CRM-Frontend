@@ -1,67 +1,108 @@
-<div class="page-wrapper driver-portal-wrapper">
-  <div class="driver-header">
-    <div class="driver-badge">🚗 DRIVER PORTAL</div>
-    <h1 class="driver-title">My Daily Site Visit Trips</h1>
-    <p class="driver-subtitle">Live passenger pickup coordinates &amp; one-touch journey tracking</p>
+<div class="prospects-page-wrapper">
+  <!-- Header matching Prospects / Pipeline / Visits Theme -->
+  <div class="page-title-row">
+    <div>
+      <div class="section-tag">LOGISTICS &middot; DRIVER PORTAL</div>
+      <h1 class="page-title">My Daily Site Visit Trips</h1>
+      <p class="page-subtitle">
+        Live passenger pickup coordinates &amp; one-touch journey tracking.
+      </p>
+    </div>
+    <div class="top-actions">
+      <button type="button" class="btn-export" (click)="loadTrips()">🔄 Refresh Trips</button>
+    </div>
   </div>
 
-  <div *ngIf="statusMessage" class="alert-success-banner">
+  <!-- Feedback Banner -->
+  <div *ngIf="statusMessage" class="feedback-banner">
     ✅ {{ statusMessage }}
   </div>
 
-  <div class="trips-list" *ngIf="trips.length > 0">
-    <mat-card *ngFor="let trip of trips" class="trip-card">
-      <mat-card-header class="trip-top-bar">
-        <span class="trip-time">⏰ {{ trip.siteVisit?.time_slot }}</span>
+  <!-- Trips Filter Bar -->
+  <div class="filters-bar" *ngIf="trips.length > 0">
+    <button
+      type="button"
+      class="filter-tab"
+      [class.active]="filterStatus === ''"
+      (click)="filterStatus = ''"
+    >
+      All Trips ({{ trips.length }})
+    </button>
+    <button
+      type="button"
+      class="filter-tab"
+      [class.active]="filterStatus === 'ACTIVE'"
+      (click)="filterStatus = 'ACTIVE'"
+    >
+      Active Journeys
+    </button>
+    <button
+      type="button"
+      class="filter-tab"
+      [class.active]="filterStatus === 'COMPLETED'"
+      (click)="filterStatus = 'COMPLETED'"
+    >
+      Completed
+    </button>
+  </div>
+
+  <!-- Trips Cards Grid -->
+  <div class="trips-grid" *ngIf="filteredTrips.length > 0">
+    <div *ngFor="let trip of filteredTrips" class="trip-card">
+      <div class="trip-top-bar">
+        <div class="trip-time-info">
+          <span class="trip-time">⏰ {{ trip.siteVisit?.time_slot || 'Today' }}</span>
+          <span class="cab-tag">🚗 {{ trip.siteVisit?.cab_number || 'Company Fleet' }}</span>
+        </div>
         <span
-          class="badge"
+          class="stage-badge"
           [ngClass]="{
-            'badge-success': trip.trip_status === 'COMPLETED' || trip.trip_status === 'DROPPED_AT_SITE',
-            'badge-cyan': trip.trip_status === 'STARTED' || trip.trip_status === 'ARRIVED_PICKUP' || trip.trip_status === 'PASSENGER_ONBOARD',
-            'badge-warning': trip.trip_status === 'ASSIGNED'
+            'stage-completed': trip.trip_status === 'COMPLETED' || trip.trip_status === 'DROPPED_AT_SITE',
+            'stage-progress': trip.trip_status === 'STARTED' || trip.trip_status === 'ARRIVED_PICKUP' || trip.trip_status === 'PASSENGER_ONBOARD',
+            'stage-scheduled': trip.trip_status === 'ASSIGNED'
           }"
         >
           {{ trip.trip_status }}
         </span>
-      </mat-card-header>
+      </div>
 
-      <mat-card-content>
-        <!-- Passenger Details -->
-        <div class="passenger-section">
+      <!-- Passenger Details -->
+      <div class="passenger-section">
+        <div class="passenger-header">
           <div class="passenger-name">👤 {{ trip.passenger_name }}</div>
-          <a [href]="'tel:' + trip.passenger_phone" class="phone-link">
-            📞 Call Passenger: {{ trip.passenger_phone }}
+          <a [href]="'tel:' + trip.passenger_phone" class="btn-phone">
+            📞 {{ trip.passenger_phone }}
           </a>
         </div>
+      </div>
 
-        <!-- Route Timeline -->
-        <div class="route-box">
-          <div class="route-stop">
-            <div class="stop-dot pickup"></div>
-            <div>
-              <div class="stop-label">PICKUP LOCATION</div>
-              <div class="stop-address">{{ trip.pickup_address }}</div>
-            </div>
-          </div>
-
-          <div class="route-line"></div>
-
-          <div class="route-stop">
-            <div class="stop-dot drop"></div>
-            <div>
-              <div class="stop-label">DESTINATION SITE GALLERY</div>
-              <div class="stop-address">{{ trip.drop_address }}</div>
-            </div>
+      <!-- Route Timeline -->
+      <div class="route-box">
+        <div class="route-stop">
+          <div class="stop-dot pickup"></div>
+          <div>
+            <div class="stop-label">PICKUP LOCATION</div>
+            <div class="stop-address">{{ trip.pickup_address }}</div>
           </div>
         </div>
-      </mat-card-content>
 
-      <mat-card-actions class="journey-actions">
+        <div class="route-line"></div>
+
+        <div class="route-stop">
+          <div class="stop-dot drop"></div>
+          <div>
+            <div class="stop-label">DESTINATION SITE GALLERY</div>
+            <div class="stop-address">{{ trip.drop_address }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Journey Action Button -->
+      <div class="journey-actions">
         <button
-          mat-raised-button
-          color="primary"
+          type="button"
           *ngIf="trip.trip_status === 'ASSIGNED'"
-          class="btn-journey"
+          class="btn-journey-action"
           [disabled]="updatingId === trip.id"
           (click)="updateStatus(trip, 'STARTED')"
         >
@@ -69,10 +110,9 @@
         </button>
 
         <button
-          mat-raised-button
-          color="primary"
+          type="button"
           *ngIf="trip.trip_status === 'STARTED'"
-          class="btn-journey"
+          class="btn-journey-action"
           [disabled]="updatingId === trip.id"
           (click)="updateStatus(trip, 'ARRIVED_PICKUP')"
         >
@@ -80,10 +120,9 @@
         </button>
 
         <button
-          mat-raised-button
-          color="primary"
+          type="button"
           *ngIf="trip.trip_status === 'ARRIVED_PICKUP'"
-          class="btn-journey"
+          class="btn-journey-action"
           [disabled]="updatingId === trip.id"
           (click)="updateStatus(trip, 'PASSENGER_ONBOARD')"
         >
@@ -91,10 +130,9 @@
         </button>
 
         <button
-          mat-raised-button
-          color="primary"
+          type="button"
           *ngIf="trip.trip_status === 'PASSENGER_ONBOARD'"
-          class="btn-journey"
+          class="btn-journey-action"
           [disabled]="updatingId === trip.id"
           (click)="updateStatus(trip, 'DROPPED_AT_SITE')"
         >
@@ -102,24 +140,33 @@
         </button>
 
         <button
-          mat-stroked-button
+          type="button"
           *ngIf="trip.trip_status === 'DROPPED_AT_SITE'"
-          class="btn-journey"
+          class="btn-journey-action btn-journey-completed"
           [disabled]="updatingId === trip.id"
           (click)="updateStatus(trip, 'COMPLETED')"
         >
           ✅ Complete Return Journey
         </button>
-      </mat-card-actions>
-    </mat-card>
+
+        <button
+          type="button"
+          *ngIf="trip.trip_status === 'COMPLETED'"
+          class="btn-journey-done"
+          disabled
+        >
+          ✓ Trip Fully Completed
+        </button>
+      </div>
+    </div>
   </div>
 
-  <mat-card *ngIf="trips.length === 0" class="empty-portal-card text-center">
-    <mat-card-content style="padding: 2rem 1rem;">
-      <div style="font-size: 2.75rem; margin-bottom: 0.75rem;">🎉</div>
+  <!-- Empty State Card matching Prospects theme -->
+  <div *ngIf="filteredTrips.length === 0" class="table-card empty-card">
+    <div class="empty-state">
+      <div class="empty-icon">🚗</div>
       <h2 class="empty-title">No Pending Trips Assigned</h2>
-      <p class="empty-subtitle">You are all caught up for today.</p>
-    </mat-card-content>
-  </mat-card>
+      <p class="empty-subtitle">You are all caught up for today. New dispatch notifications will appear here.</p>
+    </div>
+  </div>
 </div>
-
