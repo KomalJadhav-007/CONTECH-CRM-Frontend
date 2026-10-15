@@ -31,23 +31,26 @@
 
     <select [(ngModel)]="selectedStage" class="filter-dropdown">
       <option value="all">All stages</option>
+      <option value="New">New</option>
+      <option value="Contacted">Contacted</option>
       <option value="Qualified">Qualified</option>
       <option value="High Intent">High Intent</option>
-      <option value="Booking Intent">Booking Intent</option>
       <option value="Site Visit Scheduled">Site Visit Scheduled</option>
-      <option value="Negotiation">Negotiation</option>
       <option value="Visit Completed">Visit Completed</option>
+      <option value="Negotiation">Negotiation</option>
+      <option value="Booking Intent">Booking Intent</option>
+      <option value="Booked">Booked</option>
     </select>
 
     <select [(ngModel)]="selectedSource" class="filter-dropdown">
       <option value="all">All sources</option>
-      <option value="SimpliQualify">SimpliQualify</option>
       <option value="Google Ads">Google Ads</option>
-      <option value="Referral">Referral</option>
-      <option value="Instagram">Instagram</option>
-      <option value="Website">Website</option>
-      <option value="Property Portal">Property Portal</option>
       <option value="Meta Ads">Meta Ads</option>
+      <option value="Referral">Referral</option>
+      <option value="SimpliQualify">SimpliQualify</option>
+      <option value="Website">Website</option>
+      <option value="Instagram">Instagram</option>
+      <option value="Property Portal">Property Portal</option>
     </select>
 
     <select [(ngModel)]="selectedIntentBand" class="filter-dropdown">
@@ -60,11 +63,9 @@
     <select [(ngModel)]="selectedOwner" class="filter-dropdown">
       <option value="all">All owners</option>
       <option value="Unassigned">Unassigned</option>
-      <option value="Sneha Joshi">Sneha Joshi</option>
-      <option value="Amit Kulkarni">Amit Kulkarni</option>
-      <option value="Kavya Rao">Kavya Rao</option>
-      <option value="Rohit Patil">Rohit Patil</option>
-      <option value="Nikhil Shinde">Nikhil Shinde</option>
+      <option value="Amit Verma">Amit Verma (Account Executive)</option>
+      <option value="Arun Bhatia">Arun Bhatia (Sales Head / VP)</option>
+      <option value="Priya Nair">Priya Nair (Sales Manager)</option>
     </select>
   </div>
 
