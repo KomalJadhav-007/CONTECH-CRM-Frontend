@@ -1,11 +1,15 @@
-<div class="page-wrapper">
-  <div class="page-header">
+<div class="prospects-page-wrapper">
+  <!-- Header matching Prospects / Pipeline Theme -->
+  <div class="page-title-row">
     <div>
+      <div class="section-tag">EXECUTION &middot; SLA ENGINE</div>
       <h1 class="page-title">Follow-Up SLA Reminders & Countdown Engine</h1>
-      <p class="page-subtitle">Guaranteed post-visit turnaround with strict 4-hour countdown timers to stop deal leakage</p>
+      <p class="page-subtitle">
+        Guaranteed post-visit turnaround with strict 4-hour countdown timers to stop deal leakage.
+      </p>
     </div>
-    <div class="header-actions">
-      <button class="btn btn-secondary" (click)="loadTasks()">🔄 Refresh Tasks</button>
+    <div class="top-actions">
+      <button type="button" class="btn-export" (click)="loadTasks()">🔄 Refresh Tasks</button>
     </div>
   </div>
 
@@ -14,40 +18,60 @@
     {{ feedbackMessage }}
   </div>
 
-  <div class="glass-card" style="margin-bottom: 1.5rem;">
-    <div class="filters-bar">
-      <span class="filter-title">Filter By Status:</span>
-      <button class="filter-pill" [class.active]="filterStatus === 'PENDING'" (click)="filterStatus = 'PENDING'; loadTasks()">Pending SLAs</button>
-      <button class="filter-pill" [class.active]="filterStatus === 'COMPLETED'" (click)="filterStatus = 'COMPLETED'; loadTasks()">Completed</button>
-      <button class="filter-pill" [class.active]="filterStatus === ''" (click)="filterStatus = ''; loadTasks()">All Tasks</button>
-    </div>
+  <!-- Filter Bar matching Prospects Theme -->
+  <div class="filters-bar">
+    <button
+      type="button"
+      class="filter-tab"
+      [class.active]="filterStatus === 'PENDING'"
+      (click)="filterStatus = 'PENDING'; loadTasks()"
+    >
+      Pending SLAs
+    </button>
+    <button
+      type="button"
+      class="filter-tab"
+      [class.active]="filterStatus === 'COMPLETED'"
+      (click)="filterStatus = 'COMPLETED'; loadTasks()"
+    >
+      Completed
+    </button>
+    <button
+      type="button"
+      class="filter-tab"
+      [class.active]="filterStatus === ''"
+      (click)="filterStatus = ''; loadTasks()"
+    >
+      All Tasks
+    </button>
   </div>
 
-  <div class="glass-card">
-    <div class="data-table-container">
-      <table class="data-table">
+  <!-- Table Card matching Prospects / Pipeline Theme -->
+  <div class="table-card">
+    <div class="table-responsive">
+      <table class="prospects-table">
         <thead>
           <tr>
-            <th>Task & Follow-up Requirement</th>
-            <th>Buyer Context</th>
-            <th>Countdown SLA</th>
-            <th>Priority</th>
-            <th>Assigned Rep</th>
-            <th>Status</th>
-            <th>Action</th>
+            <th>TASK &amp; FOLLOW-UP REQUIREMENT</th>
+            <th>BUYER CONTEXT</th>
+            <th>COUNTDOWN SLA</th>
+            <th>PRIORITY</th>
+            <th>ASSIGNED REP</th>
+            <th>STATUS</th>
+            <th class="text-right">ACTIONS</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let task of tasks">
             <td>
-              <strong>{{ task.title }}</strong>
-              <div class="sub-text">{{ task.description }}</div>
+              <div class="task-title">{{ task.title }}</div>
+              <div class="task-desc">{{ task.description }}</div>
             </td>
             <td>
-              <a [routerLink]="['/buyers', task.buyer_id]" class="buyer-link" *ngIf="task.buyer">
-                <strong>{{ task.buyer.full_name }}</strong>
-              </a>
-              <div class="sub-text">{{ task.buyer?.preferred_bhk }} (Max ₹{{ task.buyer?.budget_max_lacs }}L)</div>
+              <div class="buyer-name" *ngIf="task.buyer">
+                <a [routerLink]="['/buyers', task.buyer_id]" class="buyer-link">{{ task.buyer.full_name }}</a>
+              </div>
+              <div class="buyer-contact">{{ task.buyer?.preferred_bhk }} &middot; Max ₹{{ task.buyer?.budget_max_lacs }}L</div>
             </td>
             <td>
               <div *ngIf="task.status === 'PENDING'">
@@ -57,10 +81,10 @@
                 <div *ngIf="task.is_overdue" class="countdown-tag countdown-overdue">
                   🚨 OVERDUE
                 </div>
-                <div class="sub-text">Target: {{ task.due_at | date:'shortTime' }}</div>
+                <div class="target-time">Target: {{ task.due_at | date:'shortTime' }}</div>
               </div>
-              <div *ngIf="task.status === 'COMPLETED'" class="text-emerald">
-                ✓ Completed
+              <div *ngIf="task.status === 'COMPLETED'">
+                <span class="countdown-tag countdown-completed">&#10003; Completed</span>
               </div>
             </td>
             <td>
@@ -69,9 +93,9 @@
                 (ngModelChange)="updateTaskPriority(task, $event)"
                 class="priority-select"
                 [ngClass]="{
-                  'badge-danger': task.priority === 'CRITICAL' || task.priority === 'URGENT',
-                  'badge-warning': task.priority === 'HIGH',
-                  'badge-cyan': task.priority === 'NORMAL'
+                  'priority-critical': task.priority === 'CRITICAL' || task.priority === 'URGENT',
+                  'priority-high': task.priority === 'HIGH',
+                  'priority-normal': task.priority === 'NORMAL'
                 }"
               >
                 <option value="CRITICAL">CRITICAL</option>
@@ -80,23 +104,28 @@
                 <option value="NORMAL">NORMAL</option>
               </select>
             </td>
-            <td>{{ task.assignedUser?.name || 'Unassigned' }}</td>
             <td>
-              <span class="badge" [ngClass]="task.status === 'COMPLETED' ? 'badge-success' : 'badge-warning'">
+              <span class="rep-name" [class.unassigned]="!task.assignedUser?.name || task.assignedUser?.name === 'Unassigned'">
+                {{ task.assignedUser?.name || 'Unassigned' }}
+              </span>
+            </td>
+            <td>
+              <span class="stage-badge" [ngClass]="task.status === 'COMPLETED' ? 'stage-completed' : 'stage-pending'">
                 {{ task.status }}
               </span>
             </td>
-            <td style="white-space: nowrap;">
+            <td class="text-right actions-cell">
               <button
                 *ngIf="task.status === 'PENDING'"
-                class="btn btn-primary btn-sm"
+                type="button"
+                class="btn-action-done"
                 (click)="completeTask(task)"
               >
-                Mark Done &check;
+                Mark Done &#10003;
               </button>
               <button
-                class="btn btn-danger-sm"
-                style="margin-left: 0.4rem;"
+                type="button"
+                class="btn-action-delete"
                 (click)="deleteTask(task)"
                 title="Delete task from database"
               >
@@ -106,7 +135,7 @@
           </tr>
 
           <tr *ngIf="tasks.length === 0">
-            <td colspan="7" class="text-center text-muted" style="padding: 2.5rem;">
+            <td colspan="7" class="empty-state">
               No follow-up tasks found for this status.
             </td>
           </tr>

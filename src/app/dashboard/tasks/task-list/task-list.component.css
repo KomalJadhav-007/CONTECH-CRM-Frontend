@@ -1,66 +1,201 @@
-.page-header {
+.prospects-page-wrapper {
+  padding: 1.75rem 2.25rem 3rem 2.25rem;
+  max-width: 1560px;
+  margin: 0 auto;
+  font-family: var(--font-main, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif);
+  color: #0f172a;
+}
+
+/* Page Header matching Prospects / Pipeline */
+.page-title-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
+  align-items: flex-start;
+  margin-bottom: 1.75rem;
   gap: 1rem;
 }
 
-.page-title {
-  font-size: 1.75rem;
+.section-tag {
+  font-size: 0.72rem;
   font-weight: 800;
+  letter-spacing: 0.2em;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.page-title {
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
 }
 
 .page-subtitle {
-  color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-top: 0.35rem;
+  line-height: 1.45;
 }
 
-.filters-bar {
+.top-actions {
   display: flex;
+  gap: 0.65rem;
   align-items: center;
-  gap: 0.75rem;
 }
 
-.filter-title {
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.filter-pill {
-  background: #f1f5f9;
-  border: 1px solid var(--border-color);
-  color: var(--text-muted);
-  padding: 0.35rem 0.85rem;
+.btn-export {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
   font-size: 0.8rem;
   font-weight: 600;
-  border-radius: var(--radius-full);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.filter-pill:hover, .filter-pill.active {
-  background: var(--primary);
-  color: #ffffff;
-  border-color: var(--primary);
-}
-
-.sub-text {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  margin-top: 0.2rem;
-}
-
-.countdown-tag {
-  display: inline-block;
-  font-size: 0.75rem;
-  font-weight: 800;
-  padding: 0.2rem 0.5rem;
+  padding: 0.45rem 1rem;
   border-radius: 4px;
-  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.btn-export:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+/* Feedback Banner */
+.feedback-banner {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #166534;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Filter Bar matching Prospects Theme */
+.filters-bar {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.filter-tab {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 0.42rem 0.95rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filter-tab:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.filter-tab.active {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #ffffff;
+}
+
+/* Table Card */
+.table-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.prospects-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.prospects-table th {
+  text-align: left;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #64748b;
+  border-bottom: 1px solid #e2e8f0;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.prospects-table td {
+  padding: 0.85rem 0.85rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #475569;
+  vertical-align: middle;
+}
+
+.prospects-table tr:last-child td {
+  border-bottom: none;
+}
+
+.task-title {
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 0.82rem;
+}
+
+.task-desc {
+  font-size: 0.7rem;
+  color: #64748b;
+  margin-top: 0.15rem;
+  line-height: 1.35;
+}
+
+.buyer-name {
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 0.82rem;
+}
+
+.buyer-link {
+  color: #0f172a;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.buyer-link:hover {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.buyer-contact {
+  font-size: 0.7rem;
+  color: #64748b;
+  margin-top: 0.15rem;
+}
+
+/* Countdown Tag matching SLA breach style */
+.countdown-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.18rem 0.55rem;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
 }
 
 .countdown-active {
@@ -73,30 +208,113 @@
   background: #fee2e2;
   border: 1px solid #fca5a5;
   color: #dc2626;
-  animation: pulse-overdue 1.5s infinite;
 }
 
-@keyframes pulse-overdue {
-  0% { transform: scale(0.98); }
-  50% { transform: scale(1.02); }
-  100% { transform: scale(0.98); }
-}
-
-.feedback-banner {
+.countdown-completed {
   background: #f0fdf4;
   border: 1px solid #86efac;
   color: #166534;
-  padding: 0.75rem 1rem;
-  border-radius: 4px;
-  font-size: 0.82rem;
-  font-weight: 500;
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
-.btn-danger-sm {
+.target-time {
+  font-size: 0.68rem;
+  color: #64748b;
+  margin-top: 0.2rem;
+}
+
+/* Priority Select - Styled cleanly to match pills */
+.priority-select {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  cursor: pointer;
+  outline: none;
+  border-width: 1px;
+  border-style: solid;
+}
+
+.priority-normal {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+.priority-high {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #b45309;
+}
+
+.priority-critical {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.rep-name {
+  font-size: 0.78rem;
+  color: #334155;
+  font-weight: 500;
+}
+
+.rep-name.unassigned {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+/* Status Badges */
+.stage-badge {
+  display: inline-block;
+  border-radius: 4px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.stage-pending {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #b45309;
+}
+
+.stage-completed {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #166534;
+}
+
+/* Action Buttons matching Edit / Delete in Prospects */
+.actions-cell {
+  white-space: nowrap;
+  text-align: right;
+}
+
+.btn-action-done {
+  background: #ffffff;
+  border: 1px solid #86efac;
+  color: #15803d;
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 0.25rem 0.65rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-action-done:hover {
+  background: #f0fdf4;
+  border-color: #22c55e;
+}
+
+.btn-action-delete {
   background: #ffffff;
   border: 1px solid #fecaca;
   color: #dc2626;
@@ -106,19 +324,21 @@
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.15s ease;
+  margin-left: 0.4rem;
 }
 
-.btn-danger-sm:hover {
+.btn-action-delete:hover {
   background: #fef2f2;
   border-color: #f87171;
 }
 
-.priority-select {
-  border: none;
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 0.25rem 0.45rem;
-  border-radius: 4px;
-  cursor: pointer;
-  outline: none;
+.text-right {
+  text-align: right;
+}
+
+.empty-state {
+  padding: 2.5rem;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.8rem;
 }
