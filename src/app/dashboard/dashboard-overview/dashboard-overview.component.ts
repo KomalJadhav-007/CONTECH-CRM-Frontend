@@ -47,6 +47,7 @@ export class DashboardOverviewComponent implements OnInit {
     open_follow_ups: 8,
     overdue_follow_ups: 8,
     pipeline_value_cr: '50.51',
+    todays_visits: [],
     top_revenue_leakage: [
       {
         buyer_name: 'Anand Bhagat',

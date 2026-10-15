@@ -98,7 +98,8 @@ export class NavbarComponent implements OnInit {
   }
 
   ackAlert(alert: any): void {
-    this.alertService.acknowledgeAlert(alert.id).subscribe({
+    const alertId = alert.in_app_alert_id || alert.id;
+    this.alertService.acknowledgeAlert(alertId).subscribe({
       next: () => {
         alert.is_acknowledged = true;
         this.unacknowledgedCount = Math.max(0, this.unacknowledgedCount - 1);
@@ -111,16 +112,17 @@ export class NavbarComponent implements OnInit {
   }
 
   resolveAlert(alert: any): void {
-    this.alertService.resolveAlert(alert.id, 'Resolved via In-App Alert center').subscribe({
+    const alertId = alert.in_app_alert_id || alert.id;
+    this.alertService.resolveAlert(alertId, 'Resolved via In-App Alert center').subscribe({
       next: () => {
         alert.is_resolved = true;
         alert.is_acknowledged = true;
-        this.alerts = this.alerts.filter(a => a.id !== alert.id);
+        this.alerts = this.alerts.filter(a => (a.in_app_alert_id || a.id) !== alertId);
         this.unacknowledgedCount = Math.max(0, this.unacknowledgedCount - 1);
       },
       error: () => {
         alert.is_resolved = true;
-        this.alerts = this.alerts.filter(a => a.id !== alert.id);
+        this.alerts = this.alerts.filter(a => (a.in_app_alert_id || a.id) !== alertId);
       }
     });
   }

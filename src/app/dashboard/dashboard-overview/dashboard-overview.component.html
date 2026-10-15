@@ -104,7 +104,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let item of stats.top_revenue_leakage">
+            <tr *ngFor="let item of stats.top_revenue_leakage" class="leakage-row" [routerLink]="item.buyer_id ? ['/buyers', item.buyer_id] : ['/control-tower']" title="Click to view details">
               <td>
                 <div class="buyer-name">{{ item.buyer_name }}</div>
                 <div class="buyer-stage">{{ item.stage }}</div>
@@ -135,10 +135,39 @@
             <h2 class="panel-title">TODAY'S VISITS</h2>
             <p class="panel-sub">{{ todayDateStr }}</p>
           </div>
+          <a routerLink="/visits" class="view-all-link">Site Visit Hub &rarr;</a>
         </div>
-        <div class="empty-visits-box">
-          No visits scheduled today.
+
+        <div *ngIf="stats.todays_visits && stats.todays_visits.length > 0; else noVisits" class="todays-visits-list">
+          <div class="todays-visit-item" *ngFor="let visit of stats.todays_visits">
+            <div class="visit-item-left">
+              <div class="visit-time-badge">{{ visit.time_slot.split('(')[0].trim() }}</div>
+              <div class="visit-main-details">
+                <div class="visit-buyer-title">{{ visit.buyer_name }}</div>
+                <div class="visit-sub-meta">
+                  <span class="visit-proj-name">{{ visit.project_name }}</span>
+                  <span class="meta-dot">&bull;</span>
+                  <span class="visit-rep-name">{{ visit.sales_rep_name }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="visit-item-right">
+              <span *ngIf="visit.is_at_risk" class="severity-badge-critical" title="4-way confirmations incomplete">
+                <span class="crit-dot"></span>
+                AT RISK
+              </span>
+              <span *ngIf="!visit.is_at_risk" class="visit-confirmed-badge">
+                CONFIRMED
+              </span>
+            </div>
+          </div>
         </div>
+
+        <ng-template #noVisits>
+          <div class="empty-visits-box">
+            No visits scheduled today.
+          </div>
+        </ng-template>
       </div>
 
       <!-- HIGH-INTENT RADAR -->
@@ -148,17 +177,18 @@
             <h2 class="panel-title">HIGH-INTENT RADAR</h2>
             <p class="panel-sub">Score 71+ requires action inside SLA</p>
           </div>
+          <a routerLink="/buyers" class="view-all-link">All leads &rarr;</a>
         </div>
 
         <div class="radar-list">
-          <div class="radar-item" *ngFor="let buyer of stats.high_intent_radar">
+          <div class="radar-item interactive-radar" *ngFor="let buyer of stats.high_intent_radar" [routerLink]="['/buyers', buyer.id]" title="Click to view customer dossier">
             <div class="radar-info">
               <div class="radar-buyer-name">{{ buyer.buyer_name }}</div>
               <div class="radar-action">{{ buyer.action }} &middot; {{ buyer.time_ago }}</div>
             </div>
             <div class="radar-score-pill">
               <span class="score-num">{{ buyer.score }}</span>
-              <span class="score-delta">&#9650; {{ buyer.delta }}</span>
+              <span class="score-delta" *ngIf="buyer.delta">&#9650; {{ buyer.delta }}</span>
             </div>
           </div>
         </div>

@@ -227,6 +227,15 @@
   vertical-align: middle;
 }
 
+.leakage-row {
+  cursor: pointer;
+  transition: background 0.15s ease-in-out;
+}
+
+.leakage-row:hover td {
+  background: #f8fafc;
+}
+
 .buyer-name {
   font-weight: 600;
   color: #0f172a;
@@ -302,6 +311,98 @@
   font-size: 0.8rem;
 }
 
+/* Today's Visits List */
+.todays-visits-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.todays-visit-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0.6rem;
+  border-radius: 6px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease-in-out;
+}
+
+.todays-visit-item:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.visit-item-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.visit-time-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: #e2e8f0;
+  color: #1e293b;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+.visit-main-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.visit-buyer-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.visit-sub-meta {
+  font-size: 0.72rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meta-dot {
+  color: #94a3b8;
+}
+
+.visit-item-right {
+  display: flex;
+  align-items: center;
+  margin-left: 0.5rem;
+}
+
+.visit-confirmed-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
 /* Radar List */
 .radar-list {
   display: flex;
@@ -313,8 +414,18 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.65rem 0;
+  padding: 0.65rem 0.5rem;
   border-bottom: 1px solid #f1f5f9;
+  border-radius: 4px;
+}
+
+.radar-item.interactive-radar {
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.radar-item.interactive-radar:hover {
+  background: #f8fafc;
 }
 
 .radar-item:last-child {

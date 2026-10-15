@@ -20,7 +20,7 @@
     <div class="metric-card">
       <div class="card-top-label">VISIT &rarr; BOOKING</div>
       <div class="card-main-value">{{ analytics.visit_to_booking_pct }}%</div>
-      <div class="card-sub-label">{{ analytics.bookings_count }} bookings from {{ analytics.visits_completed_count }} completed</div>
+      <div class="card-sub-label">{{ analytics.bookings_count }} booking from {{ analytics.total_visits || analytics.visits_scheduled_count }} visits</div>
     </div>
 
     <div class="metric-card">
@@ -78,7 +78,7 @@
           ></div>
         </div>
         <div class="funnel-count">{{ stage.count }}</div>
-        <div class="funnel-dropoff" [class.negative]="stage.drop_off !== '-0%'">
+        <div class="funnel-dropoff" [class.negative]="stage.drop_off !== '0%' && stage.drop_off !== '-0%'">
           {{ stage.drop_off }}
         </div>
       </div>

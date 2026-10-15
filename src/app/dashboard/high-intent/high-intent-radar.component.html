@@ -43,7 +43,7 @@
   </div>
 
   <!-- Table Section -->
-  <div class="table-section-title">32 BUYERS</div>
+  <div class="table-section-title">{{ filteredBuyers.length }} BUYERS</div>
 
   <div class="table-card">
     <div class="table-responsive">
@@ -79,12 +79,17 @@
             </td>
             <td class="risk-cell">{{ b.at_risk }}</td>
             <td>
-              <select [(ngModel)]="b.owner" (ngModelChange)="onOwnerChange()" class="owner-select">
+              <select [(ngModel)]="b.owner" (ngModelChange)="onOwnerChange(b)" class="owner-select">
                 <option *ngFor="let o of owners" [value]="o">{{ o }}</option>
               </select>
             </td>
             <td class="text-right">
               <button type="button" class="btn-open" (click)="openBuyer(b.id)">Open</button>
+            </td>
+          </tr>
+          <tr *ngIf="filteredBuyers.length === 0">
+            <td colspan="8" style="text-align: center; padding: 2.5rem; color: #64748b;">
+              ✨ No buyers match the current band or owner filters.
             </td>
           </tr>
         </tbody>

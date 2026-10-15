@@ -15,6 +15,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatBadgeModule } from '@angular/material/badge';
 
+import { UserService } from '../../../users/user.service';
+
 @Component({
   selector: 'app-control-tower-view',
   standalone: true,
@@ -38,6 +40,7 @@ import { MatBadgeModule } from '@angular/material/badge';
 })
 export class ControlTowerViewComponent implements OnInit {
   private controlTowerService = inject(ControlTowerService);
+  private userService = inject(UserService);
 
   loading = true;
   radarData: any = {
@@ -53,8 +56,9 @@ export class ControlTowerViewComponent implements OnInit {
     overdue_tasks: []
   };
 
+  salesReps: any[] = [];
   selectedBuyerForRescue: any = null;
-  reassignedRepId = 3;
+  reassignedRepId: any = 3;
   rescueActionNotes = 'Reassigned to active senior rep for urgent priority callback';
   resolving = false;
   isScanning = false;
@@ -62,6 +66,20 @@ export class ControlTowerViewComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadRadar(false);
+    this.loadSalesReps();
+  }
+
+  loadSalesReps(): void {
+    this.userService.getUsers().subscribe({
+      next: (res) => {
+        if (res && res.success && res.users) {
+          this.salesReps = res.users.filter((u: any) => u.is_active !== false);
+          if (this.salesReps.length > 0) {
+            this.reassignedRepId = this.salesReps[0].user_id || this.salesReps[0].id;
+          }
+        }
+      }
+    });
   }
 
   loadRadar(isUserClick: boolean = false): void {
@@ -101,8 +119,9 @@ export class ControlTowerViewComponent implements OnInit {
     if (!this.selectedBuyerForRescue) return;
     this.resolving = true;
 
+    const buyerId = this.selectedBuyerForRescue.buyer_id || this.selectedBuyerForRescue.id;
     this.controlTowerService.resolveLeakageAlert({
-      buyer_id: this.selectedBuyerForRescue.id,
+      buyer_id: buyerId,
       reassigned_rep_id: this.reassignedRepId,
       action_taken: this.rescueActionNotes
     }).subscribe({

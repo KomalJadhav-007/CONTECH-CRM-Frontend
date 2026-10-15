@@ -29,9 +29,9 @@
   <!-- Radar Health & Risk Metrics -->
   <div class="metrics-grid">
     <div class="glass-card metric-card danger">
-      <span class="metric-label">REVENUE AT RISK (>48H INACTION)</span>
+      <span class="metric-label">TOTAL PIPELINE AT RISK</span>
       <div class="metric-value">₹{{ radarData.summary.gross_pipeline_at_risk_cr || ((radarData.summary.revenue_at_risk_lacs || 0) / 100).toFixed(2) }} <span class="unit">Cr</span></div>
-      <span class="metric-trend text-danger">{{ radarData.summary.neglected_buyers_count }} High-Intent Deals Idle</span>
+      <span class="metric-trend text-danger">{{ radarData.summary.total_exceptions_count || 10 }} Active Operational Bottlenecks</span>
     </div>
 
     <div class="glass-card metric-card amber">
@@ -165,6 +165,44 @@
     </div>
   </div>
 
+  <!-- Overdue Follow-up Tasks (SLA Breaches) -->
+  <div class="section-container" style="margin-top: 1.5rem;" *ngIf="radarData.overdue_tasks && radarData.overdue_tasks.length > 0">
+    <div class="glass-card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">⏰ Overdue Follow-Up Tasks (SLA Breaches)</h2>
+          <p class="card-subtext">Next best actions that have breached the 4-hour countdown SLA deadline.</p>
+        </div>
+        <span class="badge badge-danger">{{ radarData.overdue_tasks.length }} Breaches</span>
+      </div>
+
+      <div class="data-table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Task Title</th>
+              <th>Buyer</th>
+              <th>Assigned Rep</th>
+              <th>Due Time</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let task of radarData.overdue_tasks">
+              <td><strong>{{ task.title }}</strong></td>
+              <td>{{ task.buyer?.full_name || 'Prospect' }}</td>
+              <td>{{ task.assignedUser?.name || 'Unassigned' }}</td>
+              <td><span class="badge badge-danger">{{ task.due_at | date:'medium' }}</span></td>
+              <td>
+                <a routerLink="/tasks" class="btn btn-secondary btn-sm">Resolve in Tasks &rarr;</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <!-- Rescue Deal Modal (Direct HTML implementation per standards) -->
   <div *ngIf="selectedBuyerForRescue" class="modal-backdrop">
     <div class="modal-card glass-card">
@@ -180,8 +218,9 @@
         <div class="form-group">
           <label class="form-label">Reassign To Active Rep</label>
           <select class="form-control" [(ngModel)]="reassignedRepId">
-            <option [ngValue]="3">Amit Verma (Senior Sales Rep)</option>
-            <option [ngValue]="2">Priya Nair (Sales Manager)</option>
+            <option *ngFor="let rep of salesReps" [ngValue]="rep.user_id || rep.id">
+              {{ rep.name }} ({{ rep.role?.name || rep.role_name || 'Sales Team' }})
+            </option>
           </select>
         </div>
 
