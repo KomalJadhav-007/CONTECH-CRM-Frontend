@@ -63,7 +63,8 @@ export class TaskListComponent implements OnInit {
   }
 
   completeTask(task: any): void {
-    this.taskService.completeTask(task.id).subscribe({
+    const id = task.id || task.follow_up_task_id;
+    this.taskService.completeTask(id).subscribe({
       next: (res) => {
         if (res.success) {
           task.status = 'COMPLETED';
@@ -78,20 +79,22 @@ export class TaskListComponent implements OnInit {
     const confirmed = window.confirm(`Delete follow-up task "${task.title}" from database?`);
     if (!confirmed) return;
 
-    this.taskService.deleteTask(task.id).subscribe({
+    const id = task.id || task.follow_up_task_id;
+    this.taskService.deleteTask(id).subscribe({
       next: () => {
-        this.tasks = this.tasks.filter(t => t.id !== task.id);
+        this.tasks = this.tasks.filter(t => (t.id || t.follow_up_task_id) !== id);
         this.showFeedback(`Task "${task.title}" deleted from database.`);
       },
       error: () => {
-        this.tasks = this.tasks.filter(t => t.id !== task.id);
+        this.tasks = this.tasks.filter(t => (t.id || t.follow_up_task_id) !== id);
         this.showFeedback(`Task removed.`);
       }
     });
   }
 
   updateTaskPriority(task: any, priority: string): void {
-    this.taskService.updateTask(task.id, { priority }).subscribe({
+    const id = task.id || task.follow_up_task_id;
+    this.taskService.updateTask(id, { priority }).subscribe({
       next: () => {
         task.priority = priority;
         this.showFeedback(`Task priority updated to ${priority} in database.`);
