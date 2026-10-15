@@ -64,10 +64,11 @@ export class VisitListComponent implements OnInit {
   }
 
   toggleConfirmation(visit: any, type: string): void {
+    const visitId = visit.id || visit.site_visit_id;
     const payload: any = {};
     payload[type] = !visit[type];
 
-    this.visitService.updateConfirmations(visit.id, payload).subscribe({
+    this.visitService.updateConfirmations(visitId, payload).subscribe({
       next: (res) => {
         if (res.success) {
           visit[type] = !visit[type];
@@ -109,18 +110,19 @@ export class VisitListComponent implements OnInit {
     this.cancelling = true;
     this.cancelError = '';
 
+    const visitId = this.selectedVisitForCancel.id || this.selectedVisitForCancel.site_visit_id;
     const payload = {
       status: this.cancelForm.status,
       reason: this.cancelForm.reason,
       notes: this.cancelForm.notes
     };
 
-    this.visitService.updateSiteVisit(this.selectedVisitForCancel.id, payload).subscribe({
+    this.visitService.updateSiteVisit(visitId, payload).subscribe({
       next: (res) => {
         this.cancelling = false;
         if (res.success) {
           this.selectedVisitForCancel.status = this.cancelForm.status;
-          this.feedbackMessage = `Visit #${this.selectedVisitForCancel.id} marked as ${this.cancelForm.status}. Recovery SLA task initiated!`;
+          this.feedbackMessage = `Visit #${visitId} marked as ${this.cancelForm.status}. Recovery SLA task initiated!`;
           this.closeCancelModal();
           this.loadVisits();
           setTimeout(() => this.feedbackMessage = '', 4000);
