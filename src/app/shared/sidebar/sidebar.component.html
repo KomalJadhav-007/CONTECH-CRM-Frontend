@@ -142,13 +142,17 @@
     </div>
   </div>
 
-  <div class="sidebar-footer">
-    <div class="user-info" *ngIf="currentUser$ | async as user">
-      <div class="user-name">{{ user.name }}</div>
-      <div class="user-role">{{ user.role }}</div>
+  <div class="sidebar-footer" *ngIf="currentUser$ | async as user">
+    <div class="user-profile-row">
+      <div class="user-avatar-mini">{{ getInitials(user.name) }}</div>
+      <div class="user-info">
+        <div class="user-name" [title]="user.name">{{ getDisplayName(user.name) }}</div>
+        <div class="user-role">{{ user.role || 'DIRECTOR' }}</div>
+      </div>
+      <button type="button" class="btn-logout" (click)="logout()" title="Sign Out of Contech CRM">
+        <mat-icon class="logout-icon">logout</mat-icon>
+        <span class="logout-text">Sign Out</span>
+      </button>
     </div>
-    <button mat-stroked-button color="warn" class="btn-logout-mat" (click)="logout()">
-      <mat-icon>logout</mat-icon> Sign Out
-    </button>
   </div>
 </aside>
