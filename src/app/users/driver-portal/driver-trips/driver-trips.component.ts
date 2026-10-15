@@ -57,8 +57,9 @@ export class DriverTripsComponent implements OnInit {
   }
 
   updateStatus(trip: any, nextStatus: string): void {
-    this.updatingId = trip.id;
-    this.tripService.updateTripStatus(trip.id, nextStatus).subscribe({
+    const id = trip.id || trip.driver_trip_id;
+    this.updatingId = id;
+    this.tripService.updateTripStatus(id, nextStatus).subscribe({
       next: (res) => {
         this.updatingId = null;
         if (res.success) {
