@@ -1,7 +1,7 @@
 <div class="settings-page-wrapper">
   <!-- Top Header -->
   <div class="settings-header">
-    <div class="section-tag">ADMINISTRATION</div>
+    <div class="section-tag">ADMINISTRATION &middot; SYSTEM SETTINGS</div>
     <h1 class="page-title">Settings</h1>
     <p class="page-subtitle">
       Organisation profile, branding, and the scoring configuration behind every buyer score.
@@ -10,6 +10,10 @@
 
   <div *ngIf="savedMessage" class="success-banner">
     {{ savedMessage }}
+  </div>
+
+  <div *ngIf="errorMessage" class="error-banner">
+    {{ errorMessage }}
   </div>
 
   <!-- Top Two Columns: Organisation & My Profile -->
@@ -68,30 +72,40 @@
 
   <!-- SCORING CONFIGURATION -->
   <div class="card-box scoring-card">
-    <div class="card-box-title">SCORING CONFIGURATION</div>
-    <div class="scoring-sub">Contech CRM Buyer Score v1 &mdash; Rules-Based Intelligence</div>
+    <div class="scoring-header-row">
+      <div>
+        <div class="card-box-title">SCORING CONFIGURATION</div>
+        <div class="scoring-sub">Contech CRM Buyer Score v1 &mdash; Rules-Based Intelligence</div>
+      </div>
+      <div class="score-total-badge" [class.valid]="scoringTotal === 100" [class.invalid]="scoringTotal !== 100">
+        Total: {{ scoringTotal }}%
+      </div>
+    </div>
 
     <div class="scoring-grid-4">
       <div class="score-input-box">
         <label class="score-label">PROFILE FIT</label>
-        <input type="number" [(ngModel)]="scoring.profileFit" class="score-input" />
+        <input type="number" [(ngModel)]="scoring.profileFit" class="score-input" min="0" max="100" />
       </div>
       <div class="score-input-box">
         <label class="score-label">DIGITAL INTENT</label>
-        <input type="number" [(ngModel)]="scoring.digitalIntent" class="score-input" />
+        <input type="number" [(ngModel)]="scoring.digitalIntent" class="score-input" min="0" max="100" />
       </div>
       <div class="score-input-box">
         <label class="score-label">REQUIREMENT BUDGET FIT</label>
-        <input type="number" [(ngModel)]="scoring.requirementBudgetFit" class="score-input" />
+        <input type="number" [(ngModel)]="scoring.requirementBudgetFit" class="score-input" min="0" max="100" />
       </div>
       <div class="score-input-box">
         <label class="score-label">READINESS MOMENTUM</label>
-        <input type="number" [(ngModel)]="scoring.readinessMomentum" class="score-input" />
+        <input type="number" [(ngModel)]="scoring.readinessMomentum" class="score-input" min="0" max="100" />
       </div>
     </div>
 
-    <p class="scoring-footnote">
-      Weights are versioned with the engine so historic scores remain explainable. A future ML model can replace the rules without changing any screen.
-    </p>
+    <div class="scoring-actions-row">
+      <button type="button" class="btn-dark-save" (click)="saveScoring()">Save scoring weights</button>
+      <span class="scoring-footnote">
+        Weights are versioned with the engine so historic scores remain explainable. A future ML model can replace the rules without changing any screen.
+      </span>
+    </div>
   </div>
 </div>
