@@ -1,15 +1,15 @@
 <div class="audit-page-wrapper">
   <div class="audit-header">
     <div class="header-left">
-      <div class="section-tag">ADMINISTRATION</div>
+      <div class="section-tag">ADMINISTRATION &middot; AUDIT &amp; GOVERNANCE</div>
       <h1 class="page-title">Audit Log</h1>
       <p class="page-subtitle">
         Every privileged action is recorded with actor, module, record and before/after values. Entries cannot be edited or deleted.
       </p>
     </div>
     <div class="header-actions">
-      <button mat-stroked-button (click)="refreshCurrentTab()">
-        <mat-icon>refresh</mat-icon> Refresh
+      <button type="button" class="btn-refresh" (click)="refreshCurrentTab()">
+        🔄 Refresh
       </button>
     </div>
   </div>
@@ -17,21 +17,21 @@
   <!-- Tab Switcher (SOW Sec 16: Audit Trail & In-App Alerts) -->
   <div class="audit-tabs-bar">
     <button
-      mat-button
+      type="button"
       class="tab-btn"
       [class.active]="activeTab === 'AUDIT_LOGS'"
       (click)="activeTab = 'AUDIT_LOGS'"
     >
-      <mat-icon>receipt_long</mat-icon> Security &amp; Activity Audit Trail ({{ logs.length }})
+      💾 Security &amp; Activity Audit Trail ({{ logs.length }})
     </button>
     <button
-      mat-button
+      type="button"
       class="tab-btn"
       [class.active]="activeTab === 'IN_APP_ALERTS'"
       (click)="activeTab = 'IN_APP_ALERTS'; loadAlerts()"
     >
-      <mat-icon [matBadge]="unackAlertsCount" [matBadgeHidden]="unackAlertsCount === 0" matBadgeColor="warn">notifications</mat-icon>
-      In-App Leakage Alerts ({{ alerts.length }})
+      🔔 In-App Leakage Alerts ({{ alerts.length }})
+      <span *ngIf="unackAlertsCount > 0" class="badge-pill">{{ unackAlertsCount }}</span>
     </button>
   </div>
 
@@ -48,7 +48,7 @@
       <mat-card class="stat-card">
         <mat-card-content>
           <div class="card-label">SECURITY & ACCESS</div>
-          <div class="card-value">{{ countByModule(['SETTINGS', 'ACCESS_CONTROL']) }}</div>
+          <div class="card-value">{{ countByModule(['SETTINGS', 'ACCESS_CONTROL', 'AUTH']) }}</div>
         </mat-card-content>
       </mat-card>
       <mat-card class="stat-card">
