@@ -1,13 +1,14 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BuyerService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:5000/api/buyers';
+  private apiUrl = `${environment.apiUrl}/buyers`;
 
   getBuyers(params?: any): Observable<any> {
     return this.http.get<any>(this.apiUrl, { params });
@@ -46,11 +47,11 @@ export class BuyerService {
   }
 
   recordBooking(data: any): Observable<any> {
-    return this.http.post<any>('http://localhost:5000/api/bookings', data);
+    return this.http.post<any>(`${environment.apiUrl}/bookings`, data);
   }
 
   getBookings(params?: any): Observable<any> {
-    return this.http.get<any>('http://localhost:5000/api/bookings', { params });
+    return this.http.get<any>(`${environment.apiUrl}/bookings`, { params });
   }
 }
 

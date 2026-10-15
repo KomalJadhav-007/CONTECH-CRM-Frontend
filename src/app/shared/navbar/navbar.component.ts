@@ -1,8 +1,8 @@
 import { Component, inject, OnInit, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
+import { AlertService } from '../alert.service';
 
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -29,7 +29,7 @@ import { MatChipsModule } from '@angular/material/chips';
 })
 export class NavbarComponent implements OnInit {
   private authService = inject(AuthService);
-  private http = inject(HttpClient);
+  private alertService = inject(AlertService);
   private router = inject(Router);
   private elementRef = inject(ElementRef);
 
@@ -47,7 +47,7 @@ export class NavbarComponent implements OnInit {
   }
 
   loadAlerts(): void {
-    this.http.get<any>('http://localhost:5000/api/alerts').subscribe({
+    this.alertService.getAlerts().subscribe({
       next: (res) => {
         if (res.success && res.alerts) {
           this.alerts = res.alerts;
@@ -98,7 +98,7 @@ export class NavbarComponent implements OnInit {
   }
 
   ackAlert(alert: any): void {
-    this.http.post<any>(`http://localhost:5000/api/alerts/${alert.id}/acknowledge`, {}).subscribe({
+    this.alertService.acknowledgeAlert(alert.id).subscribe({
       next: () => {
         alert.is_acknowledged = true;
         this.unacknowledgedCount = Math.max(0, this.unacknowledgedCount - 1);
@@ -111,7 +111,7 @@ export class NavbarComponent implements OnInit {
   }
 
   resolveAlert(alert: any): void {
-    this.http.post<any>(`http://localhost:5000/api/alerts/${alert.id}/resolve`, { resolution_notes: 'Resolved via In-App Alert center' }).subscribe({
+    this.alertService.resolveAlert(alert.id, 'Resolved via In-App Alert center').subscribe({
       next: () => {
         alert.is_resolved = true;
         alert.is_acknowledged = true;

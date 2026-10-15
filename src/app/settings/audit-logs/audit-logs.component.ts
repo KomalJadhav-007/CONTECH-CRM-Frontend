@@ -2,7 +2,6 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -12,6 +11,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { SettingsService } from '../settings.service';
+import { AlertService } from '../../shared/alert.service';
 
 @Component({
   selector: 'app-audit-logs',
@@ -34,7 +34,7 @@ import { SettingsService } from '../settings.service';
 })
 export class AuditLogsComponent implements OnInit {
   private settingsService = inject(SettingsService);
-  private http = inject(HttpClient);
+  private alertService = inject(AlertService);
 
   activeTab: 'AUDIT_LOGS' | 'IN_APP_ALERTS' = 'AUDIT_LOGS';
   searchQuery = '';
@@ -78,7 +78,7 @@ export class AuditLogsComponent implements OnInit {
 
   loadAlerts(): void {
     this.loading = true;
-    this.http.get<any>('http://localhost:5000/api/alerts').subscribe({
+    this.alertService.getAlerts().subscribe({
       next: (res: any) => {
         this.loading = false;
         if (res && res.success && res.alerts) {
@@ -97,7 +97,7 @@ export class AuditLogsComponent implements OnInit {
   }
 
   ackAlert(alert: any): void {
-    this.http.post<any>(`http://localhost:5000/api/alerts/${alert.id}/acknowledge`, {}).subscribe({
+    this.alertService.acknowledgeAlert(alert.id).subscribe({
       next: () => {
         alert.is_acknowledged = true;
         this.unackAlertsCount = Math.max(0, this.unackAlertsCount - 1);
@@ -106,7 +106,7 @@ export class AuditLogsComponent implements OnInit {
   }
 
   resolveAlert(alert: any): void {
-    this.http.post<any>(`http://localhost:5000/api/alerts/${alert.id}/resolve`, { resolution_notes: 'Resolved in Audit Center' }).subscribe({
+    this.alertService.resolveAlert(alert.id, 'Resolved in Audit Center').subscribe({
       next: () => {
         alert.is_resolved = true;
         alert.is_acknowledged = true;

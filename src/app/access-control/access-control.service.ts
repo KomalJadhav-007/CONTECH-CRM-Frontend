@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, of } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 export interface PermissionMatrix {
   [role: string]: {
@@ -24,7 +25,7 @@ export interface RoleMeta {
 })
 export class AccessControlService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:5000/api/settings/permissions';
+  private apiUrl = `${environment.apiUrl}/settings/permissions`;
   private storageKey = 'contech_access_control_permissions';
 
   defaultRoles: string[] = [
@@ -509,7 +510,7 @@ export class AccessControlService {
   }
 
   fetchUserCounts(): void {
-    this.http.get<any>('http://localhost:5000/api/users').pipe(
+    this.http.get<any>(`${environment.apiUrl}/users`).pipe(
       catchError(() => of({ success: false, users: [] }))
     ).subscribe(res => {
       if (res && res.success && res.users) {
