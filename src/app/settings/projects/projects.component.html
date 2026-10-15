@@ -1,7 +1,7 @@
 <div class="admin-page-wrapper">
   <!-- Top Header -->
   <div class="admin-header">
-    <div class="section-tag">ADMINISTRATION</div>
+    <div class="section-tag">ADMINISTRATION &middot; PROJECT MASTER</div>
     <h1 class="page-title">Projects</h1>
     <p class="page-subtitle">
       The project master behind every prospect, slot and site visit. Capacity here caps how much intent you can convert.
@@ -40,7 +40,7 @@
       <div class="form-row-4">
         <div class="form-field">
           <label class="field-label">Name</label>
-          <input type="text" [(ngModel)]="newProject.name" name="name" required class="input-field" />
+          <input type="text" [(ngModel)]="newProject.name" name="name" required class="input-field" placeholder="e.g. Contech Aurum Towers" />
         </div>
         <div class="form-field">
           <label class="field-label">Developer</label>
@@ -48,18 +48,18 @@
         </div>
         <div class="form-field">
           <label class="field-label">Location</label>
-          <input type="text" [(ngModel)]="newProject.location" name="location" class="input-field" />
+          <input type="text" [(ngModel)]="newProject.location" name="location" class="input-field" placeholder="e.g. Whitefield, Bengaluru" />
         </div>
         <div class="form-field">
           <label class="field-label">Address</label>
-          <input type="text" [(ngModel)]="newProject.address" name="address" class="input-field" />
+          <input type="text" [(ngModel)]="newProject.address" name="address" class="input-field" placeholder="e.g. Outer Ring Road, Near ITPL" />
         </div>
       </div>
 
       <div class="form-row-4">
         <div class="form-field">
           <label class="field-label">Configurations (comma separated)</label>
-          <input type="text" [(ngModel)]="newProject.configurations" name="configurations" class="input-field" placeholder="2 BHK, 3 BHK" />
+          <input type="text" [(ngModel)]="newProject.configurations" name="configurations" class="input-field" placeholder="2 BHK, 3 BHK, 4 BHK Luxury" />
         </div>
         <div class="form-field">
           <label class="field-label">Daily visit capacity</label>
@@ -67,7 +67,7 @@
         </div>
         <div class="form-field">
           <label class="field-label">Working hours</label>
-          <input type="text" [(ngModel)]="newProject.working_hours" name="working_hours" class="input-field" placeholder="10:00 AM - 7:00 PM" />
+          <input type="text" [(ngModel)]="newProject.working_hours" name="working_hours" class="input-field" placeholder="09:00 AM - 07:00 PM" />
         </div>
         <div class="form-field">
           <label class="field-label">Status</label>
@@ -79,7 +79,7 @@
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="btn-submit">Add project</button>
+        <button type="submit" class="btn-submit">+ Add Project</button>
       </div>
     </form>
   </div>
@@ -113,11 +113,25 @@
               <td>{{ p.location }}</td>
               <td>{{ p.configurations }}</td>
               <td class="text-right">{{ p.capacity_per_day }}</td>
-              <td class="text-right">{{ p.active_pipeline }}</td>
-              <td class="text-right">{{ p.upcoming_visits }}</td>
               <td class="text-right">
-                <div>{{ p.bookings }}</div>
-                <div class="booking-val-sub" *ngIf="p.booking_value !== '₹0'">{{ p.booking_value }}</div>
+                <div class="metric-main">{{ p.active_pipeline }} buyers</div>
+                <div class="booking-val-sub">{{ p.available_units }}/{{ p.total_units }} units avail</div>
+              </td>
+              <td class="text-right">
+                <span class="visit-count" [class.has-visits]="p.upcoming_visits > 0">
+                  {{ p.upcoming_visits }}
+                </span>
+              </td>
+              <td class="text-right">
+                <div *ngIf="p.crm_bookings > 0" class="deal-highlight">
+                  {{ p.crm_bookings }} booked (₹{{ p.crm_booking_value_cr }} Cr)
+                </div>
+                <div *ngIf="p.crm_bookings === 0">
+                  {{ p.historical_sold_units }}
+                </div>
+                <div class="booking-val-sub">
+                  {{ p.historical_sold_units }} sold &middot; ₹{{ p.starting_price_lacs }}L+
+                </div>
               </td>
               <td>
                 <span class="status-pill" [class.active]="p.status === 'active'" [class.inactive]="p.status === 'inactive'">{{ p.status }}</span>
@@ -143,9 +157,9 @@
               <td class="text-right">
                 <input type="number" [(ngModel)]="editForm.daily_capacity" class="inline-input text-right" style="width: 70px;" />
               </td>
-              <td class="text-right">{{ p.active_pipeline }}</td>
+              <td class="text-right">{{ p.active_pipeline }} buyers</td>
               <td class="text-right">{{ p.upcoming_visits }}</td>
-              <td class="text-right">{{ p.bookings }}</td>
+              <td class="text-right">{{ p.crm_bookings }} (₹{{ p.crm_booking_value_cr }} Cr)</td>
               <td>
                 <select [(ngModel)]="editForm.status" class="inline-select">
                   <option value="active">active</option>
