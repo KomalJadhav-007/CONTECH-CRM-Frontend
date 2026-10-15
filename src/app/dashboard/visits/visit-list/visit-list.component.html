@@ -1,70 +1,110 @@
-<div class="page-wrapper">
-  <div class="page-header">
+<div class="prospects-page-wrapper">
+  <!-- Header matching Prospects / Pipeline / Tasks Theme -->
+  <div class="page-title-row">
     <div>
+      <div class="section-tag">EXECUTION &middot; SITE LOGISTICS</div>
       <h1 class="page-title">Site Visit Command Hub</h1>
-      <p class="page-subtitle">Zero-confusion booking, cab dispatch logistics, and 4-way stakeholder confirmation tracking</p>
+      <p class="page-subtitle">
+        Zero-confusion booking, cab dispatch logistics, and 4-way stakeholder confirmation tracking.
+      </p>
     </div>
-    <div class="header-actions">
-      <a routerLink="/visits/book" class="btn btn-primary">+ Schedule Site Visit</a>
+    <div class="top-actions">
+      <a routerLink="/visits/book" class="btn-new">+ Schedule Site Visit</a>
     </div>
   </div>
 
   <!-- Feedback Banner -->
-  <div *ngIf="feedbackMessage" class="alert-success-banner" style="margin-bottom: 1.5rem;">
-    ✅ {{ feedbackMessage }}
+  <div *ngIf="feedbackMessage" class="feedback-banner">
+    {{ feedbackMessage }}
   </div>
 
-  <!-- Visits Filter & Radar -->
-  <div class="glass-card" style="margin-bottom: 1.5rem;">
-    <div class="filters-bar">
-      <span class="filter-title">Filter By Status:</span>
-      <button class="filter-pill" [class.active]="filterStatus === ''" (click)="filterStatus = ''; loadVisits()">All Visits</button>
-      <button class="filter-pill" [class.active]="filterStatus === 'SCHEDULED'" (click)="filterStatus = 'SCHEDULED'; loadVisits()">Scheduled</button>
-      <button class="filter-pill" [class.active]="filterStatus === 'IN_PROGRESS'" (click)="filterStatus = 'IN_PROGRESS'; loadVisits()">In Progress</button>
-      <button class="filter-pill" [class.active]="filterStatus === 'COMPLETED'" (click)="filterStatus = 'COMPLETED'; loadVisits()">Completed</button>
-      <button class="filter-pill" [class.active]="filterStatus === 'CANCELLED'" (click)="filterStatus = 'CANCELLED'; loadVisits()">Cancelled / Recoveries</button>
-    </div>
+  <!-- Visits Filter Bar matching Prospects / Tasks Theme -->
+  <div class="filters-bar">
+    <button
+      type="button"
+      class="filter-tab"
+      [class.active]="filterStatus === ''"
+      (click)="filterStatus = ''; loadVisits()"
+    >
+      All Visits
+    </button>
+    <button
+      type="button"
+      class="filter-tab"
+      [class.active]="filterStatus === 'SCHEDULED'"
+      (click)="filterStatus = 'SCHEDULED'; loadVisits()"
+    >
+      Scheduled
+    </button>
+    <button
+      type="button"
+      class="filter-tab"
+      [class.active]="filterStatus === 'IN_PROGRESS'"
+      (click)="filterStatus = 'IN_PROGRESS'; loadVisits()"
+    >
+      In Progress
+    </button>
+    <button
+      type="button"
+      class="filter-tab"
+      [class.active]="filterStatus === 'COMPLETED'"
+      (click)="filterStatus = 'COMPLETED'; loadVisits()"
+    >
+      Completed
+    </button>
+    <button
+      type="button"
+      class="filter-tab"
+      [class.active]="filterStatus === 'CANCELLED'"
+      (click)="filterStatus = 'CANCELLED'; loadVisits()"
+    >
+      Cancelled / Recoveries
+    </button>
   </div>
 
-  <!-- Visits Table -->
-  <div class="glass-card">
-    <div class="data-table-container">
-      <table class="data-table">
+  <!-- Visits Table Card matching Prospects Theme -->
+  <div class="table-card">
+    <div class="table-responsive">
+      <table class="prospects-table">
         <thead>
           <tr>
-            <th>Date & Time</th>
-            <th>Buyer Name</th>
-            <th>Project / Gallery</th>
-            <th>Sales Rep</th>
-            <th>Cab / Driver</th>
-            <th style="text-align: center;">4-Way Confirmations (Click to Verify)</th>
-            <th>Status & Recovery</th>
-            <th>In-Visit & Actions</th>
+            <th>DATE &amp; TIME</th>
+            <th>BUYER NAME</th>
+            <th>PROJECT / GALLERY</th>
+            <th>SALES REP</th>
+            <th>CAB / DRIVER</th>
+            <th style="text-align: center;">4-WAY CONFIRMATIONS (CLICK TO VERIFY)</th>
+            <th>STATUS &amp; RECOVERY</th>
+            <th class="text-right">IN-VISIT &amp; ACTIONS</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let visit of visits">
             <td>
-              <strong>{{ visit.scheduled_date }}</strong>
+              <div class="date-text">{{ visit.scheduled_date }}</div>
               <div class="time-slot-tag">{{ visit.time_slot }}</div>
             </td>
             <td>
-              <a [routerLink]="['/buyers', visit.buyer_id]" class="buyer-link">
-                <strong>{{ visit.buyer?.full_name }}</strong>
-              </a>
-              <div class="sub-text">{{ visit.buyer?.phone }}</div>
+              <div class="buyer-name" *ngIf="visit.buyer">
+                <a [routerLink]="['/buyers', visit.buyer_id]" class="buyer-link">
+                  {{ visit.buyer?.full_name }}
+                </a>
+              </div>
+              <div class="buyer-contact">{{ visit.buyer?.phone }}</div>
             </td>
             <td>
-              <strong>{{ visit.project?.name }}</strong>
+              <div class="project-title">{{ visit.project?.name }}</div>
               <div class="sub-text">{{ visit.project?.location }}</div>
             </td>
-            <td>{{ visit.salesRep?.name || 'Unassigned' }}</td>
             <td>
-              <span *ngIf="visit.cab_required">
-                🚗 {{ visit.cab_number || 'Cab Assigned' }}
+              <span class="rep-name">{{ visit.salesRep?.name || 'Unassigned' }}</span>
+            </td>
+            <td>
+              <div *ngIf="visit.cab_required">
+                <div class="cab-badge">🚗 {{ visit.cab_number || 'Cab Assigned' }}</div>
                 <div class="sub-text">{{ visit.driver?.name || 'Driver assigned' }}</div>
-              </span>
-              <span *ngIf="!visit.cab_required" class="text-muted">Self-Drive</span>
+              </div>
+              <span *ngIf="!visit.cab_required" class="sub-text">Self-Drive</span>
             </td>
 
             <!-- 4-Way Interactive Confirmation Pills (UC-04) -->
@@ -114,32 +154,31 @@
 
             <td>
               <span
-                class="badge"
+                class="stage-badge"
                 [ngClass]="{
-                  'badge-success': visit.status === 'COMPLETED',
-                  'badge-warning': visit.status === 'SCHEDULED',
-                  'badge-cyan': visit.status === 'IN_PROGRESS',
-                  'badge-danger': visit.status === 'CANCELLED' || visit.status === 'NO_SHOW'
+                  'stage-completed': visit.status === 'COMPLETED',
+                  'stage-scheduled': visit.status === 'SCHEDULED',
+                  'stage-progress': visit.status === 'IN_PROGRESS',
+                  'stage-cancelled': visit.status === 'CANCELLED' || visit.status === 'NO_SHOW'
                 }"
               >
                 {{ visit.status }}
               </span>
-              <!-- SOW Sec 12: Recovery indicator for cancelled/no-show -->
-              <div *ngIf="visit.status === 'CANCELLED' || visit.status === 'NO_SHOW'" style="margin-top: 0.35rem;">
-                <span class="badge badge-warning" style="font-size: 0.68rem;">
+              <div *ngIf="visit.status === 'CANCELLED' || visit.status === 'NO_SHOW'" style="margin-top: 0.25rem;">
+                <span class="recovery-pill">
                   {{ visit.status === 'NO_SHOW' ? '⚡ 30m SLA Recovery' : '⏱️ 2h SLA Recovery' }}
                 </span>
               </div>
             </td>
 
-            <td>
+            <td class="text-right actions-cell">
               <div class="row-actions-group">
-                <a [routerLink]="['/visits/discovery', visit.id]" class="btn btn-secondary btn-sm" *ngIf="visit.status !== 'CANCELLED' && visit.status !== 'NO_SHOW'">
-                  📝 In-Visit &rarr;
+                <a [routerLink]="['/visits/discovery', visit.id]" class="btn-action-view" *ngIf="visit.status !== 'CANCELLED' && visit.status !== 'NO_SHOW'">
+                  In-Visit &rarr;
                 </a>
                 <button
                   type="button"
-                  class="btn-cancel-visit"
+                  class="btn-action-cancel"
                   *ngIf="visit.status === 'SCHEDULED' || visit.status === 'IN_PROGRESS'"
                   (click)="openCancelModal(visit, false)"
                   title="Cancel visit and initiate recovery"
@@ -148,7 +187,7 @@
                 </button>
                 <button
                   type="button"
-                  class="btn-noshow-visit"
+                  class="btn-action-noshow"
                   *ngIf="visit.status === 'SCHEDULED' || visit.status === 'IN_PROGRESS'"
                   (click)="openCancelModal(visit, true)"
                   title="Mark buyer as no-show"
@@ -160,7 +199,7 @@
           </tr>
 
           <tr *ngIf="visits.length === 0">
-            <td colspan="8" class="text-center text-muted" style="padding: 2.5rem;">
+            <td colspan="8" class="empty-state">
               No site visits scheduled for this filter.
             </td>
           </tr>
@@ -237,4 +276,3 @@
     </div>
   </div>
 </div>
-

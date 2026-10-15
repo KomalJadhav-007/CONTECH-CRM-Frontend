@@ -1,67 +1,215 @@
-.page-header {
+.prospects-page-wrapper {
+  padding: 1.75rem 2.25rem 3rem 2.25rem;
+  max-width: 1560px;
+  margin: 0 auto;
+  font-family: var(--font-main, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif);
+  color: #0f172a;
+}
+
+/* Page Header matching Prospects / Pipeline / Tasks */
+.page-title-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
+  align-items: flex-start;
+  margin-bottom: 1.75rem;
   gap: 1rem;
 }
 
-.page-title {
-  font-size: 1.75rem;
+.section-tag {
+  font-size: 0.72rem;
   font-weight: 800;
+  letter-spacing: 0.2em;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.page-title {
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
 }
 
 .page-subtitle {
-  color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-top: 0.35rem;
+  line-height: 1.45;
 }
 
-.filters-bar {
+.top-actions {
+  display: flex;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.btn-new {
+  background: #0f172a;
+  border: 1px solid #0f172a;
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.45rem 1.1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn-new:hover {
+  background: #1e293b;
+}
+
+/* Feedback Banner */
+.feedback-banner {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #166534;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  margin-bottom: 1.25rem;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
+}
+
+/* Filter Bar matching Prospects / Tasks */
+.filters-bar {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
   flex-wrap: wrap;
 }
 
-.filter-title {
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.filter-pill {
-  background: #f1f5f9;
-  border: 1px solid var(--border-color);
-  color: var(--text-muted);
-  padding: 0.35rem 0.85rem;
-  font-size: 0.8rem;
+.filter-tab {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 0.42rem 0.95rem;
+  font-size: 0.78rem;
   font-weight: 600;
-  border-radius: var(--radius-full);
+  border-radius: 4px;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 0.15s ease;
 }
 
-.filter-pill:hover, .filter-pill.active {
-  background: var(--primary);
+.filter-tab:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.filter-tab.active {
+  background: #0f172a;
+  border-color: #0f172a;
   color: #ffffff;
-  border-color: var(--primary);
+}
+
+/* Table Card */
+.table-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.prospects-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.prospects-table th {
+  text-align: left;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #64748b;
+  border-bottom: 1px solid #e2e8f0;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.prospects-table td {
+  padding: 0.85rem 0.85rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #475569;
+  vertical-align: middle;
+}
+
+.prospects-table tr:last-child td {
+  border-bottom: none;
+}
+
+.date-text {
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 0.82rem;
 }
 
 .time-slot-tag {
-  font-size: 0.75rem;
-  color: var(--primary);
-  font-weight: 700;
-  margin-top: 0.2rem;
+  font-size: 0.7rem;
+  color: #475569;
+  margin-top: 0.15rem;
+  font-weight: 500;
 }
 
-.sub-text {
-  font-size: 0.75rem;
-  color: var(--text-muted);
+.buyer-name {
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 0.82rem;
+}
+
+.buyer-link {
+  color: #0f172a;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.buyer-link:hover {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.buyer-contact {
+  font-size: 0.7rem;
+  color: #64748b;
   margin-top: 0.15rem;
 }
 
+.project-title {
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 0.82rem;
+}
+
+.sub-text {
+  font-size: 0.7rem;
+  color: #64748b;
+  margin-top: 0.15rem;
+}
+
+.rep-name {
+  font-size: 0.78rem;
+  color: #334155;
+  font-weight: 500;
+}
+
+.cab-badge {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* 4-Way Confirmations */
 .confirmation-pills {
   display: inline-flex;
   gap: 0.35rem;
@@ -70,77 +218,148 @@
 .pill-btn {
   background: #fee2e2;
   border: 1px solid #fca5a5;
-  color: #b91c1c;
-  font-size: 0.7rem;
+  color: #dc2626;
+  font-size: 0.68rem;
   font-weight: 700;
   padding: 0.2rem 0.45rem;
   border-radius: 4px;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .pill-btn.verified {
   background: #d1fae5;
   border: 1px solid #a7f3d0;
-  color: #047857;
+  color: #065f46;
 }
 
 .pill-btn:hover {
-  transform: scale(1.05);
+  transform: translateY(-1px);
+}
+
+/* Status Badges */
+.stage-badge {
+  display: inline-block;
+  border-radius: 4px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.stage-scheduled {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #b45309;
+}
+
+.stage-completed {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #166534;
+}
+
+.stage-progress {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+}
+
+.stage-cancelled {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+}
+
+.recovery-pill {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #b45309;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+/* Row Action Buttons matching Edit / Delete in Prospects */
+.actions-cell {
+  white-space: nowrap;
+  text-align: right;
 }
 
 .row-actions-group {
-  display: flex;
-  gap: 0.35rem;
+  display: inline-flex;
+  gap: 0.4rem;
   align-items: center;
+  justify-content: flex-end;
 }
 
-.btn-cancel-visit {
+.btn-action-view {
   background: #ffffff;
-  border: 1px solid #fca5a5;
-  color: #b91c1c;
-  font-size: 0.72rem;
-  font-weight: 600;
-  padding: 0.25rem 0.5rem;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+  font-size: 0.74rem;
+  font-weight: 500;
+  padding: 0.25rem 0.65rem;
+  border-radius: 4px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.15s ease;
+}
+
+.btn-action-view:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.btn-action-cancel {
+  background: #ffffff;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  font-size: 0.74rem;
+  font-weight: 500;
+  padding: 0.25rem 0.65rem;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.btn-cancel-visit:hover {
+.btn-action-cancel:hover {
   background: #fef2f2;
+  border-color: #f87171;
 }
 
-.btn-noshow-visit {
+.btn-action-noshow {
   background: #ffffff;
-  border: 1px solid #fcd34d;
+  border: 1px solid #fde68a;
   color: #b45309;
-  font-size: 0.72rem;
-  font-weight: 600;
-  padding: 0.25rem 0.5rem;
+  font-size: 0.74rem;
+  font-weight: 500;
+  padding: 0.25rem 0.65rem;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.btn-noshow-visit:hover {
+.btn-action-noshow:hover {
   background: #fffbeb;
+  border-color: #f59e0b;
 }
 
-.recovery-info-callout {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  border-radius: 8px;
-  padding: 0.85rem 1rem;
-  font-size: 0.82rem;
-  color: #1e40af;
+.text-right {
+  text-align: right;
 }
 
-.recovery-info-callout .sub-text {
-  color: #1e3a8a;
-  margin-top: 0.25rem;
-  font-size: 0.78rem;
-  line-height: 1.45;
+.empty-state {
+  padding: 2.5rem;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.8rem;
 }
 
 /* Modal Styles */
@@ -158,41 +377,38 @@
 
 .modal-card {
   background: #ffffff;
-  border-radius: 12px;
-  max-width: 620px;
+  border-radius: 6px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
   width: 100%;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  max-width: 580px;
   overflow: hidden;
   border: 1px solid #e2e8f0;
 }
 
 .modal-header {
-  padding: 1.25rem 1.75rem;
+  padding: 1.25rem 1.5rem;
   border-bottom: 1px solid #e2e8f0;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  background: #f8fafc;
 }
 
 .modal-title {
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: #0f172a;
-  margin: 0;
 }
 
 .modal-subtitle {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: #64748b;
-  margin-top: 0.25rem;
-  margin-bottom: 0;
+  margin-top: 0.2rem;
 }
 
 .close-modal-btn {
-  background: none;
+  background: transparent;
   border: none;
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   line-height: 1;
   color: #94a3b8;
   cursor: pointer;
@@ -204,66 +420,109 @@
 }
 
 .modal-body {
-  padding: 1.5rem 1.75rem;
-  max-height: 70vh;
-  overflow-y: auto;
+  padding: 1.25rem 1.5rem;
 }
 
 .modal-footer {
-  padding: 1rem 1.75rem;
-  background: #f8fafc;
+  padding: 1rem 1.5rem;
   border-top: 1px solid #e2e8f0;
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
+  background: #f8fafc;
+}
+
+.modal-error-banner {
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #991b1b;
+  padding: 0.65rem 0.85rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.recovery-info-callout {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 0.85rem 1rem;
+  font-size: 0.78rem;
+  color: #334155;
+}
+
+.recovery-info-callout strong {
+  color: #0f172a;
+}
+
+.recovery-info-callout .sub-text {
+  color: #64748b;
+  margin-top: 0.25rem;
+  font-size: 0.74rem;
+  line-height: 1.45;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 0.35rem;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  color: #0f172a;
+  background: #ffffff;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.form-control:focus {
+  border-color: #0f172a;
 }
 
 .btn-cancel {
   background: #ffffff;
   border: 1px solid #cbd5e1;
   color: #475569;
-  font-size: 0.82rem;
-  font-weight: 600;
   padding: 0.45rem 1rem;
-  border-radius: 6px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
   cursor: pointer;
+}
+
+.btn-cancel:hover {
+  background: #f1f5f9;
 }
 
 .btn-danger-confirm {
   background: #dc2626;
-  border: none;
+  border: 1px solid #dc2626;
   color: #ffffff;
-  font-size: 0.82rem;
+  padding: 0.45rem 1.1rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
   font-weight: 600;
-  padding: 0.45rem 1.25rem;
-  border-radius: 6px;
   cursor: pointer;
-  transition: opacity 0.15s ease;
+  transition: all 0.15s ease;
+}
+
+.btn-danger-confirm:hover {
+  background: #b91c1c;
+  border-color: #b91c1c;
 }
 
 .btn-danger-confirm:disabled {
-  opacity: 0.5;
+  opacity: 0.65;
   cursor: not-allowed;
 }
-
-.alert-success-banner {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  color: #166534;
-  padding: 0.75rem 1.25rem;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-.modal-error-banner {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #b91c1c;
-  padding: 0.65rem 1rem;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-}
-
