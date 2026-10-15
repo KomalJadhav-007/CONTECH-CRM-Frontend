@@ -529,13 +529,18 @@ export class AccessControlService {
   normalizeRoleName(nameOrCode: string): string {
     if (!nameOrCode) return 'Account Executive';
     const upper = nameOrCode.toUpperCase();
-    if (upper === 'ADMIN' || upper.includes('ADMINISTRATOR') || upper === 'ORG ADMIN') return 'Org Admin';
-    if (upper === 'DIRECTOR' || upper.includes('MANAGING DIRECTOR') || upper === 'SALES HEAD') return 'Sales Head';
+    if (upper === 'SUPER_ADMIN' || upper.includes('SUPER ADMIN')) return 'Super Admin';
+    if (upper === 'ADMIN' || upper.includes('ADMINISTRATOR') || upper.includes('ORG ADMIN') || upper === 'ORG_ADMIN' || upper.includes('ORGANIZATION ADMIN')) return 'Org Admin';
+    if (upper.includes('OWNER') || upper.includes('CXO') || upper.includes('MANAGING DIRECTOR') || upper === 'DIRECTOR') return 'Owner / CXO';
+    if (upper === 'SALES_HEAD' || upper.includes('SALES HEAD') || upper.includes('VP') || upper.includes('VICE PRESIDENT')) return 'Sales Head';
+    if (upper === 'MARKETING_HEAD' || upper.includes('MARKETING HEAD')) return 'Marketing Head';
+    if (upper === 'CRM_HEAD' || upper.includes('CRM HEAD')) return 'CRM Head';
     if (upper === 'SALES_MANAGER' || upper.includes('SALES MANAGER')) return 'Sales Manager';
-    if (upper === 'SALES_REP' || upper.includes('SALES REPRESENTATIVE') || upper === 'ACCOUNT EXECUTIVE') return 'Account Executive';
-    if (upper === 'COORDINATOR' || upper.includes('LOGISTICS') || upper === 'SITE VISIT COORDINATOR') return 'Site Visit Coordinator';
-    if (upper === 'DRIVER') return 'Driver';
-    if (upper === 'VIEWER' || upper === 'EXECUTIVE VIEWER') return 'Executive Viewer';
+    if (upper === 'SALES_REP' || upper.includes('ACCOUNT EXECUTIVE') || upper.includes('ACCOUNT_EXECUTIVE') || upper.includes('SALES REPRESENTATIVE')) return 'Account Executive';
+    if (upper === 'INSIDE_SALES' || upper.includes('INSIDE SALES') || upper.includes('TELECALLING')) return 'Inside Sales';
+    if (upper === 'COORDINATOR' || upper.includes('LOGISTICS') || upper.includes('SITE VISIT COORDINATOR')) return 'Site Visit Coordinator';
+    if (upper === 'DRIVER' || upper.includes('COMPANY DRIVER')) return 'Driver';
+    if (upper === 'VIEWER' || upper.includes('EXECUTIVE VIEWER')) return 'Executive Viewer';
     const found = this.roles.find(r => r.toLowerCase() === nameOrCode.toLowerCase());
     return found || nameOrCode;
   }
