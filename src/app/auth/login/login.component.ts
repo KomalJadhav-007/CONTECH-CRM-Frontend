@@ -34,8 +34,8 @@ export class LoginComponent implements OnInit {
   private route = inject(ActivatedRoute);
 
   activeTab: 'signin' | 'signup' = 'signin';
-  email = 'director@contechcrm.com';
-  password = 'password123';
+  email = '';
+  password = '';
   hidePassword = true;
   loading = false;
   errorMessage = '';
@@ -50,33 +50,16 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  demoAccounts = [
-    { label: 'Org Admin', email: 'director@contechcrm.com' },
-    { label: 'Sales Head', email: 'director@contechcrm.com' },
-    { label: 'Sales Manager', email: 'manager@contechcrm.com' },
-    { label: 'Account Executive', email: 'rep@contechcrm.com' },
-    { label: 'Visit Coordinator', email: 'coordinator@contechcrm.com' },
-    { label: 'Driver', email: 'driver@contechcrm.com' },
-    { label: 'Executive Viewer', email: 'director@contechcrm.com' }
-  ];
-
-  selectDemoAccount(acc: { label: string; email: string }) {
-    this.email = acc.email;
-    this.password = 'password123';
-    this.onSubmit();
-  }
-
-  exploreLiveDemo() {
-    this.email = 'director@contechcrm.com';
-    this.password = 'password123';
-    this.onSubmit();
-  }
-
   onSubmit() {
+    if (!this.email || !this.password) {
+      this.errorMessage = 'Please enter your work email and password.';
+      return;
+    }
+
     this.loading = true;
     this.errorMessage = '';
 
-    this.authService.login({ email: this.email, password: this.password }).subscribe({
+    this.authService.login({ email: this.email.trim(), password: this.password }).subscribe({
       next: (res) => {
         this.loading = false;
         if (res.user && res.user.role === 'DRIVER') {
@@ -87,7 +70,7 @@ export class LoginComponent implements OnInit {
       },
       error: (err) => {
         this.loading = false;
-        this.errorMessage = err.error?.message || 'Login failed. Please check credentials or try demo accounts.';
+        this.errorMessage = err.error?.message || 'Login failed. Please check your email and password.';
       }
     });
   }

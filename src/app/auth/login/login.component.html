@@ -41,14 +41,6 @@
         <p class="form-subtitle">Enterprise revenue intelligence for real estate sales teams.</p>
       </div>
 
-      <!-- Explore Live Demo Button -->
-      <button mat-flat-button class="btn-live-demo" (click)="exploreLiveDemo()">
-        <div class="demo-btn-content">
-          <span class="demo-btn-main">Explore live demo — no signup</span>
-          <span class="demo-btn-sub">Signs you in instantly as an Org Admin with full demo data.</span>
-        </div>
-      </button>
-
       <!-- Tabs -->
       <div class="auth-tabs">
         <button
@@ -89,6 +81,7 @@
             [(ngModel)]="email"
             required
             placeholder="you@company.com"
+            autocomplete="username"
           />
         </mat-form-field>
 
@@ -102,6 +95,7 @@
             [(ngModel)]="password"
             required
             placeholder="••••••••"
+            autocomplete="current-password"
           />
           <button
             mat-icon-button
@@ -118,10 +112,6 @@
         <button mat-flat-button color="primary" type="submit" [disabled]="loading" class="btn-signin-mat">
           <span *ngIf="!loading">Sign in to Console</span>
           <span *ngIf="loading">Signing in...</span>
-        </button>
-
-        <button mat-stroked-button type="button" class="btn-google-mat" (click)="exploreLiveDemo()">
-          <mat-icon>domain</mat-icon> Continue with Enterprise Demo
         </button>
       </form>
 
@@ -147,25 +137,6 @@
 
         <button mat-flat-button color="primary" type="submit" class="btn-signin-mat">Create Account</button>
       </form>
-
-      <!-- Demo Accounts with Material Chips -->
-      <div class="demo-accounts-box">
-        <div class="demo-accounts-title">DEMO ACCOUNTS — SELECT ROLE TO TEST</div>
-        <div class="demo-accounts-chips">
-          <button
-            mat-stroked-button
-            type="button"
-            *ngFor="let acc of demoAccounts"
-            class="demo-chip-btn"
-            (click)="selectDemoAccount(acc)"
-          >
-            <mat-icon class="chip-icon">badge</mat-icon> {{ acc.label }}
-          </button>
-        </div>
-        <div class="demo-password-hint">
-          Password for all demo accounts: <code>password123</code>
-        </div>
-      </div>
     </div>
   </div>
 </div>
