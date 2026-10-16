@@ -1,21 +1,20 @@
-<div class="page-wrapper">
+<div class="control-tower-page-wrapper">
   <!-- Dynamic Scanning Progress Bar -->
   <mat-progress-bar *ngIf="isScanning" mode="indeterminate" class="radar-scan-progress"></mat-progress-bar>
 
-  <div class="page-header">
-    <div>
-      <div class="radar-tag">
-        <span class="status-dot red"></span>
-        <span>LIVE REVENUE GUARDIAN RADAR</span>
-      </div>
+  <!-- Top Header Matching Intelligence Radar Theme -->
+  <div class="radar-header">
+    <div class="header-left">
+      <div class="category-tag">INTELLIGENCE &middot; REVENUE GUARDIAN RADAR</div>
       <h1 class="page-title">Operations Control Tower</h1>
-      <p class="page-subtitle">Instant detection of neglected hot deals, unconfirmed cabs, and revenue leakage bottlenecks</p>
+      <p class="page-subtitle">
+        Instant detection of neglected hot deals, unconfirmed cabs, and revenue leakage bottlenecks.
+      </p>
     </div>
     <div class="header-actions">
       <button
         mat-stroked-button
-        color="primary"
-        class="btn-scan-radar"
+        class="btn-scan"
         (click)="loadRadar(true)"
         [disabled]="isScanning"
       >
@@ -25,267 +24,247 @@
     </div>
   </div>
 
+  <!-- Alert Success Banner -->
   <div *ngIf="successMessage" class="alert-success-banner">
     <mat-icon class="banner-icon">check_circle</mat-icon>
     <span>{{ successMessage }}</span>
   </div>
 
-  <!-- Radar Health & Risk Metrics (Angular Material Cards) -->
-  <div class="metrics-grid">
-    <mat-card appearance="outlined" class="metric-card danger">
-      <mat-card-content>
-        <span class="metric-label">TOTAL PIPELINE AT RISK</span>
-        <div class="metric-value">₹{{ radarData.summary.gross_pipeline_at_risk_cr || ((radarData.summary.revenue_at_risk_lacs || 0) / 100).toFixed(2) }} <span class="unit">Cr</span></div>
-        <span class="metric-trend text-danger">{{ radarData.summary.total_exceptions_count || 10 }} Active Operational Bottlenecks</span>
+  <!-- 4 Stat Cards Matching High-Intent Radar Design (Left Accent Borders, 4px Radius) -->
+  <div class="stats-grid-4">
+    <mat-card appearance="outlined" class="stat-card risk-card">
+      <mat-card-content class="stat-content">
+        <div class="card-label">TOTAL PIPELINE AT RISK</div>
+        <div class="card-value">
+          ₹{{ radarData.summary.gross_pipeline_at_risk_cr || ((radarData.summary.revenue_at_risk_lacs || 0) / 100).toFixed(2) }} Cr
+        </div>
+        <div class="card-trend text-danger">
+          {{ radarData.summary.total_exceptions_count || 8 }} Active Operational Bottlenecks
+        </div>
       </mat-card-content>
     </mat-card>
 
-    <mat-card appearance="outlined" class="metric-card amber">
-      <mat-card-content>
-        <span class="metric-label">AT-RISK SITE VISITS (TODAY)</span>
-        <div class="metric-value">{{ radarData.summary.at_risk_visits_today }}</div>
-        <span class="metric-trend text-amber">Incomplete 4-way confirmations</span>
+    <mat-card appearance="outlined" class="stat-card amber-card">
+      <mat-card-content class="stat-content">
+        <div class="card-label">AT-RISK SITE VISITS (TODAY)</div>
+        <div class="card-value">{{ radarData.summary.at_risk_visits_today }}</div>
+        <div class="card-trend text-amber">Incomplete 4-way confirmations</div>
       </mat-card-content>
     </mat-card>
 
-    <mat-card appearance="outlined" class="metric-card cyan">
-      <mat-card-content>
-        <span class="metric-label">OVERDUE FOLLOW-UP TASKS</span>
-        <div class="metric-value">{{ radarData.summary.overdue_tasks_count }}</div>
-        <span class="metric-trend text-cyan">Exceeded 4-hour countdown SLA</span>
+    <mat-card appearance="outlined" class="stat-card blue-card">
+      <mat-card-content class="stat-content">
+        <div class="card-label">OVERDUE FOLLOW-UP TASKS</div>
+        <div class="card-value">{{ radarData.summary.overdue_tasks_count }}</div>
+        <div class="card-trend text-blue">Exceeded 4-hour countdown SLA</div>
       </mat-card-content>
     </mat-card>
 
-    <mat-card appearance="outlined" class="metric-card emerald">
-      <mat-card-content>
-        <span class="metric-label">PIPELINE HEALTH INDEX</span>
-        <div class="metric-value">{{ radarData.summary.health_score }}<span class="unit">/100</span></div>
-        <span class="metric-trend text-emerald">Calculated across all sales touchpoints</span>
+    <mat-card appearance="outlined" class="stat-card green-card">
+      <mat-card-content class="stat-content">
+        <div class="card-label">PIPELINE HEALTH INDEX</div>
+        <div class="card-value">{{ radarData.summary.health_score }}<span class="unit">/100</span></div>
+        <div class="card-trend text-green">Calculated across all sales touchpoints</div>
       </mat-card-content>
     </mat-card>
   </div>
 
-  <!-- Neglected Hot Buyers Section (UC-07) -->
-  <div class="section-container">
-    <mat-card appearance="outlined" class="section-card">
-      <mat-card-header class="custom-card-header">
-        <div class="header-titles">
-          <div class="title-with-icon">
-            <span class="header-emoji">🚨</span>
-            <mat-card-title class="card-title">Neglected High-Intent Buyers (&gt;48h Inaction)</mat-card-title>
+  <!-- Section 1: Neglected Hot Buyers Section (UC-07) -->
+  <div class="panel-section">
+    <mat-card appearance="outlined" class="panel-card">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title-row">
+            <span class="panel-icon">🚨</span>
+            <span class="panel-title">Neglected High-Intent Buyers (&gt;48h Inaction)</span>
           </div>
-          <mat-card-subtitle class="card-subtext">These ready-to-buy customers are at immediate risk of slipping to competing developers.</mat-card-subtitle>
+          <p class="panel-subtitle">These ready-to-buy customers are at immediate risk of slipping to competing developers.</p>
         </div>
-        <div class="header-badge-wrapper">
-          <mat-chip-set>
-            <mat-chip class="chip-critical">
-              {{ radarData.neglected_buyers.length }} CRITICAL ALERTS
-            </mat-chip>
-          </mat-chip-set>
+        <div class="badge-alert-pill">
+          {{ radarData.neglected_buyers.length }} CRITICAL ALERTS
         </div>
-      </mat-card-header>
+      </div>
 
-      <mat-card-content class="card-content-table">
-        <div class="data-table-container">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>BUYER NAME</th>
-                <th>PHONE</th>
-                <th>BUDGET MAX</th>
-                <th>TIMEFRAME</th>
-                <th>CURRENT ASSIGNED REP</th>
-                <th>INTENT SCORE</th>
-                <th>ACTION</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let buyer of radarData.neglected_buyers">
-                <td><strong>{{ buyer.full_name }}</strong></td>
-                <td>{{ buyer.phone }}</td>
-                <td><span class="budget-badge">₹{{ buyer.budget_max_lacs }} Lacs</span></td>
-                <td>{{ buyer.buying_timeframe }}</td>
-                <td>{{ buyer.assignedRep?.name || 'Unassigned' }}</td>
-                <td>
-                  <mat-chip-set>
-                    <mat-chip class="chip-intent-score">
-                      {{ buyer.intent_score }}/100
-                    </mat-chip>
-                  </mat-chip-set>
-                </td>
-                <td>
-                  <button mat-flat-button color="warn" class="btn-rescue" (click)="openRescueModal(buyer)">
-                    Rescue Deal &rarr;
-                  </button>
-                </td>
-              </tr>
-              <tr *ngIf="radarData.neglected_buyers.length === 0">
-                <td colspan="7" class="text-center text-muted empty-state-cell">
-                  ✨ Zero neglected buyers detected! All high-intent deals are actively nurtured.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </mat-card-content>
+      <div class="table-responsive">
+        <table class="radar-table">
+          <thead>
+            <tr>
+              <th>BUYER NAME</th>
+              <th>PHONE</th>
+              <th>BUDGET MAX</th>
+              <th>TIMEFRAME</th>
+              <th>CURRENT ASSIGNED REP</th>
+              <th>INTENT SCORE</th>
+              <th class="text-right">ACTION</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let buyer of radarData.neglected_buyers">
+              <td>
+                <div class="buyer-name">{{ buyer.full_name }}</div>
+              </td>
+              <td>{{ buyer.phone }}</td>
+              <td class="budget-cell">₹{{ buyer.budget_max_lacs }} Lacs</td>
+              <td>{{ buyer.buying_timeframe }}</td>
+              <td>{{ buyer.assignedRep?.name || 'Unassigned' }}</td>
+              <td>
+                <div class="score-pill">
+                  <span class="score-num">{{ buyer.intent_score }}</span>
+                  <span class="score-max">/100</span>
+                </div>
+              </td>
+              <td class="text-right">
+                <button type="button" class="btn-rescue" (click)="openRescueModal(buyer)">
+                  Rescue Deal &rarr;
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="radarData.neglected_buyers.length === 0">
+              <td colspan="7" class="empty-cell">
+                ✨ Zero neglected buyers detected! All high-intent deals are actively nurtured.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </mat-card>
   </div>
 
-  <!-- At-Risk Imminent Site Visits -->
-  <div class="section-container" style="margin-top: 1.5rem;">
-    <mat-card appearance="outlined" class="section-card">
-      <mat-card-header class="custom-card-header">
-        <div class="header-titles">
-          <div class="title-with-icon">
-            <span class="header-emoji">⚠️</span>
-            <mat-card-title class="card-title">At-Risk Site Visits (Missing 4-Way Confirmations)</mat-card-title>
+  <!-- Section 2: At-Risk Imminent Site Visits -->
+  <div class="panel-section">
+    <mat-card appearance="outlined" class="panel-card">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title-row">
+            <span class="panel-icon">⚠️</span>
+            <span class="panel-title">At-Risk Site Visits (Missing 4-Way Confirmations)</span>
           </div>
-          <mat-card-subtitle class="card-subtext">Prevent dispatching empty cabs and wasting driver resources.</mat-card-subtitle>
+          <p class="panel-subtitle">Prevent dispatching empty cabs and wasting driver resources.</p>
         </div>
-        <div class="header-badge-wrapper">
-          <mat-chip-set>
-            <mat-chip class="chip-warning">
-              {{ radarData.at_risk_visits.length }} VISITS
-            </mat-chip>
-          </mat-chip-set>
+        <div class="badge-warning-pill">
+          {{ radarData.at_risk_visits.length }} VISITS
         </div>
-      </mat-card-header>
+      </div>
 
-      <mat-card-content class="card-content-table">
-        <div class="data-table-container">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>BUYER</th>
-                <th>TIME SLOT</th>
-                <th>CUSTOMER CONFIRMED</th>
-                <th>REP CONFIRMED</th>
-                <th>DRIVER CONFIRMED</th>
-                <th>SITE GALLERY</th>
-                <th>ACTION</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let visit of radarData.at_risk_visits">
-                <td><strong>{{ visit.buyer?.full_name }}</strong></td>
-                <td>{{ visit.time_slot }}</td>
-                <td>
-                  <mat-chip-set>
-                    <mat-chip [class.chip-success]="visit.customer_confirmed" [class.chip-danger]="!visit.customer_confirmed">
-                      {{ visit.customer_confirmed ? 'YES' : 'PENDING' }}
-                    </mat-chip>
-                  </mat-chip-set>
-                </td>
-                <td>
-                  <mat-chip-set>
-                    <mat-chip [class.chip-success]="visit.rep_confirmed" [class.chip-danger]="!visit.rep_confirmed">
-                      {{ visit.rep_confirmed ? 'YES' : 'PENDING' }}
-                    </mat-chip>
-                  </mat-chip-set>
-                </td>
-                <td>
-                  <mat-chip-set>
-                    <mat-chip [class.chip-success]="visit.driver_confirmed" [class.chip-danger]="!visit.driver_confirmed">
-                      {{ visit.driver_confirmed ? 'YES' : 'PENDING' }}
-                    </mat-chip>
-                  </mat-chip-set>
-                </td>
-                <td>
-                  <mat-chip-set>
-                    <mat-chip [class.chip-success]="visit.site_confirmed" [class.chip-danger]="!visit.site_confirmed">
-                      {{ visit.site_confirmed ? 'YES' : 'PENDING' }}
-                    </mat-chip>
-                  </mat-chip-set>
-                </td>
-                <td>
-                  <a [routerLink]="['/visits']" mat-stroked-button class="btn-sm-action">
-                    Resolve in Hub
-                  </a>
-                </td>
-              </tr>
-              <tr *ngIf="radarData.at_risk_visits.length === 0">
-                <td colspan="7" class="text-center text-muted empty-state-cell">
-                  ✅ All today's visits have 100% 4-way confirmations!
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </mat-card-content>
+      <div class="table-responsive">
+        <table class="radar-table">
+          <thead>
+            <tr>
+              <th>BUYER</th>
+              <th>TIME SLOT</th>
+              <th>CUSTOMER CONFIRMED</th>
+              <th>REP CONFIRMED</th>
+              <th>DRIVER CONFIRMED</th>
+              <th>SITE GALLERY</th>
+              <th class="text-right">ACTION</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let visit of radarData.at_risk_visits">
+              <td>
+                <div class="buyer-name">{{ visit.buyer?.full_name }}</div>
+              </td>
+              <td>{{ visit.time_slot }}</td>
+              <td>
+                <span class="status-pill" [class.yes]="visit.customer_confirmed" [class.pending]="!visit.customer_confirmed">
+                  {{ visit.customer_confirmed ? 'YES' : 'PENDING' }}
+                </span>
+              </td>
+              <td>
+                <span class="status-pill" [class.yes]="visit.rep_confirmed" [class.pending]="!visit.rep_confirmed">
+                  {{ visit.rep_confirmed ? 'YES' : 'PENDING' }}
+                </span>
+              </td>
+              <td>
+                <span class="status-pill" [class.yes]="visit.driver_confirmed" [class.pending]="!visit.driver_confirmed">
+                  {{ visit.driver_confirmed ? 'YES' : 'PENDING' }}
+                </span>
+              </td>
+              <td>
+                <span class="status-pill" [class.yes]="visit.site_confirmed" [class.pending]="!visit.site_confirmed">
+                  {{ visit.site_confirmed ? 'YES' : 'PENDING' }}
+                </span>
+              </td>
+              <td class="text-right">
+                <a [routerLink]="['/visits']" class="btn-action">
+                  Resolve in Hub
+                </a>
+              </td>
+            </tr>
+            <tr *ngIf="radarData.at_risk_visits.length === 0">
+              <td colspan="7" class="empty-cell">
+                ✅ All today's visits have 100% 4-way confirmations!
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </mat-card>
   </div>
 
-  <!-- Overdue Follow-up Tasks (SLA Breaches) -->
-  <div class="section-container" style="margin-top: 1.5rem;" *ngIf="radarData.overdue_tasks && radarData.overdue_tasks.length > 0">
-    <mat-card appearance="outlined" class="section-card">
-      <mat-card-header class="custom-card-header">
-        <div class="header-titles">
-          <div class="title-with-icon">
-            <span class="header-emoji">⏰</span>
-            <mat-card-title class="card-title">Overdue Follow-Up Tasks (SLA Breaches)</mat-card-title>
+  <!-- Section 3: Overdue Follow-up Tasks (SLA Breaches) -->
+  <div class="panel-section" *ngIf="radarData.overdue_tasks && radarData.overdue_tasks.length > 0">
+    <mat-card appearance="outlined" class="panel-card">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title-row">
+            <span class="panel-icon">⏰</span>
+            <span class="panel-title">Overdue Follow-Up Tasks (SLA Breaches)</span>
           </div>
-          <mat-card-subtitle class="card-subtext">Next best actions that have breached the 4-hour countdown SLA deadline.</mat-card-subtitle>
+          <p class="panel-subtitle">Next best actions that have breached the 4-hour countdown SLA deadline.</p>
         </div>
-        <div class="header-badge-wrapper">
-          <mat-chip-set>
-            <mat-chip class="chip-critical">
-              {{ radarData.overdue_tasks.length }} BREACHES
-            </mat-chip>
-          </mat-chip-set>
+        <div class="badge-alert-pill">
+          {{ radarData.overdue_tasks.length }} BREACHES
         </div>
-      </mat-card-header>
+      </div>
 
-      <mat-card-content class="card-content-table">
-        <div class="data-table-container">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>TASK TITLE</th>
-                <th>BUYER</th>
-                <th>ASSIGNED REP</th>
-                <th>DUE TIME</th>
-                <th>ACTION</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let task of radarData.overdue_tasks">
-                <td><strong>{{ task.title }}</strong></td>
-                <td>{{ task.buyer?.full_name || 'Prospect' }}</td>
-                <td>{{ task.assignedUser?.name || 'Unassigned' }}</td>
-                <td>
-                  <mat-chip-set>
-                    <mat-chip class="chip-danger">
-                      {{ task.due_at | date:'medium' }}
-                    </mat-chip>
-                  </mat-chip-set>
-                </td>
-                <td>
-                  <a routerLink="/tasks" mat-stroked-button class="btn-sm-action">
-                    Resolve in Tasks &rarr;
-                  </a>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </mat-card-content>
+      <div class="table-responsive">
+        <table class="radar-table">
+          <thead>
+            <tr>
+              <th>TASK TITLE</th>
+              <th>BUYER</th>
+              <th>ASSIGNED REP</th>
+              <th>DUE TIME</th>
+              <th class="text-right">ACTION</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let task of radarData.overdue_tasks">
+              <td>
+                <div class="buyer-name">{{ task.title }}</div>
+              </td>
+              <td>{{ task.buyer?.full_name || 'Prospect' }}</td>
+              <td>{{ task.assignedUser?.name || 'Unassigned' }}</td>
+              <td>
+                <span class="due-badge">{{ task.due_at | date:'medium' }}</span>
+              </td>
+              <td class="text-right">
+                <a routerLink="/tasks" class="btn-action">
+                  Resolve in Tasks &rarr;
+                </a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </mat-card>
   </div>
 
-  <!-- Rescue Deal Modal (Material Design Card Modal) -->
+  <!-- Rescue Deal Modal (Clean Dialog Matching Theme) -->
   <div *ngIf="selectedBuyerForRescue" class="modal-backdrop">
-    <mat-card appearance="outlined" class="modal-mat-card">
-      <mat-card-header class="modal-mat-header">
-        <div class="title-with-icon">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-row">
           <mat-icon color="warn">health_and_safety</mat-icon>
-          <mat-card-title class="modal-title">Rescue Deal: {{ selectedBuyerForRescue.full_name }}</mat-card-title>
+          <span class="modal-title">Rescue Deal: {{ selectedBuyerForRescue.full_name }}</span>
         </div>
-        <button mat-icon-button (click)="closeRescueModal()" aria-label="Close dialog">
+        <button type="button" class="close-btn" (click)="closeRescueModal()" aria-label="Close dialog">
           <mat-icon>close</mat-icon>
         </button>
-      </mat-card-header>
+      </div>
 
-      <mat-card-content class="modal-mat-content">
+      <div class="modal-body">
         <p class="rescue-description">
           This buyer has had zero phone callbacks for &gt;48 hours. Reassigning immediately to an available senior representative to protect the deal.
         </p>
@@ -303,15 +282,15 @@
           <mat-label>Intervention Action Notes</mat-label>
           <textarea matInput rows="3" [(ngModel)]="rescueActionNotes" placeholder="Describe the rescue intervention..."></textarea>
         </mat-form-field>
-      </mat-card-content>
+      </div>
 
-      <mat-card-actions align="end" class="modal-mat-actions">
-        <button mat-button (click)="closeRescueModal()">Cancel</button>
-        <button mat-flat-button color="primary" [disabled]="resolving" (click)="executeRescue()">
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" (click)="closeRescueModal()">Cancel</button>
+        <button type="button" class="btn-confirm" [disabled]="resolving" (click)="executeRescue()">
           <span *ngIf="!resolving">Confirm Reassignment &amp; Rescue</span>
           <span *ngIf="resolving">Processing...</span>
         </button>
-      </mat-card-actions>
-    </mat-card>
+      </div>
+    </div>
   </div>
 </div>
