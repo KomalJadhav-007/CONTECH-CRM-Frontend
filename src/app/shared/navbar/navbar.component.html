@@ -160,10 +160,136 @@
         <a routerLink="/audit-logs" (click)="closeProfileModal()" class="popover-nav-item">
           <span>📋 Security &amp; Audit Logs</span>
         </a>
+        <button type="button" class="popover-nav-item popover-btn-action" (click)="openChangePasswordModal()">
+          <span>🔑 Change Password</span>
+        </button>
       </div>
 
       <div class="popover-footer">
         <button type="button" class="btn-popover-logout" (click)="logout()">Sign Out of Platform</button>
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- MODAL: CHANGE ACCOUNT PASSWORD                 -->
+    <!-- ============================================== -->
+    <div *ngIf="showChangePasswordModal" class="change-password-backdrop" (click)="closeChangePasswordModal()">
+      <div class="change-password-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="header-left">
+            <div class="modal-supertitle">ACCOUNT SECURITY</div>
+            <h2 class="modal-title">Change Password</h2>
+            <p class="modal-subtitle">Update your platform login password. Must be at least 6 characters.</p>
+          </div>
+          <button type="button" class="btn-close-modal" (click)="closeChangePasswordModal()" title="Close">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <div *ngIf="changePasswordError" class="modal-alert alert-error">
+            <span>⚠️ {{ changePasswordError }}</span>
+          </div>
+          <div *ngIf="changePasswordSuccess" class="modal-alert alert-success">
+            <span>✅ {{ changePasswordSuccess }}</span>
+          </div>
+
+          <!-- Current User Snapshot -->
+          <div class="user-security-badge" *ngIf="currentUser$ | async as user">
+            <div class="badge-avatar">{{ getInitials(user.name) }}</div>
+            <div class="badge-info">
+              <div class="badge-name">{{ getCleanName(user.name) }}</div>
+              <div class="badge-email">{{ user.email }} &middot; <span class="badge-role">{{ user.role || 'DIRECTOR' }}</span></div>
+            </div>
+          </div>
+
+          <form (ngSubmit)="submitChangePassword()" class="pwd-form">
+            <div class="form-group">
+              <div class="label-row">
+                <label class="form-label">Current Password</label>
+                <span class="optional-tag">Optional</span>
+              </div>
+              <div class="pwd-input-wrap">
+                <input
+                  [type]="showCurrentPassword ? 'text' : 'password'"
+                  [(ngModel)]="passwordForm.currentPassword"
+                  name="currentPassword"
+                  class="form-input font-mono"
+                  placeholder="Enter current password if applicable"
+                  autocomplete="current-password"
+                />
+                <button
+                  type="button"
+                  class="btn-toggle-eye"
+                  (click)="showCurrentPassword = !showCurrentPassword"
+                  [title]="showCurrentPassword ? 'Hide password' : 'Show password'"
+                >
+                  {{ showCurrentPassword ? '🔒' : '👁️' }}
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">New Password <span class="required">*</span></label>
+              <div class="pwd-input-wrap">
+                <input
+                  [type]="showNewPassword ? 'text' : 'password'"
+                  [(ngModel)]="passwordForm.newPassword"
+                  name="newPassword"
+                  class="form-input font-mono"
+                  placeholder="Enter new password (min 6 chars)"
+                  autocomplete="new-password"
+                  required
+                />
+                <button
+                  type="button"
+                  class="btn-toggle-eye"
+                  (click)="showNewPassword = !showNewPassword"
+                  [title]="showNewPassword ? 'Hide password' : 'Show password'"
+                >
+                  {{ showNewPassword ? '🔒' : '👁️' }}
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Confirm New Password <span class="required">*</span></label>
+              <div class="pwd-input-wrap">
+                <input
+                  [type]="showConfirmPassword ? 'text' : 'password'"
+                  [(ngModel)]="passwordForm.confirmPassword"
+                  name="confirmPassword"
+                  class="form-input font-mono"
+                  placeholder="Re-enter new password to confirm"
+                  autocomplete="new-password"
+                  required
+                />
+                <button
+                  type="button"
+                  class="btn-toggle-eye"
+                  (click)="showConfirmPassword = !showConfirmPassword"
+                  [title]="showConfirmPassword ? 'Hide password' : 'Show password'"
+                >
+                  {{ showConfirmPassword ? '🔒' : '👁️' }}
+                </button>
+              </div>
+              <div class="match-hint" *ngIf="passwordForm.newPassword && passwordForm.confirmPassword">
+                <span *ngIf="passwordForm.newPassword === passwordForm.confirmPassword" class="text-match">✓ Passwords match</span>
+                <span *ngIf="passwordForm.newPassword !== passwordForm.confirmPassword" class="text-mismatch">⚠️ Passwords do not match</span>
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button type="button" class="btn-cancel" (click)="closeChangePasswordModal()">Cancel</button>
+              <button
+                type="submit"
+                class="btn-submit"
+                [disabled]="isChangingPassword || !passwordForm.newPassword || passwordForm.newPassword.length < 6 || passwordForm.newPassword !== passwordForm.confirmPassword"
+              >
+                <span *ngIf="!isChangingPassword">Update Password</span>
+                <span *ngIf="isChangingPassword">Saving...</span>
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   </div>

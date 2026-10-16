@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
 import { AlertService } from '../alert.service';
@@ -16,6 +17,7 @@ import { MatChipsModule } from '@angular/material/chips';
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     RouterModule,
     MatToolbarModule,
     MatButtonModule,
@@ -35,6 +37,21 @@ export class NavbarComponent implements OnInit {
 
   currentUser$ = this.authService.currentUser$;
   showProfileModal = false;
+
+  // Change Password Modal State
+  showChangePasswordModal = false;
+  isChangingPassword = false;
+  changePasswordError = '';
+  changePasswordSuccess = '';
+  showCurrentPassword = false;
+  showNewPassword = false;
+  showConfirmPassword = false;
+
+  passwordForm = {
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  };
 
   // SOW Sec 16: In-App Alerts State
   showAlertModal = false;
@@ -152,15 +169,79 @@ export class NavbarComponent implements OnInit {
     this.showProfileModal = false;
   }
 
+  openChangePasswordModal(): void {
+    this.showProfileModal = false;
+    this.showAlertModal = false;
+    this.changePasswordError = '';
+    this.changePasswordSuccess = '';
+    this.passwordForm = {
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    };
+    this.showCurrentPassword = false;
+    this.showNewPassword = false;
+    this.showConfirmPassword = false;
+    this.showChangePasswordModal = true;
+  }
+
+  closeChangePasswordModal(): void {
+    this.showChangePasswordModal = false;
+    this.changePasswordError = '';
+    this.changePasswordSuccess = '';
+  }
+
+  submitChangePassword(): void {
+    if (!this.passwordForm.newPassword || this.passwordForm.newPassword.trim().length < 6) {
+      this.changePasswordError = 'New password must be at least 6 characters long.';
+      return;
+    }
+
+    if (this.passwordForm.newPassword !== this.passwordForm.confirmPassword) {
+      this.changePasswordError = 'New password and confirm password do not match.';
+      return;
+    }
+
+    this.isChangingPassword = true;
+    this.changePasswordError = '';
+    this.changePasswordSuccess = '';
+
+    const payload: any = {
+      newPassword: this.passwordForm.newPassword.trim()
+    };
+    if (this.passwordForm.currentPassword && this.passwordForm.currentPassword.trim()) {
+      payload.currentPassword = this.passwordForm.currentPassword.trim();
+    }
+
+    this.authService.changePassword(payload).subscribe({
+      next: () => {
+        this.isChangingPassword = false;
+        this.changePasswordSuccess = 'Password updated successfully! Your new password is now active.';
+        setTimeout(() => {
+          this.closeChangePasswordModal();
+        }, 1600);
+      },
+      error: (err: any) => {
+        this.isChangingPassword = false;
+        this.changePasswordError = err.error?.message || 'Failed to update password. Please verify current credentials.';
+      }
+    });
+  }
+
   logout(): void {
     this.showProfileModal = false;
     this.showAlertModal = false;
+    this.showChangePasswordModal = false;
     this.authService.logout();
     this.router.navigate(['/auth/login']);
   }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
+    if (this.showChangePasswordModal) {
+      // Managed through backdrop
+      return;
+    }
     if (!this.elementRef.nativeElement.contains(event.target)) {
       this.showProfileModal = false;
       this.showAlertModal = false;

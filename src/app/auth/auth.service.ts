@@ -41,6 +41,10 @@ export class AuthService {
     );
   }
 
+  changePassword(data: { currentPassword?: string; newPassword: string }): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/change-password`, data);
+  }
+
   logout(): void {
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem('contech_token');
