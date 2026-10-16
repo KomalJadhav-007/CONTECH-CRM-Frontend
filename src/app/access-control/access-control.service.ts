@@ -197,6 +197,13 @@ export class AccessControlService {
   private permissionsSubject = new BehaviorSubject<PermissionMatrix>(this.getDefaultPermissions());
   permissions$ = this.permissionsSubject.asObservable();
 
+  private userStorageKey = 'contech_access_control_user_permissions';
+  private userPermissionsSubject = new BehaviorSubject<{ [userId: string]: { [module: string]: { [permission: string]: boolean } } }>({});
+  userPermissions$ = this.userPermissionsSubject.asObservable();
+
+  private allUsersSubject = new BehaviorSubject<any[]>([]);
+  allUsers$ = this.allUsersSubject.asObservable();
+
   constructor() {
     this.loadInitialPermissions();
     this.fetchUserCounts();
@@ -366,16 +373,32 @@ export class AccessControlService {
       }
     }
 
+    const localUsers = localStorage.getItem(this.userStorageKey);
+    if (localUsers) {
+      try {
+        const parsedUsers = JSON.parse(localUsers);
+        this.userPermissionsSubject.next(parsedUsers || {});
+      } catch (e) {
+        console.warn('Failed to parse local user permissions');
+      }
+    }
+
     // Attempt backend fetch
-    this.http.get<{ success: boolean; permissions: PermissionMatrix }>(this.apiUrl)
+    this.http.get<{ success: boolean; permissions: PermissionMatrix; userPermissions?: any }>(this.apiUrl)
       .pipe(
-        catchError(() => of({ success: false, permissions: null as any }))
+        catchError(() => of({ success: false, permissions: null as any, userPermissions: null }))
       )
       .subscribe(res => {
-        if (res && res.success && res.permissions) {
-          const merged = this.mergeWithDefaults(res.permissions);
-          this.permissionsSubject.next(merged);
-          localStorage.setItem(this.storageKey, JSON.stringify(merged));
+        if (res && res.success) {
+          if (res.permissions) {
+            const merged = this.mergeWithDefaults(res.permissions);
+            this.permissionsSubject.next(merged);
+            localStorage.setItem(this.storageKey, JSON.stringify(merged));
+          }
+          if (res.userPermissions && typeof res.userPermissions === 'object') {
+            this.userPermissionsSubject.next(res.userPermissions);
+            localStorage.setItem(this.userStorageKey, JSON.stringify(res.userPermissions));
+          }
         }
       });
   }
@@ -514,9 +537,10 @@ export class AccessControlService {
       catchError(() => of({ success: false, users: [] }))
     ).subscribe(res => {
       if (res && res.success && res.users) {
+        this.allUsersSubject.next(res.users);
         const counts: { [role: string]: number } = {};
         for (const u of res.users) {
-          const rName = this.normalizeRoleName(u.role ? (u.role.name || u.role.code) : '');
+          const rName = this.normalizeRoleName(u.role ? (u.role.name || u.role.code) : (u.role_code || ''));
           if (rName) {
             counts[rName] = (counts[rName] || 0) + 1;
           }
@@ -524,6 +548,96 @@ export class AccessControlService {
         this.updateRoleUserCounts(counts);
       }
     });
+  }
+
+  getAllUsers(): any[] {
+    return this.allUsersSubject.value;
+  }
+
+  getUserPermissions(userId: string | number): { [module: string]: { [permission: string]: boolean } } | null {
+    if (!userId) return null;
+    const all = this.userPermissionsSubject.value;
+    return all[String(userId)] ? JSON.parse(JSON.stringify(all[String(userId)])) : null;
+  }
+
+  getAllUserPermissions(): { [userId: string]: { [module: string]: { [permission: string]: boolean } } } {
+    return JSON.parse(JSON.stringify(this.userPermissionsSubject.value));
+  }
+
+  hasUserOverride(userId: string | number): boolean {
+    if (!userId) return false;
+    return !!this.userPermissionsSubject.value[String(userId)];
+  }
+
+  getBlankPermissions(): { [module: string]: { [permission: string]: boolean } } {
+    const blank: { [module: string]: { [permission: string]: boolean } } = {};
+    for (const mod of this.modules) {
+      blank[mod] = {};
+      for (const col of this.permissionColumns) {
+        blank[mod][col] = false;
+      }
+    }
+    return blank;
+  }
+
+  getDefaultPermissionsForRole(roleName: string): { [module: string]: { [permission: string]: boolean } } {
+    const norm = this.normalizeRoleName(roleName);
+    const matrix = this.getCurrentMatrix();
+    if (matrix[norm]) {
+      return JSON.parse(JSON.stringify(matrix[norm]));
+    }
+    return this.getBlankPermissions();
+  }
+
+  getEffectiveUserPermissions(user: any): { [module: string]: { [permission: string]: boolean } } {
+    if (!user) return this.getBlankPermissions();
+    const userId = String(user.user_id || user.id || '');
+    const userOverride = this.getUserPermissions(userId);
+    if (userOverride) {
+      return JSON.parse(JSON.stringify(userOverride));
+    }
+
+    const roleName = this.normalizeRoleName(user.role ? (user.role.name || user.role.code || user.role) : (user.role_code || ''));
+    return this.getDefaultPermissionsForRole(roleName);
+  }
+
+  saveUserPermissions(userId: string | number, permissions: { [module: string]: { [permission: string]: boolean } }): Observable<any> {
+    const current = { ...this.userPermissionsSubject.value };
+    current[String(userId)] = permissions;
+    this.userPermissionsSubject.next(current);
+    localStorage.setItem(this.userStorageKey, JSON.stringify(current));
+
+    return this.http.put<any>(this.apiUrl, { userPermissions: current }).pipe(
+      catchError(err => {
+        console.warn('Backend user permissions sync failed, saved locally', err);
+        return of({ success: true, localOnly: true });
+      })
+    );
+  }
+
+  removeUserOverride(userId: string | number): Observable<any> {
+    const current = { ...this.userPermissionsSubject.value };
+    delete current[String(userId)];
+    this.userPermissionsSubject.next(current);
+    localStorage.setItem(this.userStorageKey, JSON.stringify(current));
+
+    return this.http.put<any>(this.apiUrl, { userPermissions: current }).pipe(
+      catchError(err => {
+        console.warn('Backend user permissions sync failed, saved locally', err);
+        return of({ success: true, localOnly: true });
+      })
+    );
+  }
+
+  checkPermissionForUser(user: any, module: string, action: string): boolean {
+    if (!user) return false;
+    const userId = String(user.user_id || user.id || '');
+    const override = this.userPermissionsSubject.value[userId];
+    if (override && override[module] && typeof override[module][action] === 'boolean') {
+      return override[module][action];
+    }
+    const roleName = this.normalizeRoleName(user.role ? (user.role.name || user.role.code || user.role) : (user.role_code || ''));
+    return this.checkPermission(roleName, module, action);
   }
 
   normalizeRoleName(nameOrCode: string): string {

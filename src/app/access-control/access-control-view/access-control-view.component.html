@@ -2,22 +2,34 @@
   <!-- Top Page Header -->
   <div class="access-header">
     <div class="header-left">
-      <div class="section-tag">ADMINISTRATION &bull; SECURITY</div>
-      <h1 class="page-title">Access Control</h1>
+      <div class="section-tag">ADMINISTRATION &bull; SECURITY &bull; PERMISSIONS</div>
+      <h1 class="page-title">Access Control &amp; Permissions</h1>
       <p class="page-subtitle">
-        Configure granular role-based permissions and access rights across all platform modules and operational workflows.
+        Manage security permissions by universal role profiles or grant customized, granular operational access to specific persons.
       </p>
     </div>
     <div class="header-actions">
-      <button *ngIf="isCustomRole(selectedRole)" type="button" class="btn-action-danger" (click)="deleteCurrentRole()" title="Delete this custom role">
+      <!-- Give Access to Person quick button -->
+      <button type="button" class="btn-action-person" (click)="openQuickGrantModal()" title="Grant or customize access for a specific person">
+        <span>👤 Grant Access to Person</span>
+      </button>
+
+      <button *ngIf="accessScope === 'ROLE' && isCustomRole(selectedRole)" type="button" class="btn-action-danger" (click)="deleteCurrentRole()" title="Delete this custom role">
         <span>Delete Role</span>
       </button>
+
+      <button *ngIf="accessScope === 'USER' && isUserOverridden(selectedUserId)" type="button" class="btn-action-warn" (click)="resetUserToRoleDefaults()" title="Reset user back to role defaults">
+        <span>↺ Reset to Role Defaults</span>
+      </button>
+
+      <button *ngIf="accessScope === 'ROLE'" type="button" class="btn-action-outline" (click)="resetCurrentRole()" title="Reset role to default">
+        <span>Reset Role Defaults</span>
+      </button>
+
       <button type="button" class="btn-action-outline" (click)="exportMatrix()" title="Export JSON audit report">
         <span>Export Matrix</span>
       </button>
-      <button type="button" class="btn-action-outline" (click)="resetCurrentRole()" title="Reset role to default">
-        <span>Reset Defaults</span>
-      </button>
+
       <button type="button" class="btn-action-primary" (click)="saveExplicitly()" [disabled]="isSaving">
         <span *ngIf="!isSaving">Save Changes</span>
         <span *ngIf="isSaving">Saving...</span>
@@ -25,53 +37,198 @@
     </div>
   </div>
 
-  <!-- Role Selection Navigation Tabs -->
-  <div class="role-tabs-bar">
-    <div class="role-tabs-list">
+  <!-- Primary Access Scope Mode Switcher Tabs -->
+  <div class="scope-mode-tabs-container">
+    <div class="scope-mode-tabs">
       <button
         type="button"
-        *ngFor="let r of roles"
-        class="role-tab-btn"
-        [class.active]="selectedRole === r"
-        (click)="selectRole(r)"
+        class="scope-mode-btn"
+        [class.active]="accessScope === 'ROLE'"
+        (click)="setAccessScope('ROLE')"
       >
-        <span class="role-tab-name">{{ r }}</span>
-        <span class="role-tab-badge" *ngIf="roleMetadata[r]" [style.borderColor]="roleMetadata[r].color">{{ roleMetadata[r].badge }}</span>
+        <span class="scope-mode-icon">👥</span>
+        <div class="scope-mode-text-wrap">
+          <span class="scope-mode-title">Role-Based Access</span>
+          <span class="scope-mode-desc">Apply permissions across all users with a specific role</span>
+        </div>
+        <span class="scope-mode-badge">{{ roles.length }} Roles</span>
       </button>
 
-      <button type="button" class="btn-add-role-tab" (click)="openAddRoleModal()" title="Create custom role">
-        <span>+ Add Role</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- Role Profile Overview Card -->
-  <div class="role-overview-card" [style.borderLeftColor]="currentRoleMeta.color">
-    <div class="role-overview-main">
-      <div class="role-badge-row">
-        <span class="role-title-text">{{ currentRoleMeta.name }}</span>
-        <span class="role-tag" [style.backgroundColor]="currentRoleMeta.color + '15'" [style.color]="currentRoleMeta.color">
-          {{ currentRoleMeta.badge }}
+      <button
+        type="button"
+        class="scope-mode-btn"
+        [class.active]="accessScope === 'USER'"
+        (click)="setAccessScope('USER')"
+      >
+        <span class="scope-mode-icon">👤</span>
+        <div class="scope-mode-text-wrap">
+          <span class="scope-mode-title">Specific Person Access</span>
+          <span class="scope-mode-desc">Grant individualized overrides to a specific team member</span>
+        </div>
+        <span class="scope-mode-badge user-badge-highlight">{{ users.length }} Users</span>
+        <span class="custom-badge-pill" *ngIf="overriddenUsersCount > 0" title="Users with individual custom overrides">
+          ⭐ {{ overriddenUsersCount }} custom
         </span>
-        <span class="role-status-dot">Enforced in Real-Time</span>
-      </div>
-      <p class="role-description-text">{{ currentRoleMeta.description }}</p>
-    </div>
-    <div class="role-stats-grid">
-      <div class="stat-box">
-        <div class="stat-number">{{ getGrantedCount(selectedRole) }} / {{ getTotalPossible() }}</div>
-        <div class="stat-label">Active Permissions</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-number">{{ getCoveragePercent(selectedRole) }}%</div>
-        <div class="stat-label">Access Coverage</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-number">{{ currentRoleMeta.usersCount }}</div>
-        <div class="stat-label">Assigned Users</div>
-      </div>
+      </button>
     </div>
   </div>
+
+  <!-- ==================== ROLE-BASED SECTION ==================== -->
+  <ng-container *ngIf="accessScope === 'ROLE'">
+    <!-- Role Selection Navigation Tabs -->
+    <div class="role-tabs-bar">
+      <div class="role-tabs-list">
+        <button
+          type="button"
+          *ngFor="let r of roles"
+          class="role-tab-btn"
+          [class.active]="selectedRole === r"
+          (click)="selectRole(r)"
+        >
+          <span class="role-tab-name">{{ r }}</span>
+          <span class="role-tab-badge" *ngIf="roleMetadata[r]" [style.borderColor]="roleMetadata[r].color">
+            {{ roleMetadata[r].badge }}
+          </span>
+        </button>
+
+        <button type="button" class="btn-add-role-tab" (click)="openAddRoleModal()" title="Create custom role">
+          <span>+ Add Role</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Role Profile Overview Card -->
+    <div class="role-overview-card" [style.borderLeftColor]="currentRoleMeta.color">
+      <div class="role-overview-main">
+        <div class="role-badge-row">
+          <span class="role-title-text">{{ currentRoleMeta.name }}</span>
+          <span class="role-tag" [style.backgroundColor]="currentRoleMeta.color + '15'" [style.color]="currentRoleMeta.color">
+            {{ currentRoleMeta.badge }}
+          </span>
+          <span class="role-status-dot">Enforced in Real-Time</span>
+        </div>
+        <p class="role-description-text">{{ currentRoleMeta.description }}</p>
+
+        <!-- Team members assigned to this role -->
+        <div class="role-assigned-users" *ngIf="getUsersInRole(selectedRole).length > 0">
+          <span class="assigned-users-label">Team members with this role:</span>
+          <div class="assigned-users-pills">
+            <button
+              type="button"
+              *ngFor="let u of getUsersInRole(selectedRole)"
+              class="user-quick-pill"
+              (click)="openUserAccess(u)"
+              title="Click to view and configure individual access for {{ u.name }}"
+            >
+              <span class="user-pill-avatar">{{ getInitials(u.name) }}</span>
+              <span class="user-pill-name">{{ u.name }}</span>
+              <span class="user-pill-override" *ngIf="isUserOverridden(u.user_id || u.id)">⭐ Custom</span>
+              <span class="user-pill-action">&rarr;</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="role-stats-grid">
+        <div class="stat-box">
+          <div class="stat-number">{{ getGrantedCount(selectedRole) }} / {{ getTotalPossible() }}</div>
+          <div class="stat-label">Active Permissions</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number">{{ getCoveragePercent(selectedRole) }}%</div>
+          <div class="stat-label">Access Coverage</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number">{{ currentRoleMeta.usersCount }}</div>
+          <div class="stat-label">Assigned Users</div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- ==================== SPECIFIC PERSON (USER) SECTION ==================== -->
+  <ng-container *ngIf="accessScope === 'USER'">
+    <!-- Person Selection Banner Card -->
+    <div class="person-selection-bar" *ngIf="selectedUser">
+      <div class="person-selector-group">
+        <label class="person-select-label">Select Person:</label>
+        <div class="person-select-wrap">
+          <select [(ngModel)]="selectedUserId" (ngModelChange)="onUserChange()" class="person-dropdown-main">
+            <option *ngFor="let u of users" [value]="u.user_id || u.id">
+              {{ u.name }} &bull; {{ getUserRoleName(u) }} ({{ u.email }})
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="person-status-tags">
+        <span class="base-role-tag" [style.color]="getUserRoleColor(selectedUser)">
+          Base Role: {{ getUserRoleName(selectedUser) }}
+        </span>
+
+        <span *ngIf="isUserOverridden(selectedUserId)" class="user-status-pill override-active">
+          ⭐ Custom Overrides Active ({{ getUserOverriddenCount() }} rules modified)
+        </span>
+        <span *ngIf="!isUserOverridden(selectedUserId)" class="user-status-pill inherit-active">
+          🔄 Inheriting Base Role Defaults
+        </span>
+
+        <button
+          *ngIf="isUserOverridden(selectedUserId)"
+          type="button"
+          class="btn-reset-user-pill"
+          (click)="resetUserToRoleDefaults()"
+          title="Clear individual overrides and restore role default permissions"
+        >
+          ↺ Reset to Role Defaults
+        </button>
+      </div>
+    </div>
+
+    <!-- Person Profile Overview Card -->
+    <div class="person-overview-card" *ngIf="selectedUser">
+      <div class="person-card-left">
+        <div class="person-avatar-circle" [style.backgroundColor]="getUserRoleColor(selectedUser) + '20'" [style.color]="getUserRoleColor(selectedUser)">
+          {{ getInitials(selectedUser.name) }}
+        </div>
+        <div class="person-meta-wrap">
+          <div class="person-title-row">
+            <span class="person-name-text">{{ selectedUser.name }}</span>
+            <span class="person-role-chip" [style.backgroundColor]="getUserRoleColor(selectedUser) + '15'" [style.color]="getUserRoleColor(selectedUser)">
+              {{ getUserRoleName(selectedUser) }}
+            </span>
+            <span class="person-designation" *ngIf="selectedUser.designation">{{ selectedUser.designation }}</span>
+          </div>
+          <div class="person-contact-sub">
+            <span class="person-email">✉️ {{ selectedUser.email }}</span>
+            <span class="person-phone" *ngIf="selectedUser.phone">&bull; 📞 {{ selectedUser.phone }}</span>
+            <span class="person-manager" *ngIf="selectedUser.manager_name && selectedUser.manager_name !== 'None'">&bull; 👤 Manager: {{ selectedUser.manager_name }}</span>
+          </div>
+          <p class="person-hint-text" *ngIf="isUserOverridden(selectedUserId)">
+            💡 Individual overrides take precedence over the user's base role. Cells marked with ⭐ differ from default <strong>{{ getUserRoleName(selectedUser) }}</strong> permissions.
+          </p>
+          <p class="person-hint-text" *ngIf="!isUserOverridden(selectedUserId)">
+            💡 This person is currently inheriting the default permissions from the <strong>{{ getUserRoleName(selectedUser) }}</strong> role. Toggle any permission to create an individual override.
+          </p>
+        </div>
+      </div>
+
+      <div class="role-stats-grid">
+        <div class="stat-box">
+          <div class="stat-number">{{ getUserGrantedCount() }} / {{ getTotalPossible() }}</div>
+          <div class="stat-label">Active Permissions</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number">{{ getUserCoveragePercent() }}%</div>
+          <div class="stat-label">Access Coverage</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number" [class.highlight-stat]="getUserOverriddenCount() > 0">{{ getUserOverriddenCount() }}</div>
+          <div class="stat-label">Custom Overrides</div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
 
   <!-- Notification Banner -->
   <div *ngIf="notificationMessage" class="matrix-notification-banner" [ngClass]="'notification-' + notificationType">
@@ -87,31 +244,100 @@
 
   <!-- MAIN PERMISSION MATRIX CARD -->
   <div class="card-box matrix-card">
-    <!-- Matrix Card Header (matches screenshot UI) -->
+    <!-- Matrix Card Header (matches and enhances screenshot UI) -->
     <div class="matrix-header">
       <div class="matrix-title-area">
-        <div class="card-box-title">PERMISSION MATRIX</div>
-        <p class="matrix-sub">Changes apply immediately to every user with the role</p>
+        <div class="card-box-title">
+          <span *ngIf="accessScope === 'ROLE'">PERMISSION MATRIX &bull; ROLE: {{ selectedRole }}</span>
+          <span *ngIf="accessScope === 'USER'">PERMISSION MATRIX &bull; SPECIFIC PERSON: {{ selectedUser?.name || 'Selected User' }}</span>
+        </div>
+        <p class="matrix-sub">
+          <span *ngIf="accessScope === 'ROLE'">Changes apply immediately to all users assigned to the <strong>{{ selectedRole }}</strong> role</span>
+          <span *ngIf="accessScope === 'USER'">
+            Changes apply exclusively to <strong>{{ selectedUser?.name }}</strong> (Base Role: {{ getUserRoleName(selectedUser) }})
+          </span>
+        </p>
       </div>
 
       <div class="matrix-actions-right">
+        <!-- Quick Grant All / Revoke All -->
         <div class="matrix-quick-btns">
-          <button type="button" class="btn-subtle" (click)="grantAllForRole()">Grant All</button>
-          <button type="button" class="btn-subtle" (click)="revokeAllForRole()">Revoke All</button>
+          <button
+            type="button"
+            class="btn-subtle"
+            (click)="accessScope === 'ROLE' ? grantAllForRole() : grantAllForUser()"
+            [title]="accessScope === 'ROLE' ? 'Grant all permissions to ' + selectedRole : 'Grant all permissions to ' + selectedUser?.name"
+          >
+            Grant All
+          </button>
+          <button
+            type="button"
+            class="btn-subtle"
+            (click)="accessScope === 'ROLE' ? revokeAllForRole() : revokeAllForUser()"
+            [title]="accessScope === 'ROLE' ? 'Revoke all permissions from ' + selectedRole : 'Revoke all permissions from ' + selectedUser?.name"
+          >
+            Revoke All
+          </button>
         </div>
 
-        <div class="matrix-role-selector">
+        <!-- Role Selector (when in ROLE mode) -->
+        <div class="matrix-role-selector" *ngIf="accessScope === 'ROLE'">
           <select [(ngModel)]="selectedRole" (ngModelChange)="onRoleChange()" class="role-select">
             <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
           </select>
         </div>
 
-        <!-- Clone from another role quick action -->
-        <div class="matrix-clone-group">
+        <!-- Person / User Selector (when in USER mode) -->
+        <div class="matrix-role-selector" *ngIf="accessScope === 'USER'">
+          <select [(ngModel)]="selectedUserId" (ngModelChange)="onUserChange()" class="role-select user-highlight-select">
+            <option *ngFor="let u of users" [value]="u.user_id || u.id">
+              👤 {{ u.name }} ({{ getUserRoleName(u) }})
+            </option>
+          </select>
+        </div>
+
+        <!-- Clone from dropdown (matches screenshot UI) -->
+        <div class="matrix-clone-group" *ngIf="accessScope === 'ROLE'">
           <select [(ngModel)]="cloneSourceRole" (ngModelChange)="clonePermissionsFrom(cloneSourceRole)" class="clone-select">
             <option value="">Clone from...</option>
             <option *ngFor="let r of roles" [value]="r" [disabled]="r === selectedRole">{{ r }}</option>
           </select>
+        </div>
+
+        <div class="matrix-clone-group" *ngIf="accessScope === 'USER'">
+          <select [(ngModel)]="cloneSourceUser" (ngModelChange)="cloneUserPermissionsFrom(cloneSourceUser)" class="clone-select">
+            <option value="">Clone from...</option>
+            <optgroup label="Clone from Role">
+              <option *ngFor="let r of roles" [value]="'role:' + r">Role: {{ r }}</option>
+            </optgroup>
+            <optgroup label="Clone from Person">
+              <option *ngFor="let u of users" [value]="'user:' + (u.user_id || u.id)" [disabled]="(u.user_id || u.id) == selectedUserId">
+                Person: {{ u.name }}
+              </option>
+            </optgroup>
+          </select>
+        </div>
+
+        <!-- Inline Scope Segmented Switcher -->
+        <div class="matrix-scope-segmented">
+          <button
+            type="button"
+            class="scope-seg-btn"
+            [class.active]="accessScope === 'ROLE'"
+            (click)="setAccessScope('ROLE')"
+            title="Switch to Role Matrix"
+          >
+            👥 By Role
+          </button>
+          <button
+            type="button"
+            class="scope-seg-btn"
+            [class.active]="accessScope === 'USER'"
+            (click)="setAccessScope('USER')"
+            title="Switch to Specific Person Access"
+          >
+            👤 By Person
+          </button>
         </div>
       </div>
     </div>
@@ -122,7 +348,7 @@
         <input
           type="text"
           [(ngModel)]="searchQuery"
-          placeholder="Filter modules (e.g. Prospects, Site Visits)..."
+          placeholder="Filter modules (e.g. Prospects, Site Visits, Analytics)..."
           class="search-input"
         />
         <button *ngIf="searchQuery" (click)="searchQuery = ''" class="clear-search-btn">&times;</button>
@@ -141,8 +367,8 @@
       </div>
     </div>
 
-    <!-- Matrix Table -->
-    <div class="table-responsive">
+    <!-- ==================== TABLE FOR ROLE MODE ==================== -->
+    <div class="table-responsive" *ngIf="accessScope === 'ROLE'">
       <table class="matrix-table" *ngIf="rolePermissions[selectedRole]">
         <thead>
           <tr>
@@ -156,7 +382,7 @@
                   type="button"
                   class="col-toggle-btn"
                   (click)="toggleColumn(col)"
-                  [title]="'Toggle all ' + col + ' permissions'"
+                  [title]="'Toggle all ' + col + ' permissions for ' + selectedRole"
                 >
                   &#8693;
                 </button>
@@ -203,9 +429,89 @@
       </table>
     </div>
 
+    <!-- ==================== TABLE FOR SPECIFIC PERSON MODE ==================== -->
+    <div class="table-responsive" *ngIf="accessScope === 'USER'">
+      <table class="matrix-table user-matrix-table" *ngIf="activeUserMatrix">
+        <thead>
+          <tr>
+            <th class="module-col-header">
+              <span>MODULE</span>
+            </th>
+            <th *ngFor="let col of permissionColumns" class="text-center col-header-cell">
+              <div class="col-header-content">
+                <span class="col-name">{{ col }}</span>
+                <button
+                  type="button"
+                  class="col-toggle-btn"
+                  (click)="toggleUserColumn(col)"
+                  [title]="'Toggle all ' + col + ' permissions for ' + selectedUser?.name"
+                >
+                  &#8693;
+                </button>
+              </div>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let mod of filteredModules" class="module-row">
+            <td class="module-name-cell">
+              <div class="module-title-wrap">
+                <span class="module-name">{{ mod }}</span>
+                <span class="module-cat-tag" *ngIf="moduleCategories[mod]">
+                  {{ moduleCategories[mod] }}
+                </span>
+                <button
+                  type="button"
+                  class="row-quick-toggle"
+                  (click)="toggleUserRow(mod)"
+                  [title]="'Toggle all permissions for ' + mod"
+                >
+                  {{ isAllGrantedForUserModule(mod) ? 'Revoke All' : 'Grant All' }}
+                </button>
+              </div>
+            </td>
+            <td
+              *ngFor="let col of permissionColumns"
+              class="text-center cell-checkbox"
+              [class.cell-custom-overridden]="isCellOverriddenForUser(mod, col)"
+            >
+              <label class="checkbox-wrapper">
+                <input
+                  type="checkbox"
+                  [checked]="isUserPermissionGranted(mod, col)"
+                  (change)="toggleUserPermission(mod, col)"
+                  class="matrix-checkbox"
+                  [class.input-overridden]="isCellOverriddenForUser(mod, col)"
+                  [attr.aria-label]="selectedUser?.name + ' ' + mod + ' ' + col"
+                />
+                <span
+                  class="override-star"
+                  *ngIf="isCellOverriddenForUser(mod, col)"
+                  [title]="'Custom individual override for ' + selectedUser?.name + ' (differs from ' + getUserRoleName(selectedUser) + ' default)'"
+                >
+                  ★
+                </span>
+              </label>
+            </td>
+          </tr>
+          <tr *ngIf="filteredModules.length === 0">
+            <td [attr.colspan]="permissionColumns.length + 1" class="empty-state-cell">
+              No modules match your search filter "<strong>{{ searchQuery }}</strong>"
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
     <!-- Permission Guide Footer -->
     <div class="matrix-legend">
-      <div class="legend-title">PERMISSION GUIDE</div>
+      <div class="legend-header-row">
+        <div class="legend-title">PERMISSION GUIDE &bull; OPERATIONAL RIGHTS</div>
+        <div class="legend-indicator-info" *ngIf="accessScope === 'USER'">
+          <span class="legend-star-indicator">★</span>
+          <span>Indicates individual override customized specifically for this person (diverges from base role)</span>
+        </div>
+      </div>
       <div class="legend-grid">
         <div class="legend-item"><strong>VIEW:</strong> Read data, dashboards, and view detail records.</div>
         <div class="legend-item"><strong>CREATE:</strong> Register new prospects, bookings, and tasks.</div>
@@ -249,6 +555,51 @@
       <div class="modal-footer">
         <button type="button" class="btn-modal-cancel" (click)="closeAddRoleModal()">Cancel</button>
         <button type="button" class="btn-modal-create" (click)="createCustomRole()">Create Role</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUICK GIVE ACCESS TO PERSON MODAL -->
+  <div *ngIf="showQuickGrantModal" class="modal-backdrop">
+    <div class="modal-card modal-card-person">
+      <div class="modal-header">
+        <h3 class="modal-title">Grant / Configure Access for Specific Person</h3>
+        <button type="button" class="close-btn" (click)="closeQuickGrantModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-help-text">
+          Select a team member and configure customized operational access. You can clone initial access from any role or colleague.
+        </p>
+        <div class="modal-field">
+          <label class="modal-label">Target Person *</label>
+          <select [(ngModel)]="quickGrantTargetUserId" class="modal-select">
+            <option *ngFor="let u of users" [value]="u.user_id || u.id">
+              👤 {{ u.name }} — Base Role: {{ getUserRoleName(u) }} ({{ u.email }})
+            </option>
+          </select>
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Initial Permissions Template</label>
+          <select [(ngModel)]="quickGrantSource" class="modal-select">
+            <optgroup label="Preset Access Levels">
+              <option value="all">🌟 Full System Access (Grant All Permissions)</option>
+            </optgroup>
+            <optgroup label="Role Templates">
+              <option *ngFor="let r of roles" [value]="'role:' + r">Role: {{ r }}</option>
+            </optgroup>
+            <optgroup label="Clone from Another Person">
+              <option *ngFor="let u of users" [value]="'user:' + (u.user_id || u.id)">
+                Person: {{ u.name }} ({{ getUserRoleName(u) }})
+              </option>
+            </optgroup>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-cancel" (click)="closeQuickGrantModal()">Cancel</button>
+        <button type="button" class="btn-modal-create" (click)="applyQuickGrant()">
+          Configure &amp; Open Matrix &rarr;
+        </button>
       </div>
     </div>
   </div>

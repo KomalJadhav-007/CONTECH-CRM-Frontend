@@ -1017,3 +1017,79 @@
     justify-content: flex-start;
   }
 }
+
+/* User Individual Access Styles */
+.user-custom-override-tag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #b45309;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  display: inline-block;
+  margin-left: 0.35rem;
+}
+
+.btn-access-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: #f5f3ff;
+  border: 1px solid #ddd6fe;
+  color: #6d28d9;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 0.35rem 0.65rem;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.btn-access-user:hover {
+  background: #ede9fe;
+  border-color: #c4b5fd;
+  color: #5b21b6;
+}
+
+.user-perm-override-box {
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px dashed #cbd5e1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.override-box-desc {
+  font-size: 0.78rem;
+  color: #475569;
+}
+
+.override-text-active {
+  color: #92400e;
+}
+
+.override-text-default {
+  color: #475569;
+}
+
+.btn-manage-individual-perms {
+  display: inline-flex;
+  align-items: center;
+  background: #4f46e5;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.4rem 0.85rem;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.btn-manage-individual-perms:hover {
+  background: #4338ca;
+}
+
