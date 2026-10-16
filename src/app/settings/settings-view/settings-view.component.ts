@@ -111,8 +111,7 @@ export class SettingsViewComponent implements OnInit {
     const fullName = `${this.profile.firstName.trim()} ${this.profile.lastName.trim()}`.trim();
     const payload = {
       name: fullName,
-      phone: this.profile.mobile.trim(),
-      designation: this.profile.designation.trim()
+      phone: this.profile.mobile.trim()
     };
 
     this.userService.updateUser(this.profile.id, payload).subscribe({

@@ -62,7 +62,15 @@
           </div>
           <div class="form-field">
             <label class="field-label">Designation</label>
-            <input type="text" [(ngModel)]="profile.designation" name="designation" class="input-field" />
+            <input
+              type="text"
+              [value]="profile.designation"
+              name="designation"
+              class="input-field readonly-field"
+              readonly
+              disabled
+              title="Designation is managed through Role & Access Control"
+            />
           </div>
         </div>
         <button type="submit" class="btn-dark-save">Save profile</button>

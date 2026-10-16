@@ -157,6 +157,16 @@
   border-color: #0f172a;
 }
 
+.input-field:disabled,
+.input-field[readonly],
+.readonly-field {
+  background-color: #f8fafc !important;
+  color: #64748b !important;
+  cursor: not-allowed !important;
+  border-color: #e2e8f0 !important;
+  user-select: none;
+}
+
 .btn-dark-save {
   align-self: flex-start;
   background: #0f172a;
