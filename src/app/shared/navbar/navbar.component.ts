@@ -11,6 +11,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 
 @Component({
   selector: 'app-navbar',
@@ -24,7 +26,9 @@ import { MatChipsModule } from '@angular/material/chips';
     MatIconModule,
     MatBadgeModule,
     MatTooltipModule,
-    MatChipsModule
+    MatChipsModule,
+    MatFormFieldModule,
+    MatInputModule
   ],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.css'

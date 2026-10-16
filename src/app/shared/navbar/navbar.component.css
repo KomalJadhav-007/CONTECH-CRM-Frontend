@@ -825,3 +825,25 @@ button.popover-nav-item:hover {
   to { opacity: 1; transform: scale(1); }
 }
 
+/* Angular Material Change Password Form in Navbar */
+.pwd-form-mat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.pwd-form-mat .mat-field-custom {
+  width: 100%;
+}
+
+.pwd-form-mat mat-icon[matPrefix] {
+  color: #64748b;
+  margin-right: 0.4rem;
+  font-size: 1.15rem;
+  width: 1.15rem;
+  height: 1.15rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+

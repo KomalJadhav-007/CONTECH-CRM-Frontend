@@ -249,6 +249,21 @@ export class UserListComponent implements OnInit {
     });
   }
 
+  generatePasswordForNewUser(): void {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*';
+    let pwd = '';
+    for (let i = 0; i < 10; i++) {
+      pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    this.newUser.password = pwd;
+    this.showNewPassword = true;
+  }
+
+  setDefaultPasswordForNewUser(): void {
+    this.newUser.password = 'Contech@2026';
+    this.showNewPassword = true;
+  }
+
   // --- EDIT USER MODAL ACTIONS ---
   openEditUserModal(user: any): void {
     this.editUserError = '';

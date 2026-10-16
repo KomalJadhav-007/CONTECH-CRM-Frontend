@@ -856,6 +856,69 @@
   color: #0f172a;
 }
 
+/* Angular Material Password Form Field & Quick Pills */
+.material-pwd-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.material-pwd-col .mat-field-custom {
+  width: 100%;
+  margin-bottom: 0.15rem;
+}
+
+.material-pwd-col .field-icon-mat {
+  color: #64748b;
+  margin-right: 0.4rem;
+  font-size: 1.15rem;
+  width: 1.15rem;
+  height: 1.15rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pwd-quick-actions-mat {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.btn-mat-pwd-pill {
+  font-size: 0.72rem !important;
+  font-weight: 600 !important;
+  height: 28px !important;
+  line-height: 28px !important;
+  padding: 0 0.65rem !important;
+  border-radius: 9999px !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+  background: #f8fafc !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.2rem !important;
+  transition: all 0.15s ease !important;
+}
+
+.btn-mat-pwd-pill:hover {
+  background: #f1f5f9 !important;
+  border-color: #94a3b8 !important;
+  color: #0f172a !important;
+}
+
+.btn-mat-pwd-pill .pill-icon {
+  font-size: 0.95rem;
+  width: 0.95rem;
+  height: 0.95rem;
+  color: #64748b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.15rem;
+}
+
 /* Modal Footer */
 .modal-footer {
   display: flex;

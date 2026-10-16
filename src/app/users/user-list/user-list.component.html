@@ -305,36 +305,37 @@
           </div>
         </div>
 
-        <!-- Password and Active State -->
+        <!-- Password and Active State (Angular Material) -->
         <div class="form-row-2">
-          <div class="form-group">
-            <div class="label-with-meta">
-              <label class="form-label">Initial Password</label>
-              <button
-                type="button"
-                class="btn-text-action"
-                (click)="showNewPassword = !showNewPassword"
-              >
-                {{ showNewPassword ? '🔒 Hide' : '👁️ Show' }}
-              </button>
-            </div>
-            <div class="password-input-wrapper">
+          <div class="form-group material-pwd-col">
+            <mat-form-field appearance="outline" class="w-full mat-field-custom">
+              <mat-label>Initial Password</mat-label>
+              <mat-icon matPrefix class="field-icon-mat">lock</mat-icon>
               <input
+                matInput
                 [type]="showNewPassword ? 'text' : 'password'"
                 [(ngModel)]="newUser.password"
-                class="form-input font-mono"
                 placeholder="Default: Contech@2026"
               />
               <button
+                mat-icon-button
+                matSuffix
                 type="button"
-                class="btn-toggle-eye"
                 (click)="showNewPassword = !showNewPassword"
-                [title]="showNewPassword ? 'Hide password' : 'Show password'"
+                [matTooltip]="showNewPassword ? 'Hide password' : 'Show password'"
               >
-                {{ showNewPassword ? '🔒' : '👁️' }}
+                <mat-icon>{{ showNewPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              <mat-hint>Initial login password for user</mat-hint>
+            </mat-form-field>
+            <div class="pwd-quick-actions-mat">
+              <button type="button" mat-stroked-button class="btn-mat-pwd-pill" (click)="setDefaultPasswordForNewUser()">
+                <mat-icon class="pill-icon">vpn_key</mat-icon> Contech&#64;2026
+              </button>
+              <button type="button" mat-stroked-button class="btn-mat-pwd-pill" (click)="generatePasswordForNewUser()">
+                <mat-icon class="pill-icon">casino</mat-icon> Generate
               </button>
             </div>
-            <span class="field-hint">User can sign in immediately with this password</span>
           </div>
           <div class="form-group checkbox-group">
             <label class="checkbox-container">
@@ -349,8 +350,8 @@
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn-modal-cancel" (click)="closeAddUserModal()">Cancel</button>
-        <button type="button" class="btn-modal-submit" (click)="submitAddUser()" [disabled]="isSubmitting">
+        <button mat-button type="button" class="btn-modal-cancel" (click)="closeAddUserModal()">Cancel</button>
+        <button mat-flat-button color="primary" type="button" class="btn-modal-submit" (click)="submitAddUser()" [disabled]="isSubmitting">
           <span *ngIf="!isSubmitting">Create &amp; Provision User</span>
           <span *ngIf="isSubmitting">Provisioning...</span>
         </button>
@@ -437,35 +438,38 @@
           </div>
         </div>
 
-        <!-- Password Configuration & Account Active -->
+        <!-- Password Configuration & Account Active (Angular Material) -->
         <div class="form-row-2 security-row">
-          <div class="form-group">
-            <div class="label-with-meta">
-              <label class="form-label">Set / Change Password</label>
-              <span class="field-badge-optional">Optional</span>
-            </div>
-            <div class="password-input-wrapper">
+          <div class="form-group material-pwd-col">
+            <mat-form-field appearance="outline" class="w-full mat-field-custom">
+              <mat-label>Set / Change Password</mat-label>
+              <mat-icon matPrefix class="field-icon-mat">lock</mat-icon>
               <input
+                matInput
                 [type]="showEditPassword ? 'text' : 'password'"
                 [(ngModel)]="editingUser.password"
-                class="form-input font-mono"
                 placeholder="Leave blank to keep unchanged"
                 autocomplete="new-password"
               />
               <button
+                mat-icon-button
+                matSuffix
                 type="button"
-                class="btn-toggle-eye"
                 (click)="showEditPassword = !showEditPassword"
-                [title]="showEditPassword ? 'Hide password' : 'Show password'"
+                [matTooltip]="showEditPassword ? 'Hide password' : 'Show password'"
               >
-                {{ showEditPassword ? '🔒' : '👁️' }}
+                <mat-icon>{{ showEditPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              <mat-hint>Optional &bull; Enter 6+ characters to change password</mat-hint>
+            </mat-form-field>
+            <div class="pwd-quick-actions-mat">
+              <button type="button" mat-stroked-button class="btn-mat-pwd-pill" (click)="setDefaultPasswordForEdit()">
+                <mat-icon class="pill-icon">vpn_key</mat-icon> Contech&#64;2026
+              </button>
+              <button type="button" mat-stroked-button class="btn-mat-pwd-pill" (click)="generatePasswordForEdit()">
+                <mat-icon class="pill-icon">casino</mat-icon> Generate
               </button>
             </div>
-            <div class="pwd-quick-actions">
-              <button type="button" class="btn-pwd-helper" (click)="setDefaultPasswordForEdit()">Contech&#64;2026</button>
-              <button type="button" class="btn-pwd-helper" (click)="generatePasswordForEdit()">🎲 Generate</button>
-            </div>
-            <span class="field-hint">Enter 6+ characters to assign a new password.</span>
           </div>
 
           <div class="form-group checkbox-group">
@@ -481,8 +485,8 @@
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn-modal-cancel" (click)="closeEditUserModal()">Cancel</button>
-        <button type="button" class="btn-modal-submit" (click)="submitEditUser()" [disabled]="isEditing">
+        <button mat-button type="button" class="btn-modal-cancel" (click)="closeEditUserModal()">Cancel</button>
+        <button mat-flat-button color="primary" type="button" class="btn-modal-submit" (click)="submitEditUser()" [disabled]="isEditing">
           <span *ngIf="!isEditing">Save Changes</span>
           <span *ngIf="isEditing">Saving...</span>
         </button>
