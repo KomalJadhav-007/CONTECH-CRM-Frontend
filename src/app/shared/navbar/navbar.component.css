@@ -230,6 +230,16 @@
   font-weight: 600;
 }
 
+.status-driver {
+  color: #d97706;
+  font-weight: 600;
+}
+
+.status-standard {
+  color: #475569;
+  font-weight: 600;
+}
+
 .detail-badge-active {
   background: #d1fae5;
   color: #047857;

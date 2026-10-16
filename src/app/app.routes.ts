@@ -51,32 +51,38 @@ export const routes: Routes = [
   },
   {
     path: 'projects',
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['DIRECTOR', 'ADMIN', 'SUPER_ADMIN', 'ORG_ADMIN', 'SALES_HEAD', 'SALES_MANAGER'] },
     loadComponent: () => import('./settings/projects/projects.component').then(m => m.ProjectsComponent)
   },
   {
     path: 'team',
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['DIRECTOR', 'ADMIN', 'SUPER_ADMIN', 'ORG_ADMIN', 'SALES_HEAD', 'SALES_MANAGER'] },
     loadComponent: () => import('./users/user-list/user-list.component').then(m => m.UserListComponent)
   },
   {
     path: 'users',
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['DIRECTOR', 'ADMIN', 'SUPER_ADMIN', 'ORG_ADMIN', 'SALES_HEAD', 'SALES_MANAGER'] },
     loadComponent: () => import('./users/user-list/user-list.component').then(m => m.UserListComponent)
   },
   {
     path: 'access-control',
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['DIRECTOR', 'ADMIN', 'SUPER_ADMIN', 'ORG_ADMIN', 'SALES_HEAD'] },
     loadChildren: () => import('./access-control/access-control.routes').then(m => m.ACCESS_CONTROL_ROUTES)
   },
   {
     path: 'settings',
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['DIRECTOR', 'ADMIN', 'SUPER_ADMIN', 'ORG_ADMIN', 'SALES_HEAD', 'SALES_MANAGER'] },
     loadComponent: () => import('./settings/settings-view/settings-view.component').then(m => m.SettingsViewComponent)
   },
   {
     path: 'audit-logs',
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['DIRECTOR', 'ADMIN', 'SUPER_ADMIN', 'ORG_ADMIN'] },
     loadComponent: () => import('./settings/audit-logs/audit-logs.component').then(m => m.AuditLogsComponent)
   },
 

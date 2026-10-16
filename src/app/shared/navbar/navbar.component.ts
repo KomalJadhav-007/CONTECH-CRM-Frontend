@@ -169,6 +169,50 @@ export class NavbarComponent implements OnInit {
     this.showProfileModal = false;
   }
 
+  canAccessAdminLinks(): boolean {
+    const rawRole = this.authService.getUserRole();
+    if (!rawRole) return false;
+    const normalized = rawRole.toUpperCase().replace(/[\s\/-]+/g, '_').trim();
+    const adminRoles = [
+      'SUPER_ADMIN',
+      'ORG_ADMIN',
+      'DIRECTOR',
+      'ADMIN',
+      'OWNER_CXO',
+      'OWNER',
+      'SALES_HEAD'
+    ];
+    return adminRoles.some(r => normalized.includes(r) || r.includes(normalized));
+  }
+
+  getAccessLevelText(): string {
+    const rawRole = (this.authService.getUserRole() || '').toUpperCase().trim();
+    if (rawRole.includes('DRIVER')) return 'Driver & Transit Ops Access';
+    if (rawRole.includes('DIRECTOR') || rawRole.includes('CXO') || rawRole.includes('SUPER_ADMIN') || rawRole.includes('ORG_ADMIN')) {
+      return 'Full Director & Executive Access';
+    }
+    if (rawRole.includes('SALES_HEAD') || rawRole.includes('MANAGER')) {
+      return 'Management & Team Oversight';
+    }
+    if (rawRole.includes('EXECUTIVE') || rawRole.includes('REP')) {
+      return 'Field Sales & Buyer Advisory';
+    }
+    if (rawRole.includes('INSIDE') || rawRole.includes('TELE')) {
+      return 'Pre-Sales & Pipeline Calling';
+    }
+    if (rawRole.includes('COORDINATOR')) {
+      return 'Visit Logistics Coordination';
+    }
+    return rawRole ? `${rawRole} Access` : 'Standard Platform Access';
+  }
+
+  getAccessLevelClass(): string {
+    const rawRole = (this.authService.getUserRole() || '').toUpperCase().trim();
+    if (rawRole.includes('DRIVER')) return 'status-driver';
+    if (rawRole.includes('DIRECTOR') || rawRole.includes('ADMIN')) return 'status-active';
+    return 'status-standard';
+  }
+
   openChangePasswordModal(): void {
     this.showProfileModal = false;
     this.showAlertModal = false;

@@ -131,7 +131,9 @@
         </div>
         <div class="detail-row">
           <span class="detail-label">Mobile</span>
-          <span class="detail-value">+91 98200 10001</span>
+          <span class="detail-value">
+            <ng-container *ngIf="currentUser$ | async as user">{{ user.phone || '+91 98200 10001' }}</ng-container>
+          </span>
         </div>
         <div class="detail-row">
           <span class="detail-label">Organisation</span>
@@ -139,7 +141,7 @@
         </div>
         <div class="detail-row">
           <span class="detail-label">Access Level</span>
-          <span class="detail-value status-active">Full Director &amp; Executive Access</span>
+          <span class="detail-value" [ngClass]="getAccessLevelClass()">{{ getAccessLevelText() }}</span>
         </div>
         <div class="detail-row">
           <span class="detail-label">Status</span>
@@ -148,18 +150,20 @@
       </div>
 
       <div class="popover-links">
-        <a routerLink="/settings" (click)="closeProfileModal()" class="popover-nav-item">
-          <span>⚙️ Organisation Settings</span>
-        </a>
-        <a routerLink="/access-control" (click)="closeProfileModal()" class="popover-nav-item">
-          <span>🛡️ Access Control &amp; Permissions</span>
-        </a>
-        <a routerLink="/team" (click)="closeProfileModal()" class="popover-nav-item">
-          <span>👥 Team &amp; Sales Users</span>
-        </a>
-        <a routerLink="/audit-logs" (click)="closeProfileModal()" class="popover-nav-item">
-          <span>📋 Security &amp; Audit Logs</span>
-        </a>
+        <ng-container *ngIf="canAccessAdminLinks()">
+          <a routerLink="/settings" (click)="closeProfileModal()" class="popover-nav-item">
+            <span>⚙️ Organisation Settings</span>
+          </a>
+          <a routerLink="/access-control" (click)="closeProfileModal()" class="popover-nav-item">
+            <span>🛡️ Access Control &amp; Permissions</span>
+          </a>
+          <a routerLink="/team" (click)="closeProfileModal()" class="popover-nav-item">
+            <span>👥 Team &amp; Sales Users</span>
+          </a>
+          <a routerLink="/audit-logs" (click)="closeProfileModal()" class="popover-nav-item">
+            <span>📋 Security &amp; Audit Logs</span>
+          </a>
+        </ng-container>
         <button type="button" class="popover-nav-item popover-btn-action" (click)="openChangePasswordModal()">
           <span>🔑 Change Password</span>
         </button>
