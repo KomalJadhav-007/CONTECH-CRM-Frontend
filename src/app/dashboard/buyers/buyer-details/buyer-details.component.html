@@ -1,28 +1,29 @@
-<div class="page-wrapper" *ngIf="buyer">
-  <div class="page-header">
-    <div>
-      <div class="status-indicator-tag">
-        <span class="badge" [ngClass]="{
-          'badge-high': buyer.intent_urgency === 'HIGH' || buyer.intent_band === 'VERY_HIGH_INTENT',
-          'badge-medium': buyer.intent_urgency === 'MEDIUM' || buyer.intent_band === 'HIGH_INTENT',
-          'badge-low': buyer.intent_urgency === 'LOW' || buyer.intent_band === 'EMERGING' || buyer.intent_band === 'LOW_INTENT'
+<div class="dossier-page-wrapper" *ngIf="buyer">
+  <!-- Top Header Matching Intelligence Suite Theme -->
+  <div class="dossier-header">
+    <div class="header-left">
+      <div class="header-badges">
+        <span class="badge-alert-pill" [ngClass]="{
+          'badge-alert-pill': buyer.intent_urgency === 'HIGH' || buyer.intent_band === 'VERY_HIGH_INTENT',
+          'badge-warning-pill': buyer.intent_urgency === 'MEDIUM' || buyer.intent_band === 'HIGH_INTENT',
+          'badge-neutral-pill': buyer.intent_urgency === 'LOW' || buyer.intent_band === 'EMERGING' || buyer.intent_band === 'LOW_INTENT'
         }">
-          Score {{ buyer.intent_score || 85 }}/100 • {{ buyer.intent_band ? buyer.intent_band.replace('_', ' ') : (buyer.intent_urgency + ' Urgency') }}
+          SCORE {{ buyer.intent_score || 85 }}/100 &middot; {{ buyer.intent_band ? buyer.intent_band.replace('_', ' ') : (buyer.intent_urgency + ' URGENCY') }}
         </span>
-        <span class="badge badge-cyan">{{ buyer.lead_status }}</span>
-        <span *ngIf="buyer.duplicate_resolution_notes" class="badge badge-warning" title="Permitted Duplicate / Co-Applicant">
+        <span class="badge-cyan-pill">{{ buyer.lead_status }}</span>
+        <span *ngIf="buyer.duplicate_resolution_notes" class="badge-warning-pill" title="Permitted Duplicate / Co-Applicant">
           Co-Applicant Linked
         </span>
       </div>
       <h1 class="page-title">{{ buyer.full_name }}</h1>
-      <p class="page-subtitle">Dossier #DAR-B{{ buyer.id }} • Managed by {{ buyer.assignedRep?.name || 'Unassigned' }}</p>
+      <p class="page-subtitle">Dossier #DAR-B{{ buyer.id }} &middot; Managed by {{ buyer.assignedRep?.name || 'Unassigned' }}</p>
     </div>
     <div class="header-actions">
-      <a routerLink="/buyers" class="btn btn-secondary">&larr; Back</a>
-      <button type="button" class="btn btn-success" (click)="openBookingModal()" *ngIf="buyer.lead_status !== 'BOOKED'">
-        🎉 Record Sales Closure
+      <a routerLink="/buyers" class="btn-action-back">&larr; Back</a>
+      <button type="button" class="btn-action-closure" (click)="openBookingModal()" *ngIf="buyer.lead_status !== 'BOOKED'">
+        Record Sales Closure
       </button>
-      <a [routerLink]="['/visits/book']" [queryParams]="{ buyer_id: buyer.id }" class="btn btn-primary">
+      <a [routerLink]="['/visits/book']" [queryParams]="{ buyer_id: buyer.id }" class="btn-action-book">
         + Book Site Visit
       </a>
     </div>
@@ -32,13 +33,13 @@
     <!-- Left Column: Buyer Parameters & 4-Dimension Engine -->
     <div class="dossier-left">
       <!-- SOW Sec 8: 4-Dimension Buyer Scoring Engine -->
-      <div class="glass-card scoring-card">
-        <div class="card-header">
+      <mat-card appearance="outlined" class="detail-panel-card scoring-card">
+        <div class="panel-header">
           <div>
-            <h2 class="card-title">4-Dimension Intent Scoring Engine</h2>
-            <p class="card-subtext">Algorithmic intent breakdown weighted across 100 points</p>
+            <h2 class="panel-title">4-Dimension Intent Scoring Engine</h2>
+            <p class="panel-subtitle">Algorithmic intent breakdown weighted across 100 points</p>
           </div>
-          <div class="score-total-badge">
+          <div class="score-pill-large">
             <span class="score-number">{{ buyer.intent_score || 85 }}</span>
             <span class="score-max">/100</span>
           </div>
@@ -89,11 +90,13 @@
             <span class="dim-hint">Immediate timeframe & pre-approved loans</span>
           </div>
         </div>
-      </div>
+      </mat-card>
 
       <!-- Customer 360 Profile -->
-      <div class="glass-card" style="margin-top: 1.5rem;">
-        <h2 class="card-title">Customer 360° Profile</h2>
+      <mat-card appearance="outlined" class="detail-panel-card profile-card" style="margin-top: 1.5rem;">
+        <div class="panel-header">
+          <h2 class="panel-title">Customer 360° Profile</h2>
+        </div>
         <div class="info-list">
           <div class="info-item">
             <span class="info-label">Phone Number</span>
@@ -140,11 +143,13 @@
             <span class="info-value">{{ buyer.family_size }} Members</span>
           </div>
         </div>
-      </div>
+      </mat-card>
 
       <!-- AI Intent Diagnosis -->
-      <div class="glass-card" style="margin-top: 1.5rem;">
-        <h2 class="card-title">AI Intent Diagnosis & Next Best Step</h2>
+      <mat-card appearance="outlined" class="detail-panel-card" style="margin-top: 1.5rem;">
+        <div class="panel-header">
+          <h2 class="panel-title">AI Intent Diagnosis & Next Best Step</h2>
+        </div>
         <div class="recommendation-box">
           <div class="rec-icon">💡</div>
           <div class="rec-content">
@@ -160,19 +165,19 @@
             </p>
           </div>
         </div>
-      </div>
+      </mat-card>
     </div>
 
     <!-- Right Column: Bookings, Recoveries, Visits, Tasks, Score History -->
     <div class="dossier-right">
       <!-- SOW Sec 13: Booking & Sales Closures -->
-      <div class="glass-card booking-section-card">
-        <div class="card-header">
+      <mat-card appearance="outlined" class="detail-panel-card booking-section-card">
+        <div class="panel-header">
           <div>
-            <h2 class="card-title">Sales Closures & Bookings</h2>
-            <p class="card-subtext">Direct integration with sales closure entity (SOW Section 13)</p>
+            <h2 class="panel-title">Sales Closures & Bookings</h2>
+            <p class="panel-subtitle">Direct integration with sales closure entity (SOW Section 13)</p>
           </div>
-          <button type="button" class="btn btn-sm btn-primary" (click)="openBookingModal()" *ngIf="(buyer.bookings || []).length === 0">
+          <button type="button" class="btn-sm-action-emerald" (click)="openBookingModal()" *ngIf="(buyer.bookings || []).length === 0">
             + Record Booking
           </button>
         </div>
@@ -184,7 +189,7 @@
                 <span class="booking-ref">{{ b.booking_reference }}</span>
                 <span class="booking-date">&middot; {{ b.booking_date }}</span>
               </div>
-              <span class="badge" [ngClass]="b.booking_status === 'CONFIRMED' ? 'badge-success' : 'badge-warning'">
+              <span class="status-pill" [class.yes]="b.booking_status === 'CONFIRMED'" [class.pending]="b.booking_status !== 'CONFIRMED'">
                 {{ b.booking_status }}
               </span>
             </div>
@@ -202,22 +207,22 @@
           <span>No sales closure recorded yet for this prospect.</span>
           <button type="button" class="btn-text-link" (click)="openBookingModal()">Convert to Closed Sale &rarr;</button>
         </div>
-      </div>
+      </mat-card>
 
       <!-- SOW Sec 12: Cancellation & No-Show Recovery Journeys -->
-      <div class="glass-card" style="margin-top: 1.5rem;" *ngIf="(buyer.recoveries || []).length > 0">
-        <div class="card-header">
+      <mat-card appearance="outlined" class="detail-panel-card recovery-card" style="margin-top: 1.5rem;" *ngIf="(buyer.recoveries || []).length > 0">
+        <div class="panel-header">
           <div>
-            <h2 class="card-title">Cancellation & No-Show Recovery</h2>
-            <p class="card-subtext">Active recovery workflow tracking (SOW Section 12)</p>
+            <h2 class="panel-title">Cancellation & No-Show Recovery</h2>
+            <p class="panel-subtitle">Active recovery workflow tracking (SOW Section 12)</p>
           </div>
-          <span class="badge badge-warning">{{ buyer.recoveries.length }} Recovery Case(s)</span>
+          <span class="badge-warning-pill">{{ buyer.recoveries.length }} CASES</span>
         </div>
 
         <div class="recovery-list">
           <div *ngFor="let rec of buyer.recoveries" class="recovery-item-card">
             <div class="rec-top">
-              <span class="rec-status-badge" [ngClass]="rec.recovery_status === 'RECOVERED' ? 'badge-success' : 'badge-warning'">
+              <span class="status-pill" [class.yes]="rec.recovery_status === 'RECOVERED'" [class.pending]="rec.recovery_status !== 'RECOVERED'">
                 {{ rec.recovery_status }}
               </span>
               <span class="rec-reason">Reason: {{ rec.cancellation_reason }}</span>
@@ -228,13 +233,16 @@
             </div>
           </div>
         </div>
-      </div>
+      </mat-card>
 
       <!-- Site Visits History -->
-      <div class="glass-card" style="margin-top: 1.5rem;">
-        <div class="card-header">
-          <h2 class="card-title">Site Visit Journeys & In-Visit Notes</h2>
-          <span class="badge badge-cyan">{{ (buyer.siteVisits || []).length }} Visits</span>
+      <mat-card appearance="outlined" class="detail-panel-card visits-card" style="margin-top: 1.5rem;">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Site Visit Journeys & In-Visit Notes</h2>
+            <p class="panel-subtitle">Dispatch verification & completed tour discovery notes</p>
+          </div>
+          <span class="badge-cyan-pill">{{ (buyer.siteVisits || []).length }} VISITS</span>
         </div>
 
         <div class="visits-timeline" *ngIf="(buyer.siteVisits || []).length > 0">
@@ -244,7 +252,7 @@
                 <strong>{{ visit.project?.name || 'Site Visit' }}</strong>
                 <span class="visit-date">{{ visit.scheduled_date }} ({{ visit.time_slot }})</span>
               </div>
-              <span class="badge" [ngClass]="visit.status === 'COMPLETED' ? 'badge-success' : 'badge-warning'">
+              <span class="status-pill" [class.yes]="visit.status === 'COMPLETED'" [class.pending]="visit.status !== 'COMPLETED'">
                 {{ visit.status }}
               </span>
             </div>
@@ -267,27 +275,30 @@
             </div>
 
             <div class="visit-actions" style="margin-top: 0.75rem;">
-              <a [routerLink]="['/visits/discovery', visit.id]" class="btn btn-secondary btn-sm">
-                📝 Update Discovery & Outcome
+              <a [routerLink]="['/visits/discovery', visit.id]" class="btn-action-sm">
+                Update Discovery & Outcome
               </a>
             </div>
           </div>
         </div>
 
-        <div *ngIf="(buyer.siteVisits || []).length === 0" class="text-center text-muted" style="padding: 2rem;">
+        <div *ngIf="(buyer.siteVisits || []).length === 0" class="empty-state-cell">
           No site visits scheduled yet for this buyer.
         </div>
-      </div>
+      </mat-card>
 
       <!-- SOW Sec 8 & 16: Scoring History & Audit Trail -->
-      <div class="glass-card" style="margin-top: 1.5rem;" *ngIf="(buyer.scoreHistories || []).length > 0">
-        <div class="card-header">
-          <h2 class="card-title">Scoring History & Rule Versions</h2>
-          <span class="badge badge-cyan">{{ buyer.scoreHistories.length }} Logs</span>
+      <mat-card appearance="outlined" class="detail-panel-card" style="margin-top: 1.5rem;" *ngIf="(buyer.scoreHistories || []).length > 0">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Scoring History & Rule Versions</h2>
+            <p class="panel-subtitle">Audited score updates triggered by event engine</p>
+          </div>
+          <span class="badge-cyan-pill">{{ buyer.scoreHistories.length }} LOGS</span>
         </div>
 
         <div class="history-table-wrapper">
-          <table class="history-table">
+          <table class="radar-table">
             <thead>
               <tr>
                 <th>Score</th>
@@ -301,7 +312,7 @@
             <tbody>
               <tr *ngFor="let h of buyer.scoreHistories">
                 <td><strong>{{ h.total_score }}/100</strong></td>
-                <td><span class="stage-badge">{{ h.intent_band }}</span></td>
+                <td><span class="badge-neutral-pill">{{ h.intent_band }}</span></td>
                 <td>{{ h.rule_version }}</td>
                 <td class="history-reason">{{ h.reason }}</td>
                 <td>{{ h.changedBy?.name || 'Automated Engine' }}</td>
@@ -310,20 +321,23 @@
             </tbody>
           </table>
         </div>
-      </div>
+      </mat-card>
 
       <!-- Follow-up Tasks -->
-      <div class="glass-card" style="margin-top: 1.5rem;">
-        <div class="card-header">
-          <h2 class="card-title">Follow-up SLA & Reminders</h2>
-          <span class="badge badge-warning">{{ (buyer.tasks || []).length }} Tasks</span>
+      <mat-card appearance="outlined" class="detail-panel-card tasks-card" style="margin-top: 1.5rem;">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Follow-up SLA & Reminders</h2>
+            <p class="panel-subtitle">Next best actions and 4-hour countdown commitments</p>
+          </div>
+          <span class="badge-warning-pill">{{ (buyer.tasks || []).length }} TASKS</span>
         </div>
 
         <div class="tasks-timeline">
           <div *ngFor="let task of buyer.tasks" class="task-card">
             <div class="task-header">
               <strong>{{ task.title }}</strong>
-              <span class="badge" [ngClass]="task.status === 'COMPLETED' ? 'badge-success' : 'badge-danger'">
+              <span class="status-pill" [class.yes]="task.status === 'COMPLETED'" [class.pending]="task.status !== 'COMPLETED'">
                 {{ task.status }}
               </span>
             </div>
@@ -334,11 +348,11 @@
             </div>
           </div>
 
-          <div *ngIf="(buyer.tasks || []).length === 0" class="text-center text-muted" style="padding: 2rem;">
+          <div *ngIf="(buyer.tasks || []).length === 0" class="empty-state-cell">
             No pending tasks.
           </div>
         </div>
-      </div>
+      </mat-card>
     </div>
   </div>
 
@@ -415,7 +429,7 @@
 
       <div class="modal-footer">
         <button type="button" class="btn-cancel" (click)="closeBookingModal()">Cancel</button>
-        <button type="button" class="btn-primary" [disabled]="savingBooking" (click)="submitBooking()">
+        <button type="button" class="btn-confirm" [disabled]="savingBooking" (click)="submitBooking()">
           <span *ngIf="!savingBooking">Confirm & Seal Sales Closure &rarr;</span>
           <span *ngIf="savingBooking">Recording Closure...</span>
         </button>
@@ -423,4 +437,3 @@
     </div>
   </div>
 </div>
-
