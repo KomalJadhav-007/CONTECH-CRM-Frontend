@@ -1,7 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -28,9 +28,10 @@ import { AuthService } from '../auth.service';
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   activeTab: 'signin' | 'signup' = 'signin';
   email = 'director@contechcrm.com';
@@ -38,6 +39,16 @@ export class LoginComponent {
   hidePassword = true;
   loading = false;
   errorMessage = '';
+
+  ngOnInit(): void {
+    this.route.queryParams.subscribe(params => {
+      if (params['sessionExpired']) {
+        this.errorMessage = 'Your 7-day session has expired. Please sign in again.';
+      } else if (params['deactivated']) {
+        this.errorMessage = 'Your user account has been deactivated. Please contact an administrator.';
+      }
+    });
+  }
 
   demoAccounts = [
     { label: 'Org Admin', email: 'director@contechcrm.com' },
