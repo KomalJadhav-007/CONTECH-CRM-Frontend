@@ -29,6 +29,10 @@ export class AuthService {
     return user ? user.role : null;
   }
 
+  getCurrentUser(): any {
+    return this.currentUserSubject.value || this.getStoredUser();
+  }
+
   login(credentials: { email: string; password: string }): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/login`, credentials).pipe(
       tap(res => {

@@ -6,31 +6,31 @@
 
   <div class="sidebar-scroll">
     <!-- INTELLIGENCE -->
-    <div class="nav-group">
+    <div class="nav-group" *ngIf="canAccessSection('intelligence')">
       <button type="button" class="nav-header-btn" (click)="toggleSection('intelligence')">
         <span class="nav-label">INTELLIGENCE</span>
         <span class="chevron" [class.rotated]="!isExpanded('intelligence')">&#9662;</span>
       </button>
       <ul class="nav-list" *ngIf="isExpanded('intelligence')">
-        <li>
+        <li *ngIf="canAccess('Dashboard')">
           <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-item" matRipple>
             <mat-icon class="nav-icon">speed</mat-icon>
             <span>Command Center</span>
           </a>
         </li>
-        <li>
+        <li *ngIf="canAccess('Revenue Leakage')">
           <a routerLink="/control-tower" routerLinkActive="active" class="nav-item" matRipple>
             <mat-icon class="nav-icon">radar</mat-icon>
             <span>Revenue Leakage</span>
           </a>
         </li>
-        <li>
+        <li *ngIf="canAccess('AI Buyer Score')">
           <a routerLink="/high-intent" routerLinkActive="active" class="nav-item" matRipple>
             <mat-icon class="nav-icon">trending_up</mat-icon>
             <span>High-Intent Radar</span>
           </a>
         </li>
-        <li>
+        <li *ngIf="canAccess('Analytics')">
           <a routerLink="/analytics" routerLinkActive="active" class="nav-item" matRipple>
             <mat-icon class="nav-icon">bar_chart</mat-icon>
             <span>Analytics</span>
@@ -40,25 +40,25 @@
     </div>
 
     <!-- PIPELINE -->
-    <div class="nav-group">
+    <div class="nav-group" *ngIf="canAccessSection('pipeline')">
       <button type="button" class="nav-header-btn" (click)="toggleSection('pipeline')">
         <span class="nav-label">PIPELINE</span>
         <span class="chevron" [class.rotated]="!isExpanded('pipeline')">&#9662;</span>
       </button>
       <ul class="nav-list" *ngIf="isExpanded('pipeline')">
-        <li>
+        <li *ngIf="canAccess('Prospects')">
           <a routerLink="/buyers" routerLinkActive="active" class="nav-item" matRipple>
             <mat-icon class="nav-icon">people</mat-icon>
             <span>Prospects</span>
           </a>
         </li>
-        <li>
+        <li *ngIf="canAccess('Follow-ups')">
           <a routerLink="/tasks" routerLinkActive="active" class="nav-item" matRipple>
             <mat-icon class="nav-icon">task_alt</mat-icon>
             <span>Follow-ups</span>
           </a>
         </li>
-        <li>
+        <li *ngIf="canAccess('Alerts')">
           <a routerLink="/control-tower" routerLinkActive="active" class="nav-item" matRipple>
             <mat-icon class="nav-icon">notifications_active</mat-icon>
             <span>Alerts</span>
@@ -68,25 +68,25 @@
     </div>
 
     <!-- SITE VISIT OPS -->
-    <div class="nav-group">
+    <div class="nav-group" *ngIf="canAccessSection('siteVisitOps')">
       <button type="button" class="nav-header-btn" (click)="toggleSection('siteVisitOps')">
         <span class="nav-label">SITE VISIT OPS</span>
         <span class="chevron" [class.rotated]="!isExpanded('siteVisitOps')">&#9662;</span>
       </button>
       <ul class="nav-list" *ngIf="isExpanded('siteVisitOps')">
-        <li>
+        <li *ngIf="canAccess('Site Visits')">
           <a routerLink="/visits" routerLinkActive="active" class="nav-item" matRipple>
             <mat-icon class="nav-icon">calendar_month</mat-icon>
             <span>Site Visits</span>
           </a>
         </li>
-        <li>
+        <li *ngIf="canAccess('Control Tower')">
           <a routerLink="/control-tower" routerLinkActive="active" class="nav-item" matRipple>
             <mat-icon class="nav-icon">control_camera</mat-icon>
             <span>Control Tower</span>
           </a>
         </li>
-        <li>
+        <li *ngIf="canAccess('My Trips')">
           <a routerLink="/my-trips" routerLinkActive="active" class="nav-item" matRipple>
             <mat-icon class="nav-icon">directions_car</mat-icon>
             <span>My Trips</span>
@@ -96,43 +96,43 @@
     </div>
 
     <!-- ADMINISTRATION -->
-    <div class="nav-group" *ngIf="hasRole(['DIRECTOR', 'ADMIN', 'SALES_MANAGER'])">
+    <div class="nav-group" *ngIf="canAccessSection('administration')">
       <button type="button" class="nav-header-btn" (click)="toggleSection('administration')">
         <span class="nav-label">ADMINISTRATION</span>
         <span class="chevron" [class.rotated]="!isExpanded('administration')">&#9662;</span>
       </button>
       <ul class="nav-list" *ngIf="isExpanded('administration')">
-        <li>
+        <li *ngIf="canAccess('Projects')">
           <a routerLink="/projects" routerLinkActive="active" class="nav-item" matRipple>
             <mat-icon class="nav-icon">domain</mat-icon>
             <span>Projects</span>
           </a>
         </li>
-        <li>
+        <li *ngIf="canAccess('Fleet')">
           <a routerLink="/visits" routerLinkActive="active" class="nav-item" matRipple>
             <mat-icon class="nav-icon">commute</mat-icon>
             <span>Fleet &amp; Drivers</span>
           </a>
         </li>
-        <li>
+        <li *ngIf="canAccess('Team')">
           <a routerLink="/team" routerLinkActive="active" class="nav-item" matRipple>
             <mat-icon class="nav-icon">group</mat-icon>
             <span>Team</span>
           </a>
         </li>
-        <li>
+        <li *ngIf="canAccess('Access Control')">
           <a routerLink="/access-control" routerLinkActive="active" class="nav-item" matRipple>
             <mat-icon class="nav-icon">lock</mat-icon>
             <span>Access Control</span>
           </a>
         </li>
-        <li>
+        <li *ngIf="canAccess('Settings')">
           <a routerLink="/settings" routerLinkActive="active" class="nav-item" matRipple>
             <mat-icon class="nav-icon">settings</mat-icon>
             <span>Settings</span>
           </a>
         </li>
-        <li>
+        <li *ngIf="canAccess('Audit Logs')">
           <a routerLink="/audit-logs" routerLinkActive="active" class="nav-item" matRipple>
             <mat-icon class="nav-icon">history</mat-icon>
             <span>Audit Logs</span>
