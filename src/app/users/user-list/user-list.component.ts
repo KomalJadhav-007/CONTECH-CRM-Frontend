@@ -59,6 +59,7 @@ export class UserListComponent implements OnInit {
   showAddUserModal = false;
   isSubmitting = false;
   addUserError = '';
+  showNewPassword = false;
   newUser = {
     name: '',
     email: '',
@@ -74,6 +75,7 @@ export class UserListComponent implements OnInit {
   isEditing = false;
   editUserError = '';
   editingUser: any = null;
+  showEditPassword = false;
 
   get roles(): string[] {
     return this.accessControlService.roles;
@@ -175,6 +177,7 @@ export class UserListComponent implements OnInit {
   // --- ADD USER MODAL ACTIONS ---
   openAddUserModal(): void {
     this.addUserError = '';
+    this.showNewPassword = false;
     this.newUser = {
       name: '',
       email: '',
@@ -249,14 +252,36 @@ export class UserListComponent implements OnInit {
   // --- EDIT USER MODAL ACTIONS ---
   openEditUserModal(user: any): void {
     this.editUserError = '';
-    this.editingUser = { ...user };
+    this.editingUser = {
+      ...user,
+      password: '' // blank by default: keeps existing password intact unless set
+    };
+    this.showEditPassword = false;
     this.showEditUserModal = true;
   }
 
   closeEditUserModal(): void {
     this.showEditUserModal = false;
     this.editingUser = null;
+    this.showEditPassword = false;
     this.editUserError = '';
+  }
+
+  generatePasswordForEdit(): void {
+    if (!this.editingUser) return;
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*';
+    let pwd = '';
+    for (let i = 0; i < 10; i++) {
+      pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    this.editingUser.password = pwd;
+    this.showEditPassword = true;
+  }
+
+  setDefaultPasswordForEdit(): void {
+    if (!this.editingUser) return;
+    this.editingUser.password = 'Contech@2026';
+    this.showEditPassword = true;
   }
 
   get editingUserRoleSummary() {
@@ -276,13 +301,25 @@ export class UserListComponent implements OnInit {
     this.isEditing = true;
     this.editUserError = '';
 
-    const payload = {
+    const payload: any = {
       name: this.editingUser.name.trim(),
       email: this.editingUser.email.trim().toLowerCase(),
       phone: this.editingUser.phone ? this.editingUser.phone.trim() : null,
       role: this.editingUser.role,
       is_active: this.editingUser.status === 'active'
     };
+
+    let hasPasswordUpdate = false;
+    if (this.editingUser.password && this.editingUser.password.trim()) {
+      const cleanPwd = this.editingUser.password.trim();
+      if (cleanPwd.length < 6) {
+        this.editUserError = 'Password must be at least 6 characters long.';
+        this.isEditing = false;
+        return;
+      }
+      payload.password = cleanPwd;
+      hasPasswordUpdate = true;
+    }
 
     this.userService.updateUser(this.editingUser.id, payload).subscribe({
       next: () => {
@@ -301,7 +338,12 @@ export class UserListComponent implements OnInit {
         }
         this.updateStats();
         this.closeEditUserModal();
-        this.showFeedback(`Updated user details for "${payload.name}".`, 'success');
+        this.showFeedback(
+          hasPasswordUpdate
+            ? `Updated profile & password for "${payload.name}".`
+            : `Updated user details for "${payload.name}".`,
+          'success'
+        );
       },
       error: (err: any) => {
         this.isEditing = false;
