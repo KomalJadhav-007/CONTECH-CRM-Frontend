@@ -85,7 +85,7 @@ export class VisitBookingComponent implements OnInit {
         if (qBuyerId) {
           this.bookingData.buyer_id = parseInt(qBuyerId, 10);
         } else if (this.buyers.length > 0) {
-          this.bookingData.buyer_id = this.buyers[0].id;
+          this.bookingData.buyer_id = this.buyers[0].buyer_id || this.buyers[0].id;
         }
       },
       error: () => {
@@ -103,15 +103,15 @@ export class VisitBookingComponent implements OnInit {
         if (res.success && res.vehicles && res.vehicles.length > 0) {
           this.vehicles = res.vehicles;
           if (!this.selectedVehicleId && this.vehicles.length > 0) {
-            this.onVehicleSelect(this.vehicles[0].id);
+            this.onVehicleSelect(this.vehicles[0].vehicle_id || this.vehicles[0].id);
           }
         }
       },
       error: () => {
         // Fallback default fleet
         this.vehicles = [
-          { id: 1, registration_number: 'KA-01-MJ-8822', model: 'Innova Crysta Luxury', seating_capacity: 6, fuel_type: 'Diesel', assigned_driver_id: 5, assignedDriver: { name: 'Ramesh Gowda' } },
-          { id: 2, registration_number: 'KA-03-EA-1090', model: 'Honda City ZX', seating_capacity: 4, fuel_type: 'Petrol', assigned_driver_id: null, assignedDriver: null }
+          { id: 1, vehicle_id: 1, registration_number: 'KA-01-MJ-8822', model: 'Innova Crysta Luxury', seating_capacity: 6, fuel_type: 'Diesel', assigned_driver_id: 5, assignedDriver: { name: 'Ramesh Gowda' } },
+          { id: 2, vehicle_id: 2, registration_number: 'KA-03-EA-1090', model: 'Honda City ZX', seating_capacity: 4, fuel_type: 'Petrol', assigned_driver_id: null, assignedDriver: null }
         ];
       }
     });
@@ -120,9 +120,9 @@ export class VisitBookingComponent implements OnInit {
   onVehicleSelect(vId: any): void {
     this.selectedVehicleId = vId ? parseInt(vId, 10) : null;
     if (this.selectedVehicleId) {
-      const found = this.vehicles.find(v => v.id === this.selectedVehicleId);
+      const found = this.vehicles.find(v => (v.vehicle_id || v.id) === this.selectedVehicleId);
       if (found) {
-        this.bookingData.vehicle_id = found.id;
+        this.bookingData.vehicle_id = found.vehicle_id || found.id;
         this.bookingData.cab_number = found.registration_number;
         if (found.assigned_driver_id) {
           this.bookingData.driver_id = found.assigned_driver_id;

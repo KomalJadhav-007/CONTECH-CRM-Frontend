@@ -16,14 +16,14 @@
         </span>
       </div>
       <h1 class="page-title">{{ buyer.full_name }}</h1>
-      <p class="page-subtitle">Dossier #DAR-B{{ buyer.id }} &middot; Managed by {{ buyer.assignedRep?.name || 'Unassigned' }}</p>
+      <p class="page-subtitle">Dossier #DAR-B{{ buyer.buyer_id || buyer.id }} &middot; Managed by {{ buyer.assignedRep?.name || 'Unassigned' }}</p>
     </div>
     <div class="header-actions">
       <a routerLink="/buyers" class="btn-action-back">&larr; Back</a>
       <button type="button" class="btn-action-closure" (click)="openBookingModal()" *ngIf="buyer.lead_status !== 'BOOKED'">
         Record Sales Closure
       </button>
-      <a [routerLink]="['/visits/book']" [queryParams]="{ buyer_id: buyer.id }" class="btn-action-book">
+      <a [routerLink]="['/visits/book']" [queryParams]="{ buyer_id: buyer.buyer_id || buyer.id }" class="btn-action-book">
         + Book Site Visit
       </a>
     </div>

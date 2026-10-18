@@ -64,7 +64,7 @@ export class VisitListComponent implements OnInit {
   }
 
   toggleConfirmation(visit: any, type: string): void {
-    const visitId = visit.id || visit.site_visit_id;
+    const visitId = visit.site_visit_id || visit.id;
     const payload: any = {};
     payload[type] = !visit[type];
 
@@ -110,7 +110,7 @@ export class VisitListComponent implements OnInit {
     this.cancelling = true;
     this.cancelError = '';
 
-    const visitId = this.selectedVisitForCancel.id || this.selectedVisitForCancel.site_visit_id;
+    const visitId = this.selectedVisitForCancel.site_visit_id || this.selectedVisitForCancel.id;
     const payload = {
       status: this.cancelForm.status,
       reason: this.cancelForm.reason,

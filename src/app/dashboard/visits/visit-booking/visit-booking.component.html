@@ -26,7 +26,7 @@
           <div class="form-field">
             <label class="field-label">SELECT REGISTERED BUYER</label>
             <select class="custom-select" [(ngModel)]="bookingData.buyer_id" name="buyer_id">
-              <option *ngFor="let b of buyers" [ngValue]="b.id">
+              <option *ngFor="let b of buyers" [ngValue]="b.buyer_id || b.id">
                 {{ b.full_name }} ({{ b.phone }}) &mdash; {{ b.preferred_bhk }}
               </option>
             </select>
@@ -95,7 +95,7 @@
             <label class="field-label">SELECT FLEET VEHICLE MASTER</label>
             <select class="custom-select" [ngModel]="selectedVehicleId" (ngModelChange)="onVehicleSelect($event)" name="selectedVehicleId">
               <option [ngValue]="null">-- Select Company Vehicle --</option>
-              <option *ngFor="let v of vehicles" [ngValue]="v.id">
+              <option *ngFor="let v of vehicles" [ngValue]="v.vehicle_id || v.id">
                 {{ v.model }} &middot; {{ v.registration_number }} ({{ v.seating_capacity }} seats, {{ v.assignedDriver?.name || 'Driver on Duty' }})
               </option>
             </select>

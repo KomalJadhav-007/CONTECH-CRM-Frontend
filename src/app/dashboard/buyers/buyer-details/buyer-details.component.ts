@@ -111,7 +111,7 @@ export class BuyerDetailsComponent implements OnInit {
     this.bookingError = '';
 
     const payload = {
-      buyer_id: this.buyer.id,
+      buyer_id: this.buyer.buyer_id || this.buyer.id,
       project_id: this.bookingForm.project_id,
       unit_number: this.bookingForm.unit_number,
       unit_configuration: this.bookingForm.unit_configuration,

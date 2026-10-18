@@ -288,7 +288,8 @@ export class BuyerListComponent implements OnInit {
             else if (b.intent_score >= 68) delta = 3;
 
             return {
-              id: b.id || b.buyer_id,
+              buyer_id: b.buyer_id || b.id,
+              id: b.buyer_id || b.id,
               name: b.full_name,
               source: b.lead_source || (b.current_residence ? 'Direct Inquiry' : 'SimpliQualify'),
               phone: b.phone || '',
