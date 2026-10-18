@@ -111,7 +111,7 @@ export class ProjectsComponent implements OnInit {
     this.projects = [
       { id: 1, name: 'Contech Crown Heights', developer: 'Contech Developments Pvt Ltd', location: 'ITPL Main Road, Whitefield, Bengaluru', configurations: '2 BHK, 3 BHK, 4 BHK Penthouse', capacity_per_day: 25, total_units: 120, available_units: 38, active_pipeline: 2, upcoming_visits: 1, crm_bookings: 1, crm_booking_value_cr: '1.95', historical_sold_units: 82, starting_price_lacs: 145, status: 'active' },
       { id: 2, name: 'Contech Skyline Elegance', developer: 'Contech Developments Pvt Ltd', location: '100ft Road, Indiranagar, Bengaluru', configurations: '3 BHK, 4 BHK Luxury Mansions', capacity_per_day: 18, total_units: 80, available_units: 14, active_pipeline: 2, upcoming_visits: 1, crm_bookings: 0, crm_booking_value_cr: '0.00', historical_sold_units: 66, starting_price_lacs: 260, status: 'active' },
-      { id: 3, name: 'Contech Greenfield Sanctuary', developer: 'Contech Green Living LLP', location: 'Sarjapur-Outer Ring Road, Bengaluru', configurations: '2 BHK, 2.5 BHK, 3 BHK Lakeview', capacity_per_day: 35, total_units: 200, available_units: 82, active_pipeline: 1, upcoming_visits: 0, crm_bookings: 0, crm_booking_value_cr: '0.00', historical_sold_units: 118, starting_price_lacs: 95, status: 'active' }
+      { id: 3, name: 'Contech Greenfield Sanctuary', developer: 'Contech Green Living LLP', location: 'Sarjapur-Outer Ring Road, Bengaluru', configurations: '2 BHK, 3 BHK, 4 BHK Lakeview', capacity_per_day: 35, total_units: 200, available_units: 82, active_pipeline: 1, upcoming_visits: 0, crm_bookings: 0, crm_booking_value_cr: '0.00', historical_sold_units: 118, starting_price_lacs: 95, status: 'active' }
     ];
   }
 

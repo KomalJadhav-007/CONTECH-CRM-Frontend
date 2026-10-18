@@ -27,7 +27,7 @@
             <label class="field-label">SELECT REGISTERED BUYER</label>
             <select class="custom-select" [(ngModel)]="bookingData.buyer_id" name="buyer_id">
               <option *ngFor="let b of buyers" [ngValue]="b.buyer_id || b.id">
-                {{ b.full_name }} ({{ b.phone }}) &mdash; {{ b.preferred_bhk }}
+                {{ b.full_name }}{{ b.phone ? ' (' + b.phone + ')' : '' }} &mdash; {{ formatBhk(b.preferred_bhk) }}
               </option>
             </select>
           </div>

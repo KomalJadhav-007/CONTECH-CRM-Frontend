@@ -75,11 +75,19 @@ export class VisitBookingComponent implements OnInit {
     this.loadVehicles();
   }
 
+  formatBhk(bhk: string): string {
+    if (!bhk) return '3 BHK';
+    return String(bhk).replace(/(\d+)\.5/g, '$1').trim();
+  }
+
   loadBuyers(): void {
     this.buyerService.getBuyers().subscribe({
       next: (res) => {
         if (res.success && res.buyers && res.buyers.length > 0) {
-          this.buyers = res.buyers;
+          this.buyers = res.buyers.map((b: any) => ({
+            ...b,
+            preferred_bhk: this.formatBhk(b.preferred_bhk)
+          }));
         }
         const qBuyerId = this.route.snapshot.queryParamMap.get('buyer_id');
         if (qBuyerId) {
