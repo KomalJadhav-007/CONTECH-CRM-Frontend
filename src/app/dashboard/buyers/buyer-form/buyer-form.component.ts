@@ -1,8 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { BuyerService } from '../buyer.service';
+import { UserService } from '../../../users/user.service';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -32,11 +33,14 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
   templateUrl: './buyer-form.component.html',
   styleUrl: './buyer-form.component.css'
 })
-export class BuyerFormComponent {
+export class BuyerFormComponent implements OnInit {
   private buyerService = inject(BuyerService);
+  private userService = inject(UserService);
   private router = inject(Router);
 
-  buyerData = {
+  salesReps: any[] = [];
+
+  buyerData: any = {
     full_name: '',
     phone: '',
     email: '',
@@ -50,7 +54,7 @@ export class BuyerFormComponent {
     lead_source: 'SimpliQualify',
     financing_readiness: 'Pre-approved Loan',
     occupation: 'Salaried IT/Corporate',
-    assigned_rep_id: 3,
+    assigned_rep_id: null,
     notes: '',
     allow_duplicate: false,
     duplicate_resolution_notes: ''
@@ -58,6 +62,27 @@ export class BuyerFormComponent {
 
   loading = false;
   errorMessage = '';
+
+  ngOnInit(): void {
+    this.loadSalesReps();
+  }
+
+  loadSalesReps(): void {
+    this.userService.getUsers().subscribe({
+      next: (res: any) => {
+        if (res && res.success && res.users) {
+          this.salesReps = res.users.filter((u: any) => u.is_active !== false);
+          if (this.salesReps.length > 0 && !this.buyerData.assigned_rep_id) {
+            const defaultRep = this.salesReps.find((u: any) => {
+              const roleName = (u.role?.name || u.name || '').toLowerCase();
+              return roleName.includes('executive') || roleName.includes('sales');
+            }) || this.salesReps[0];
+            this.buyerData.assigned_rep_id = defaultRep.user_id || defaultRep.id;
+          }
+        }
+      }
+    });
+  }
   checkingDuplicate = false;
   duplicateInfo: any = null;
 
