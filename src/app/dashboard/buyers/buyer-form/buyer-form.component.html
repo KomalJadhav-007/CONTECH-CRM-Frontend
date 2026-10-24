@@ -197,12 +197,19 @@
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Occupation / Profile Fit</mat-label>
                 <mat-icon matPrefix class="field-icon">work</mat-icon>
-                <mat-select [(ngModel)]="buyerData.occupation" name="occupation">
-                  <mat-option value="Salaried IT/Corporate">Salaried IT / Tech Corporate</mat-option>
-                  <mat-option value="Business / Entrepreneur">Business Owner / Entrepreneur</mat-option>
-                  <mat-option value="Doctor / Medical">Doctor / Healthcare Specialist</mat-option>
-                  <mat-option value="CA / Finance">Chartered Accountant / Finance</mat-option>
-                  <mat-option value="NRI">NRI / Overseas Investor</mat-option>
+                <mat-select
+                  [(ngModel)]="buyerData.occupation"
+                  name="occupation"
+                  (selectionChange)="onOccupationChange($event.value)"
+                >
+                  <mat-option *ngFor="let occ of occupations" [value]="occ">
+                    {{ occ }}
+                  </mat-option>
+                  <mat-divider></mat-divider>
+                  <mat-option value="__create_new__" class="create-new-option">
+                    <mat-icon class="create-new-icon">add_circle</mat-icon>
+                    <span class="create-new-text">+ Create Custom Occupation...</span>
+                  </mat-option>
                 </mat-select>
               </mat-form-field>
 
@@ -228,6 +235,58 @@
                   </mat-option>
                 </mat-select>
               </mat-form-field>
+            </div>
+
+            <!-- SOW Sec 8: Custom Occupation Creator Panel -->
+            <div *ngIf="isCreatingCustomOccupation" class="custom-occupation-banner">
+              <div class="custom-occ-header">
+                <div class="custom-occ-badge">
+                  <mat-icon>add_circle</mat-icon>
+                  <span>CREATE NEW OCCUPATION / PROFILE FIT</span>
+                </div>
+                <button mat-icon-button type="button" class="btn-close-occ" (click)="cancelCustomOccupation()" matTooltip="Close">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+
+              <div class="custom-occ-body">
+                <p class="custom-occ-desc">Type your custom occupation or profile fit to add it instantly to the dropdown and select it for this buyer:</p>
+                <div class="custom-occ-row">
+                  <mat-form-field appearance="outline" class="custom-occ-input-field">
+                    <mat-label>New Occupation Title</mat-label>
+                    <mat-icon matPrefix class="field-icon">work_outline</mat-icon>
+                    <input
+                      matInput
+                      type="text"
+                      [(ngModel)]="newCustomOccupation"
+                      name="newCustomOccupation"
+                      placeholder="e.g. Architect & Interior Consultant, Government / PSU Officer..."
+                      (keydown.enter)="saveCustomOccupation($event)"
+                      autofocus
+                    />
+                  </mat-form-field>
+                  <div class="custom-occ-btns">
+                    <button
+                      mat-flat-button
+                      color="primary"
+                      type="button"
+                      class="btn-save-occ"
+                      [disabled]="!newCustomOccupation.trim()"
+                      (click)="saveCustomOccupation()"
+                    >
+                      <mat-icon>check</mat-icon> Add &amp; Select
+                    </button>
+                    <button
+                      mat-stroked-button
+                      type="button"
+                      class="btn-cancel-occ"
+                      (click)="cancelCustomOccupation()"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 

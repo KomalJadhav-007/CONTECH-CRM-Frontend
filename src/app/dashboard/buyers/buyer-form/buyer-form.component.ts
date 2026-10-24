@@ -13,6 +13,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatDividerModule } from '@angular/material/divider';
 
 @Component({
   selector: 'app-buyer-form',
@@ -28,7 +29,8 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
     MatButtonModule,
     MatIconModule,
     MatChipsModule,
-    MatProgressBarModule
+    MatProgressBarModule,
+    MatDividerModule
   ],
   templateUrl: './buyer-form.component.html',
   styleUrl: './buyer-form.component.css'
@@ -39,6 +41,22 @@ export class BuyerFormComponent implements OnInit {
   private router = inject(Router);
 
   salesReps: any[] = [];
+
+  defaultOccupations: string[] = [
+    'Salaried IT / Tech Corporate',
+    'Business Owner / Entrepreneur',
+    'Doctor / Healthcare Specialist',
+    'Chartered Accountant / Finance',
+    'NRI / Overseas Investor',
+    'Government / PSU Officer',
+    'Lawyer / Legal Professional',
+    'Architect / Design Consultant',
+    'Retired / Senior Citizen'
+  ];
+  occupations: string[] = [];
+  isCreatingCustomOccupation = false;
+  newCustomOccupation = '';
+  previousOccupation = 'Salaried IT / Tech Corporate';
 
   buyerData: any = {
     full_name: '',
@@ -53,7 +71,7 @@ export class BuyerFormComponent implements OnInit {
     buying_timeframe: '<30 days',
     lead_source: 'SimpliQualify',
     financing_readiness: 'Pre-approved Loan',
-    occupation: 'Salaried IT/Corporate',
+    occupation: 'Salaried IT / Tech Corporate',
     assigned_rep_id: null,
     notes: '',
     allow_duplicate: false,
@@ -64,7 +82,59 @@ export class BuyerFormComponent implements OnInit {
   errorMessage = '';
 
   ngOnInit(): void {
+    this.loadOccupations();
     this.loadSalesReps();
+  }
+
+  loadOccupations(): void {
+    try {
+      const stored = localStorage.getItem('contech_custom_occupations');
+      const custom: string[] = stored ? JSON.parse(stored) : [];
+      this.occupations = Array.from(new Set([...this.defaultOccupations, ...custom]));
+    } catch {
+      this.occupations = [...this.defaultOccupations];
+    }
+  }
+
+  onOccupationChange(val: string): void {
+    if (val === '__create_new__') {
+      this.isCreatingCustomOccupation = true;
+      this.newCustomOccupation = '';
+      setTimeout(() => {
+        this.buyerData.occupation = this.previousOccupation;
+      });
+    } else {
+      this.previousOccupation = val;
+      this.isCreatingCustomOccupation = false;
+    }
+  }
+
+  saveCustomOccupation(event?: Event): void {
+    if (event) event.preventDefault();
+    const trimmed = this.newCustomOccupation.trim();
+    if (!trimmed) return;
+
+    if (!this.occupations.includes(trimmed)) {
+      this.occupations.push(trimmed);
+      try {
+        const stored = localStorage.getItem('contech_custom_occupations');
+        const custom = stored ? JSON.parse(stored) : [];
+        custom.push(trimmed);
+        localStorage.setItem('contech_custom_occupations', JSON.stringify(custom));
+      } catch (e) {
+        console.error('Failed to cache custom occupation', e);
+      }
+    }
+    this.buyerData.occupation = trimmed;
+    this.previousOccupation = trimmed;
+    this.isCreatingCustomOccupation = false;
+    this.newCustomOccupation = '';
+  }
+
+  cancelCustomOccupation(): void {
+    this.isCreatingCustomOccupation = false;
+    this.buyerData.occupation = this.previousOccupation;
+    this.newCustomOccupation = '';
   }
 
   loadSalesReps(): void {
