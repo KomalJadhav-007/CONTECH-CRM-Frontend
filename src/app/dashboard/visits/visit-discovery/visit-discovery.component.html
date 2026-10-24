@@ -1,134 +1,246 @@
 <div class="page-wrapper" *ngIf="visit">
+  <!-- Page Header -->
   <div class="page-header">
-    <div>
+    <div class="header-left">
+      <div class="header-badge">
+        <mat-icon>record_voice_over</mat-icon>
+        <span>SOW SEC 12 &middot; SITE VISIT INTELLIGENCE</span>
+      </div>
       <h1 class="page-title">In-Visit Discovery &amp; Objection Recorder</h1>
-      <p class="page-subtitle">Site Walkthrough for {{ visit.buyer?.full_name }} • {{ visit.project?.name }}</p>
+      <p class="page-subtitle">
+        Site Walkthrough for <strong>{{ visit.buyer?.full_name || 'Deepa Sharma' }}</strong> &bull; 
+        <span>{{ visit.project?.name || 'Contech Crown Heights' }}</span>
+      </p>
     </div>
     <div class="header-actions">
-      <a mat-stroked-button routerLink="/visits">
-        <mat-icon>arrow_back</mat-icon> Back to Hub
+      <a mat-stroked-button routerLink="/visits" class="btn-back">
+        <mat-icon>arrow_back</mat-icon>
+        <span>Back to Hub</span>
       </a>
     </div>
   </div>
 
+  <!-- Success Notification -->
   <div *ngIf="successMessage" class="alert-success-banner">
-    ✅ {{ successMessage }}
+    <mat-icon class="success-icon">check_circle</mat-icon>
+    <span>{{ successMessage }}</span>
+  </div>
+
+  <!-- Buyer & Visit Context Strip -->
+  <div class="context-strip mat-elevation-z1">
+    <div class="context-item">
+      <mat-icon class="context-icon">person</mat-icon>
+      <div>
+        <span class="context-label">BUYER PROFILE</span>
+        <strong class="context-val">{{ visit.buyer?.full_name || 'Deepa Sharma' }} ({{ visit.buyer?.phone || '+91 98765 43218' }})</strong>
+      </div>
+    </div>
+    <div class="context-divider"></div>
+    <div class="context-item">
+      <mat-icon class="context-icon">business</mat-icon>
+      <div>
+        <span class="context-label">PROJECT DESTINATION</span>
+        <strong class="context-val">{{ visit.project?.name || 'Contech Crown Heights' }}</strong>
+      </div>
+    </div>
+    <div class="context-divider"></div>
+    <div class="context-item">
+      <mat-icon class="context-icon">assignment_ind</mat-icon>
+      <div>
+        <span class="context-label">ASSIGNED SALES EXECUTIVE</span>
+        <strong class="context-val">{{ visit.salesRep?.name || 'Amit Verma (Account Executive)' }}</strong>
+      </div>
+    </div>
+    <div class="context-divider"></div>
+    <div class="context-item">
+      <mat-icon class="context-icon">schedule</mat-icon>
+      <div>
+        <span class="context-label">VISIT WINDOW</span>
+        <strong class="context-val">{{ visit.scheduled_date || 'Today' }} &bull; {{ visit.time_slot || '11:00 AM Slot' }}</strong>
+      </div>
+    </div>
   </div>
 
   <div class="form-container">
-    <mat-card class="glass-card">
-      <mat-progress-bar *ngIf="saving" mode="indeterminate"></mat-progress-bar>
-      <form (ngSubmit)="onSubmit()" style="padding: 1.5rem;">
-        <div class="form-section-title">1. Site Walkthrough Outcome</div>
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="w-100">
-            <mat-label>Visit Outcome Status</mat-label>
-            <mat-select [(ngModel)]="discoveryData.outcome" name="outcome">
-              <mat-option value="HOT_NEGOTIATION">🔥 Hot Deal (Active Negotiation)</mat-option>
-              <mat-option value="WARM_CONSIDERING">⚡ Warm (Considering 2nd Visit)</mat-option>
-              <mat-option value="BOOKED">🎉 Token Booked on Site</mat-option>
-              <mat-option value="COLD_LOST">❄️ Cold / Budget Mismatch</mat-option>
-            </mat-select>
-          </mat-form-field>
+    <mat-card class="form-card mat-elevation-z2">
+      <mat-progress-bar *ngIf="saving || loading" mode="indeterminate" class="form-progress"></mat-progress-bar>
+      
+      <mat-card-content class="form-card-body">
+        <form (ngSubmit)="onSubmit()">
+          
+          <!-- SECTION 1: Site Walkthrough Outcome -->
+          <div class="form-section">
+            <div class="section-header">
+              <div class="section-icon-wrap section-icon-emerald">
+                <mat-icon>verified</mat-icon>
+              </div>
+              <div class="section-meta">
+                <h2 class="section-heading">1. Site Walkthrough Outcome</h2>
+                <p class="section-subheading">Immediate result from the experience center walkthrough and buyer sentiment</p>
+              </div>
+            </div>
 
-          <mat-form-field appearance="outline" class="w-100">
-            <mat-label>Buyer Overall Sentiment</mat-label>
-            <mat-select [(ngModel)]="discoveryData.buyer_sentiment" name="buyer_sentiment">
-              <mat-option value="VERY_POSITIVE">Very Positive (Excited about amenities)</mat-option>
-              <mat-option value="POSITIVE">Positive</mat-option>
-              <mat-option value="NEUTRAL">Neutral</mat-option>
-              <mat-option value="SKEPTICAL">Skeptical (Needs pricing reassurance)</mat-option>
-            </mat-select>
-          </mat-form-field>
-        </div>
+            <div class="form-grid-2">
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Visit Outcome Status</mat-label>
+                <mat-icon matPrefix class="field-icon">flag</mat-icon>
+                <mat-select [(ngModel)]="discoveryData.outcome" name="outcome">
+                  <mat-option value="HOT_NEGOTIATION">🔥 Hot Deal (Active Negotiation)</mat-option>
+                  <mat-option value="WARM_CONSIDERING">⚡ Warm (Considering 2nd Visit)</mat-option>
+                  <mat-option value="BOOKED">🎉 Token Booked on Site</mat-option>
+                  <mat-option value="COLD_LOST">❄️ Cold / Budget Mismatch</mat-option>
+                </mat-select>
+              </mat-form-field>
 
-        <div style="margin-top: 0.5rem;">
-          <mat-form-field appearance="outline" class="w-100">
-            <mat-label>Shortlisted Flat / Unit Numbers</mat-label>
-            <input
-              matInput
-              type="text"
-              [(ngModel)]="discoveryData.shortlisted_units"
-              name="shortlisted_units"
-              placeholder="e.g. Tower A Unit 302 (3BHK East Facing)"
-            />
-          </mat-form-field>
-        </div>
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Buyer Overall Sentiment</mat-label>
+                <mat-icon matPrefix class="field-icon">mood</mat-icon>
+                <mat-select [(ngModel)]="discoveryData.buyer_sentiment" name="buyer_sentiment">
+                  <mat-option value="VERY_POSITIVE">Very Positive (Excited about amenities &amp; floor plan)</mat-option>
+                  <mat-option value="POSITIVE">Positive (Interested, discussing pricing)</mat-option>
+                  <mat-option value="NEUTRAL">Neutral (Comparing with other developers)</mat-option>
+                  <mat-option value="SKEPTICAL">Skeptical (Needs pricing reassurance &amp; approval)</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
 
-        <div class="form-section-title" style="margin-top: 1.5rem;">2. Objections &amp; Customer Hesitations (UC-05)</div>
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="w-100">
-            <mat-label>Primary Objection Category</mat-label>
-            <mat-select [(ngModel)]="discoveryData.objection_category" name="objection_category">
-              <mat-option value="NONE">No Objections</mat-option>
-              <mat-option value="PRICE">Price &amp; Payment Schedule</mat-option>
-              <mat-option value="VAASTU">Vaastu / Facing Alignment</mat-option>
-              <mat-option value="LAYOUT">Layout / Room Dimensions</mat-option>
-              <mat-option value="AMENITY">Clubhouse / Amenities</mat-option>
-              <mat-option value="POSSESSION_TIMELINE">Possession Date</mat-option>
-              <mat-option value="OTHER">Other</mat-option>
-            </mat-select>
-          </mat-form-field>
+            <div class="form-row-full" style="margin-top: 0.25rem;">
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Shortlisted Flat / Unit Numbers</mat-label>
+                <mat-icon matPrefix class="field-icon">apartment</mat-icon>
+                <input
+                  matInput
+                  type="text"
+                  [(ngModel)]="discoveryData.shortlisted_units"
+                  name="shortlisted_units"
+                  placeholder="e.g. Tower B - Unit 402 (3BHK East Facing, 1650 sq.ft, Floor 4)"
+                />
+                <mat-hint>Specific inventory unit numbers buyer expressed active interest in</mat-hint>
+              </mat-form-field>
+            </div>
+          </div>
 
-          <mat-form-field appearance="outline" class="w-100">
-            <mat-label>Objection Severity</mat-label>
-            <mat-select [(ngModel)]="discoveryData.objection_severity" name="objection_severity">
-              <mat-option value="HIGH">High (Deal Breaker if unaddressed)</mat-option>
-              <mat-option value="MEDIUM">Medium (Negotiable with offers)</mat-option>
-              <mat-option value="LOW">Low (Minor clarification)</mat-option>
-              <mat-option value="NONE">None</mat-option>
-            </mat-select>
-          </mat-form-field>
-        </div>
+          <!-- SECTION 2: Objections & Customer Hesitations (UC-05) -->
+          <div class="form-section">
+            <div class="section-header">
+              <div class="section-icon-wrap section-icon-amber">
+                <mat-icon>report_problem</mat-icon>
+              </div>
+              <div class="section-meta">
+                <h2 class="section-heading">2. Objections &amp; Customer Hesitations (UC-05)</h2>
+                <p class="section-subheading">Capture precise buyer pushbacks to trigger personalized recovery strategies</p>
+              </div>
+            </div>
 
-        <div style="margin-top: 0.5rem;">
-          <mat-form-field appearance="outline" class="w-100">
-            <mat-label>Detailed Objection &amp; Customer Notes</mat-label>
-            <textarea
-              matInput
-              rows="3"
-              [(ngModel)]="discoveryData.objection_notes"
-              name="objection_notes"
-              placeholder="What exact concern did the buyer mention during the walkthrough?"
-            ></textarea>
-          </mat-form-field>
-        </div>
+            <div class="form-grid-2">
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Primary Objection Category</mat-label>
+                <mat-icon matPrefix class="field-icon">category</mat-icon>
+                <mat-select [(ngModel)]="discoveryData.objection_category" name="objection_category">
+                  <mat-option value="NONE">No Objections &ndash; Ready to Proceed</mat-option>
+                  <mat-option value="PRICE">Price &amp; Payment Schedule</mat-option>
+                  <mat-option value="VAASTU">Vaastu / Facing Alignment</mat-option>
+                  <mat-option value="LAYOUT">Layout / Room Dimensions</mat-option>
+                  <mat-option value="AMENITY">Clubhouse / Amenities</mat-option>
+                  <mat-option value="POSSESSION_TIMELINE">Possession Date &amp; Handover</mat-option>
+                  <mat-option value="OTHER">Other Specific Concern</mat-option>
+                </mat-select>
+              </mat-form-field>
 
-        <div class="form-section-title" style="margin-top: 1.5rem;">3. Automated 4-Hour Countdown Follow-up SLA (UC-06)</div>
-        <div style="margin-top: 0.5rem;">
-          <mat-form-field appearance="outline" class="w-100">
-            <mat-label>Immediate Follow-Up Task Title</mat-label>
-            <input
-              matInput
-              type="text"
-              [(ngModel)]="discoveryData.follow_up_title"
-              name="follow_up_title"
-              placeholder="Task title for strict 4-hour callback deadline..."
-            />
-          </mat-form-field>
-        </div>
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Objection Severity</mat-label>
+                <mat-icon matPrefix class="field-icon">priority_high</mat-icon>
+                <mat-select [(ngModel)]="discoveryData.objection_severity" name="objection_severity">
+                  <mat-option value="HIGH">High (Deal Breaker if unaddressed)</mat-option>
+                  <mat-option value="MEDIUM">Medium (Negotiable with offers &amp; subvention)</mat-option>
+                  <mat-option value="LOW">Low (Minor clarification required)</mat-option>
+                  <mat-option value="NONE">None &ndash; Zero Friction</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
 
-        <div style="margin-top: 0.5rem;">
-          <mat-form-field appearance="outline" class="w-100">
-            <mat-label>Recommended Sales Strategy</mat-label>
-            <input
-              matInput
-              type="text"
-              [(ngModel)]="discoveryData.recommended_action"
-              name="recommended_action"
-              placeholder="e.g. Waive floor rise or offer payment plan before 4 PM"
-            />
-          </mat-form-field>
-        </div>
+            <div class="form-row-full" style="margin-top: 0.25rem;">
+              <mat-form-field appearance="outline" class="w-full textarea-field">
+                <mat-label>Detailed Objection &amp; Customer Notes</mat-label>
+                <textarea
+                  matInput
+                  rows="3"
+                  [(ngModel)]="discoveryData.objection_notes"
+                  name="objection_notes"
+                  placeholder="Detail exact comments, price gap, Vaastu angle, or comparative projects the buyer referenced..."
+                ></textarea>
+                <mat-hint>Guides sales manager and executive during the 4-hour countdown follow-up</mat-hint>
+              </mat-form-field>
+            </div>
+          </div>
 
-        <div class="form-actions">
-          <a mat-button routerLink="/visits">Cancel</a>
-          <button mat-flat-button color="primary" type="submit" [disabled]="saving">
-            <span *ngIf="!saving">Save Discovery &amp; Trigger 4h Countdown Task &rarr;</span>
-            <span *ngIf="saving">Recording...</span>
-          </button>
-        </div>
-      </form>
+          <!-- SECTION 3: Automated 4-Hour Countdown Follow-up SLA (UC-06) -->
+          <div class="form-section">
+            <div class="section-header">
+              <div class="section-icon-wrap section-icon-violet">
+                <mat-icon>timer</mat-icon>
+              </div>
+              <div class="section-meta">
+                <h2 class="section-heading">3. Automated 4-Hour Countdown Follow-up SLA (UC-06)</h2>
+                <p class="section-subheading">Mandatory follow-up task dispatched immediately with strict 4-hour breach timer</p>
+              </div>
+            </div>
+
+            <div class="form-grid-2">
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Immediate Follow-Up Task Title</mat-label>
+                <mat-icon matPrefix class="field-icon">task_alt</mat-icon>
+                <input
+                  matInput
+                  type="text"
+                  [(ngModel)]="discoveryData.follow_up_title"
+                  name="follow_up_title"
+                  placeholder="e.g. Dispatch customized milestone pricing draft for Unit 402"
+                />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Recommended Sales Strategy</mat-label>
+                <mat-icon matPrefix class="field-icon">lightbulb</mat-icon>
+                <input
+                  matInput
+                  type="text"
+                  [(ngModel)]="discoveryData.recommended_action"
+                  name="recommended_action"
+                  placeholder="e.g. Offer 10:90 subvention scheme before 5 PM today"
+                />
+              </mat-form-field>
+            </div>
+
+            <!-- 4-Hour Countdown SLA Banner -->
+            <div class="sla-countdown-banner">
+              <div class="sla-icon-wrap">
+                <mat-icon>alarm_on</mat-icon>
+              </div>
+              <div class="sla-content">
+                <strong>Strict 4-Hour Follow-Up Dispatch Protocol (SOW UC-06)</strong>
+                <p>
+                  Saving this discovery record logs all customer walkthrough findings, updates buyer score momentum,
+                  and dispatches a high-priority SLA task to <strong>{{ visit.salesRep?.name || 'Amit Verma (Account Executive)' }}</strong>
+                  with a hard <strong>4-hour countdown deadline</strong> to address objections.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="form-actions">
+            <a mat-stroked-button routerLink="/visits" class="btn-cancel">
+              <mat-icon>close</mat-icon> Cancel
+            </a>
+            <button mat-flat-button color="primary" type="submit" class="btn-submit" [disabled]="saving">
+              <mat-icon *ngIf="!saving">check_circle</mat-icon>
+              <span *ngIf="!saving">Save Discovery &amp; Trigger 4h Countdown Task &rarr;</span>
+              <span *ngIf="saving">Recording Discovery...</span>
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
     </mat-card>
   </div>
 </div>

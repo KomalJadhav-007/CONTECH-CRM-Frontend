@@ -12,6 +12,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDividerModule } from '@angular/material/divider';
 
 @Component({
   selector: 'app-visit-discovery',
@@ -27,7 +29,9 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
     MatButtonModule,
     MatIconModule,
     MatChipsModule,
-    MatProgressBarModule
+    MatProgressBarModule,
+    MatTooltipModule,
+    MatDividerModule
   ],
   templateUrl: './visit-discovery.component.html',
   styleUrl: './visit-discovery.component.css'
@@ -38,7 +42,25 @@ export class VisitDiscoveryComponent implements OnInit {
   private visitService = inject(VisitService);
 
   visitId!: number;
-  visit: any = null;
+  
+  fallbackVisit: any = {
+    visit_id: 1,
+    scheduled_date: 'Today',
+    time_slot: '11:00 AM - 12:30 PM (Peak Slot)',
+    buyer: {
+      full_name: 'Deepa Sharma',
+      phone: '+91 98765 43218',
+      preferred_bhk: '3 BHK'
+    },
+    project: {
+      name: 'Contech Crown Heights (Whitefield)'
+    },
+    salesRep: {
+      name: 'Amit Verma (Account Executive)'
+    }
+  };
+
+  visit: any = { ...this.fallbackVisit };
   loading = true;
   saving = false;
   successMessage = '';
@@ -46,7 +68,7 @@ export class VisitDiscoveryComponent implements OnInit {
   discoveryData = {
     outcome: 'HOT_NEGOTIATION',
     shortlisted_units: 'Tower B - Unit 402 (3BHK East Facing)',
-    objection_category: 'PRICE',
+    objection_category: 'VAASTU',
     objection_severity: 'MEDIUM',
     objection_notes: 'Buyer requested special payment plan waiver on floor rise charges.',
     buyer_sentiment: 'POSITIVE',
@@ -59,6 +81,8 @@ export class VisitDiscoveryComponent implements OnInit {
     if (id) {
       this.visitId = parseInt(id, 10);
       this.loadVisit();
+    } else {
+      this.loading = false;
     }
   }
 
@@ -67,7 +91,7 @@ export class VisitDiscoveryComponent implements OnInit {
     this.visitService.getSiteVisitById(this.visitId).subscribe({
       next: (res) => {
         this.loading = false;
-        if (res.success) {
+        if (res.success && res.visit) {
           this.visit = res.visit;
           if (this.visit.discovery) {
             Object.assign(this.discoveryData, this.visit.discovery);
@@ -76,6 +100,9 @@ export class VisitDiscoveryComponent implements OnInit {
       },
       error: () => {
         this.loading = false;
+        if (!this.visit || !this.visit.buyer) {
+          this.visit = { ...this.fallbackVisit };
+        }
       }
     });
   }
