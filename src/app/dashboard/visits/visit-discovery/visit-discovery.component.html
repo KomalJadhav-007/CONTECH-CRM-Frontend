@@ -1,11 +1,13 @@
 <div class="page-wrapper" *ngIf="visit">
   <div class="page-header">
     <div>
-      <h1 class="page-title">In-Visit Discovery & Objection Recorder</h1>
+      <h1 class="page-title">In-Visit Discovery &amp; Objection Recorder</h1>
       <p class="page-subtitle">Site Walkthrough for {{ visit.buyer?.full_name }} • {{ visit.project?.name }}</p>
     </div>
     <div class="header-actions">
-      <a routerLink="/visits" class="btn btn-secondary">&larr; Back to Hub</a>
+      <a mat-stroked-button routerLink="/visits">
+        <mat-icon>arrow_back</mat-icon> Back to Hub
+      </a>
     </div>
   </div>
 
@@ -14,110 +16,119 @@
   </div>
 
   <div class="form-container">
-    <div class="glass-card">
-      <form (ngSubmit)="onSubmit()">
+    <mat-card class="glass-card">
+      <mat-progress-bar *ngIf="saving" mode="indeterminate"></mat-progress-bar>
+      <form (ngSubmit)="onSubmit()" style="padding: 1.5rem;">
         <div class="form-section-title">1. Site Walkthrough Outcome</div>
         <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Visit Outcome Status</label>
-            <select class="form-control" [(ngModel)]="discoveryData.outcome" name="outcome">
-              <option value="HOT_NEGOTIATION">🔥 Hot Deal (Active Negotiation)</option>
-              <option value="WARM_CONSIDERING">⚡ Warm (Considering 2nd Visit)</option>
-              <option value="BOOKED">🎉 Token Booked on Site</option>
-              <option value="COLD_LOST">❄️ Cold / Budget Mismatch</option>
-            </select>
-          </div>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Visit Outcome Status</mat-label>
+            <mat-select [(ngModel)]="discoveryData.outcome" name="outcome">
+              <mat-option value="HOT_NEGOTIATION">🔥 Hot Deal (Active Negotiation)</mat-option>
+              <mat-option value="WARM_CONSIDERING">⚡ Warm (Considering 2nd Visit)</mat-option>
+              <mat-option value="BOOKED">🎉 Token Booked on Site</mat-option>
+              <mat-option value="COLD_LOST">❄️ Cold / Budget Mismatch</mat-option>
+            </mat-select>
+          </mat-form-field>
 
-          <div class="form-group">
-            <label class="form-label">Buyer Overall Sentiment</label>
-            <select class="form-control" [(ngModel)]="discoveryData.buyer_sentiment" name="buyer_sentiment">
-              <option value="VERY_POSITIVE">Very Positive (Excited about amenities)</option>
-              <option value="POSITIVE">Positive</option>
-              <option value="NEUTRAL">Neutral</option>
-              <option value="SKEPTICAL">Skeptical (Needs pricing reassurance)</option>
-            </select>
-          </div>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Buyer Overall Sentiment</mat-label>
+            <mat-select [(ngModel)]="discoveryData.buyer_sentiment" name="buyer_sentiment">
+              <mat-option value="VERY_POSITIVE">Very Positive (Excited about amenities)</mat-option>
+              <mat-option value="POSITIVE">Positive</mat-option>
+              <mat-option value="NEUTRAL">Neutral</mat-option>
+              <mat-option value="SKEPTICAL">Skeptical (Needs pricing reassurance)</mat-option>
+            </mat-select>
+          </mat-form-field>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Shortlisted Flat / Unit Numbers</label>
-          <input
-            type="text"
-            class="form-control"
-            [(ngModel)]="discoveryData.shortlisted_units"
-            name="shortlisted_units"
-            placeholder="e.g. Tower A Unit 302 (3BHK East Facing)"
-          />
+        <div style="margin-top: 0.5rem;">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Shortlisted Flat / Unit Numbers</mat-label>
+            <input
+              matInput
+              type="text"
+              [(ngModel)]="discoveryData.shortlisted_units"
+              name="shortlisted_units"
+              placeholder="e.g. Tower A Unit 302 (3BHK East Facing)"
+            />
+          </mat-form-field>
         </div>
 
-        <div class="form-section-title" style="margin-top: 1.5rem;">2. Objections & Customer Hesitations (UC-05)</div>
+        <div class="form-section-title" style="margin-top: 1.5rem;">2. Objections &amp; Customer Hesitations (UC-05)</div>
         <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Primary Objection Category</label>
-            <select class="form-control" [(ngModel)]="discoveryData.objection_category" name="objection_category">
-              <option value="NONE">No Objections</option>
-              <option value="PRICE">Price & Payment Schedule</option>
-              <option value="VAASTU">Vaastu / Facing Alignment</option>
-              <option value="LAYOUT">Layout / Room Dimensions</option>
-              <option value="AMENITY">Clubhouse / Amenities</option>
-              <option value="POSSESSION_TIMELINE">Possession Date</option>
-              <option value="OTHER">Other</option>
-            </select>
-          </div>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Primary Objection Category</mat-label>
+            <mat-select [(ngModel)]="discoveryData.objection_category" name="objection_category">
+              <mat-option value="NONE">No Objections</mat-option>
+              <mat-option value="PRICE">Price &amp; Payment Schedule</mat-option>
+              <mat-option value="VAASTU">Vaastu / Facing Alignment</mat-option>
+              <mat-option value="LAYOUT">Layout / Room Dimensions</mat-option>
+              <mat-option value="AMENITY">Clubhouse / Amenities</mat-option>
+              <mat-option value="POSSESSION_TIMELINE">Possession Date</mat-option>
+              <mat-option value="OTHER">Other</mat-option>
+            </mat-select>
+          </mat-form-field>
 
-          <div class="form-group">
-            <label class="form-label">Objection Severity</label>
-            <select class="form-control" [(ngModel)]="discoveryData.objection_severity" name="objection_severity">
-              <option value="HIGH">High (Deal Breaker if unaddressed)</option>
-              <option value="MEDIUM">Medium (Negotiable with offers)</option>
-              <option value="LOW">Low (Minor clarification)</option>
-              <option value="NONE">None</option>
-            </select>
-          </div>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Objection Severity</mat-label>
+            <mat-select [(ngModel)]="discoveryData.objection_severity" name="objection_severity">
+              <mat-option value="HIGH">High (Deal Breaker if unaddressed)</mat-option>
+              <mat-option value="MEDIUM">Medium (Negotiable with offers)</mat-option>
+              <mat-option value="LOW">Low (Minor clarification)</mat-option>
+              <mat-option value="NONE">None</mat-option>
+            </mat-select>
+          </mat-form-field>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Detailed Objection & Customer Notes</label>
-          <textarea
-            class="form-control"
-            rows="3"
-            [(ngModel)]="discoveryData.objection_notes"
-            name="objection_notes"
-            placeholder="What exact concern did the buyer mention during the walkthrough?"
-          ></textarea>
+        <div style="margin-top: 0.5rem;">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Detailed Objection &amp; Customer Notes</mat-label>
+            <textarea
+              matInput
+              rows="3"
+              [(ngModel)]="discoveryData.objection_notes"
+              name="objection_notes"
+              placeholder="What exact concern did the buyer mention during the walkthrough?"
+            ></textarea>
+          </mat-form-field>
         </div>
 
         <div class="form-section-title" style="margin-top: 1.5rem;">3. Automated 4-Hour Countdown Follow-up SLA (UC-06)</div>
-        <div class="form-group">
-          <label class="form-label">Immediate Follow-Up Task Title</label>
-          <input
-            type="text"
-            class="form-control"
-            [(ngModel)]="discoveryData.follow_up_title"
-            name="follow_up_title"
-            placeholder="Task title for strict 4-hour callback deadline..."
-          />
+        <div style="margin-top: 0.5rem;">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Immediate Follow-Up Task Title</mat-label>
+            <input
+              matInput
+              type="text"
+              [(ngModel)]="discoveryData.follow_up_title"
+              name="follow_up_title"
+              placeholder="Task title for strict 4-hour callback deadline..."
+            />
+          </mat-form-field>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Recommended Sales Strategy</label>
-          <input
-            type="text"
-            class="form-control"
-            [(ngModel)]="discoveryData.recommended_action"
-            name="recommended_action"
-            placeholder="e.g. Waive floor rise or offer payment plan before 4 PM"
-          />
+        <div style="margin-top: 0.5rem;">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Recommended Sales Strategy</mat-label>
+            <input
+              matInput
+              type="text"
+              [(ngModel)]="discoveryData.recommended_action"
+              name="recommended_action"
+              placeholder="e.g. Waive floor rise or offer payment plan before 4 PM"
+            />
+          </mat-form-field>
         </div>
 
         <div class="form-actions">
-          <a routerLink="/visits" class="btn btn-secondary">Cancel</a>
-          <button type="submit" [disabled]="saving" class="btn btn-primary">
-            <span *ngIf="!saving">Save Discovery & Trigger 4h Countdown Task &rarr;</span>
+          <a mat-button routerLink="/visits">Cancel</a>
+          <button mat-flat-button color="primary" type="submit" [disabled]="saving">
+            <span *ngIf="!saving">Save Discovery &amp; Trigger 4h Countdown Task &rarr;</span>
             <span *ngIf="saving">Recording...</span>
           </button>
         </div>
       </form>
-    </div>
+    </mat-card>
   </div>
 </div>

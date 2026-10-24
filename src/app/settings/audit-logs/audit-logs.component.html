@@ -1,4 +1,6 @@
 <div class="audit-page-wrapper">
+  <mat-progress-bar *ngIf="loading" mode="indeterminate" style="margin-bottom: 1rem; border-radius: 4px;"></mat-progress-bar>
+
   <div class="audit-header">
     <div class="header-left">
       <div class="section-tag">ADMINISTRATION &middot; AUDIT &amp; GOVERNANCE</div>
@@ -8,8 +10,8 @@
       </p>
     </div>
     <div class="header-actions">
-      <button type="button" class="btn-refresh" (click)="refreshCurrentTab()">
-        🔄 Refresh
+      <button mat-stroked-button type="button" (click)="refreshCurrentTab()">
+        <mat-icon>refresh</mat-icon> Refresh
       </button>
     </div>
   </div>
@@ -17,6 +19,7 @@
   <!-- Tab Switcher (SOW Sec 16: Audit Trail & In-App Alerts) -->
   <div class="audit-tabs-bar">
     <button
+      mat-button
       type="button"
       class="tab-btn"
       [class.active]="activeTab === 'AUDIT_LOGS'"
@@ -25,6 +28,7 @@
       💾 Security &amp; Activity Audit Trail ({{ logs.length }})
     </button>
     <button
+      mat-button
       type="button"
       class="tab-btn"
       [class.active]="activeTab === 'IN_APP_ALERTS'"

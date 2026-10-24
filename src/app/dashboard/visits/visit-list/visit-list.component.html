@@ -9,18 +9,22 @@
       </p>
     </div>
     <div class="top-actions">
-      <a routerLink="/visits/book" class="btn-new">+ Schedule Site Visit</a>
+      <a mat-flat-button color="primary" routerLink="/visits/book">
+        <mat-icon>add</mat-icon> Schedule Site Visit
+      </a>
     </div>
   </div>
 
   <!-- Feedback Banner -->
   <div *ngIf="feedbackMessage" class="feedback-banner">
+    <mat-icon style="font-size: 18px; width: 18px; height: 18px; vertical-align: middle;">check_circle</mat-icon>
     {{ feedbackMessage }}
   </div>
 
-  <!-- Visits Filter Bar matching Prospects / Tasks Theme -->
+  <!-- Visits Filter Bar -->
   <div class="filters-bar">
     <button
+      mat-stroked-button
       type="button"
       class="filter-tab"
       [class.active]="filterStatus === ''"
@@ -29,6 +33,7 @@
       All Visits
     </button>
     <button
+      mat-stroked-button
       type="button"
       class="filter-tab"
       [class.active]="filterStatus === 'SCHEDULED'"
@@ -37,6 +42,7 @@
       Scheduled
     </button>
     <button
+      mat-stroked-button
       type="button"
       class="filter-tab"
       [class.active]="filterStatus === 'IN_PROGRESS'"
@@ -45,6 +51,7 @@
       In Progress
     </button>
     <button
+      mat-stroked-button
       type="button"
       class="filter-tab"
       [class.active]="filterStatus === 'COMPLETED'"
@@ -53,6 +60,7 @@
       Completed
     </button>
     <button
+      mat-stroked-button
       type="button"
       class="filter-tab"
       [class.active]="filterStatus === 'CANCELLED'"
@@ -62,8 +70,9 @@
     </button>
   </div>
 
-  <!-- Visits Table Card matching Prospects Theme -->
-  <div class="table-card">
+  <!-- Visits Table Card -->
+  <mat-card class="table-card">
+    <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
     <div class="table-responsive">
       <table class="prospects-table">
         <thead>
@@ -115,7 +124,7 @@
                   class="pill-btn"
                   [class.verified]="visit.customer_confirmed"
                   (click)="toggleConfirmation(visit, 'customer_confirmed')"
-                  title="Toggle Customer Confirmation"
+                  matTooltip="Toggle Customer Confirmation"
                 >
                   <span>{{ visit.customer_confirmed ? '✓' : '✗' }}</span> Customer
                 </button>
@@ -125,7 +134,7 @@
                   class="pill-btn"
                   [class.verified]="visit.rep_confirmed"
                   (click)="toggleConfirmation(visit, 'rep_confirmed')"
-                  title="Toggle Sales Rep Confirmation"
+                  matTooltip="Toggle Sales Rep Confirmation"
                 >
                   <span>{{ visit.rep_confirmed ? '✓' : '✗' }}</span> Rep
                 </button>
@@ -135,7 +144,7 @@
                   class="pill-btn"
                   [class.verified]="visit.driver_confirmed"
                   (click)="toggleConfirmation(visit, 'driver_confirmed')"
-                  title="Toggle Driver Confirmation"
+                  matTooltip="Toggle Driver Confirmation"
                 >
                   <span>{{ visit.driver_confirmed ? '✓' : '✗' }}</span> Driver
                 </button>
@@ -145,7 +154,7 @@
                   class="pill-btn"
                   [class.verified]="visit.site_confirmed"
                   (click)="toggleConfirmation(visit, 'site_confirmed')"
-                  title="Toggle Site Gallery Slot Confirmation"
+                  matTooltip="Toggle Site Gallery Slot Confirmation"
                 >
                   <span>{{ visit.site_confirmed ? '✓' : '✗' }}</span> Site
                 </button>
@@ -173,24 +182,25 @@
 
             <td class="text-right actions-cell">
               <div class="row-actions-group">
-                <a [routerLink]="['/visits/discovery', visit.id]" class="btn-action-view" *ngIf="visit.status !== 'CANCELLED' && visit.status !== 'NO_SHOW'">
-                  In-Visit &rarr;
+                <a mat-stroked-button [routerLink]="['/visits/discovery', visit.id]" class="btn-action-view" *ngIf="visit.status !== 'CANCELLED' && visit.status !== 'NO_SHOW'">
+                  <mat-icon style="font-size: 16px; width: 16px; height: 16px;">visibility</mat-icon> In-Visit
                 </a>
                 <button
+                  mat-button
+                  color="warn"
                   type="button"
-                  class="btn-action-cancel"
                   *ngIf="visit.status === 'SCHEDULED' || visit.status === 'IN_PROGRESS'"
                   (click)="openCancelModal(visit, false)"
-                  title="Cancel visit and initiate recovery"
+                  matTooltip="Cancel visit and initiate recovery"
                 >
                   Cancel
                 </button>
                 <button
+                  mat-button
                   type="button"
-                  class="btn-action-noshow"
                   *ngIf="visit.status === 'SCHEDULED' || visit.status === 'IN_PROGRESS'"
                   (click)="openCancelModal(visit, true)"
-                  title="Mark buyer as no-show"
+                  matTooltip="Mark buyer as no-show"
                 >
                   No-Show
                 </button>
@@ -198,7 +208,7 @@
             </td>
           </tr>
 
-          <tr *ngIf="visits.length === 0">
+          <tr *ngIf="visits.length === 0 && !loading">
             <td colspan="8" class="empty-state">
               No site visits scheduled for this filter.
             </td>
@@ -206,11 +216,11 @@
         </tbody>
       </table>
     </div>
-  </div>
+  </mat-card>
 
   <!-- SOW Sec 12: Cancellation & No-Show Recovery Modal -->
   <div *ngIf="showCancelModal" class="modal-backdrop">
-    <div class="modal-card">
+    <mat-card class="modal-card">
       <div class="modal-header">
         <div>
           <h2 class="modal-title">
@@ -220,7 +230,9 @@
             Visit #{{ selectedVisitForCancel?.id }} &middot; {{ selectedVisitForCancel?.buyer?.full_name }} ({{ selectedVisitForCancel?.project?.name }})
           </p>
         </div>
-        <button type="button" class="close-modal-btn" (click)="closeCancelModal()">&times;</button>
+        <button mat-icon-button type="button" (click)="closeCancelModal()">
+          <mat-icon>close</mat-icon>
+        </button>
       </div>
 
       <div class="modal-body">
@@ -238,34 +250,39 @@
           </p>
         </div>
 
-        <div class="form-group" style="margin-top: 1rem;">
-          <label class="form-label">Primary Cancellation / No-Show Reason *</label>
-          <select class="form-control" [(ngModel)]="cancelForm.reason">
-            <option value="Buyer requested reschedule due to work conflict">Buyer requested reschedule due to work conflict</option>
-            <option value="Buyer unresponsive at scheduled pickup time">Buyer unresponsive at scheduled pickup time</option>
-            <option value="Severe traffic congestion or heavy rain delay">Severe traffic congestion or heavy rain delay</option>
-            <option value="Company cab / logistics breakdown">Company cab / logistics breakdown</option>
-            <option value="Buyer booked with competitor developer">Buyer booked with competitor developer</option>
-            <option value="Personal / family medical emergency">Personal / family medical emergency</option>
-          </select>
+        <div style="margin-top: 1.25rem;">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Primary Cancellation / No-Show Reason *</mat-label>
+            <mat-select [(ngModel)]="cancelForm.reason">
+              <mat-option value="Buyer requested reschedule due to work conflict">Buyer requested reschedule due to work conflict</mat-option>
+              <mat-option value="Buyer unresponsive at scheduled pickup time">Buyer unresponsive at scheduled pickup time</mat-option>
+              <mat-option value="Severe traffic congestion or heavy rain delay">Severe traffic congestion or heavy rain delay</mat-option>
+              <mat-option value="Company cab / logistics breakdown">Company cab / logistics breakdown</mat-option>
+              <mat-option value="Buyer booked with competitor developer">Buyer booked with competitor developer</mat-option>
+              <mat-option value="Personal / family medical emergency">Personal / family medical emergency</mat-option>
+            </mat-select>
+          </mat-form-field>
         </div>
 
-        <div class="form-group" style="margin-top: 1rem;">
-          <label class="form-label">Recovery Action Notes & Proposed Reschedule Window</label>
-          <textarea
-            class="form-control"
-            rows="3"
-            [(ngModel)]="cancelForm.notes"
-            placeholder="Notes on buyer's objection or preferred alternate weekend for priority luxury pickup..."
-          ></textarea>
+        <div style="margin-top: 0.75rem;">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Recovery Action Notes & Proposed Reschedule Window</mat-label>
+            <textarea
+              matInput
+              rows="3"
+              [(ngModel)]="cancelForm.notes"
+              placeholder="Notes on buyer's objection or preferred alternate weekend for priority luxury pickup..."
+            ></textarea>
+          </mat-form-field>
         </div>
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn-cancel" (click)="closeCancelModal()">Dismiss</button>
+        <button mat-button type="button" (click)="closeCancelModal()">Dismiss</button>
         <button
+          mat-flat-button
+          color="warn"
           type="button"
-          class="btn-danger-confirm"
           [disabled]="cancelling"
           (click)="submitCancellationRecovery()"
         >
@@ -273,6 +290,6 @@
           <span *ngIf="cancelling">Triggering Recovery...</span>
         </button>
       </div>
-    </div>
+    </mat-card>
   </div>
 </div>

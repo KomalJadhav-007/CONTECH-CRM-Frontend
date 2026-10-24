@@ -70,6 +70,7 @@
             <th>USER</th>
             <th>DESIGNATION</th>
             <th>ROLE (ACCESS CONTROL)</th>
+            <th>PROJECT ACCESS</th>
             <th>REPORTING MANAGER</th>
             <th>STATUS</th>
             <th>LAST LOGIN</th>
@@ -117,6 +118,18 @@
                 >
                   ⭐ Custom Access
                 </span>
+              </div>
+            </td>
+            <td>
+              <div class="project-access-cell">
+                <span *ngIf="u.has_all_projects_access || !u.assigned_projects || u.assigned_projects.length === 0" class="badge-all-projects-scope" title="Universal access to all projects">
+                  <span class="scope-icon">🌐</span> All Projects
+                </span>
+                <div *ngIf="!u.has_all_projects_access && u.assigned_projects && u.assigned_projects.length > 0" class="scoped-projects-list">
+                  <span *ngFor="let p of u.assigned_projects" class="badge-scoped-project" [title]="p.location || p.name">
+                    🏢 {{ p.name }}
+                  </span>
+                </div>
               </div>
             </td>
             <td>
@@ -305,6 +318,70 @@
           </div>
         </div>
 
+        <!-- PROJECT-SCOPED ACCESS CONTROL -->
+        <div class="project-scope-config-card">
+          <div class="project-scope-header">
+            <div class="scope-header-left">
+              <span class="scope-icon-header">🏢</span>
+              <div>
+                <h4 class="scope-title">Project Access Control</h4>
+                <p class="scope-subtitle">Specify which project(s) this user is authorized to handle and see across the CRM.</p>
+              </div>
+            </div>
+            <div class="scope-toggle-tabs">
+              <button
+                type="button"
+                class="btn-scope-tab"
+                [class.active]="newUser.all_projects"
+                (click)="newUser.all_projects = true"
+              >
+                🌐 All Projects
+              </button>
+              <button
+                type="button"
+                class="btn-scope-tab"
+                [class.active]="!newUser.all_projects"
+                (click)="newUser.all_projects = false"
+              >
+                🎯 Specific Project(s)
+              </button>
+            </div>
+          </div>
+
+          <div *ngIf="newUser.all_projects" class="scope-all-banner">
+            <span class="globe-anim">🌐</span>
+            <div>
+              <strong>Universal Project Visibility</strong>
+              <p>User will have visibility and operations across all existing and newly created projects in the CRM.</p>
+            </div>
+          </div>
+
+          <div *ngIf="!newUser.all_projects" class="scope-specific-panel">
+            <div class="scope-instruction">
+              Select one or more projects this user will be assigned to handle. They will <strong>only see</strong> records (visits, inventory, buyers, bookings) belonging to their assigned projects:
+            </div>
+            <div class="project-checkboxes-grid">
+              <div
+                *ngFor="let proj of availableProjects"
+                class="project-assignment-card"
+                [class.selected]="isProjectSelectedForNewUser(proj.id || proj.project_id)"
+                (click)="toggleProjectForNewUser(proj.id || proj.project_id)"
+              >
+                <div class="proj-checkbox-indicator">
+                  <span *ngIf="isProjectSelectedForNewUser(proj.id || proj.project_id)">✓</span>
+                </div>
+                <div class="proj-assignment-info">
+                  <div class="proj-name">{{ proj.name }}</div>
+                  <div class="proj-location">📍 {{ proj.location || proj.code || 'Bengaluru' }}</div>
+                </div>
+              </div>
+            </div>
+            <div *ngIf="newUser.assigned_project_ids.length === 0" class="scope-warning-hint">
+              ⚠️ Please select at least one project, or switch to "All Projects".
+            </div>
+          </div>
+        </div>
+
         <!-- Password and Active State (Angular Material) -->
         <div class="form-row-2">
           <div class="form-group material-pwd-col">
@@ -435,6 +512,70 @@
             >
               🔑 Manage Individual Permissions &rarr;
             </a>
+          </div>
+        </div>
+
+        <!-- PROJECT-SCOPED ACCESS CONTROL -->
+        <div class="project-scope-config-card">
+          <div class="project-scope-header">
+            <div class="scope-header-left">
+              <span class="scope-icon-header">🏢</span>
+              <div>
+                <h4 class="scope-title">Assigned Project Scope</h4>
+                <p class="scope-subtitle">Limit this user's visibility and operations to specific project(s).</p>
+              </div>
+            </div>
+            <div class="scope-toggle-tabs">
+              <button
+                type="button"
+                class="btn-scope-tab"
+                [class.active]="editingUser.all_projects"
+                (click)="editingUser.all_projects = true"
+              >
+                🌐 All Projects
+              </button>
+              <button
+                type="button"
+                class="btn-scope-tab"
+                [class.active]="!editingUser.all_projects"
+                (click)="editingUser.all_projects = false"
+              >
+                🎯 Specific Project(s)
+              </button>
+            </div>
+          </div>
+
+          <div *ngIf="editingUser.all_projects" class="scope-all-banner">
+            <span class="globe-anim">🌐</span>
+            <div>
+              <strong>Universal Project Visibility</strong>
+              <p>User has full access across all current and future projects in the organization.</p>
+            </div>
+          </div>
+
+          <div *ngIf="!editingUser.all_projects" class="scope-specific-panel">
+            <div class="scope-instruction">
+              Select project(s) assigned to <strong>{{ editingUser.name }}</strong>. They will <strong>only see</strong> records (visits, inventory, buyers, bookings) belonging to these projects:
+            </div>
+            <div class="project-checkboxes-grid">
+              <div
+                *ngFor="let proj of availableProjects"
+                class="project-assignment-card"
+                [class.selected]="isProjectSelectedForEditingUser(proj.id || proj.project_id)"
+                (click)="toggleProjectForEditingUser(proj.id || proj.project_id)"
+              >
+                <div class="proj-checkbox-indicator">
+                  <span *ngIf="isProjectSelectedForEditingUser(proj.id || proj.project_id)">✓</span>
+                </div>
+                <div class="proj-assignment-info">
+                  <div class="proj-name">{{ proj.name }}</div>
+                  <div class="proj-location">📍 {{ proj.location || proj.code || 'Bengaluru' }}</div>
+                </div>
+              </div>
+            </div>
+            <div *ngIf="editingUser.assigned_project_ids?.length === 0" class="scope-warning-hint">
+              ⚠️ Please select at least one project, or switch to "All Projects".
+            </div>
           </div>
         </div>
 

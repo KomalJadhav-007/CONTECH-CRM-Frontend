@@ -8,12 +8,15 @@
       </p>
     </div>
     <div class="header-actions">
-      <a routerLink="/visits" class="btn-back">&larr; Back to Hub</a>
+      <a mat-stroked-button routerLink="/visits" class="btn-back">
+        <mat-icon>arrow_back</mat-icon> Back to Hub
+      </a>
     </div>
   </div>
 
   <!-- Form Card -->
-  <div class="booking-card">
+  <mat-card class="booking-card">
+    <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
     <form (ngSubmit)="onSubmit()">
       <div *ngIf="errorMessage" class="error-alert">
         {{ errorMessage }}
@@ -23,23 +26,23 @@
       <div class="form-section">
         <div class="section-heading">1. BUYER &amp; PROJECT SELECTION</div>
         <div class="form-grid-2">
-          <div class="form-field">
-            <label class="field-label">SELECT REGISTERED BUYER</label>
-            <select class="custom-select" [(ngModel)]="bookingData.buyer_id" name="buyer_id">
-              <option *ngFor="let b of buyers" [ngValue]="b.buyer_id || b.id">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>SELECT REGISTERED BUYER</mat-label>
+            <mat-select [(ngModel)]="bookingData.buyer_id" name="buyer_id">
+              <mat-option *ngFor="let b of buyers" [value]="b.buyer_id || b.id">
                 {{ b.full_name }}{{ b.phone ? ' (' + b.phone + ')' : '' }} &mdash; {{ formatBhk(b.preferred_bhk) }}
-              </option>
-            </select>
-          </div>
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
 
-          <div class="form-field">
-            <label class="field-label">DESTINATION PROPERTY EXPERIENCE CENTRE</label>
-            <select class="custom-select" [(ngModel)]="bookingData.project_id" name="project_id">
-              <option [ngValue]="1">Contech Crown Heights (Whitefield)</option>
-              <option [ngValue]="2">Contech Skyline Elegance (Indiranagar)</option>
-              <option [ngValue]="3">Contech Greenfield Sanctuary (Sarjapur)</option>
-            </select>
-          </div>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>DESTINATION PROPERTY EXPERIENCE CENTRE</mat-label>
+            <mat-select [(ngModel)]="bookingData.project_id" name="project_id">
+              <mat-option [value]="1">Contech Crown Heights (Whitefield)</mat-option>
+              <mat-option [value]="2">Contech Skyline Elegance (Indiranagar)</mat-option>
+              <mat-option [value]="3">Contech Greenfield Sanctuary (Sarjapur)</mat-option>
+            </mat-select>
+          </mat-form-field>
         </div>
       </div>
 
@@ -47,35 +50,35 @@
       <div class="form-section">
         <div class="section-heading">2. DATE, TIME SLOT &amp; CAPACITY CHECK</div>
         <div class="form-grid-3">
-          <div class="form-field">
-            <label class="field-label">VISIT DATE</label>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>VISIT DATE</mat-label>
             <input
+              matInput
               type="date"
-              class="custom-input"
               [(ngModel)]="bookingData.scheduled_date"
               name="scheduled_date"
               required
             />
-          </div>
+          </mat-form-field>
 
-          <div class="form-field">
-            <label class="field-label">AVAILABLE TIME SLOT</label>
-            <select class="custom-select" [(ngModel)]="bookingData.time_slot" name="time_slot">
-              <option value="09:30 AM - 11:00 AM (Morning Slot)">09:30 AM - 11:00 AM (Morning Slot)</option>
-              <option value="11:00 AM - 12:30 PM (Peak Slot)">11:00 AM - 12:30 PM (Peak Slot)</option>
-              <option value="02:00 PM - 03:30 PM (Afternoon Slot)">02:00 PM - 03:30 PM (Afternoon Slot)</option>
-              <option value="04:00 PM - 05:30 PM (Evening Sunset Slot)">04:00 PM - 05:30 PM (Evening Sunset Slot)</option>
-            </select>
-          </div>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>AVAILABLE TIME SLOT</mat-label>
+            <mat-select [(ngModel)]="bookingData.time_slot" name="time_slot">
+              <mat-option value="09:30 AM - 11:00 AM (Morning Slot)">09:30 AM - 11:00 AM (Morning Slot)</mat-option>
+              <mat-option value="11:00 AM - 12:30 PM (Peak Slot)">11:00 AM - 12:30 PM (Peak Slot)</mat-option>
+              <mat-option value="02:00 PM - 03:30 PM (Afternoon Slot)">02:00 PM - 03:30 PM (Afternoon Slot)</mat-option>
+              <mat-option value="04:00 PM - 05:30 PM (Evening Sunset Slot)">04:00 PM - 05:30 PM (Evening Sunset Slot)</mat-option>
+            </mat-select>
+          </mat-form-field>
 
-          <div class="form-field">
-            <label class="field-label">ASSIGNED SALES EXECUTIVE</label>
-            <select class="custom-select" [(ngModel)]="bookingData.sales_rep_id" name="sales_rep_id">
-              <option [ngValue]="3">Amit Verma (Senior Sales Rep)</option>
-              <option [ngValue]="2">Priya Nair (Sales Manager)</option>
-              <option [ngValue]="4">Sneha Joshi (Sales Associate)</option>
-            </select>
-          </div>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>ASSIGNED SALES EXECUTIVE</mat-label>
+            <mat-select [(ngModel)]="bookingData.sales_rep_id" name="sales_rep_id">
+              <mat-option [value]="3">Amit Verma (Senior Sales Rep)</mat-option>
+              <mat-option [value]="2">Priya Nair (Sales Manager)</mat-option>
+              <mat-option [value]="4">Sneha Joshi (Sales Associate)</mat-option>
+            </mat-select>
+          </mat-form-field>
         </div>
       </div>
 
@@ -83,71 +86,75 @@
       <div class="form-section">
         <div class="section-heading">3. FLEET VEHICLE &amp; CAB PICKUP LOGISTICS (SOW SEC 11)</div>
         <div class="form-grid-2">
-          <div class="form-field">
-            <label class="field-label">CAB PICKUP REQUIRED?</label>
-            <select class="custom-select" [(ngModel)]="bookingData.cab_required" name="cab_required">
-              <option [ngValue]="true">Yes, Dispatch Company Fleet Vehicle</option>
-              <option [ngValue]="false">No, Buyer Will Drive Directly (Self-Drive)</option>
-            </select>
-          </div>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>CAB PICKUP REQUIRED?</mat-label>
+            <mat-select [(ngModel)]="bookingData.cab_required" name="cab_required">
+              <mat-option [value]="true">Yes, Dispatch Company Fleet Vehicle</mat-option>
+              <mat-option [value]="false">No, Buyer Will Drive Directly (Self-Drive)</mat-option>
+            </mat-select>
+          </mat-form-field>
 
-          <div class="form-field" *ngIf="bookingData.cab_required">
-            <label class="field-label">SELECT FLEET VEHICLE MASTER</label>
-            <select class="custom-select" [ngModel]="selectedVehicleId" (ngModelChange)="onVehicleSelect($event)" name="selectedVehicleId">
-              <option [ngValue]="null">-- Select Company Vehicle --</option>
-              <option *ngFor="let v of vehicles" [ngValue]="v.vehicle_id || v.id">
+          <mat-form-field appearance="outline" class="w-100" *ngIf="bookingData.cab_required">
+            <mat-label>SELECT FLEET VEHICLE MASTER</mat-label>
+            <mat-select [ngModel]="selectedVehicleId" (ngModelChange)="onVehicleSelect($event)" name="selectedVehicleId">
+              <mat-option [value]="null">-- Select Company Vehicle --</mat-option>
+              <mat-option *ngFor="let v of vehicles" [value]="v.vehicle_id || v.id">
                 {{ v.model }} &middot; {{ v.registration_number }} ({{ v.seating_capacity }} seats, {{ v.assignedDriver?.name || 'Driver on Duty' }})
-              </option>
-            </select>
-          </div>
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
         </div>
 
-        <div class="form-grid-2" *ngIf="bookingData.cab_required" style="margin-top: 1rem;">
-          <div class="form-field">
-            <label class="field-label">DISPATCHED CAB REGISTRATION NO.</label>
-            <input type="text" class="custom-input" [(ngModel)]="bookingData.cab_number" name="cab_number" placeholder="KA-01-MJ-8822" />
-          </div>
+        <div class="form-grid-2" *ngIf="bookingData.cab_required" style="margin-top: 0.5rem;">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>DISPATCHED CAB REGISTRATION NO.</mat-label>
+            <input matInput type="text" [(ngModel)]="bookingData.cab_number" name="cab_number" placeholder="KA-01-MJ-8822" />
+          </mat-form-field>
 
-          <div class="form-field">
-            <label class="field-label">ASSIGNED DRIVER</label>
-            <select class="custom-select" [(ngModel)]="bookingData.driver_id" name="driver_id">
-              <option [ngValue]="5">Ramesh Gowda (Verified Driver)</option>
-              <option [ngValue]="6">Suresh Kumar (Verified Driver)</option>
-            </select>
-          </div>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>ASSIGNED DRIVER</mat-label>
+            <mat-select [(ngModel)]="bookingData.driver_id" name="driver_id">
+              <mat-option [value]="5">Ramesh Gowda (Verified Driver)</mat-option>
+              <mat-option [value]="6">Suresh Kumar (Verified Driver)</mat-option>
+            </mat-select>
+          </mat-form-field>
         </div>
 
-        <div class="form-field full-width" *ngIf="bookingData.cab_required">
-          <label class="field-label">BUYER PICKUP ADDRESS</label>
-          <input
-            type="text"
-            class="custom-input"
-            [(ngModel)]="bookingData.pickup_address"
-            name="pickup_address"
-            placeholder="Customer Residence / Office"
-          />
+        <div class="form-field full-width" *ngIf="bookingData.cab_required" style="margin-top: 0.5rem;">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>BUYER PICKUP ADDRESS</mat-label>
+            <input
+              matInput
+              type="text"
+              [(ngModel)]="bookingData.pickup_address"
+              name="pickup_address"
+              placeholder="Customer Residence / Office"
+            />
+          </mat-form-field>
         </div>
 
-        <div class="form-field full-width">
-          <label class="field-label">SPECIAL VISIT NOTES</label>
-          <textarea
-            class="custom-textarea"
-            rows="3"
-            [(ngModel)]="bookingData.notes"
-            name="notes"
-            placeholder="Confirm buyer preferred floor plan copies ready in sales lounge."
-          ></textarea>
+        <div class="form-field full-width" style="margin-top: 0.5rem;">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>SPECIAL VISIT NOTES</mat-label>
+            <textarea
+              matInput
+              rows="3"
+              [(ngModel)]="bookingData.notes"
+              name="notes"
+              placeholder="Confirm buyer preferred floor plan copies ready in sales lounge."
+            ></textarea>
+          </mat-form-field>
         </div>
       </div>
 
       <!-- Submit / Actions -->
       <div class="form-footer">
-        <a routerLink="/visits" class="btn-cancel">Cancel</a>
-        <button type="submit" [disabled]="loading" class="btn-submit">
+        <a mat-button routerLink="/visits">Cancel</a>
+        <button mat-flat-button color="primary" type="submit" [disabled]="loading">
           <span *ngIf="!loading">Confirm Booking &amp; Trigger 4-Way Verification &rarr;</span>
           <span *ngIf="loading">Scheduling...</span>
         </button>
       </div>
     </form>
-  </div>
+  </mat-card>
 </div>

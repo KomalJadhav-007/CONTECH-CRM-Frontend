@@ -10,42 +10,49 @@
 
   <!-- 4 Stat Cards -->
   <div class="stats-grid-4">
-    <div class="stat-card very-high-card">
+    <mat-card appearance="outlined" class="stat-card very-high-card">
       <div class="card-label">VERY HIGH INTENT</div>
       <div class="card-value">{{ stats.very_high_intent }}</div>
-    </div>
-    <div class="stat-card unassigned-card">
+    </mat-card>
+    <mat-card appearance="outlined" class="stat-card unassigned-card">
       <div class="card-label">UNASSIGNED HIGH INTENT</div>
       <div class="card-value">{{ stats.unassigned_high_intent }}</div>
-    </div>
-    <div class="stat-card">
+    </mat-card>
+    <mat-card appearance="outlined" class="stat-card">
       <div class="card-label">SLA BREACHED</div>
       <div class="card-value">{{ stats.sla_breached }}</div>
-    </div>
-    <div class="stat-card revenue-card">
+    </mat-card>
+    <mat-card appearance="outlined" class="stat-card revenue-card">
       <div class="card-label">REVENUE AT RISK (VERY HIGH)</div>
       <div class="card-value">₹{{ stats.revenue_at_risk_cr }} Cr</div>
-    </div>
+    </mat-card>
   </div>
 
   <!-- Filter Row -->
-  <div class="filter-row">
-    <select [(ngModel)]="selectedBand" class="filter-select">
-      <option value="all">All bands</option>
-      <option value="very_high">Very High Intent</option>
-      <option value="high">High Intent</option>
-    </select>
+  <div class="filter-row" style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1.25rem;">
+    <mat-form-field appearance="outline" style="min-width: 180px;">
+      <mat-label>Intent Band</mat-label>
+      <mat-select [(ngModel)]="selectedBand">
+        <mat-option value="all">All bands</mat-option>
+        <mat-option value="very_high">Very High Intent</mat-option>
+        <mat-option value="high">High Intent</mat-option>
+      </mat-select>
+    </mat-form-field>
 
-    <select [(ngModel)]="selectedOwner" class="filter-select">
-      <option value="all">All owners</option>
-      <option *ngFor="let o of owners" [value]="o">{{ o }}</option>
-    </select>
+    <mat-form-field appearance="outline" style="min-width: 180px;">
+      <mat-label>Assigned Owner</mat-label>
+      <mat-select [(ngModel)]="selectedOwner">
+        <mat-option value="all">All owners</mat-option>
+        <mat-option *ngFor="let o of owners" [value]="o">{{ o }}</mat-option>
+      </mat-select>
+    </mat-form-field>
   </div>
 
   <!-- Table Section -->
   <div class="table-section-title">{{ filteredBuyers.length }} BUYERS</div>
 
-  <div class="table-card">
+  <mat-card class="table-card">
+    <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
     <div class="table-responsive">
       <table class="radar-table">
         <thead>
@@ -79,15 +86,19 @@
             </td>
             <td class="risk-cell">{{ b.at_risk }}</td>
             <td>
-              <select [(ngModel)]="b.owner" (ngModelChange)="onOwnerChange(b)" class="owner-select">
-                <option *ngFor="let o of owners" [value]="o">{{ o }}</option>
-              </select>
+              <mat-form-field appearance="outline" style="width: 150px; margin-bottom: -1.25em;">
+                <mat-select [(ngModel)]="b.owner" (ngModelChange)="onOwnerChange(b)">
+                  <mat-option *ngFor="let o of owners" [value]="o">{{ o }}</mat-option>
+                </mat-select>
+              </mat-form-field>
             </td>
             <td class="text-right">
-              <button type="button" class="btn-open" (click)="openBuyer(b.id)">Open</button>
+              <button mat-flat-button color="primary" type="button" (click)="openBuyer(b.id)">
+                Open &rarr;
+              </button>
             </td>
           </tr>
-          <tr *ngIf="filteredBuyers.length === 0">
+          <tr *ngIf="filteredBuyers.length === 0 && !loading">
             <td colspan="8" style="text-align: center; padding: 2.5rem; color: #64748b;">
               ✨ No buyers match the current band or owner filters.
             </td>
@@ -95,5 +106,5 @@
         </tbody>
       </table>
     </div>
-  </div>
+  </mat-card>
 </div>

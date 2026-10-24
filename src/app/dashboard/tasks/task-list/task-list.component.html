@@ -3,24 +3,28 @@
   <div class="page-title-row">
     <div>
       <div class="section-tag">EXECUTION &middot; SLA ENGINE</div>
-      <h1 class="page-title">Follow-Up SLA Reminders & Countdown Engine</h1>
+      <h1 class="page-title">Follow-Up SLA Reminders &amp; Countdown Engine</h1>
       <p class="page-subtitle">
         Guaranteed post-visit turnaround with strict 4-hour countdown timers to stop deal leakage.
       </p>
     </div>
     <div class="top-actions">
-      <button type="button" class="btn-export" (click)="loadTasks()">🔄 Refresh Tasks</button>
+      <button mat-stroked-button type="button" (click)="loadTasks()">
+        <mat-icon>refresh</mat-icon> Refresh Tasks
+      </button>
     </div>
   </div>
 
   <!-- Feedback Banner -->
   <div *ngIf="feedbackMessage" class="feedback-banner">
+    <mat-icon style="font-size: 18px; width: 18px; height: 18px; vertical-align: middle;">check_circle</mat-icon>
     {{ feedbackMessage }}
   </div>
 
-  <!-- Filter Bar matching Prospects Theme -->
+  <!-- Filter Bar -->
   <div class="filters-bar">
     <button
+      mat-stroked-button
       type="button"
       class="filter-tab"
       [class.active]="filterStatus === 'PENDING'"
@@ -29,6 +33,7 @@
       Pending SLAs
     </button>
     <button
+      mat-stroked-button
       type="button"
       class="filter-tab"
       [class.active]="filterStatus === 'COMPLETED'"
@@ -37,6 +42,7 @@
       Completed
     </button>
     <button
+      mat-stroked-button
       type="button"
       class="filter-tab"
       [class.active]="filterStatus === ''"
@@ -46,8 +52,9 @@
     </button>
   </div>
 
-  <!-- Table Card matching Prospects / Pipeline Theme -->
-  <div class="table-card">
+  <!-- Table Card -->
+  <mat-card class="table-card">
+    <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
     <div class="table-responsive">
       <table class="prospects-table">
         <thead>
@@ -88,21 +95,17 @@
               </div>
             </td>
             <td>
-              <select
-                [ngModel]="task.priority"
-                (ngModelChange)="updateTaskPriority(task, $event)"
-                class="priority-select"
-                [ngClass]="{
-                  'priority-critical': task.priority === 'CRITICAL' || task.priority === 'URGENT',
-                  'priority-high': task.priority === 'HIGH',
-                  'priority-normal': task.priority === 'NORMAL'
-                }"
-              >
-                <option value="CRITICAL">CRITICAL</option>
-                <option value="URGENT">URGENT</option>
-                <option value="HIGH">HIGH</option>
-                <option value="NORMAL">NORMAL</option>
-              </select>
+              <mat-form-field appearance="outline" style="width: 120px; margin-bottom: -1.25em;">
+                <mat-select
+                  [ngModel]="task.priority"
+                  (ngModelChange)="updateTaskPriority(task, $event)"
+                >
+                  <mat-option value="CRITICAL">CRITICAL</mat-option>
+                  <mat-option value="URGENT">URGENT</mat-option>
+                  <mat-option value="HIGH">HIGH</mat-option>
+                  <mat-option value="NORMAL">NORMAL</mat-option>
+                </mat-select>
+              </mat-form-field>
             </td>
             <td>
               <span class="rep-name" [class.unassigned]="!task.assignedUser?.name || task.assignedUser?.name === 'Unassigned'">
@@ -115,26 +118,30 @@
               </span>
             </td>
             <td class="text-right actions-cell">
-              <button
-                *ngIf="task.status === 'PENDING'"
-                type="button"
-                class="btn-action-done"
-                (click)="completeTask(task)"
-              >
-                Mark Done &#10003;
-              </button>
-              <button
-                type="button"
-                class="btn-action-delete"
-                (click)="deleteTask(task)"
-                title="Delete task from database"
-              >
-                Delete
-              </button>
+              <div style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                <button
+                  *ngIf="task.status === 'PENDING'"
+                  mat-flat-button
+                  color="primary"
+                  type="button"
+                  (click)="completeTask(task)"
+                >
+                  Done &#10003;
+                </button>
+                <button
+                  mat-icon-button
+                  color="warn"
+                  type="button"
+                  (click)="deleteTask(task)"
+                  matTooltip="Delete task from database"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
             </td>
           </tr>
 
-          <tr *ngIf="tasks.length === 0">
+          <tr *ngIf="tasks.length === 0 && !loading">
             <td colspan="7" class="empty-state">
               No follow-up tasks found for this status.
             </td>
@@ -142,5 +149,5 @@
         </tbody>
       </table>
     </div>
-  </div>
+  </mat-card>
 </div>

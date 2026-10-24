@@ -33,4 +33,28 @@ export class SettingsService {
   getAuditLogs(params?: any): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/audit-logs`, { params });
   }
+
+  getProjectInventory(projectId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/projects/${projectId}/inventory`);
+  }
+
+  addPropertyType(projectId: number, data: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/projects/${projectId}/property-types`, data);
+  }
+
+  deletePropertyType(projectId: number, typeId: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/projects/${projectId}/property-types/${typeId}`);
+  }
+
+  addProjectUnit(projectId: number, data: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/projects/${projectId}/units`, data);
+  }
+
+  updateProjectUnit(projectId: number, unitId: number, data: any): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/projects/${projectId}/units/${unitId}`, data);
+  }
+
+  deleteProjectUnit(projectId: number, unitId: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/projects/${projectId}/units/${unitId}`);
+  }
 }

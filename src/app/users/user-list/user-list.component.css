@@ -1250,3 +1250,230 @@
   background: #4338ca;
 }
 
+/* ============================================== */
+/* PROJECT-SCOPED ACCESS CONTROL STYLES           */
+/* ============================================== */
+.project-access-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.badge-all-projects-scope {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem;
+  background: rgba(14, 165, 233, 0.1);
+  color: #0369a1;
+  border: 1px solid rgba(14, 165, 233, 0.25);
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.scoped-projects-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  max-width: 220px;
+}
+
+.badge-scoped-project {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  background: rgba(99, 102, 241, 0.1);
+  color: #4338ca;
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.project-scope-config-card {
+  margin-top: 1rem;
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.15rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.project-scope-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.scope-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.scope-icon-header {
+  font-size: 1.35rem;
+}
+
+.scope-title {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.scope-subtitle {
+  margin: 0.15rem 0 0 0;
+  font-size: 0.73rem;
+  color: #64748b;
+}
+
+.scope-toggle-tabs {
+  display: flex;
+  background: #e2e8f0;
+  padding: 0.2rem;
+  border-radius: 6px;
+  gap: 0.2rem;
+}
+
+.btn-scope-tab {
+  border: none;
+  background: transparent;
+  padding: 0.35rem 0.75rem;
+  border-radius: 5px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-scope-tab:hover {
+  color: #0f172a;
+}
+
+.btn-scope-tab.active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.scope-all-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(14, 165, 233, 0.08);
+  border: 1px dashed rgba(14, 165, 233, 0.35);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  color: #0369a1;
+}
+
+.globe-anim {
+  font-size: 1.4rem;
+}
+
+.scope-all-banner strong {
+  display: block;
+  font-size: 0.8rem;
+  color: #0369a1;
+}
+
+.scope-all-banner p {
+  margin: 0.2rem 0 0 0;
+  font-size: 0.73rem;
+  color: #0284c7;
+}
+
+.scope-specific-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.scope-instruction {
+  font-size: 0.76rem;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.project-checkboxes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.65rem;
+}
+
+.project-assignment-card {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.65rem 0.85rem;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.project-assignment-card:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.project-assignment-card.selected {
+  border-color: #4f46e5;
+  background: #eef2ff;
+  box-shadow: 0 1px 3px rgba(79, 70, 229, 0.12);
+}
+
+.proj-checkbox-indicator {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1.5px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.project-assignment-card.selected .proj-checkbox-indicator {
+  border-color: #4f46e5;
+  background: #4f46e5;
+}
+
+.proj-assignment-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.proj-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.proj-location {
+  font-size: 0.7rem;
+  color: #64748b;
+  margin-top: 0.15rem;
+}
+
+.scope-warning-hint {
+  font-size: 0.73rem;
+  color: #b45309;
+  font-weight: 500;
+}
+

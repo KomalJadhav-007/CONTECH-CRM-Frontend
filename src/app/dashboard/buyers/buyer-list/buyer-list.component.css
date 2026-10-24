@@ -82,6 +82,50 @@
   background: #1e293b;
 }
 
+/* Filter Bar with Angular Material */
+.filters-bar-mat {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.search-field-mat {
+  flex: 1 1 260px;
+  max-width: 340px;
+}
+
+.select-field-mat {
+  flex: 0 1 190px;
+}
+
+.feedback-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  padding: 0.65rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1.25rem;
+  font-size: 0.85rem;
+}
+
+.feedback-icon {
+  font-size: 1.15rem;
+  color: #16a34a;
+}
+
+.upload-icon-mat {
+  font-size: 2.2rem;
+  width: 2.2rem;
+  height: 2.2rem;
+  color: #3b82f6;
+  margin-bottom: 0.5rem;
+}
+
 /* Filter Bar */
 .filters-bar {
   display: flex;

@@ -10,6 +10,7 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { SettingsService } from '../settings.service';
 import { AlertService } from '../../shared/alert.service';
 
@@ -27,7 +28,8 @@ import { AlertService } from '../../shared/alert.service';
     MatBadgeModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule
+    MatSelectModule,
+    MatProgressBarModule
   ],
   templateUrl: './audit-logs.component.html',
   styleUrl: './audit-logs.component.css'

@@ -2,75 +2,102 @@
   <!-- Header -->
   <div class="page-title-row">
     <div>
-      <div class="section-tag">PIPELINE</div>
+      <div class="section-tag">PIPELINE &middot; LEAD QUALIFICATION</div>
       <h1 class="page-title">Prospects</h1>
       <p class="page-subtitle">
         Buyer records enriched with the Contech CRM Buyer Score, next best action and estimated revenue at risk.
       </p>
     </div>
     <div class="top-actions">
-      <button type="button" class="btn-export" (click)="openImportModal()">📥 Import CSV</button>
-      <button type="button" class="btn-export" (click)="exportCSV()">📤 Export CSV</button>
-      <button type="button" class="btn-new" routerLink="/buyers/new">+ New prospect</button>
+      <button mat-stroked-button type="button" class="btn-mat-action" (click)="openImportModal()">
+        <mat-icon>upload_file</mat-icon> Import CSV
+      </button>
+      <button mat-stroked-button type="button" class="btn-mat-action" (click)="exportCSV()">
+        <mat-icon>download</mat-icon> Export CSV
+      </button>
+      <a mat-flat-button color="primary" routerLink="/buyers/new">
+        <mat-icon>person_add</mat-icon> New Prospect
+      </a>
     </div>
   </div>
 
   <!-- Feedback Message Banner -->
   <div *ngIf="feedbackMessage" class="feedback-banner">
-    {{ feedbackMessage }}
+    <mat-icon class="feedback-icon">check_circle</mat-icon> {{ feedbackMessage }}
   </div>
 
-  <!-- Filter Bar -->
-  <div class="filters-bar">
-    <input
-      type="text"
-      [(ngModel)]="searchQuery"
-      class="filter-search-input"
-      placeholder="Search name, mobile or email"
-    />
+  <!-- Filter Bar with Angular Material Form Fields -->
+  <div class="filters-bar-mat">
+    <mat-form-field appearance="outline" class="search-field-mat">
+      <mat-label>Search prospects</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input
+        matInput
+        type="text"
+        [(ngModel)]="searchQuery"
+        placeholder="Search name, mobile or email"
+      />
+    </mat-form-field>
 
-    <select [(ngModel)]="selectedStage" class="filter-dropdown">
-      <option value="all">All stages</option>
-      <option value="New">New</option>
-      <option value="Contacted">Contacted</option>
-      <option value="Qualified">Qualified</option>
-      <option value="High Intent">High Intent</option>
-      <option value="Site Visit Scheduled">Site Visit Scheduled</option>
-      <option value="Visit Completed">Visit Completed</option>
-      <option value="Negotiation">Negotiation</option>
-      <option value="Booking Intent">Booking Intent</option>
-      <option value="Booked">Booked</option>
-    </select>
+    <mat-form-field appearance="outline" class="select-field-mat">
+      <mat-label>Stage</mat-label>
+      <mat-icon matPrefix>timeline</mat-icon>
+      <mat-select [(ngModel)]="selectedStage">
+        <mat-option value="all">All stages</mat-option>
+        <mat-option value="New">New</mat-option>
+        <mat-option value="Contacted">Contacted</mat-option>
+        <mat-option value="Qualified">Qualified</mat-option>
+        <mat-option value="High Intent">High Intent</mat-option>
+        <mat-option value="Site Visit Scheduled">Site Visit Scheduled</mat-option>
+        <mat-option value="Visit Completed">Visit Completed</mat-option>
+        <mat-option value="Negotiation">Negotiation</mat-option>
+        <mat-option value="Booking Intent">Booking Intent</mat-option>
+        <mat-option value="Booked">Booked</mat-option>
+      </mat-select>
+    </mat-form-field>
 
-    <select [(ngModel)]="selectedSource" class="filter-dropdown">
-      <option value="all">All sources</option>
-      <option value="Google Ads">Google Ads</option>
-      <option value="Meta Ads">Meta Ads</option>
-      <option value="Referral">Referral</option>
-      <option value="SimpliQualify">SimpliQualify</option>
-      <option value="Website">Website</option>
-      <option value="Instagram">Instagram</option>
-      <option value="Property Portal">Property Portal</option>
-    </select>
+    <mat-form-field appearance="outline" class="select-field-mat">
+      <mat-label>Lead Source</mat-label>
+      <mat-icon matPrefix>campaign</mat-icon>
+      <mat-select [(ngModel)]="selectedSource">
+        <mat-option value="all">All sources</mat-option>
+        <mat-option value="Google Ads">Google Ads</mat-option>
+        <mat-option value="Meta Ads">Meta Ads</mat-option>
+        <mat-option value="Referral">Referral</mat-option>
+        <mat-option value="SimpliQualify">SimpliQualify</mat-option>
+        <mat-option value="Website">Website</mat-option>
+        <mat-option value="Instagram">Instagram</mat-option>
+        <mat-option value="Property Portal">Property Portal</mat-option>
+      </mat-select>
+    </mat-form-field>
 
-    <select [(ngModel)]="selectedIntentBand" class="filter-dropdown">
-      <option value="all">All intent bands</option>
-      <option value="very_high">Very High Intent</option>
-      <option value="high">High Intent</option>
-      <option value="qualified">Qualified</option>
-    </select>
+    <mat-form-field appearance="outline" class="select-field-mat">
+      <mat-label>Intent Band</mat-label>
+      <mat-icon matPrefix>trending_up</mat-icon>
+      <mat-select [(ngModel)]="selectedIntentBand">
+        <mat-option value="all">All intent bands</mat-option>
+        <mat-option value="very_high">Very High Intent</mat-option>
+        <mat-option value="high">High Intent</mat-option>
+        <mat-option value="qualified">Qualified</mat-option>
+      </mat-select>
+    </mat-form-field>
 
-    <select [(ngModel)]="selectedOwner" class="filter-dropdown">
-      <option value="all">All owners</option>
-      <option value="Unassigned">Unassigned</option>
-      <option value="Amit Verma">Amit Verma (Account Executive)</option>
-      <option value="Arun Bhatia">Arun Bhatia (Sales Head / VP)</option>
-      <option value="Priya Nair">Priya Nair (Sales Manager)</option>
-    </select>
+    <mat-form-field appearance="outline" class="select-field-mat">
+      <mat-label>Assigned Owner</mat-label>
+      <mat-icon matPrefix>account_circle</mat-icon>
+      <mat-select [(ngModel)]="selectedOwner">
+        <mat-option value="all">All owners</mat-option>
+        <mat-option value="Unassigned">Unassigned</mat-option>
+        <mat-option value="Amit Verma">Amit Verma (Account Executive)</mat-option>
+        <mat-option value="Arun Bhatia">Arun Bhatia (Sales Head / VP)</mat-option>
+        <mat-option value="Priya Nair">Priya Nair (Sales Manager)</mat-option>
+      </mat-select>
+    </mat-form-field>
   </div>
 
-  <!-- Prospects Table -->
-  <div class="table-card">
+  <!-- Prospects Table Card -->
+  <mat-card class="table-card mat-elevation-z1">
+    <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
     <div class="table-responsive">
       <table class="prospects-table">
         <thead>
@@ -119,8 +146,23 @@
               </td>
               <td class="text-right risk-value">{{ p.at_risk }}</td>
               <td class="text-right actions-cell">
-                <button type="button" class="btn-action-edit" (click)="startEdit(p)">Edit</button>
-                <button type="button" class="btn-action-delete" (click)="deleteBuyer(p)" title="Delete buyer from database">Delete</button>
+                <button
+                  mat-icon-button
+                  type="button"
+                  (click)="startEdit(p)"
+                  matTooltip="Quick Edit Prospect"
+                >
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  color="warn"
+                  type="button"
+                  (click)="deleteBuyer(p)"
+                  matTooltip="Delete Prospect"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
               </td>
             </ng-container>
 
@@ -161,47 +203,51 @@
               </td>
               <td class="text-right risk-value">{{ p.at_risk }}</td>
               <td class="text-right actions-cell">
-                <button type="button" class="btn-save-inline" (click)="saveEdit(p)">Save</button>
-                <button type="button" class="btn-cancel-inline" (click)="cancelEdit()">Cancel</button>
+                <button mat-flat-button color="primary" type="button" class="btn-save-inline" (click)="saveEdit(p)">Save</button>
+                <button mat-stroked-button type="button" class="btn-cancel-inline" (click)="cancelEdit()">Cancel</button>
               </td>
             </ng-container>
           </tr>
         </tbody>
       </table>
     </div>
-  </div>
+  </mat-card>
 
   <!-- CSV Bulk Import Modal (SOW Sec 6) -->
   <div *ngIf="showImportModal" class="modal-backdrop">
-    <div class="modal-card">
+    <mat-card class="modal-card mat-elevation-z8">
       <div class="modal-header">
         <div>
           <h2 class="modal-title">Bulk Prospect CSV Import</h2>
           <p class="modal-subtitle">Upload CSV to bulk create prospect profiles with automated 4-dimension intent scoring</p>
         </div>
-        <button type="button" class="close-modal-btn" (click)="closeImportModal()">&times;</button>
+        <button mat-icon-button type="button" (click)="closeImportModal()">
+          <mat-icon>close</mat-icon>
+        </button>
       </div>
 
-      <div class="modal-body">
+      <mat-card-content class="modal-body">
         <div class="template-download-box">
           <div>
             <strong>Need the CSV Template?</strong>
-            <p class="sub-text">Download the official pre-formatted template with headers matching SOW Section 6 specifications.</p>
+            <p class="sub-text">Download official template with headers matching SOW Section 6 specifications.</p>
           </div>
-          <button type="button" class="btn-download-tpl" (click)="downloadTemplate()">📥 Download Template</button>
+          <button mat-stroked-button type="button" (click)="downloadTemplate()">
+            <mat-icon>file_download</mat-icon> Download Template
+          </button>
         </div>
 
         <div class="upload-zone">
           <input type="file" accept=".csv" (change)="onFileSelected($event)" id="csvFileInput" class="file-input" />
           <label for="csvFileInput" class="upload-label">
-            <span class="upload-icon">📄</span>
+            <mat-icon class="upload-icon-mat">cloud_upload</mat-icon>
             <span class="upload-title">{{ selectedFileName || 'Choose a .CSV file or drag & drop here' }}</span>
             <span class="upload-hint">Supported columns: full_name, phone, email, budget_min_lacs, budget_max_lacs, preferred_bhk, buying_timeframe, lead_source, financing_readiness</span>
           </label>
         </div>
 
         <div *ngIf="importError" class="modal-error-banner">
-          ⚠️ {{ importError }}
+          <mat-icon>warning</mat-icon> {{ importError }}
         </div>
 
         <!-- Import Statistics Result -->
@@ -252,21 +298,21 @@
             </table>
           </div>
         </div>
-      </div>
+      </mat-card-content>
 
-      <div class="modal-footer">
-        <button type="button" class="btn-cancel" (click)="closeImportModal()">Close</button>
+      <mat-card-actions class="modal-footer">
+        <button mat-button type="button" (click)="closeImportModal()">Close</button>
         <button
+          mat-flat-button
+          color="primary"
           type="button"
-          class="btn-confirm-import"
           [disabled]="importing || parsedCsvRows.length === 0"
           (click)="executeImport()"
         >
           <span *ngIf="!importing">Start Bulk Import ({{ parsedCsvRows.length }} rows) &rarr;</span>
           <span *ngIf="importing">Importing Prospects...</span>
         </button>
-      </div>
-    </div>
+      </mat-card-actions>
+    </mat-card>
   </div>
 </div>
-

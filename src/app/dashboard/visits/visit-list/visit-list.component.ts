@@ -13,6 +13,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatBadgeModule } from '@angular/material/badge';
+import { MatInputModule } from '@angular/material/input';
 
 @Component({
   selector: 'app-visit-list',
@@ -29,7 +30,8 @@ import { MatBadgeModule } from '@angular/material/badge';
     MatSelectModule,
     MatProgressBarModule,
     MatTooltipModule,
-    MatBadgeModule
+    MatBadgeModule,
+    MatInputModule
   ],
   templateUrl: './visit-list.component.html',
   styleUrl: './visit-list.component.css'

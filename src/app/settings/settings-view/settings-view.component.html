@@ -1,4 +1,7 @@
 <div class="settings-page-wrapper">
+  <!-- Dynamic Progress Bar -->
+  <mat-progress-bar *ngIf="loading" mode="indeterminate" style="margin-bottom: 1rem; border-radius: 4px;"></mat-progress-bar>
+
   <!-- Top Header -->
   <div class="settings-header">
     <div class="section-tag">ADMINISTRATION &middot; SYSTEM SETTINGS</div>
@@ -9,17 +12,19 @@
   </div>
 
   <div *ngIf="savedMessage" class="success-banner">
+    <mat-icon style="font-size: 18px; width: 18px; height: 18px; vertical-align: middle;">check_circle</mat-icon>
     {{ savedMessage }}
   </div>
 
   <div *ngIf="errorMessage" class="error-banner">
+    <mat-icon style="font-size: 18px; width: 18px; height: 18px; vertical-align: middle;">error</mat-icon>
     {{ errorMessage }}
   </div>
 
   <!-- Top Two Columns: Organisation & My Profile -->
   <div class="two-col-grid">
     <!-- ORGANISATION -->
-    <div class="card-box">
+    <mat-card class="card-box">
       <div class="card-box-title">ORGANISATION</div>
       <div class="org-fields-grid">
         <div class="info-group">
@@ -39,47 +44,49 @@
           <div class="info-val status-val">{{ org.status }}</div>
         </div>
       </div>
-    </div>
+    </mat-card>
 
     <!-- MY PROFILE -->
-    <div class="card-box">
+    <mat-card class="card-box">
       <div class="card-box-title">MY PROFILE</div>
       <form (ngSubmit)="saveProfile()" class="profile-form">
         <div class="form-row-2">
-          <div class="form-field">
-            <label class="field-label">First name</label>
-            <input type="text" [(ngModel)]="profile.firstName" name="firstName" class="input-field" />
-          </div>
-          <div class="form-field">
-            <label class="field-label">Last name</label>
-            <input type="text" [(ngModel)]="profile.lastName" name="lastName" class="input-field" />
-          </div>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>First name</mat-label>
+            <input matInput type="text" [(ngModel)]="profile.firstName" name="firstName" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Last name</mat-label>
+            <input matInput type="text" [(ngModel)]="profile.lastName" name="lastName" />
+          </mat-form-field>
         </div>
         <div class="form-row-2">
-          <div class="form-field">
-            <label class="field-label">Mobile</label>
-            <input type="text" [(ngModel)]="profile.mobile" name="mobile" class="input-field" />
-          </div>
-          <div class="form-field">
-            <label class="field-label">Designation</label>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Mobile</mat-label>
+            <input matInput type="text" [(ngModel)]="profile.mobile" name="mobile" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Designation</mat-label>
             <input
+              matInput
               type="text"
               [value]="profile.designation"
               name="designation"
-              class="input-field readonly-field"
               readonly
               disabled
               title="Designation is managed through Role & Access Control"
             />
-          </div>
+          </mat-form-field>
         </div>
-        <button type="submit" class="btn-dark-save">Save profile</button>
+        <button mat-flat-button color="primary" type="submit" [disabled]="loading">
+          <mat-icon>save</mat-icon> Save profile
+        </button>
       </form>
-    </div>
+    </mat-card>
   </div>
 
   <!-- SCORING CONFIGURATION -->
-  <div class="card-box scoring-card">
+  <mat-card class="card-box scoring-card" style="margin-top: 1.5rem;">
     <div class="scoring-header-row">
       <div>
         <div class="card-box-title">SCORING CONFIGURATION</div>
@@ -90,30 +97,32 @@
       </div>
     </div>
 
-    <div class="scoring-grid-4">
-      <div class="score-input-box">
-        <label class="score-label">PROFILE FIT</label>
-        <input type="number" [(ngModel)]="scoring.profileFit" class="score-input" min="0" max="100" />
-      </div>
-      <div class="score-input-box">
-        <label class="score-label">DIGITAL INTENT</label>
-        <input type="number" [(ngModel)]="scoring.digitalIntent" class="score-input" min="0" max="100" />
-      </div>
-      <div class="score-input-box">
-        <label class="score-label">REQUIREMENT BUDGET FIT</label>
-        <input type="number" [(ngModel)]="scoring.requirementBudgetFit" class="score-input" min="0" max="100" />
-      </div>
-      <div class="score-input-box">
-        <label class="score-label">READINESS MOMENTUM</label>
-        <input type="number" [(ngModel)]="scoring.readinessMomentum" class="score-input" min="0" max="100" />
-      </div>
+    <div class="scoring-grid-4" style="margin-top: 1rem;">
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>PROFILE FIT (%)</mat-label>
+        <input matInput type="number" [(ngModel)]="scoring.profileFit" min="0" max="100" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>DIGITAL INTENT (%)</mat-label>
+        <input matInput type="number" [(ngModel)]="scoring.digitalIntent" min="0" max="100" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>REQUIREMENT BUDGET FIT (%)</mat-label>
+        <input matInput type="number" [(ngModel)]="scoring.requirementBudgetFit" min="0" max="100" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>READINESS MOMENTUM (%)</mat-label>
+        <input matInput type="number" [(ngModel)]="scoring.readinessMomentum" min="0" max="100" />
+      </mat-form-field>
     </div>
 
     <div class="scoring-actions-row">
-      <button type="button" class="btn-dark-save" (click)="saveScoring()">Save scoring weights</button>
+      <button mat-flat-button color="primary" type="button" [disabled]="loading" (click)="saveScoring()">
+        <mat-icon>tune</mat-icon> Save scoring weights
+      </button>
       <span class="scoring-footnote">
         Weights are versioned with the engine so historic scores remain explainable. A future ML model can replace the rules without changing any screen.
       </span>
     </div>
-  </div>
+  </mat-card>
 </div>

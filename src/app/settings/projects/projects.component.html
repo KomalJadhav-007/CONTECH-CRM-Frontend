@@ -4,102 +4,207 @@
     <div class="section-tag">ADMINISTRATION &middot; PROJECT MASTER</div>
     <h1 class="page-title">Projects</h1>
     <p class="page-subtitle">
-      The project master behind every prospect, slot and site visit. Capacity here caps how much intent you can convert.
+      The project master behind every prospect, slot, and site visit. Manage projects, multiple flat typologies, and detailed unit inventories in a single unified dashboard.
     </p>
   </div>
 
   <!-- Feedback Message Banner -->
   <div *ngIf="feedbackMessage" class="feedback-banner">
-    {{ feedbackMessage }}
+    <span class="feedback-icon">✓</span> {{ feedbackMessage }}
   </div>
 
-  <!-- 4 Stat Cards -->
-  <div class="stats-grid-4">
-    <div class="stat-card">
+  <!-- Project Scope Alert Banner for Restricted Users -->
+  <div *ngIf="accessScope?.is_restricted" class="scoped-access-alert-banner">
+    <div class="scoped-alert-icon">🔒</div>
+    <div class="scoped-alert-content">
+      <div class="scoped-alert-title">
+        Project Access Control Active &mdash; Scoped to {{ projects.length }} Assigned {{ projects.length === 1 ? 'Project' : 'Projects' }}
+      </div>
+      <div class="scoped-alert-desc">
+        Your user account has been configured with project-level access control. You are authorized to access, manage flats, inspect leads, and close bookings exclusively for your assigned projects.
+      </div>
+    </div>
+    <div class="scoped-alert-badge">
+      👤 Restricted Scope
+    </div>
+  </div>
+
+
+  <!-- Stat Cards -->
+  <div class="stats-grid-6">
+    <mat-card appearance="outlined" class="stat-card">
       <div class="card-label">PROJECTS</div>
       <div class="card-value">{{ stats.projects }}</div>
-    </div>
-    <div class="stat-card">
-      <div class="card-label">ACTIVE</div>
-      <div class="card-value">{{ stats.active }}</div>
-    </div>
-    <div class="stat-card">
+      <div class="card-meta">{{ stats.active }} active developments</div>
+    </mat-card>
+    <mat-card appearance="outlined" class="stat-card">
+      <div class="card-label">TOTAL FLATS / PROPERTIES</div>
+      <div class="card-value">{{ stats.total_flats }}</div>
+      <div class="card-meta">Units in inventory</div>
+    </mat-card>
+    <mat-card appearance="outlined" class="stat-card">
+      <div class="card-label">AVAILABLE FLATS</div>
+      <div class="card-value highlight-avail">{{ stats.available_flats }}</div>
+      <div class="card-meta">Ready for site visit &amp; booking</div>
+    </mat-card>
+    <mat-card appearance="outlined" class="stat-card">
       <div class="card-label">DAILY VISIT CAPACITY</div>
       <div class="card-value">{{ stats.daily_capacity }}</div>
-    </div>
-    <div class="stat-card">
-      <div class="card-label">BOOKING VALUE</div>
-      <div class="card-value">₹{{ stats.booking_value }} Cr</div>
-    </div>
+      <div class="card-meta">Slots per working day</div>
+    </mat-card>
+    <mat-card appearance="outlined" class="stat-card">
+      <div class="card-label">CONFIRMED BOOKINGS</div>
+      <div class="card-value highlight-booked">₹{{ stats.booking_value }} Cr</div>
+      <div class="card-meta">Closed deal volume</div>
+    </mat-card>
   </div>
 
-  <!-- ADD PROJECT FORM -->
-  <div class="form-card">
-    <div class="form-card-title">ADD PROJECT</div>
+  <!-- ADD PROJECT FORM WITH MULTIPLE FLATS & PROPERTY CONFIGURATIONS -->
+  <mat-card class="form-card" style="margin-bottom: 2rem;">
+    <div class="form-card-header">
+      <div class="form-card-title">ADD NEW PROJECT</div>
+      <button mat-stroked-button type="button" class="btn-toggle-sub" (click)="showPropertyTypesBuilder = !showPropertyTypesBuilder">
+        {{ showPropertyTypesBuilder ? '▾ Hide Flat Configurations' : '▸ Show Flat Configurations' }}
+      </button>
+    </div>
+
     <form (ngSubmit)="addProject()" class="project-form">
+      <!-- Row 1: General Details -->
       <div class="form-row-4">
         <div class="form-field">
-          <label class="field-label">Name</label>
+          <label class="field-label">Project Name *</label>
           <input type="text" [(ngModel)]="newProject.name" name="name" required class="input-field" placeholder="e.g. Contech Aurum Towers" />
         </div>
         <div class="form-field">
-          <label class="field-label">Developer</label>
-          <input type="text" [(ngModel)]="newProject.developer" name="developer" class="input-field" />
+          <label class="field-label">Developer / Builder</label>
+          <input type="text" [(ngModel)]="newProject.developer" name="developer" class="input-field" placeholder="e.g. Contech Developments Pvt Ltd" />
         </div>
         <div class="form-field">
-          <label class="field-label">Location</label>
+          <label class="field-label">Location / Micro-Market *</label>
           <input type="text" [(ngModel)]="newProject.location" name="location" class="input-field" placeholder="e.g. Whitefield, Bengaluru" />
         </div>
         <div class="form-field">
-          <label class="field-label">Address</label>
+          <label class="field-label">Full Address / Landmark</label>
           <input type="text" [(ngModel)]="newProject.address" name="address" class="input-field" placeholder="e.g. Outer Ring Road, Near ITPL" />
         </div>
       </div>
 
+      <!-- Row 2: Operational Specs -->
       <div class="form-row-4">
         <div class="form-field">
-          <label class="field-label">Configurations (comma separated)</label>
-          <input type="text" [(ngModel)]="newProject.configurations" name="configurations" class="input-field" placeholder="2 BHK, 3 BHK, 4 BHK Luxury" />
-        </div>
-        <div class="form-field">
-          <label class="field-label">Daily visit capacity</label>
+          <label class="field-label">Daily Visit Capacity</label>
           <input type="number" [(ngModel)]="newProject.daily_capacity" name="daily_capacity" class="input-field" />
         </div>
         <div class="form-field">
-          <label class="field-label">Working hours</label>
+          <label class="field-label">Working Hours</label>
           <input type="text" [(ngModel)]="newProject.working_hours" name="working_hours" class="input-field" placeholder="09:00 AM - 07:00 PM" />
         </div>
         <div class="form-field">
-          <label class="field-label">Status</label>
+          <label class="field-label">Operational Status</label>
           <select [(ngModel)]="newProject.status" name="status" class="input-field select-field">
-            <option value="active">active</option>
-            <option value="inactive">inactive</option>
+            <option value="active">Active (Accepting Visits &amp; Deals)</option>
+            <option value="inactive">Inactive</option>
           </select>
+        </div>
+        <div class="form-field">
+          <label class="field-label">Configurations Summary</label>
+          <input type="text" [(ngModel)]="newProject.configurations" name="configurations" class="input-field" placeholder="Auto-populated from flat types below" />
+        </div>
+      </div>
+
+      <!-- Section: Mention Multiple Flats / Properties in this Single Project -->
+      <div *ngIf="showPropertyTypesBuilder" class="flat-configurations-builder">
+        <div class="builder-header">
+          <div>
+            <div class="builder-title">🏢 Flats &amp; Properties Configuration for this Project</div>
+            <div class="builder-subtitle">Define the multiple flat types (BHKs, sizes, prices) and inventory available in this project.</div>
+          </div>
+          <button mat-stroked-button type="button" class="btn-add-type" (click)="addPropertyTypeRow()">
+            <mat-icon>add</mat-icon> Add Another Flat Typology
+          </button>
+        </div>
+
+        <div class="type-rows-container">
+          <div *ngFor="let pt of newProjectPropertyTypes; let i = index" class="type-row-item">
+            <div class="type-row-col col-name">
+              <label class="sub-label">Configuration / Flat Name</label>
+              <input type="text" [(ngModel)]="pt.name" [name]="'pt_name_' + i" (input)="syncConfigurationsText()" class="input-field-sm" placeholder="e.g. 2 BHK Executive" />
+            </div>
+            <div class="type-row-col col-bhk">
+              <label class="sub-label">Typology</label>
+              <select [(ngModel)]="pt.bhk_type" [name]="'pt_bhk_' + i" (change)="syncConfigurationsText()" class="input-field-sm select-field">
+                <option value="1 BHK">1 BHK</option>
+                <option value="2 BHK">2 BHK</option>
+                <option value="3 BHK">3 BHK</option>
+                <option value="4 BHK">4 BHK</option>
+                <option value="5 BHK">5 BHK</option>
+                <option value="Penthouse">Penthouse</option>
+                <option value="Villa">Villa / Duplex</option>
+              </select>
+            </div>
+            <div class="type-row-col col-sqft">
+              <label class="sub-label">Super Built-up (sqft)</label>
+              <input type="number" [(ngModel)]="pt.super_builtup_area_sqft" [name]="'pt_sqft_' + i" class="input-field-sm" placeholder="1350" />
+            </div>
+            <div class="type-row-col col-price">
+              <label class="sub-label">Starting Price (₹ Lacs)</label>
+              <input type="number" [(ngModel)]="pt.base_price_lacs" [name]="'pt_price_' + i" class="input-field-sm" placeholder="125" />
+            </div>
+            <div class="type-row-col col-units">
+              <label class="sub-label">Planned Units</label>
+              <input type="number" [(ngModel)]="pt.total_units" [name]="'pt_units_' + i" class="input-field-sm" placeholder="30" />
+            </div>
+            <div class="type-row-col col-facing">
+              <label class="sub-label">Facing / View</label>
+              <input type="text" [(ngModel)]="pt.facing" [name]="'pt_facing_' + i" class="input-field-sm" placeholder="East Facing" />
+            </div>
+            <div class="type-row-col col-action">
+              <label class="sub-label">&nbsp;</label>
+              <button mat-icon-button color="warn" type="button" (click)="removePropertyTypeRow(i)" [disabled]="newProjectPropertyTypes.length <= 1" matTooltip="Remove configuration">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="builder-footer-options">
+          <label class="checkbox-container">
+            <input type="checkbox" [(ngModel)]="autoGenerateBatchFlats" name="autoGenerateBatchFlats" />
+            <span class="checkbox-label">⚡ Auto-generate initial flat inventory numbers (Floors 1-3) so sales reps can shortlist units immediately</span>
+          </label>
         </div>
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="btn-submit">+ Add Project</button>
+        <button mat-flat-button color="primary" type="submit" class="btn-submit">
+          <mat-icon>add_business</mat-icon> Create Project &amp; Register Flats
+        </button>
       </div>
     </form>
-  </div>
+  </mat-card>
 
   <!-- PROJECT REGISTER TABLE -->
-  <div class="table-card">
-    <div class="table-card-title">PROJECT REGISTER</div>
+  <mat-card class="table-card">
+    <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
+    <div class="table-card-header">
+      <div class="table-card-title">PROJECT REGISTER &amp; FLATS INVENTORY</div>
+      <div class="table-card-meta">{{ projects.length }} Total Developments Registered</div>
+    </div>
+
     <div class="table-responsive">
       <table class="admin-table">
         <thead>
           <tr>
-            <th>PROJECT</th>
+            <th>PROJECT DETAILS</th>
             <th>LOCATION</th>
-            <th>CONFIGURATIONS</th>
-            <th class="text-right">CAPACITY/DAY</th>
+            <th>FLAT TYPES &amp; INVENTORY</th>
+            <th class="text-center">FLATS STATUS</th>
+            <th class="text-right">DAILY CAPACITY</th>
             <th class="text-right">ACTIVE PIPELINE</th>
             <th class="text-right">UPCOMING VISITS</th>
             <th class="text-right">BOOKINGS</th>
             <th>STATUS</th>
-            <th class="text-right"></th>
+            <th class="text-right">ACTIONS</th>
           </tr>
         </thead>
         <tbody>
@@ -109,13 +214,51 @@
               <td>
                 <div class="proj-name">{{ p.name }}</div>
                 <div class="proj-dev">{{ p.developer }}</div>
+                <div class="proj-meta-chips">
+                  <span *ngIf="p.code" class="proj-code-badge">{{ p.code }}</span>
+                  <span *ngIf="p.user_access_scoped" class="badge-user-assigned-scope" matTooltip="This project is assigned to your account">
+                    👤 Assigned to You
+                  </span>
+                </div>
+                <div *ngIf="p.assigned_users && p.assigned_users.length > 0" class="assigned-users-inline-box">
+                  <span class="assigned-users-label">Assigned Team:</span>
+                  <span *ngFor="let u of p.assigned_users" class="assigned-user-tag" [title]="u.email">
+                    👤 {{ u.name }}
+                  </span>
+                </div>
               </td>
-              <td>{{ p.location }}</td>
-              <td>{{ p.configurations }}</td>
-              <td class="text-right">{{ p.capacity_per_day }}</td>
+              <td>
+                <div class="proj-loc">{{ p.location }}</div>
+                <div *ngIf="p.address" class="proj-addr-sub">{{ p.address }}</div>
+              </td>
+              <td>
+                <div class="config-tags">
+                  <span *ngFor="let conf of (p.configurations ? p.configurations.split(',') : [])" class="config-tag">
+                    {{ conf.trim() }}
+                  </span>
+                </div>
+                <button mat-stroked-button type="button" class="btn-manage-inventory" (click)="openInventoryDrawer(p)">
+                  <mat-icon style="font-size: 16px; width: 16px; height: 16px; vertical-align: middle;">domain</mat-icon> View &amp; Manage Flats ({{ p.total_units || 0 }})
+                </button>
+              </td>
+              <td class="text-center">
+                <div class="units-breakdown">
+                  <span class="avail-badge" matTooltip="Available for site visit &amp; booking">
+                    {{ p.available_units }} Avail
+                  </span>
+                  <span *ngIf="p.booked_units > 0" class="booked-badge" matTooltip="Confirmed Sales Bookings">
+                    {{ p.booked_units }} Booked
+                  </span>
+                  <span *ngIf="p.reserved_units > 0" class="reserved-badge" matTooltip="Reserved / Shortlisted">
+                    {{ p.reserved_units }} Held
+                  </span>
+                </div>
+                <div class="total-units-sub">of {{ p.total_units }} total flats</div>
+              </td>
+              <td class="text-right font-semibold">{{ p.capacity_per_day }}</td>
               <td class="text-right">
                 <div class="metric-main">{{ p.active_pipeline }} buyers</div>
-                <div class="booking-val-sub">{{ p.available_units }}/{{ p.total_units }} units avail</div>
+                <div class="booking-val-sub">{{ p.available_units }}/{{ p.total_units }} flats avail</div>
               </td>
               <td class="text-right">
                 <span class="visit-count" [class.has-visits]="p.upcoming_visits > 0">
@@ -126,19 +269,26 @@
                 <div *ngIf="p.crm_bookings > 0" class="deal-highlight">
                   {{ p.crm_bookings }} booked (₹{{ p.crm_booking_value_cr }} Cr)
                 </div>
-                <div *ngIf="p.crm_bookings === 0">
-                  {{ p.historical_sold_units }}
+                <div *ngIf="p.crm_bookings === 0" class="text-muted">
+                  0 bookings
                 </div>
                 <div class="booking-val-sub">
-                  {{ p.historical_sold_units }} sold &middot; ₹{{ p.starting_price_lacs }}L+
+                  From ₹{{ p.starting_price_lacs }}L
                 </div>
               </td>
               <td>
-                <span class="status-pill" [class.active]="p.status === 'active'" [class.inactive]="p.status === 'inactive'">{{ p.status }}</span>
+                <span class="status-pill" [class.active]="p.status === 'active'" [class.inactive]="p.status === 'inactive'">
+                  {{ p.status }}
+                </span>
               </td>
               <td class="text-right action-cell">
-                <button type="button" class="btn-edit" (click)="startEdit(p)">Edit</button>
-                <button type="button" class="btn-delete" (click)="deleteProject(p)" title="Delete project from database">Delete</button>
+                <div style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                  <button mat-stroked-button type="button" (click)="openInventoryDrawer(p)" matTooltip="Open Flats &amp; Units Management">
+                    Flats
+                  </button>
+                  <button mat-stroked-button type="button" (click)="startEdit(p)">Edit</button>
+                  <button mat-button color="warn" type="button" (click)="deleteProject(p)" matTooltip="Delete project and all units">Delete</button>
+                </div>
               </td>
             </ng-container>
 
@@ -151,8 +301,8 @@
               <td>
                 <input type="text" [(ngModel)]="editForm.location" class="inline-input" placeholder="Location" />
               </td>
-              <td>
-                <input type="text" [(ngModel)]="editForm.configurations" class="inline-input" placeholder="2 BHK, 3 BHK" />
+              <td colspan="2">
+                <input type="text" [(ngModel)]="editForm.configurations" class="inline-input" placeholder="2 BHK, 3 BHK, 4 BHK" />
               </td>
               <td class="text-right">
                 <input type="number" [(ngModel)]="editForm.daily_capacity" class="inline-input text-right" style="width: 70px;" />
@@ -167,13 +317,425 @@
                 </select>
               </td>
               <td class="text-right action-cell">
-                <button type="button" class="btn-save-inline" (click)="saveEdit(p)">Save</button>
-                <button type="button" class="btn-cancel-inline" (click)="cancelEdit()">Cancel</button>
+                <div style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                  <button mat-flat-button color="primary" type="button" (click)="saveEdit(p)">Save</button>
+                  <button mat-button type="button" (click)="cancelEdit()">Cancel</button>
+                </div>
               </td>
             </ng-container>
           </tr>
         </tbody>
       </table>
+    </div>
+  </mat-card>
+</div>
+
+<!-- ============================================================== -->
+<!-- INTERACTIVE FLATS & INVENTORY MANAGEMENT DRAWER (SLIDE-OVER)  -->
+<!-- ============================================================== -->
+<div *ngIf="isInventoryOpen" class="inventory-drawer-overlay" (click)="closeInventoryDrawer()">
+  <div class="inventory-drawer-panel" (click)="$event.stopPropagation()">
+    <!-- Drawer Header -->
+    <div class="drawer-header">
+      <div class="drawer-header-left">
+        <div class="drawer-tag">PROJECT FLATS & INVENTORY MASTER</div>
+        <h2 class="drawer-title">{{ activeProject?.name }}</h2>
+        <div class="drawer-meta-row">
+          <span class="meta-item">📍 {{ activeProject?.location }}</span>
+          <span class="meta-dot">&middot;</span>
+          <span class="meta-item">🏢 {{ activeProject?.developer }}</span>
+          <span *ngIf="activeProject?.code" class="meta-tag">{{ activeProject?.code }}</span>
+        </div>
+      </div>
+      <button mat-icon-button type="button" (click)="closeInventoryDrawer()" matTooltip="Close Drawer">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <!-- 4 Mini Inventory Stat Cards -->
+    <div class="drawer-stats-grid">
+      <div class="drawer-stat-card">
+        <div class="d-card-label">TOTAL FLATS</div>
+        <div class="d-card-value">{{ activeInventory.stats.total_flats }}</div>
+        <div class="d-card-meta">Units registered</div>
+      </div>
+      <div class="drawer-stat-card highlight-card-avail">
+        <div class="d-card-label">AVAILABLE</div>
+        <div class="d-card-value text-green">{{ activeInventory.stats.available_flats }}</div>
+        <div class="d-card-meta">Ready for visitors</div>
+      </div>
+      <div class="drawer-stat-card highlight-card-booked">
+        <div class="d-card-label">BOOKED / SOLD</div>
+        <div class="d-card-value text-purple">{{ activeInventory.stats.booked_flats }}</div>
+        <div class="d-card-meta">₹{{ activeInventory.stats.booked_value_cr }} Cr locked</div>
+      </div>
+      <div class="drawer-stat-card">
+        <div class="d-card-label">HELD / RESERVED</div>
+        <div class="d-card-value text-amber">{{ activeInventory.stats.reserved_flats }}</div>
+        <div class="d-card-meta">Token/Offer pending</div>
+      </div>
+      <div class="drawer-stat-card">
+        <div class="d-card-label">TOTAL PORTFOLIO VALUE</div>
+        <div class="d-card-value">₹{{ activeInventory.stats.total_value_cr }} Cr</div>
+        <div class="d-card-meta">Gross valuation</div>
+      </div>
+    </div>
+
+    <!-- Drawer Navigation Tabs -->
+    <div class="drawer-tabs-bar">
+      <button mat-button type="button" class="drawer-tab-btn" [class.active]="inventoryTab === 'units'" (click)="setInventoryTab('units')">
+        🏢 Flats &amp; Units Inventory ({{ activeInventory.units.length }})
+      </button>
+      <button mat-button type="button" class="drawer-tab-btn" [class.active]="inventoryTab === 'types'" (click)="setInventoryTab('types')">
+        📐 Property Configurations &amp; Typologies ({{ activeInventory.propertyTypes.length }})
+      </button>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div *ngIf="inventoryLoading" class="drawer-loading">
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+      <div class="loading-label">Synchronizing project inventory...</div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- TAB 1: FLATS / UNITS INVENTORY REGISTER         -->
+    <!-- ============================================== -->
+    <div *ngIf="!inventoryLoading && inventoryTab === 'units'" class="drawer-tab-content">
+      <!-- Toolbar: Filters & Actions -->
+      <div class="inventory-toolbar">
+        <div class="toolbar-filters">
+          <!-- Search input -->
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" [(ngModel)]="inventorySearch" placeholder="Search flat #, BHK, notes..." class="search-input" />
+          </div>
+
+          <!-- Status Filter -->
+          <select [(ngModel)]="inventoryFilterStatus" class="filter-select">
+            <option value="ALL">All Statuses</option>
+            <option value="AVAILABLE">Available Only</option>
+            <option value="RESERVED">Reserved Only</option>
+            <option value="BOOKED">Booked Only</option>
+            <option value="BLOCKED">Blocked Only</option>
+          </select>
+
+          <!-- Tower Filter -->
+          <select [(ngModel)]="inventoryFilterTower" class="filter-select">
+            <option value="ALL">All Towers / Wings</option>
+            <option *ngFor="let t of uniqueTowers" [value]="t">{{ t }}</option>
+          </select>
+        </div>
+
+        <div class="toolbar-actions" style="display: flex; gap: 0.5rem;">
+          <button mat-stroked-button type="button" class="btn-batch-gen" (click)="openBatchModal()">
+            ⚡ Batch Generate Flats
+          </button>
+          <button mat-flat-button color="primary" type="button" class="btn-add-unit" (click)="openSingleFlatModal()">
+            <mat-icon>add</mat-icon> Add Single Flat
+          </button>
+        </div>
+      </div>
+
+      <!-- INLINE POPUP MODAL: ADD SINGLE FLAT -->
+      <mat-card *ngIf="showSingleFlatModal" class="inline-modal-panel">
+        <div class="inline-modal-header">
+          <span class="inline-modal-title">+ Add Flat to {{ activeProject?.name }}</span>
+          <button mat-icon-button type="button" (click)="showSingleFlatModal = false">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+        <div class="inline-modal-grid">
+          <div class="form-field">
+            <label class="field-label">Flat / Unit Number *</label>
+            <input type="text" [(ngModel)]="newFlatForm.unit_number" class="input-field" placeholder="e.g. A-302, Tower B-104" required />
+          </div>
+          <div class="form-field">
+            <label class="field-label">Tower / Block</label>
+            <input type="text" [(ngModel)]="newFlatForm.tower_block" class="input-field" placeholder="e.g. Tower A" />
+          </div>
+          <div class="form-field">
+            <label class="field-label">Floor Number</label>
+            <input type="number" [(ngModel)]="newFlatForm.floor_number" class="input-field" placeholder="1" />
+          </div>
+          <div class="form-field">
+            <label class="field-label">Typology</label>
+            <select [(ngModel)]="newFlatForm.bhk_type" class="input-field select-field">
+              <option value="1 BHK">1 BHK</option>
+              <option value="2 BHK">2 BHK</option>
+              <option value="3 BHK">3 BHK</option>
+              <option value="4 BHK">4 BHK</option>
+              <option value="5 BHK">5 BHK</option>
+              <option value="Penthouse">Penthouse</option>
+              <option value="Villa">Villa / Duplex</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="field-label">Super Built-up Area (sqft)</label>
+            <input type="number" [(ngModel)]="newFlatForm.area_sqft" class="input-field" placeholder="1350" />
+          </div>
+          <div class="form-field">
+            <label class="field-label">Price (₹ Lacs)</label>
+            <input type="number" [(ngModel)]="newFlatForm.price_lacs" class="input-field" placeholder="135.00" />
+          </div>
+          <div class="form-field">
+            <label class="field-label">Facing / Direction</label>
+            <input type="text" [(ngModel)]="newFlatForm.facing" class="input-field" placeholder="East Facing" />
+          </div>
+          <div class="form-field">
+            <label class="field-label">Initial Status</label>
+            <select [(ngModel)]="newFlatForm.status" class="input-field select-field">
+              <option value="AVAILABLE">AVAILABLE</option>
+              <option value="RESERVED">RESERVED</option>
+              <option value="BOOKED">BOOKED</option>
+              <option value="BLOCKED">BLOCKED</option>
+            </select>
+          </div>
+        </div>
+        <div class="inline-modal-actions" style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+          <button mat-button type="button" (click)="showSingleFlatModal = false">Cancel</button>
+          <button mat-flat-button color="primary" type="button" (click)="submitSingleFlat()">Save Flat</button>
+        </div>
+      </mat-card>
+
+      <!-- INLINE POPUP MODAL: QUICK BATCH GENERATOR -->
+      <mat-card *ngIf="showBatchModal" class="inline-modal-panel batch-panel">
+        <div class="inline-modal-header">
+          <div>
+            <span class="inline-modal-title">⚡ Quick Batch Generator — Multiple Flats</span>
+            <div class="inline-modal-sub">Generate 10 to 100 flats in 1 click across floors and towers.</div>
+          </div>
+          <button mat-icon-button type="button" (click)="showBatchModal = false">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+        <div class="inline-modal-grid">
+          <div class="form-field">
+            <label class="field-label">Tower / Block Name</label>
+            <input type="text" [(ngModel)]="batchFlatForm.tower_block" class="input-field" placeholder="e.g. Tower A" />
+          </div>
+          <div class="form-field">
+            <label class="field-label">Start Floor</label>
+            <input type="number" [(ngModel)]="batchFlatForm.start_floor" class="input-field" placeholder="1" />
+          </div>
+          <div class="form-field">
+            <label class="field-label">End Floor</label>
+            <input type="number" [(ngModel)]="batchFlatForm.end_floor" class="input-field" placeholder="5" />
+          </div>
+          <div class="form-field">
+            <label class="field-label">Flats Per Floor</label>
+            <input type="number" [(ngModel)]="batchFlatForm.units_per_floor" class="input-field" placeholder="4" />
+          </div>
+          <div class="form-field">
+            <label class="field-label">BHK Typology</label>
+            <select [(ngModel)]="batchFlatForm.bhk_type" class="input-field select-field">
+              <option value="1 BHK">1 BHK</option>
+              <option value="2 BHK">2 BHK</option>
+              <option value="3 BHK">3 BHK</option>
+              <option value="4 BHK">4 BHK</option>
+              <option value="Penthouse">Penthouse</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="field-label">Average Area (sqft)</label>
+            <input type="number" [(ngModel)]="batchFlatForm.area_sqft" class="input-field" placeholder="1350" />
+          </div>
+          <div class="form-field">
+            <label class="field-label">Base Price (₹ Lacs)</label>
+            <input type="number" [(ngModel)]="batchFlatForm.price_lacs" class="input-field" placeholder="140.00" />
+          </div>
+          <div class="form-field">
+            <label class="field-label">Default Facing</label>
+            <input type="text" [(ngModel)]="batchFlatForm.facing" class="input-field" placeholder="East Facing" />
+          </div>
+        </div>
+
+        <div class="batch-preview-notice">
+          ℹ️ Generating from Floor {{ batchFlatForm.start_floor }} to {{ batchFlatForm.end_floor }} with {{ batchFlatForm.units_per_floor }} flats/floor will add
+          <strong>{{ (batchFlatForm.end_floor - batchFlatForm.start_floor + 1) * batchFlatForm.units_per_floor }} total flats</strong>
+          (e.g., {{ batchFlatForm.tower_block }}-101, {{ batchFlatForm.tower_block }}-102 ... {{ batchFlatForm.tower_block }}-{{ batchFlatForm.end_floor }}0{{ batchFlatForm.units_per_floor }}).
+        </div>
+
+        <div class="inline-modal-actions" style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+          <button mat-button type="button" (click)="showBatchModal = false">Cancel</button>
+          <button mat-flat-button color="primary" type="button" (click)="submitBatchFlats()">⚡ Generate All Flats</button>
+        </div>
+      </mat-card>
+
+      <!-- Flats Inventory Table -->
+      <div class="units-table-container">
+        <table *ngIf="filteredUnits.length > 0" class="drawer-table">
+          <thead>
+            <tr>
+              <th>FLAT / UNIT #</th>
+              <th>TOWER & FLOOR</th>
+              <th>TYPOLOGY</th>
+              <th class="text-right">AREA (SQFT)</th>
+              <th class="text-right">PRICE (₹ LACS)</th>
+              <th>FACING</th>
+              <th class="text-center">STATUS</th>
+              <th>BUYER / NOTES</th>
+              <th class="text-right">ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let u of filteredUnits" [class.row-booked]="u.status === 'BOOKED'" [class.row-reserved]="u.status === 'RESERVED'">
+              <td class="font-bold">{{ u.unit_number }}</td>
+              <td>{{ u.tower_block }} &middot; Fl {{ u.floor_number }}</td>
+              <td>
+                <span class="bhk-badge">{{ u.bhk_type }}</span>
+              </td>
+              <td class="text-right">{{ u.area_sqft ? (u.area_sqft | number) : '-' }}</td>
+              <td class="text-right font-semibold">₹{{ u.price_lacs }} L</td>
+              <td class="text-muted">{{ u.facing || 'Standard' }}</td>
+              <td class="text-center">
+                <!-- Status Switcher Dropdown -->
+                <select [ngModel]="u.status" (ngModelChange)="quickToggleUnitStatus(u, $event)" class="unit-status-select" [ngClass]="'status-' + u.status.toLowerCase()">
+                  <option value="AVAILABLE">AVAILABLE</option>
+                  <option value="RESERVED">RESERVED</option>
+                  <option value="BOOKED">BOOKED</option>
+                  <option value="BLOCKED">BLOCKED</option>
+                </select>
+              </td>
+              <td>
+                <div *ngIf="u.bookedByBuyer" class="buyer-tag">
+                  👤 {{ u.bookedByBuyer.full_name }}
+                </div>
+                <div *ngIf="!u.bookedByBuyer && u.notes" class="notes-tag">
+                  {{ u.notes }}
+                </div>
+                <div *ngIf="!u.bookedByBuyer && !u.notes" class="text-muted-sm">
+                  —
+                </div>
+              </td>
+              <td class="text-right">
+                <button mat-icon-button color="warn" type="button" (click)="deleteUnit(u)" matTooltip="Delete flat from project">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Empty State -->
+        <div *ngIf="filteredUnits.length === 0" class="drawer-empty-state">
+          <div class="empty-icon">🏢</div>
+          <div class="empty-title">No flats match your filter</div>
+          <div class="empty-desc">Use the buttons above to add a flat or batch-generate the entire floor layout for {{ activeProject?.name }}.</div>
+          <div class="empty-actions" style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 1rem;">
+            <button mat-stroked-button type="button" (click)="openBatchModal()">⚡ Batch Generate Flats</button>
+            <button mat-flat-button color="primary" type="button" (click)="openSingleFlatModal()">+ Add Single Flat</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- TAB 2: PROPERTY CONFIGURATIONS / TYPOLOGIES    -->
+    <!-- ============================================== -->
+    <div *ngIf="!inventoryLoading && inventoryTab === 'types'" class="drawer-tab-content">
+      <div class="inventory-toolbar">
+        <div>
+          <div class="builder-title">Property Types &amp; Floorplan Tiers</div>
+          <div class="builder-subtitle">Define configuration specifications, square footage, and base ticket prices for {{ activeProject?.name }}.</div>
+        </div>
+        <button mat-flat-button color="primary" type="button" class="btn-add-unit" (click)="openTypeModal()">
+          <mat-icon>add</mat-icon> Add Configuration Tier
+        </button>
+      </div>
+
+      <!-- INLINE POPUP MODAL: ADD PROPERTY TYPE -->
+      <mat-card *ngIf="showTypeModal" class="inline-modal-panel">
+        <div class="inline-modal-header">
+          <span class="inline-modal-title">+ Add Property Typology</span>
+          <button mat-icon-button type="button" (click)="showTypeModal = false">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+        <div class="inline-modal-grid">
+          <div class="form-field">
+            <label class="field-label">Typology Name *</label>
+            <input type="text" [(ngModel)]="newTypeForm.name" class="input-field" placeholder="e.g. 3 BHK Royal Grand" required />
+          </div>
+          <div class="form-field">
+            <label class="field-label">BHK Type</label>
+            <select [(ngModel)]="newTypeForm.bhk_type" class="input-field select-field">
+              <option value="1 BHK">1 BHK</option>
+              <option value="2 BHK">2 BHK</option>
+              <option value="3 BHK">3 BHK</option>
+              <option value="4 BHK">4 BHK</option>
+              <option value="5 BHK">5 BHK</option>
+              <option value="Penthouse">Penthouse</option>
+              <option value="Villa">Villa</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="field-label">Carpet Area (sqft)</label>
+            <input type="number" [(ngModel)]="newTypeForm.carpet_area_sqft" class="input-field" placeholder="1250" />
+          </div>
+          <div class="form-field">
+            <label class="field-label">Super Built-up Area (sqft)</label>
+            <input type="number" [(ngModel)]="newTypeForm.super_builtup_area_sqft" class="input-field" placeholder="1580" />
+          </div>
+          <div class="form-field">
+            <label class="field-label">Base Ticket Price (₹ Lacs)</label>
+            <input type="number" [(ngModel)]="newTypeForm.base_price_lacs" class="input-field" placeholder="175.00" />
+          </div>
+          <div class="form-field">
+            <label class="field-label">Total Units Planned</label>
+            <input type="number" [(ngModel)]="newTypeForm.total_units" class="input-field" placeholder="40" />
+          </div>
+          <div class="form-field">
+            <label class="field-label">Facing / Orientation</label>
+            <input type="text" [(ngModel)]="newTypeForm.facing" class="input-field" placeholder="East Facing" />
+          </div>
+        </div>
+        <div class="inline-modal-actions" style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+          <button mat-button type="button" (click)="showTypeModal = false">Cancel</button>
+          <button mat-flat-button color="primary" type="button" (click)="submitPropertyType()">Save Configuration</button>
+        </div>
+      </mat-card>
+
+      <!-- Property Types Table -->
+      <table *ngIf="activeInventory.propertyTypes.length > 0" class="drawer-table">
+        <thead>
+          <tr>
+            <th>CONFIGURATION NAME</th>
+            <th>TYPOLOGY</th>
+            <th class="text-right">CARPET AREA</th>
+            <th class="text-right">SUPER BUILT-UP</th>
+            <th class="text-right">BASE PRICE</th>
+            <th class="text-right">TOTAL PLANNED</th>
+            <th>FACING</th>
+            <th class="text-right">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let pt of activeInventory.propertyTypes">
+            <td class="font-bold">{{ pt.name }}</td>
+            <td><span class="bhk-badge">{{ pt.bhk_type }}</span></td>
+            <td class="text-right">{{ pt.carpet_area_sqft ? pt.carpet_area_sqft + ' sqft' : '-' }}</td>
+            <td class="text-right font-semibold">{{ pt.super_builtup_area_sqft ? pt.super_builtup_area_sqft + ' sqft' : '-' }}</td>
+            <td class="text-right font-bold text-green">₹{{ pt.base_price_lacs }} L</td>
+            <td class="text-right">{{ pt.total_units }} units</td>
+            <td class="text-muted">{{ pt.facing || 'Standard' }}</td>
+            <td class="text-right">
+              <button mat-icon-button color="warn" type="button" (click)="deletePropertyType(pt.id || pt.property_type_id)" matTooltip="Delete configuration">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Empty State -->
+      <div *ngIf="activeInventory.propertyTypes.length === 0" class="drawer-empty-state">
+        <div class="empty-icon">📐</div>
+        <div class="empty-title">No property configurations defined</div>
+        <div class="empty-desc">Add property typologies like 2 BHK, 3 BHK, and Penthouses for this project.</div>
+        <div class="empty-actions" style="margin-top: 1rem;">
+          <button mat-flat-button color="primary" type="button" (click)="openTypeModal()">+ Add Configuration Tier</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>

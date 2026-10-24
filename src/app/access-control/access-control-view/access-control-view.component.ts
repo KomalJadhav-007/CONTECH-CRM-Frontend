@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { AccessControlService, PermissionMatrix, RoleMeta } from '../access-control.service';
+import { UserService } from '../../users/user.service';
+import { SettingsService } from '../../settings/settings.service';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -36,6 +38,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 })
 export class AccessControlViewComponent implements OnInit {
   private accessService = inject(AccessControlService);
+  private userService = inject(UserService);
+  private settingsService = inject(SettingsService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
@@ -61,6 +65,14 @@ export class AccessControlViewComponent implements OnInit {
   activeUserMatrix: { [module: string]: { [permission: string]: boolean } } = {};
   cloneSourceUser = '';
   userFilterSearch = '';
+
+  // Project Access Scoping state
+  availableProjects: any[] = [];
+  showProjectAssignModal = false;
+  projectAssignUser: any = null;
+  projectAssignAll = true;
+  projectAssignIds: number[] = [];
+  isSavingProjects = false;
 
   // Toolbar & Filtering
   searchQuery = '';
@@ -88,6 +100,7 @@ export class AccessControlViewComponent implements OnInit {
   quickGrantSource = 'role:Account Executive';
 
   ngOnInit(): void {
+    this.loadAvailableProjects();
     this.rolePermissions = this.accessService.getCurrentMatrix();
     this.userPermissionsMap = this.accessService.getAllUserPermissions();
     this.users = this.accessService.getAllUsers();
@@ -740,4 +753,98 @@ export class AccessControlViewComponent implements OnInit {
       }
     }, 4000);
   }
+
+  // --- PROJECT ACCESS SCOPING METHODS ---
+  loadAvailableProjects(): void {
+    this.settingsService.getSettings().subscribe({
+      next: (res: any) => {
+        if (res && res.projects && res.projects.length > 0) {
+          this.availableProjects = res.projects;
+        } else if (res && res.settings && res.settings.projects) {
+          this.availableProjects = res.settings.projects;
+        } else {
+          this.availableProjects = [
+            { project_id: 1, id: 1, name: 'Contech Crown Heights', code: 'CCH-BLR', location: 'Whitefield, Bengaluru' },
+            { project_id: 2, id: 2, name: 'Contech Skyline Elegance', code: 'CSE-BLR', location: 'Indiranagar, Bengaluru' },
+            { project_id: 3, id: 3, name: 'Contech Greenfield Sanctuary', code: 'CGS-BLR', location: 'Sarjapur Road, Bengaluru' }
+          ];
+        }
+      },
+      error: () => {
+        this.availableProjects = [
+          { project_id: 1, id: 1, name: 'Contech Crown Heights', code: 'CCH-BLR', location: 'Whitefield, Bengaluru' },
+          { project_id: 2, id: 2, name: 'Contech Skyline Elegance', code: 'CSE-BLR', location: 'Indiranagar, Bengaluru' },
+          { project_id: 3, id: 3, name: 'Contech Greenfield Sanctuary', code: 'CGS-BLR', location: 'Sarjapur Road, Bengaluru' }
+        ];
+      }
+    });
+  }
+
+  openProjectAssignModal(user: any): void {
+    if (!user) return;
+    this.projectAssignUser = user;
+    const currentAssigned = user.assigned_project_ids || (user.assigned_projects ? user.assigned_projects.map((p: any) => p.project_id || p.id) : []);
+    this.projectAssignAll = user.has_all_projects_access || currentAssigned.length === 0;
+    this.projectAssignIds = [...currentAssigned];
+    this.showProjectAssignModal = true;
+  }
+
+  closeProjectAssignModal(): void {
+    this.showProjectAssignModal = false;
+    this.projectAssignUser = null;
+  }
+
+  toggleProjectInAssignModal(projectId: number): void {
+    const idx = this.projectAssignIds.indexOf(projectId);
+    if (idx > -1) {
+      this.projectAssignIds.splice(idx, 1);
+    } else {
+      this.projectAssignIds.push(projectId);
+    }
+  }
+
+  isProjectSelectedInAssignModal(projectId: number): boolean {
+    return this.projectAssignIds.includes(projectId);
+  }
+
+  applyProjectAssignment(): void {
+    if (!this.projectAssignUser) return;
+    const uid = this.projectAssignUser.user_id || this.projectAssignUser.id;
+    this.isSavingProjects = true;
+
+    const payload = {
+      all_projects: this.projectAssignAll,
+      project_ids: this.projectAssignAll ? [] : this.projectAssignIds
+    };
+
+    this.userService.assignUserProjects(uid, payload).subscribe({
+      next: () => {
+        this.isSavingProjects = false;
+        const assignedObjs = this.projectAssignAll
+          ? []
+          : this.availableProjects.filter(p => this.projectAssignIds.includes(p.id || p.project_id));
+
+        this.projectAssignUser.assigned_projects = assignedObjs;
+        this.projectAssignUser.assigned_project_ids = this.projectAssignIds;
+        this.projectAssignUser.has_all_projects_access = this.projectAssignAll || this.projectAssignIds.length === 0;
+
+        if (this.selectedUser && (this.selectedUser.user_id || this.selectedUser.id) === uid) {
+          this.selectedUser = {
+            ...this.selectedUser,
+            assigned_projects: assignedObjs,
+            assigned_project_ids: this.projectAssignIds,
+            has_all_projects_access: this.projectAssignUser.has_all_projects_access
+          };
+        }
+
+        this.closeProjectAssignModal();
+        this.showNotification(`Project scope updated successfully for "${this.projectAssignUser.name}".`, 'success');
+      },
+      error: (err: any) => {
+        this.isSavingProjects = false;
+        this.showNotification(err.error?.message || 'Failed to update project assignments.', 'warn');
+      }
+    });
+  }
 }
+

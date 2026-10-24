@@ -392,3 +392,22 @@ button, input, select, textarea {
   font-weight: 700 !important;
 }
 
+/* Global Table Text Alignment Utilities */
+th.text-right,
+td.text-right,
+.text-right {
+  text-align: right !important;
+}
+
+th.text-center,
+td.text-center,
+.text-center {
+  text-align: center !important;
+}
+
+th.text-left,
+td.text-left,
+.text-left {
+  text-align: left !important;
+}
+

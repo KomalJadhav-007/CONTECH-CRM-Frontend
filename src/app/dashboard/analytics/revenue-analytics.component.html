@@ -1,4 +1,7 @@
 <div class="analytics-wrapper">
+  <!-- Dynamic Loading Bar -->
+  <mat-progress-bar *ngIf="loading" mode="indeterminate" style="margin-bottom: 1rem; border-radius: 4px;"></mat-progress-bar>
+
   <!-- Top Header -->
   <div class="analytics-header">
     <div class="category-tag">INTELLIGENCE</div>
@@ -11,58 +14,58 @@
   <!-- 8 Metrics Signal Cards Grid -->
   <div class="analytics-metrics-grid">
     <!-- Row 1 -->
-    <div class="metric-card">
+    <mat-card appearance="outlined" class="metric-card">
       <div class="card-top-label">LEAD &rarr; VISIT</div>
       <div class="card-main-value">{{ analytics.lead_to_visit_pct }}%</div>
       <div class="card-sub-label">{{ analytics.visits_scheduled_count }} visits scheduled</div>
-    </div>
+    </mat-card>
 
-    <div class="metric-card">
+    <mat-card appearance="outlined" class="metric-card">
       <div class="card-top-label">VISIT &rarr; BOOKING</div>
       <div class="card-main-value">{{ analytics.visit_to_booking_pct }}%</div>
       <div class="card-sub-label">{{ analytics.bookings_count }} booking from {{ analytics.total_visits || analytics.visits_scheduled_count }} visits</div>
-    </div>
+    </mat-card>
 
-    <div class="metric-card">
+    <mat-card appearance="outlined" class="metric-card">
       <div class="card-top-label">RECOVERY RATE</div>
       <div class="card-main-value">{{ analytics.recovery_rate_pct }}%</div>
       <div class="card-sub-label">{{ analytics.cancelled_count }} cancelled &middot; {{ analytics.no_shows_count }} no-shows</div>
-    </div>
+    </mat-card>
 
-    <div class="metric-card">
+    <mat-card appearance="outlined" class="metric-card">
       <div class="card-top-label">SLA COMPLIANCE</div>
       <div class="card-main-value">{{ analytics.sla_compliance_pct }}%</div>
       <div class="card-sub-label">{{ analytics.sla_breaches_count }} breaches</div>
-    </div>
+    </mat-card>
 
     <!-- Row 2 -->
-    <div class="metric-card">
+    <mat-card appearance="outlined" class="metric-card">
       <div class="card-top-label">TOTAL BUYERS</div>
       <div class="card-main-value">{{ analytics.total_buyers }}</div>
       <div class="card-sub-label">&nbsp;</div>
-    </div>
+    </mat-card>
 
-    <div class="metric-card high-intent-card">
+    <mat-card appearance="outlined" class="metric-card high-intent-card">
       <div class="card-top-label">HIGH INTENT</div>
       <div class="card-main-value">{{ analytics.high_intent }}</div>
       <div class="card-sub-label">&nbsp;</div>
-    </div>
+    </mat-card>
 
-    <div class="metric-card">
+    <mat-card appearance="outlined" class="metric-card">
       <div class="card-top-label">OPEN FOLLOW-UPS</div>
       <div class="card-main-value">{{ analytics.open_follow_ups }}</div>
       <div class="card-sub-label">{{ analytics.overdue_follow_ups }} overdue</div>
-    </div>
+    </mat-card>
 
-    <div class="metric-card revenue-risk-card">
+    <mat-card appearance="outlined" class="metric-card revenue-risk-card">
       <div class="card-top-label">REVENUE AT RISK</div>
       <div class="card-main-value">₹{{ analytics.revenue_at_risk_cr }} Cr</div>
       <div class="card-sub-label">&nbsp;</div>
-    </div>
+    </mat-card>
   </div>
 
   <!-- PIPELINE FUNNEL SECTION -->
-  <div class="section-card funnel-card">
+  <mat-card appearance="outlined" class="section-card funnel-card">
     <div class="section-header">
       <h2 class="section-title">PIPELINE FUNNEL</h2>
       <p class="section-subtitle">Cumulative buyers reaching each stage, with drop-off to the next</p>
@@ -83,10 +86,10 @@
         </div>
       </div>
     </div>
-  </div>
+  </mat-card>
 
   <!-- INTENT BAND DISTRIBUTION -->
-  <div class="section-card intent-band-card">
+  <mat-card appearance="outlined" class="section-card intent-band-card" style="margin-top: 1.5rem;">
     <div class="section-header">
       <h2 class="section-title">INTENT BAND DISTRIBUTION</h2>
       <p class="section-subtitle">Contech CRM Buyer Score v1</p>
@@ -98,12 +101,12 @@
         <div class="band-value">{{ band.count }}</div>
       </div>
     </div>
-  </div>
+  </mat-card>
 
   <!-- SOURCE & OWNER PERFORMANCE (2 COLUMNS) -->
-  <div class="tables-split-grid">
+  <div class="tables-split-grid" style="margin-top: 1.5rem;">
     <!-- SOURCE PERFORMANCE -->
-    <div class="section-card performance-table-card">
+    <mat-card appearance="outlined" class="section-card performance-table-card">
       <div class="section-header">
         <h2 class="section-title">SOURCE PERFORMANCE</h2>
         <p class="section-subtitle">Which channels produce real intent</p>
@@ -131,10 +134,10 @@
           </tbody>
         </table>
       </div>
-    </div>
+    </mat-card>
 
     <!-- OWNER PERFORMANCE -->
-    <div class="section-card performance-table-card">
+    <mat-card appearance="outlined" class="section-card performance-table-card">
       <div class="section-header">
         <h2 class="section-title">OWNER PERFORMANCE</h2>
         <p class="section-subtitle">Pipeline health by account executive</p>
@@ -162,11 +165,11 @@
           </tbody>
         </table>
       </div>
-    </div>
+    </mat-card>
   </div>
 
   <!-- PROJECT PERFORMANCE -->
-  <div class="section-card project-performance-card">
+  <mat-card appearance="outlined" class="section-card project-performance-card" style="margin-top: 1.5rem;">
     <div class="section-header">
       <h2 class="section-title">PROJECT PERFORMANCE</h2>
       <p class="section-subtitle">Demand and risk by project</p>
@@ -194,5 +197,5 @@
         </tbody>
       </table>
     </div>
-  </div>
+  </mat-card>
 </div>

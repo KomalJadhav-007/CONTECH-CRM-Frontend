@@ -215,23 +215,26 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.78rem;
+  table-layout: fixed;
 }
 
 .analytics-table th {
   text-align: left;
-  padding: 0.65rem 0.5rem;
+  padding: 0.75rem 0.85rem;
   font-size: 0.68rem;
   font-weight: 700;
   color: #64748b;
   border-bottom: 1px solid #e2e8f0;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .analytics-table td {
-  padding: 0.7rem 0.5rem;
+  padding: 0.75rem 0.85rem;
   border-bottom: 1px solid #f1f5f9;
   color: #475569;
+  vertical-align: middle;
 }
 
 .analytics-table tbody tr:hover td {
@@ -243,13 +246,65 @@
   color: #0f172a !important;
 }
 
+.analytics-table th.text-right,
+.analytics-table td.text-right,
 .text-right {
-  text-align: right;
+  text-align: right !important;
+}
+
+.analytics-table th.text-center,
+.analytics-table td.text-center,
+.text-center {
+  text-align: center !important;
 }
 
 .font-medium {
   font-weight: 600;
   color: #0f172a;
+}
+
+/* Proportional Column Widths for Split Performance Tables */
+.performance-table-card .analytics-table th:nth-child(1),
+.performance-table-card .analytics-table td:nth-child(1) {
+  width: 32%;
+}
+.performance-table-card .analytics-table th:nth-child(2),
+.performance-table-card .analytics-table td:nth-child(2) {
+  width: 15%;
+}
+.performance-table-card .analytics-table th:nth-child(3),
+.performance-table-card .analytics-table td:nth-child(3) {
+  width: 20%;
+}
+.performance-table-card .analytics-table th:nth-child(4),
+.performance-table-card .analytics-table td:nth-child(4) {
+  width: 15%;
+}
+.performance-table-card .analytics-table th:nth-child(5),
+.performance-table-card .analytics-table td:nth-child(5) {
+  width: 18%;
+}
+
+/* Proportional Column Widths for Project Performance Table */
+.project-performance-card .analytics-table th:nth-child(1),
+.project-performance-card .analytics-table td:nth-child(1) {
+  width: 36%;
+}
+.project-performance-card .analytics-table th:nth-child(2),
+.project-performance-card .analytics-table td:nth-child(2) {
+  width: 14%;
+}
+.project-performance-card .analytics-table th:nth-child(3),
+.project-performance-card .analytics-table td:nth-child(3) {
+  width: 18%;
+}
+.project-performance-card .analytics-table th:nth-child(4),
+.project-performance-card .analytics-table td:nth-child(4) {
+  width: 14%;
+}
+.project-performance-card .analytics-table th:nth-child(5),
+.project-performance-card .analytics-table td:nth-child(5) {
+  width: 18%;
 }
 
 @media (max-width: 1200px) {

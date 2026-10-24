@@ -19,12 +19,14 @@
       <p class="page-subtitle">Dossier #DAR-B{{ buyer.buyer_id || buyer.id }} &middot; Managed by {{ buyer.assignedRep?.name || 'Unassigned' }}</p>
     </div>
     <div class="header-actions">
-      <a routerLink="/buyers" class="btn-action-back">&larr; Back</a>
-      <button type="button" class="btn-action-closure" (click)="openBookingModal()" *ngIf="buyer.lead_status !== 'BOOKED'">
-        Record Sales Closure
+      <a mat-stroked-button routerLink="/buyers">
+        <mat-icon>arrow_back</mat-icon> Back
+      </a>
+      <button mat-flat-button color="accent" type="button" (click)="openBookingModal()" *ngIf="buyer.lead_status !== 'BOOKED'">
+        <mat-icon>verified</mat-icon> Record Sales Closure
       </button>
-      <a [routerLink]="['/visits/book']" [queryParams]="{ buyer_id: buyer.buyer_id || buyer.id }" class="btn-action-book">
-        + Book Site Visit
+      <a mat-flat-button color="primary" [routerLink]="['/visits/book']" [queryParams]="{ buyer_id: buyer.buyer_id || buyer.id }">
+        <mat-icon>calendar_month</mat-icon> Book Site Visit
       </a>
     </div>
   </div>
@@ -361,76 +363,93 @@
     <div class="modal-card">
       <div class="modal-header">
         <div>
+          <div class="modal-supertitle">SALES CLOSURE</div>
           <h2 class="modal-title">Record Sales Closure / Booking</h2>
           <p class="modal-subtitle">Register property unit booking and agreement value for {{ buyer.full_name }}</p>
         </div>
-        <button type="button" class="close-modal-btn" (click)="closeBookingModal()">&times;</button>
+        <button mat-icon-button type="button" (click)="closeBookingModal()">
+          <mat-icon>close</mat-icon>
+        </button>
       </div>
 
       <div class="modal-body">
+        <mat-progress-bar *ngIf="savingBooking" mode="indeterminate" style="margin-bottom: 1rem;"></mat-progress-bar>
         <div *ngIf="bookingSuccess" class="alert-success-banner">
-          ✅ {{ bookingSuccess }}
+          <mat-icon>check_circle</mat-icon> {{ bookingSuccess }}
         </div>
         <div *ngIf="bookingError" class="modal-error-banner">
-          ⚠️ {{ bookingError }}
+          <mat-icon>warning</mat-icon> {{ bookingError }}
         </div>
 
         <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Project / Development *</label>
-            <select class="form-control" [(ngModel)]="bookingForm.project_id">
-              <option [ngValue]="1">Godrej Splendour (Whitefield)</option>
-              <option [ngValue]="2">Prestige Park Grove (Whitefield)</option>
-              <option [ngValue]="3">Sobha Neopolis (Panathur)</option>
-              <option [ngValue]="4">Brigade Cornerstone Utopia (Varthur)</option>
-            </select>
-          </div>
+          <mat-form-field appearance="outline" class="w-full mat-field-custom">
+            <mat-label>Project / Development *</mat-label>
+            <mat-icon matPrefix>apartment</mat-icon>
+            <mat-select [(ngModel)]="bookingForm.project_id">
+              <mat-option [value]="1">Contech Crown Heights (Whitefield)</mat-option>
+              <mat-option [value]="2">Contech Skyline Elegance (Indiranagar)</mat-option>
+              <mat-option [value]="3">Contech Greenfield Sanctuary (Sarjapur)</mat-option>
+            </mat-select>
+          </mat-form-field>
 
-          <div class="form-group">
-            <label class="form-label">Unit Number (Tower & Flat) *</label>
-            <input type="text" class="form-control" [(ngModel)]="bookingForm.unit_number" placeholder="e.g. Tower B - 1402" required />
-          </div>
+          <mat-form-field appearance="outline" class="w-full mat-field-custom">
+            <mat-label>Unit Number (Tower & Flat) *</mat-label>
+            <mat-icon matPrefix>meeting_room</mat-icon>
+            <input matInput type="text" [(ngModel)]="bookingForm.unit_number" placeholder="e.g. Tower B - 1402" required />
+          </mat-form-field>
 
-          <div class="form-group">
-            <label class="form-label">Unit Configuration</label>
-            <select class="form-control" [(ngModel)]="bookingForm.unit_configuration">
-              <option value="1 BHK">1 BHK</option>
-              <option value="2 BHK">2 BHK</option>
-              <option value="3 BHK">3 BHK</option>
-              <option value="4 BHK Penthouse">4 BHK Penthouse</option>
-              <option value="5 BHK Ultra-Luxury">5 BHK Ultra-Luxury</option>
-              <option value="Villa">Exclusive Villa</option>
-            </select>
-          </div>
+          <mat-form-field appearance="outline" class="w-full mat-field-custom">
+            <mat-label>Unit Configuration</mat-label>
+            <mat-icon matPrefix>home_work</mat-icon>
+            <mat-select [(ngModel)]="bookingForm.unit_configuration">
+              <mat-option value="1 BHK">1 BHK</mat-option>
+              <mat-option value="2 BHK">2 BHK</mat-option>
+              <mat-option value="3 BHK">3 BHK</mat-option>
+              <mat-option value="4 BHK Penthouse">4 BHK Penthouse</mat-option>
+              <mat-option value="5 BHK Ultra-Luxury">5 BHK Ultra-Luxury</mat-option>
+              <mat-option value="Villa">Exclusive Villa</mat-option>
+            </mat-select>
+          </mat-form-field>
         </div>
 
-        <div class="form-row" style="margin-top: 1rem;">
-          <div class="form-group">
-            <label class="form-label">Total Agreement Value (₹ Lacs) *</label>
-            <input type="number" class="form-control" [(ngModel)]="bookingForm.booking_value_lacs" placeholder="185.00" required />
-          </div>
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="w-full mat-field-custom">
+            <mat-label>Total Agreement Value (₹ Lacs) *</mat-label>
+            <mat-icon matPrefix>currency_rupee</mat-icon>
+            <input matInput type="number" [(ngModel)]="bookingForm.booking_value_lacs" placeholder="185.00" required />
+          </mat-form-field>
 
-          <div class="form-group">
-            <label class="form-label">Token / Booking Advance (₹ Lacs) *</label>
-            <input type="number" class="form-control" [(ngModel)]="bookingForm.token_amount_lacs" placeholder="5.00" required />
-          </div>
+          <mat-form-field appearance="outline" class="w-full mat-field-custom">
+            <mat-label>Token / Booking Advance (₹ Lacs) *</mat-label>
+            <mat-icon matPrefix>payments</mat-icon>
+            <input matInput type="number" [(ngModel)]="bookingForm.token_amount_lacs" placeholder="5.00" required />
+          </mat-form-field>
 
-          <div class="form-group">
-            <label class="form-label">Booking Date</label>
-            <input type="date" class="form-control" [(ngModel)]="bookingForm.booking_date" />
-          </div>
+          <mat-form-field appearance="outline" class="w-full mat-field-custom">
+            <mat-label>Booking Date</mat-label>
+            <mat-icon matPrefix>event</mat-icon>
+            <input matInput type="date" [(ngModel)]="bookingForm.booking_date" />
+          </mat-form-field>
         </div>
 
-        <div class="form-group" style="margin-top: 1rem;">
-          <label class="form-label">Booking Remarks & Payment Milestone Schedule</label>
-          <textarea class="form-control" rows="3" [(ngModel)]="bookingForm.notes" placeholder="Cheque / RTGS details, loan bank name (HDFC / SBI), special parking slot allocated..."></textarea>
+        <div class="form-group" style="margin-top: 0.5rem;">
+          <mat-form-field appearance="outline" class="w-full mat-field-custom">
+            <mat-label>Booking Remarks & Payment Milestone Schedule</mat-label>
+            <mat-icon matPrefix>notes</mat-icon>
+            <textarea
+              matInput
+              rows="3"
+              [(ngModel)]="bookingForm.notes"
+              placeholder="Cheque / RTGS details, loan bank name (HDFC / SBI), special parking slot allocated..."
+            ></textarea>
+          </mat-form-field>
         </div>
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn-cancel" (click)="closeBookingModal()">Cancel</button>
-        <button type="button" class="btn-confirm" [disabled]="savingBooking" (click)="submitBooking()">
-          <span *ngIf="!savingBooking">Confirm & Seal Sales Closure &rarr;</span>
+        <button mat-button type="button" (click)="closeBookingModal()">Cancel</button>
+        <button mat-flat-button color="primary" type="button" [disabled]="savingBooking" (click)="submitBooking()">
+          <span *ngIf="!savingBooking">Confirm &amp; Seal Sales Closure &rarr;</span>
           <span *ngIf="savingBooking">Recording Closure...</span>
         </button>
       </div>

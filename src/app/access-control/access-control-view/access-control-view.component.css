@@ -1330,3 +1330,228 @@
   margin-bottom: 1.25rem;
   line-height: 1.45;
 }
+
+/* ============================================== */
+/* PROJECT-SCOPED ACCESS CONTROL IN ACCESS CONTROL */
+/* ============================================== */
+.person-projects-scope-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(248, 250, 252, 0.8);
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  width: fit-content;
+}
+
+.scope-label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.badge-all-projects-scope {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.6rem;
+  background: rgba(14, 165, 233, 0.1);
+  color: #0369a1;
+  border: 1px solid rgba(14, 165, 233, 0.25);
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.scoped-projects-inline {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.badge-scoped-project {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  background: rgba(99, 102, 241, 0.1);
+  color: #4338ca;
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.btn-edit-projects-scope {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-left: 0.35rem;
+}
+
+.btn-edit-projects-scope:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.modal-card-project-scope {
+  max-width: 600px;
+}
+
+.scope-toggle-tabs {
+  display: flex;
+  background: #f1f5f9;
+  padding: 0.25rem;
+  border-radius: 6px;
+  gap: 0.25rem;
+}
+
+.btn-scope-tab {
+  border: none;
+  background: transparent;
+  padding: 0.45rem 1rem;
+  border-radius: 5px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex: 1;
+  text-align: center;
+}
+
+.btn-scope-tab:hover {
+  color: #0f172a;
+}
+
+.btn-scope-tab.active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.scope-all-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  background: rgba(14, 165, 233, 0.08);
+  border: 1px dashed rgba(14, 165, 233, 0.35);
+  border-radius: 8px;
+  padding: 1rem 1.15rem;
+  color: #0369a1;
+}
+
+.globe-anim {
+  font-size: 1.6rem;
+}
+
+.scope-all-banner strong {
+  display: block;
+  font-size: 0.84rem;
+  color: #0369a1;
+  margin-bottom: 0.15rem;
+}
+
+.scope-all-banner p {
+  margin: 0;
+  font-size: 0.76rem;
+  color: #0284c7;
+  line-height: 1.4;
+}
+
+.scope-specific-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.scope-instruction {
+  font-size: 0.78rem;
+  color: #475569;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.project-checkboxes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.75rem;
+}
+
+.project-assignment-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.95rem;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.project-assignment-card:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.project-assignment-card.selected {
+  border-color: #4f46e5;
+  background: #eef2ff;
+  box-shadow: 0 1px 3px rgba(79, 70, 229, 0.12);
+}
+
+.proj-checkbox-indicator {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1.5px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.project-assignment-card.selected .proj-checkbox-indicator {
+  border-color: #4f46e5;
+  background: #4f46e5;
+}
+
+.proj-assignment-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.proj-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.proj-location {
+  font-size: 0.71rem;
+  color: #64748b;
+  margin-top: 0.15rem;
+}
+
+.scope-warning-hint {
+  font-size: 0.75rem;
+  color: #b45309;
+  font-weight: 500;
+}
+

@@ -204,6 +204,22 @@
             <span class="person-phone" *ngIf="selectedUser.phone">&bull; 📞 {{ selectedUser.phone }}</span>
             <span class="person-manager" *ngIf="selectedUser.manager_name && selectedUser.manager_name !== 'None'">&bull; 👤 Manager: {{ selectedUser.manager_name }}</span>
           </div>
+
+          <div class="person-projects-scope-row">
+            <span class="scope-label">🏢 Project Scope:</span>
+            <span *ngIf="selectedUser.has_all_projects_access || !selectedUser.assigned_projects || selectedUser.assigned_projects.length === 0" class="badge-all-projects-scope">
+              🌐 All Projects (Universal)
+            </span>
+            <div *ngIf="!selectedUser.has_all_projects_access && selectedUser.assigned_projects && selectedUser.assigned_projects.length > 0" class="scoped-projects-inline">
+              <span *ngFor="let p of selectedUser.assigned_projects" class="badge-scoped-project">
+                🏢 {{ p.name }}
+              </span>
+            </div>
+            <button type="button" class="btn-edit-projects-scope" (click)="openProjectAssignModal(selectedUser)">
+              ⚙️ Change Project Assignment
+            </button>
+          </div>
+
           <p class="person-hint-text" *ngIf="isUserOverridden(selectedUserId)">
             💡 Individual overrides take precedence over the user's base role. Cells marked with ⭐ differ from default <strong>{{ getUserRoleName(selectedUser) }}</strong> permissions.
           </p>
@@ -603,4 +619,82 @@
       </div>
     </div>
   </div>
+
+  <!-- MODAL: ASSIGN PROJECTS TO PERSON (ACCESS CONTROL) -->
+  <div *ngIf="showProjectAssignModal" class="modal-backdrop">
+    <div class="modal-card modal-card-project-scope">
+      <div class="modal-header">
+        <div>
+          <div class="modal-supertitle">PROJECT-LEVEL ACCESS CONTROL</div>
+          <h3 class="modal-title">Assign Projects to {{ projectAssignUser?.name }}</h3>
+          <p class="modal-subtitle">Configure which project(s) this person is authorized to view, manage, and operate in the CRM.</p>
+        </div>
+        <button type="button" class="close-btn" (click)="closeProjectAssignModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="scope-toggle-tabs">
+          <button
+            type="button"
+            class="btn-scope-tab"
+            [class.active]="projectAssignAll"
+            (click)="projectAssignAll = true"
+          >
+            🌐 All Projects (Universal)
+          </button>
+          <button
+            type="button"
+            class="btn-scope-tab"
+            [class.active]="!projectAssignAll"
+            (click)="projectAssignAll = false"
+          >
+            🎯 Specific Project(s) Only
+          </button>
+        </div>
+
+        <div *ngIf="projectAssignAll" class="scope-all-banner" style="margin-top: 1rem;">
+          <span class="globe-anim">🌐</span>
+          <div>
+            <strong>Full Organization Project Visibility</strong>
+            <p>{{ projectAssignUser?.name }} will see and manage all current and future projects, including their inventory, visits, and bookings.</p>
+          </div>
+        </div>
+
+        <div *ngIf="!projectAssignAll" class="scope-specific-panel" style="margin-top: 1rem;">
+          <p class="scope-instruction">
+            Select one or more projects to grant access to <strong>{{ projectAssignUser?.name }}</strong>. 
+            All other projects in the CRM will be hidden from their view.
+          </p>
+          <div class="project-checkboxes-grid">
+            <div
+              *ngFor="let proj of availableProjects"
+              class="project-assignment-card"
+              [class.selected]="isProjectSelectedInAssignModal(proj.id || proj.project_id)"
+              (click)="toggleProjectInAssignModal(proj.id || proj.project_id)"
+            >
+              <div class="proj-checkbox-indicator">
+                <span *ngIf="isProjectSelectedInAssignModal(proj.id || proj.project_id)">✓</span>
+              </div>
+              <div class="proj-assignment-info">
+                <div class="proj-name">{{ proj.name }}</div>
+                <div class="proj-location">📍 {{ proj.location || proj.code || 'Bengaluru' }}</div>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="projectAssignIds.length === 0" class="scope-warning-hint">
+            ⚠️ Please select at least one project, or switch to "All Projects".
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-cancel" (click)="closeProjectAssignModal()">Cancel</button>
+        <button type="button" class="btn-modal-create" (click)="applyProjectAssignment()" [disabled]="isSavingProjects">
+          <span *ngIf="!isSavingProjects">Save Project Assignment</span>
+          <span *ngIf="isSavingProjects">Saving...</span>
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
+

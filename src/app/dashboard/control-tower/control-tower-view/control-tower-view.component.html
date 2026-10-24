@@ -114,7 +114,7 @@
                 </div>
               </td>
               <td class="text-right">
-                <button type="button" class="btn-rescue" (click)="openRescueModal(buyer)">
+                <button mat-flat-button color="warn" type="button" (click)="openRescueModal(buyer)">
                   Rescue Deal &rarr;
                 </button>
               </td>
@@ -186,7 +186,7 @@
                 </span>
               </td>
               <td class="text-right">
-                <a [routerLink]="['/visits']" class="btn-action">
+                <a mat-stroked-button [routerLink]="['/visits']">
                   Resolve in Hub
                 </a>
               </td>
@@ -240,7 +240,7 @@
                 <span class="due-badge">{{ task.due_at | date:'medium' }}</span>
               </td>
               <td class="text-right">
-                <a routerLink="/tasks" class="btn-action">
+                <a mat-stroked-button routerLink="/tasks">
                   Resolve in Tasks &rarr;
                 </a>
               </td>
@@ -253,13 +253,13 @@
 
   <!-- Rescue Deal Modal (Clean Dialog Matching Theme) -->
   <div *ngIf="selectedBuyerForRescue" class="modal-backdrop">
-    <div class="modal-card">
+    <mat-card class="modal-card">
       <div class="modal-header">
         <div class="modal-title-row">
           <mat-icon color="warn">health_and_safety</mat-icon>
           <span class="modal-title">Rescue Deal: {{ selectedBuyerForRescue.full_name }}</span>
         </div>
-        <button type="button" class="close-btn" (click)="closeRescueModal()" aria-label="Close dialog">
+        <button mat-icon-button type="button" (click)="closeRescueModal()" aria-label="Close dialog">
           <mat-icon>close</mat-icon>
         </button>
       </div>
@@ -285,12 +285,12 @@
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn-cancel" (click)="closeRescueModal()">Cancel</button>
-        <button type="button" class="btn-confirm" [disabled]="resolving" (click)="executeRescue()">
+        <button mat-button type="button" (click)="closeRescueModal()">Cancel</button>
+        <button mat-flat-button color="primary" type="button" [disabled]="resolving" (click)="executeRescue()">
           <span *ngIf="!resolving">Confirm Reassignment &amp; Rescue</span>
           <span *ngIf="resolving">Processing...</span>
         </button>
       </div>
-    </div>
+    </mat-card>
   </div>
 </div>

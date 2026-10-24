@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { SettingsService } from '../settings.service';
 import { AuthService } from '../../auth/auth.service';
 import { UserService } from '../../users/user.service';
@@ -26,7 +27,8 @@ import { UserService } from '../../users/user.service';
     MatInputModule,
     MatSelectModule,
     MatIconModule,
-    MatChipsModule
+    MatChipsModule,
+    MatProgressBarModule
   ],
   templateUrl: './settings-view.component.html',
   styleUrl: './settings-view.component.css'

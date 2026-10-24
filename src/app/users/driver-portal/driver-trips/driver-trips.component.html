@@ -1,4 +1,7 @@
 <div class="prospects-page-wrapper">
+  <!-- Dynamic Progress Bar -->
+  <mat-progress-bar *ngIf="loading" mode="indeterminate" style="margin-bottom: 1rem; border-radius: 4px;"></mat-progress-bar>
+
   <!-- Header matching Prospects / Pipeline / Visits Theme -->
   <div class="page-title-row">
     <div>
@@ -9,18 +12,22 @@
       </p>
     </div>
     <div class="top-actions">
-      <button type="button" class="btn-export" (click)="loadTrips()">🔄 Refresh Trips</button>
+      <button mat-stroked-button type="button" (click)="loadTrips()">
+        <mat-icon>refresh</mat-icon> Refresh Trips
+      </button>
     </div>
   </div>
 
   <!-- Feedback Banner -->
   <div *ngIf="statusMessage" class="feedback-banner">
-    ✅ {{ statusMessage }}
+    <mat-icon style="font-size: 18px; width: 18px; height: 18px; vertical-align: middle;">check_circle</mat-icon>
+    {{ statusMessage }}
   </div>
 
   <!-- Trips Filter Bar -->
   <div class="filters-bar" *ngIf="trips.length > 0">
     <button
+      mat-stroked-button
       type="button"
       class="filter-tab"
       [class.active]="filterStatus === ''"
@@ -29,6 +36,7 @@
       All Trips ({{ trips.length }})
     </button>
     <button
+      mat-stroked-button
       type="button"
       class="filter-tab"
       [class.active]="filterStatus === 'ACTIVE'"
@@ -37,6 +45,7 @@
       Active Journeys
     </button>
     <button
+      mat-stroked-button
       type="button"
       class="filter-tab"
       [class.active]="filterStatus === 'COMPLETED'"
@@ -48,7 +57,7 @@
 
   <!-- Trips Cards Grid -->
   <div class="trips-grid" *ngIf="filteredTrips.length > 0">
-    <div *ngFor="let trip of filteredTrips" class="trip-card">
+    <mat-card *ngFor="let trip of filteredTrips" class="trip-card">
       <div class="trip-top-bar">
         <div class="trip-time-info">
           <span class="trip-time">⏰ {{ trip.siteVisit?.time_slot || 'Today' }}</span>
@@ -70,8 +79,8 @@
       <div class="passenger-section">
         <div class="passenger-header">
           <div class="passenger-name">👤 {{ trip.passenger_name }}</div>
-          <a [href]="'tel:' + trip.passenger_phone" class="btn-phone">
-            📞 {{ trip.passenger_phone }}
+          <a mat-stroked-button [href]="'tel:' + trip.passenger_phone" class="btn-phone">
+            <mat-icon style="font-size: 16px; width: 16px; height: 16px;">phone</mat-icon> {{ trip.passenger_phone }}
           </a>
         </div>
       </div>
@@ -100,9 +109,11 @@
       <!-- Journey Action Button -->
       <div class="journey-actions">
         <button
+          mat-flat-button
+          color="primary"
+          style="width: 100%;"
           type="button"
           *ngIf="trip.trip_status === 'ASSIGNED'"
-          class="btn-journey-action"
           [disabled]="updatingId === trip.id"
           (click)="updateStatus(trip, 'STARTED')"
         >
@@ -110,9 +121,11 @@
         </button>
 
         <button
+          mat-flat-button
+          color="primary"
+          style="width: 100%;"
           type="button"
           *ngIf="trip.trip_status === 'STARTED'"
-          class="btn-journey-action"
           [disabled]="updatingId === trip.id"
           (click)="updateStatus(trip, 'ARRIVED_PICKUP')"
         >
@@ -120,9 +133,11 @@
         </button>
 
         <button
+          mat-flat-button
+          color="primary"
+          style="width: 100%;"
           type="button"
           *ngIf="trip.trip_status === 'ARRIVED_PICKUP'"
-          class="btn-journey-action"
           [disabled]="updatingId === trip.id"
           (click)="updateStatus(trip, 'PASSENGER_ONBOARD')"
         >
@@ -130,9 +145,11 @@
         </button>
 
         <button
+          mat-flat-button
+          color="primary"
+          style="width: 100%;"
           type="button"
           *ngIf="trip.trip_status === 'PASSENGER_ONBOARD'"
-          class="btn-journey-action"
           [disabled]="updatingId === trip.id"
           (click)="updateStatus(trip, 'DROPPED_AT_SITE')"
         >
@@ -140,9 +157,11 @@
         </button>
 
         <button
+          mat-flat-button
+          color="accent"
+          style="width: 100%;"
           type="button"
           *ngIf="trip.trip_status === 'DROPPED_AT_SITE'"
-          class="btn-journey-action btn-journey-completed"
           [disabled]="updatingId === trip.id"
           (click)="updateStatus(trip, 'COMPLETED')"
         >
@@ -150,23 +169,24 @@
         </button>
 
         <button
+          mat-stroked-button
+          style="width: 100%;"
           type="button"
           *ngIf="trip.trip_status === 'COMPLETED'"
-          class="btn-journey-done"
           disabled
         >
           ✓ Trip Fully Completed
         </button>
       </div>
-    </div>
+    </mat-card>
   </div>
 
-  <!-- Empty State Card matching Prospects theme -->
-  <div *ngIf="filteredTrips.length === 0" class="table-card empty-card">
+  <!-- Empty State Card -->
+  <mat-card *ngIf="filteredTrips.length === 0 && !loading" class="table-card empty-card">
     <div class="empty-state">
       <div class="empty-icon">🚗</div>
       <h2 class="empty-title">No Pending Trips Assigned</h2>
       <p class="empty-subtitle">You are all caught up for today. New dispatch notifications will appear here.</p>
     </div>
-  </div>
+  </mat-card>
 </div>

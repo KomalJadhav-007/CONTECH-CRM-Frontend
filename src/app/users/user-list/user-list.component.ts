@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { UserService } from '../user.service';
 import { AccessControlService, RoleMeta } from '../../access-control/access-control.service';
+import { SettingsService } from '../../settings/settings.service';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -40,6 +41,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 export class UserListComponent implements OnInit {
   private userService = inject(UserService);
   public accessControlService = inject(AccessControlService);
+  private settingsService = inject(SettingsService);
 
   loading = false;
   searchQuery = '';
@@ -54,6 +56,7 @@ export class UserListComponent implements OnInit {
   };
 
   users: any[] = [];
+  availableProjects: any[] = [];
 
   // Modal State for Adding User
   showAddUserModal = false;
@@ -67,7 +70,9 @@ export class UserListComponent implements OnInit {
     designation: '',
     role: 'Account Executive',
     password: 'Contech@2026',
-    is_active: true
+    is_active: true,
+    all_projects: true,
+    assigned_project_ids: [] as number[]
   };
 
   // Modal State for Editing User
@@ -86,7 +91,33 @@ export class UserListComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadProjects();
     this.loadUsers();
+  }
+
+  loadProjects(): void {
+    this.settingsService.getSettings().subscribe({
+      next: (res: any) => {
+        if (res && res.projects && res.projects.length > 0) {
+          this.availableProjects = res.projects;
+        } else if (res && res.settings && res.settings.projects) {
+          this.availableProjects = res.settings.projects;
+        } else {
+          this.availableProjects = [
+            { project_id: 1, id: 1, name: 'Contech Crown Heights', code: 'CCH-BLR', location: 'Whitefield, Bengaluru' },
+            { project_id: 2, id: 2, name: 'Contech Skyline Elegance', code: 'CSE-BLR', location: 'Indiranagar, Bengaluru' },
+            { project_id: 3, id: 3, name: 'Contech Greenfield Sanctuary', code: 'CGS-BLR', location: 'Sarjapur Road, Bengaluru' }
+          ];
+        }
+      },
+      error: () => {
+        this.availableProjects = [
+          { project_id: 1, id: 1, name: 'Contech Crown Heights', code: 'CCH-BLR', location: 'Whitefield, Bengaluru' },
+          { project_id: 2, id: 2, name: 'Contech Skyline Elegance', code: 'CSE-BLR', location: 'Indiranagar, Bengaluru' },
+          { project_id: 3, id: 3, name: 'Contech Greenfield Sanctuary', code: 'CGS-BLR', location: 'Sarjapur Road, Bengaluru' }
+        ];
+      }
+    });
   }
 
   // Reassignment Safeguard Modal State (SOW Sec 5)
@@ -109,18 +140,26 @@ export class UserListComponent implements OnInit {
       next: (res: any) => {
         this.loading = false;
         if (res && res.success && res.users && res.users.length > 0) {
-          this.users = res.users.map((u: any) => ({
-            id: u.id,
-            name: u.name,
-            email: u.email,
-            phone: u.phone || '',
-            designation: u.role ? u.role.name : 'Team Member',
-            role: this.accessControlService.normalizeRoleName(u.role ? (u.role.name || u.role.code) : ''),
-            manager_id: u.manager_id,
-            manager_name: u.manager ? u.manager.name : (u.manager_name || 'None'),
-            status: u.is_active ? 'active' : 'inactive',
-            last_login: u.last_login_at ? new Date(u.last_login_at).toLocaleDateString() : 'Never'
-          }));
+          this.users = res.users.map((u: any) => {
+            const assignedList = u.assigned_projects || [];
+            const assignedIds = u.assigned_project_ids || assignedList.map((p: any) => p.project_id || p.id);
+            const isUniversal = u.has_all_projects_access !== undefined ? u.has_all_projects_access : assignedIds.length === 0;
+            return {
+              id: u.id,
+              name: u.name,
+              email: u.email,
+              phone: u.phone || '',
+              designation: u.role ? u.role.name : 'Team Member',
+              role: this.accessControlService.normalizeRoleName(u.role ? (u.role.name || u.role.code) : ''),
+              manager_id: u.manager_id,
+              manager_name: u.manager ? u.manager.name : (u.manager_name || 'None'),
+              status: u.is_active ? 'active' : 'inactive',
+              last_login: u.last_login_at ? new Date(u.last_login_at).toLocaleDateString() : 'Never',
+              assigned_projects: assignedList,
+              assigned_project_ids: assignedIds,
+              has_all_projects_access: isUniversal
+            };
+          });
         } else {
           this.loadFallbackUsers();
         }
@@ -185,7 +224,9 @@ export class UserListComponent implements OnInit {
       designation: '',
       role: this.roles[3] || 'Account Executive',
       password: 'Contech@2026',
-      is_active: true
+      is_active: true,
+      all_projects: true,
+      assigned_project_ids: []
     };
     this.showAddUserModal = true;
   }
@@ -197,6 +238,19 @@ export class UserListComponent implements OnInit {
 
   get newUserRoleSummary() {
     return this.accessControlService.getRoleSummary(this.newUser.role);
+  }
+
+  toggleProjectForNewUser(projectId: number): void {
+    const idx = this.newUser.assigned_project_ids.indexOf(projectId);
+    if (idx > -1) {
+      this.newUser.assigned_project_ids.splice(idx, 1);
+    } else {
+      this.newUser.assigned_project_ids.push(projectId);
+    }
+  }
+
+  isProjectSelectedForNewUser(projectId: number): boolean {
+    return this.newUser.assigned_project_ids.includes(projectId);
   }
 
   submitAddUser(): void {
@@ -212,19 +266,25 @@ export class UserListComponent implements OnInit {
     this.isSubmitting = true;
     this.addUserError = '';
 
+    const assignedIds = this.newUser.all_projects ? [] : this.newUser.assigned_project_ids;
     const payload = {
       name: this.newUser.name.trim(),
       email: this.newUser.email.trim().toLowerCase(),
       phone: this.newUser.phone.trim() || null,
       role: this.newUser.role,
       password: this.newUser.password || 'Contech@2026',
-      is_active: this.newUser.is_active
+      is_active: this.newUser.is_active,
+      assigned_project_ids: assignedIds
     };
 
     this.userService.createUser(payload).subscribe({
       next: (res: any) => {
         this.isSubmitting = false;
         const created = res.user;
+        const assignedObjs = this.newUser.all_projects
+          ? []
+          : this.availableProjects.filter(p => assignedIds.includes(p.id || p.project_id));
+
         const addedUser = {
           id: created ? created.id : Date.now(),
           name: payload.name,
@@ -233,7 +293,10 @@ export class UserListComponent implements OnInit {
           designation: this.newUser.designation.trim() || (created?.role?.name || payload.role),
           role: payload.role,
           status: payload.is_active ? 'active' : 'inactive',
-          last_login: 'Never'
+          last_login: 'Never',
+          assigned_projects: assignedObjs,
+          assigned_project_ids: assignedIds,
+          has_all_projects_access: this.newUser.all_projects || assignedIds.length === 0
         };
 
         this.users.unshift(addedUser);
@@ -267,9 +330,12 @@ export class UserListComponent implements OnInit {
   // --- EDIT USER MODAL ACTIONS ---
   openEditUserModal(user: any): void {
     this.editUserError = '';
+    const currentAssignedIds = user.assigned_project_ids || (user.assigned_projects ? user.assigned_projects.map((p: any) => p.project_id || p.id) : []);
     this.editingUser = {
       ...user,
-      password: '' // blank by default: keeps existing password intact unless set
+      password: '', // blank by default: keeps existing password intact unless set
+      all_projects: user.has_all_projects_access || currentAssignedIds.length === 0,
+      assigned_project_ids: [...currentAssignedIds]
     };
     this.showEditPassword = false;
     this.showEditUserModal = true;
@@ -280,6 +346,21 @@ export class UserListComponent implements OnInit {
     this.editingUser = null;
     this.showEditPassword = false;
     this.editUserError = '';
+  }
+
+  toggleProjectForEditingUser(projectId: number): void {
+    if (!this.editingUser) return;
+    if (!this.editingUser.assigned_project_ids) this.editingUser.assigned_project_ids = [];
+    const idx = this.editingUser.assigned_project_ids.indexOf(projectId);
+    if (idx > -1) {
+      this.editingUser.assigned_project_ids.splice(idx, 1);
+    } else {
+      this.editingUser.assigned_project_ids.push(projectId);
+    }
+  }
+
+  isProjectSelectedForEditingUser(projectId: number): boolean {
+    return this.editingUser?.assigned_project_ids?.includes(projectId) || false;
   }
 
   generatePasswordForEdit(): void {
@@ -316,12 +397,14 @@ export class UserListComponent implements OnInit {
     this.isEditing = true;
     this.editUserError = '';
 
+    const assignedIds = this.editingUser.all_projects ? [] : (this.editingUser.assigned_project_ids || []);
     const payload: any = {
       name: this.editingUser.name.trim(),
       email: this.editingUser.email.trim().toLowerCase(),
       phone: this.editingUser.phone ? this.editingUser.phone.trim() : null,
       role: this.editingUser.role,
-      is_active: this.editingUser.status === 'active'
+      is_active: this.editingUser.status === 'active',
+      assigned_project_ids: assignedIds
     };
 
     let hasPasswordUpdate = false;
@@ -340,6 +423,10 @@ export class UserListComponent implements OnInit {
       next: () => {
         this.isEditing = false;
         const idx = this.users.findIndex(u => u.id === this.editingUser.id);
+        const assignedObjs = this.editingUser.all_projects
+          ? []
+          : this.availableProjects.filter(p => assignedIds.includes(p.id || p.project_id));
+
         if (idx !== -1) {
           this.users[idx] = {
             ...this.users[idx],
@@ -348,7 +435,10 @@ export class UserListComponent implements OnInit {
             phone: payload.phone,
             role: payload.role,
             designation: this.editingUser.designation || payload.role,
-            status: payload.is_active ? 'active' : 'inactive'
+            status: payload.is_active ? 'active' : 'inactive',
+            assigned_projects: assignedObjs,
+            assigned_project_ids: assignedIds,
+            has_all_projects_access: this.editingUser.all_projects || assignedIds.length === 0
           };
         }
         this.updateStats();

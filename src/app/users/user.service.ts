@@ -33,4 +33,9 @@ export class UserService {
   getOpenAssignments(id: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${id}/open-assignments`);
   }
+
+  assignUserProjects(id: number, data: { project_ids?: number[]; all_projects?: boolean }): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/${id}/projects`, data);
+  }
 }
+
