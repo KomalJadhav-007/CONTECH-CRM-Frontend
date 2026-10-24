@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { VisitService } from '../visit.service';
 import { BuyerService } from '../../buyers/buyer.service';
+import { UserService } from '../../../users/user.service';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -38,6 +39,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 export class VisitBookingComponent implements OnInit {
   private visitService = inject(VisitService);
   private buyerService = inject(BuyerService);
+  private userService = inject(UserService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
@@ -50,14 +52,25 @@ export class VisitBookingComponent implements OnInit {
     { id: 6, full_name: 'Harish Menon', phone: '+91 98765 43239', preferred_bhk: '4 BHK' }
   ];
 
+  salesExecutives: any[] = [
+    { id: 4, name: 'Amit Verma (Account Executive)' },
+    { id: 2, name: 'Arun Bhatia (Sales Head / VP)' },
+    { id: 3, name: 'Priya Nair (Sales Manager)' }
+  ];
+
+  drivers: any[] = [
+    { id: 7, name: 'Ramesh Gowda (Company Driver)' },
+    { id: 6, name: 'Suresh Kumar (Site Visit Coordinator)' }
+  ];
+
   vehicles: any[] = [];
   selectedVehicleId: number | null = 1;
 
   bookingData: any = {
     buyer_id: 1,
     project_id: 1,
-    sales_rep_id: 3,
-    driver_id: 5,
+    sales_rep_id: 4,
+    driver_id: 7,
     vehicle_id: 1,
     scheduled_date: new Date().toISOString().split('T')[0],
     time_slot: '11:00 AM - 12:30 PM (Peak Slot)',
@@ -71,8 +84,29 @@ export class VisitBookingComponent implements OnInit {
   errorMessage = '';
 
   ngOnInit(): void {
+    this.loadUsers();
     this.loadBuyers();
     this.loadVehicles();
+  }
+
+  loadUsers(): void {
+    this.userService.getUsers().subscribe({
+      next: (res: any) => {
+        if (res && res.success && res.users) {
+          const active = res.users.filter((u: any) => u.is_active !== false);
+          const execs = active.filter((u: any) => {
+            const r = (u.role?.name || u.role_name || u.role || '').toLowerCase();
+            return !r.includes('driver');
+          });
+          const drvs = active.filter((u: any) => {
+            const r = (u.role?.name || u.role_name || u.role || '').toLowerCase();
+            return r.includes('driver');
+          });
+          if (execs.length > 0) this.salesExecutives = execs;
+          if (drvs.length > 0) this.drivers = drvs;
+        }
+      }
+    });
   }
 
   formatBhk(bhk: string): string {

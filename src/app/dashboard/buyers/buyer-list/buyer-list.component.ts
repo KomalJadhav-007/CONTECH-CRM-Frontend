@@ -13,6 +13,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { BuyerService } from '../buyer.service';
+import { UserService } from '../../../users/user.service';
 
 @Component({
   selector: 'app-buyer-list',
@@ -37,6 +38,7 @@ import { BuyerService } from '../buyer.service';
 })
 export class BuyerListComponent implements OnInit {
   private buyerService = inject(BuyerService);
+  private userService = inject(UserService);
   private router = inject(Router);
 
   loading = false;
@@ -48,6 +50,9 @@ export class BuyerListComponent implements OnInit {
   selectedSource = 'all';
   selectedIntentBand = 'all';
   selectedOwner = 'all';
+
+  owners: string[] = ['Unassigned'];
+  dbUsers: any[] = [];
 
   prospects: any[] = [];
 
@@ -215,7 +220,32 @@ export class BuyerListComponent implements OnInit {
   ];
 
   ngOnInit(): void {
+    this.loadOwners();
     this.loadBuyers();
+  }
+
+  loadOwners(): void {
+    this.userService.getUsers().subscribe({
+      next: (res: any) => {
+        if (res && res.success && res.users) {
+          this.dbUsers = res.users.filter((u: any) => u.is_active !== false);
+          this.rebuildOwnersList();
+        }
+      },
+      error: () => {
+        this.rebuildOwnersList();
+      }
+    });
+  }
+
+  private rebuildOwnersList(): void {
+    const userNames = (this.dbUsers || []).map((u: any) => u.name).filter(Boolean);
+    const prospectOwners = (this.prospects || [])
+      .map((p: any) => p.owner)
+      .filter((o: any) => o && o !== 'Unassigned');
+    const uniqueOwners = Array.from(new Set([...userNames, ...prospectOwners]));
+    uniqueOwners.sort((a, b) => a.localeCompare(b));
+    this.owners = ['Unassigned', ...uniqueOwners];
   }
 
   loadBuyers(): void {
@@ -306,13 +336,16 @@ export class BuyerListComponent implements OnInit {
               at_risk: atRiskText
             };
           });
+          this.rebuildOwnersList();
         } else {
           this.prospects = [...this.fallbackProspects];
+          this.rebuildOwnersList();
         }
       },
       error: () => {
         this.loading = false;
         this.prospects = [...this.fallbackProspects];
+        this.rebuildOwnersList();
       }
     });
   }

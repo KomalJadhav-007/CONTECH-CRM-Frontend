@@ -87,10 +87,7 @@
       <mat-icon matPrefix>account_circle</mat-icon>
       <mat-select [(ngModel)]="selectedOwner">
         <mat-option value="all">All owners</mat-option>
-        <mat-option value="Unassigned">Unassigned</mat-option>
-        <mat-option value="Amit Verma">Amit Verma (Account Executive)</mat-option>
-        <mat-option value="Arun Bhatia">Arun Bhatia (Sales Head / VP)</mat-option>
-        <mat-option value="Priya Nair">Priya Nair (Sales Manager)</mat-option>
+        <mat-option *ngFor="let o of owners" [value]="o">{{ o }}</mat-option>
       </mat-select>
     </mat-form-field>
   </div>

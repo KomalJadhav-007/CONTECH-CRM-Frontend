@@ -74,9 +74,9 @@
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>ASSIGNED SALES EXECUTIVE</mat-label>
             <mat-select [(ngModel)]="bookingData.sales_rep_id" name="sales_rep_id">
-              <mat-option [value]="3">Amit Verma (Senior Sales Rep)</mat-option>
-              <mat-option [value]="2">Priya Nair (Sales Manager)</mat-option>
-              <mat-option [value]="4">Sneha Joshi (Sales Associate)</mat-option>
+              <mat-option *ngFor="let s of salesExecutives" [value]="s.user_id || s.id">
+                {{ s.name }}
+              </mat-option>
             </mat-select>
           </mat-form-field>
         </div>
@@ -114,8 +114,9 @@
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>ASSIGNED DRIVER</mat-label>
             <mat-select [(ngModel)]="bookingData.driver_id" name="driver_id">
-              <mat-option [value]="5">Ramesh Gowda (Verified Driver)</mat-option>
-              <mat-option [value]="6">Suresh Kumar (Verified Driver)</mat-option>
+              <mat-option *ngFor="let d of drivers" [value]="d.user_id || d.id">
+                {{ d.name }}
+              </mat-option>
             </mat-select>
           </mat-form-field>
         </div>
