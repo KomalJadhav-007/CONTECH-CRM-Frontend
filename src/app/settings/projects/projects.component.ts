@@ -23,6 +23,8 @@ export interface PropertyTypeConfig {
   base_price_lacs: number;
   total_units: number;
   facing: string;
+  tower_wing?: string;
+  floor_range?: string;
 }
 
 @Component({
@@ -79,8 +81,28 @@ export class ProjectsComponent implements OnInit {
 
   // Multiple property typologies to include when adding project
   newProjectPropertyTypes: PropertyTypeConfig[] = [
-    { name: '2 BHK Executive', bhk_type: '2 BHK', carpet_area_sqft: 1050, super_builtup_area_sqft: 1280, base_price_lacs: 125, total_units: 30, facing: 'East Facing' },
-    { name: '3 BHK Royal', bhk_type: '3 BHK', carpet_area_sqft: 1450, super_builtup_area_sqft: 1780, base_price_lacs: 175, total_units: 40, facing: 'North-East Facing' }
+    { 
+      name: '2 BHK Executive', 
+      bhk_type: '2 BHK', 
+      carpet_area_sqft: 1050, 
+      super_builtup_area_sqft: 1280, 
+      base_price_lacs: 125, 
+      total_units: 30, 
+      facing: 'East Facing',
+      tower_wing: 'Tower A / Wing 1',
+      floor_range: 'Floors 1-10'
+    },
+    { 
+      name: '3 BHK Royal', 
+      bhk_type: '3 BHK', 
+      carpet_area_sqft: 1450, 
+      super_builtup_area_sqft: 1780, 
+      base_price_lacs: 175, 
+      total_units: 40, 
+      facing: 'North-East Facing',
+      tower_wing: 'Tower B / Wing 2',
+      floor_range: 'Floors 5-18'
+    }
   ];
 
   showPropertyTypesBuilder = true;
@@ -159,6 +181,8 @@ export class ProjectsComponent implements OnInit {
     base_price_lacs: 120.00,
     total_units: 20,
     facing: 'East Facing',
+    tower_wing: 'Tower A / Wing 1',
+    floor_range: 'Floors 1-14',
     description: ''
   };
 
@@ -306,6 +330,7 @@ export class ProjectsComponent implements OnInit {
 
   // --- Add Project Form Actions ---
   addPropertyTypeRow(): void {
+    const nextWing = String.fromCharCode(65 + (this.newProjectPropertyTypes.length % 26));
     this.newProjectPropertyTypes.push({
       name: '4 BHK Luxury Penthouse',
       bhk_type: '4 BHK',
@@ -313,7 +338,9 @@ export class ProjectsComponent implements OnInit {
       super_builtup_area_sqft: 2750,
       base_price_lacs: 280,
       total_units: 15,
-      facing: 'Panoramic Park Facing'
+      facing: 'Panoramic Park Facing',
+      tower_wing: `Tower ${nextWing} / Wing ${this.newProjectPropertyTypes.length + 1}`,
+      floor_range: 'Floors 12-24'
     });
     this.syncConfigurationsText();
   }
@@ -350,24 +377,38 @@ export class ProjectsComponent implements OnInit {
       property_types: this.newProjectPropertyTypes
     };
 
-    // Auto-generate sample flats for the new project if checked
+    // Auto-generate sample flats for each defined configuration across its building/wing & floor range
     if (this.autoGenerateBatchFlats && this.newProjectPropertyTypes.length > 0) {
       const generatedUnits: any[] = [];
-      const primaryType = this.newProjectPropertyTypes[0];
-      for (let floor = 1; floor <= 3; floor++) {
-        for (let u = 1; u <= 2; u++) {
-          generatedUnits.push({
-            unit_number: `Tower A-${floor}0${u}`,
-            tower_block: 'Tower A',
-            floor_number: floor,
-            bhk_type: primaryType.bhk_type,
-            area_sqft: primaryType.super_builtup_area_sqft || 1350,
-            price_lacs: primaryType.base_price_lacs || 120,
-            facing: primaryType.facing || 'East Facing',
-            status: 'AVAILABLE'
-          });
+      this.newProjectPropertyTypes.forEach((pt, pIdx) => {
+        const wingName = (pt.tower_wing || `Tower ${String.fromCharCode(65 + pIdx)}`).trim();
+        // Extract start and end floor from floor_range (e.g., "Floors 1-10", "Floors 5-18", "Floor 4")
+        let startFloor = 1;
+        let endFloor = 3;
+        const match = (pt.floor_range || '').match(/\d+/g);
+        if (match && match.length >= 2) {
+          startFloor = parseInt(match[0], 10);
+          endFloor = Math.min(startFloor + 2, parseInt(match[1], 10));
+        } else if (match && match.length === 1) {
+          startFloor = parseInt(match[0], 10);
+          endFloor = startFloor + 2;
         }
-      }
+
+        for (let floor = startFloor; floor <= endFloor; floor++) {
+          for (let u = 1; u <= 2; u++) {
+            generatedUnits.push({
+              unit_number: `${wingName} - ${floor}0${u}`,
+              tower_block: wingName,
+              floor_number: floor,
+              bhk_type: pt.bhk_type,
+              area_sqft: pt.super_builtup_area_sqft || 1350,
+              price_lacs: pt.base_price_lacs || 120,
+              facing: pt.facing || 'East Facing',
+              status: 'AVAILABLE'
+            });
+          }
+        }
+      });
       payload.units = generatedUnits;
     }
 
@@ -755,6 +796,8 @@ export class ProjectsComponent implements OnInit {
       base_price_lacs: 185.00,
       total_units: 30,
       facing: 'East Facing',
+      tower_wing: 'Tower B / Wing 2',
+      floor_range: 'Floors 5-18',
       description: ''
     };
     this.showTypeModal = true;

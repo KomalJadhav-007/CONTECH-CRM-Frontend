@@ -142,6 +142,14 @@
                 <option value="Villa">Villa / Duplex</option>
               </select>
             </div>
+            <div class="type-row-col col-wing">
+              <label class="sub-label">Building / Wing</label>
+              <input type="text" [(ngModel)]="pt.tower_wing" [name]="'pt_wing_' + i" class="input-field-sm" placeholder="e.g. Tower A / Wing 1" />
+            </div>
+            <div class="type-row-col col-floors">
+              <label class="sub-label">Floor(s) / Range</label>
+              <input type="text" [(ngModel)]="pt.floor_range" [name]="'pt_floor_' + i" class="input-field-sm" placeholder="e.g. Floors 1-14" />
+            </div>
             <div class="type-row-col col-sqft">
               <label class="sub-label">Super Built-up (sqft)</label>
               <input type="number" [(ngModel)]="pt.super_builtup_area_sqft" [name]="'pt_sqft_' + i" class="input-field-sm" placeholder="1350" />
@@ -669,6 +677,14 @@
             </select>
           </div>
           <div class="form-field">
+            <label class="field-label">Building / Wing</label>
+            <input type="text" [(ngModel)]="newTypeForm.tower_wing" class="input-field" placeholder="e.g. Tower B / Wing 2" />
+          </div>
+          <div class="form-field">
+            <label class="field-label">Floor(s) / Range</label>
+            <input type="text" [(ngModel)]="newTypeForm.floor_range" class="input-field" placeholder="e.g. Floors 1-14" />
+          </div>
+          <div class="form-field">
             <label class="field-label">Carpet Area (sqft)</label>
             <input type="number" [(ngModel)]="newTypeForm.carpet_area_sqft" class="input-field" placeholder="1250" />
           </div>
@@ -701,6 +717,8 @@
           <tr>
             <th>CONFIGURATION NAME</th>
             <th>TYPOLOGY</th>
+            <th>BUILDING / WING</th>
+            <th>FLOOR(S)</th>
             <th class="text-right">CARPET AREA</th>
             <th class="text-right">SUPER BUILT-UP</th>
             <th class="text-right">BASE PRICE</th>
@@ -713,6 +731,8 @@
           <tr *ngFor="let pt of activeInventory.propertyTypes">
             <td class="font-bold">{{ pt.name }}</td>
             <td><span class="bhk-badge">{{ pt.bhk_type }}</span></td>
+            <td><span class="wing-tag">{{ pt.tower_wing || 'Tower A / Wing 1' }}</span></td>
+            <td><span class="floor-tag">{{ pt.floor_range || 'All Floors' }}</span></td>
             <td class="text-right">{{ pt.carpet_area_sqft ? pt.carpet_area_sqft + ' sqft' : '-' }}</td>
             <td class="text-right font-semibold">{{ pt.super_builtup_area_sqft ? pt.super_builtup_area_sqft + ' sqft' : '-' }}</td>
             <td class="text-right font-bold text-green">₹{{ pt.base_price_lacs }} L</td>
