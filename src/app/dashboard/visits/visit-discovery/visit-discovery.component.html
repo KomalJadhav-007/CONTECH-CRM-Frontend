@@ -120,14 +120,314 @@
             </div>
           </div>
 
-          <!-- SECTION 2: Objections & Customer Hesitations (UC-05) -->
+          <!-- SECTION 2: Specific Site Booking Decision & Cross-Visit Preferences -->
+          <div class="form-section">
+            <div class="section-header">
+              <div class="section-icon-wrap section-icon-blue">
+                <mat-icon>home_work</mat-icon>
+              </div>
+              <div class="section-meta">
+                <h2 class="section-heading">2. Specific Site Booking Decision &amp; Cross-Visit Preferences</h2>
+                <p class="section-subheading">Record whether the client has booked this specific site/unit, or intends to explore different flats or other project developments</p>
+              </div>
+            </div>
+
+            <!-- Sub-heading 2A: Specific Site Booking Decision -->
+            <div class="intent-sub-header">
+              <div class="sub-label-wrap">
+                <span class="sub-label">A. CLIENT DECISION ON CURRENT SPECIFIC SITE / UNIT</span>
+                <span class="sub-help">Has the buyer confirmed booking with advance token, or decided on this specific site?</span>
+              </div>
+            </div>
+
+            <!-- Booking Decision Selection Cards -->
+            <div class="decision-cards-grid">
+              <div 
+                class="decision-card" 
+                [class.selected-booked]="discoveryData.booking_decision === 'BOOKED_SPECIFIC'"
+                (click)="setBookingDecision('BOOKED_SPECIFIC')">
+                <div class="card-radio-indicator">
+                  <mat-icon *ngIf="discoveryData.booking_decision === 'BOOKED_SPECIFIC'">check_circle</mat-icon>
+                  <span *ngIf="discoveryData.booking_decision !== 'BOOKED_SPECIFIC'" class="radio-dot"></span>
+                </div>
+                <div class="card-body">
+                  <div class="card-title-row">
+                    <mat-icon class="card-icon text-emerald">how_to_reg</mat-icon>
+                    <strong>Booked This Specific Site / Unit</strong>
+                  </div>
+                  <p class="card-desc">Client confirmed booking and paid token / advance deposit during the visit</p>
+                </div>
+              </div>
+
+              <div 
+                class="decision-card" 
+                [class.selected-considering]="discoveryData.booking_decision === 'CONSIDERING'"
+                (click)="setBookingDecision('CONSIDERING')">
+                <div class="card-radio-indicator">
+                  <mat-icon *ngIf="discoveryData.booking_decision === 'CONSIDERING'">hourglass_top</mat-icon>
+                  <span *ngIf="discoveryData.booking_decision !== 'CONSIDERING'" class="radio-dot"></span>
+                </div>
+                <div class="card-body">
+                  <div class="card-title-row">
+                    <mat-icon class="card-icon text-amber">pending_actions</mat-icon>
+                    <strong>Shortlisted &amp; Evaluating</strong>
+                  </div>
+                  <p class="card-desc">Evaluating this specific site; discussing final payment schedule or family review</p>
+                </div>
+              </div>
+
+              <div 
+                class="decision-card" 
+                [class.selected-not-booked]="discoveryData.booking_decision === 'NOT_BOOKED'"
+                (click)="setBookingDecision('NOT_BOOKED')">
+                <div class="card-radio-indicator">
+                  <mat-icon *ngIf="discoveryData.booking_decision === 'NOT_BOOKED'">cancel</mat-icon>
+                  <span *ngIf="discoveryData.booking_decision !== 'NOT_BOOKED'" class="radio-dot"></span>
+                </div>
+                <div class="card-body">
+                  <div class="card-title-row">
+                    <mat-icon class="card-icon text-rose">do_not_disturb_on</mat-icon>
+                    <strong>Not Booking This Specific Site</strong>
+                  </div>
+                  <p class="card-desc">Client decided against this specific unit/site due to preferences, floor, budget, or facing</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Dynamic Panel: If Booked Specific Unit -->
+            <div *ngIf="discoveryData.booking_decision === 'BOOKED_SPECIFIC'" class="dynamic-booking-panel">
+              <div class="panel-header-banner">
+                <mat-icon class="panel-badge-icon">celebration</mat-icon>
+                <div class="panel-badge-text">
+                  <strong>Token Secured for Current Site Walkthrough</strong>
+                  <span>Auto-reserves unit in inventory and logs booking record</span>
+                </div>
+              </div>
+
+              <div class="form-grid-3">
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Booked Unit / Flat Number</mat-label>
+                  <mat-icon matPrefix class="field-icon">apartment</mat-icon>
+                  <input matInput type="text" [(ngModel)]="discoveryData.booked_unit_number" name="booked_unit_number" placeholder="e.g. Tower B - Unit 402" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Token / Booking Amount (₹ Lakhs)</mat-label>
+                  <mat-icon matPrefix class="field-icon">payments</mat-icon>
+                  <input matInput type="number" step="0.5" [(ngModel)]="discoveryData.token_amount_lacs" name="token_amount_lacs" placeholder="5.00" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Payment Mode</mat-label>
+                  <mat-icon matPrefix class="field-icon">account_balance_wallet</mat-icon>
+                  <mat-select [(ngModel)]="discoveryData.token_payment_mode" name="token_payment_mode">
+                    <mat-option value="UPI / Immediate Transfer">⚡ UPI / QR Payment</mat-option>
+                    <mat-option value="Cheque / DD">📝 Cheque / Demand Draft</mat-option>
+                    <mat-option value="RTGS / NEFT Wire">🏦 RTGS / NEFT Wire Transfer</mat-option>
+                    <mat-option value="Credit / Debit Card">💳 POS Credit / Debit Card</mat-option>
+                    <mat-option value="Cash Token Voucher">💵 Cash Token Voucher</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+
+              <div class="form-grid-2" style="margin-top: 0.25rem;">
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Booking Reference / Receipt Number</mat-label>
+                  <mat-icon matPrefix class="field-icon">receipt_long</mat-icon>
+                  <input matInput type="text" [(ngModel)]="discoveryData.booking_reference_number" name="booking_reference_number" placeholder="e.g. CON-BK-8492" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Expected Agreement Date</mat-label>
+                  <mat-icon matPrefix class="field-icon">event</mat-icon>
+                  <input matInput type="date" [(ngModel)]="discoveryData.expected_agreement_date" name="expected_agreement_date" />
+                </mat-form-field>
+              </div>
+            </div>
+
+            <!-- Sub-heading 2B: Alternative Walkthrough & Future Exploration Intent -->
+            <div class="intent-sub-header" style="margin-top: 1.5rem;">
+              <div class="sub-label-wrap">
+                <span class="sub-label">B. ALTERNATIVE EXPLORATION &amp; VISIT PREFERENCES</span>
+                <span class="sub-help">Does the client want to visit different flats within this site or explore other Contech sites/projects?</span>
+              </div>
+            </div>
+
+            <!-- 4-Option Exploration Preference Selector -->
+            <div class="intent-cards-grid">
+              <div 
+                class="intent-card"
+                [class.selected-intent]="discoveryData.future_visit_intent === 'VISIT_DIFFERENT_FLATS'"
+                (click)="setFutureVisitIntent('VISIT_DIFFERENT_FLATS')">
+                <mat-icon class="intent-icon text-indigo">apartment</mat-icon>
+                <div class="intent-text">
+                  <strong>Visit Different Flats in This Site</strong>
+                  <span>Different floors, facing, 2BHK/3BHK configuration or tower</span>
+                </div>
+              </div>
+
+              <div 
+                class="intent-card"
+                [class.selected-intent]="discoveryData.future_visit_intent === 'VISIT_OTHER_SITES'"
+                (click)="setFutureVisitIntent('VISIT_OTHER_SITES')">
+                <mat-icon class="intent-icon text-emerald">location_city</mat-icon>
+                <div class="intent-text">
+                  <strong>Visit Other Sites / Projects</strong>
+                  <span>Explore other Contech project locations, price tiers or layouts</span>
+                </div>
+              </div>
+
+              <div 
+                class="intent-card"
+                [class.selected-intent]="discoveryData.future_visit_intent === 'BOTH'"
+                (click)="setFutureVisitIntent('BOTH')">
+                <mat-icon class="intent-icon text-violet">compare_arrows</mat-icon>
+                <div class="intent-text">
+                  <strong>Both (Different Flats &amp; Other Sites)</strong>
+                  <span>Compare alternate inventory here AND visit other project sites</span>
+                </div>
+              </div>
+
+              <div 
+                class="intent-card"
+                [class.selected-intent]="discoveryData.future_visit_intent === 'NONE'"
+                (click)="setFutureVisitIntent('NONE')">
+                <mat-icon class="intent-icon text-slate">task_alt</mat-icon>
+                <div class="intent-text">
+                  <strong>No Additional Visits Needed</strong>
+                  <span>Walkthrough sufficient; buyer focused on current decision</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Panel: When wanting Different Flats in This Site -->
+            <div *ngIf="discoveryData.future_visit_intent === 'VISIT_DIFFERENT_FLATS' || discoveryData.future_visit_intent === 'BOTH'" class="dynamic-subpanel subpanel-flats">
+              <div class="subpanel-title">
+                <mat-icon class="subpanel-icon text-indigo">view_quilt</mat-icon>
+                <div>
+                  <strong>Target Flat Preferences within {{ visit.project?.name || 'This Project' }}</strong>
+                  <p>Specify the unit types, floor ranges, or layouts the buyer wants to tour next</p>
+                </div>
+              </div>
+
+              <div class="quick-chip-row">
+                <span class="chip-label">Quick Tag Specifications:</span>
+                <button 
+                  type="button" 
+                  *ngFor="let chip of flatSpecsQuickChips" 
+                  class="spec-chip"
+                  [class.spec-chip-active]="isFlatSpecSelected(chip)"
+                  (click)="toggleFlatSpec(chip)">
+                  <mat-icon *ngIf="isFlatSpecSelected(chip)" class="chip-check">check</mat-icon>
+                  {{ chip }}
+                </button>
+              </div>
+
+              <div class="form-grid-2" style="margin-top: 0.75rem;">
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Selected Alternate Specifications</mat-label>
+                  <mat-icon matPrefix class="field-icon">tune</mat-icon>
+                  <input matInput type="text" [(ngModel)]="discoveryData.alternate_flat_specs" name="alternate_flat_specs" placeholder="e.g. 3 BHK • Floor 10+ • East Facing" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Preferred Re-Visit Window</mat-label>
+                  <mat-icon matPrefix class="field-icon">event_available</mat-icon>
+                  <input matInput type="text" [(ngModel)]="discoveryData.alternate_visit_time_slot" name="alternate_visit_time_slot" placeholder="e.g. Tomorrow 02:00 PM Slot" />
+                </mat-form-field>
+              </div>
+
+              <div class="form-row-full">
+                <mat-form-field appearance="outline" class="w-full textarea-field">
+                  <mat-label>Specific Flat Requirements &amp; Inventory Shortlist Details</mat-label>
+                  <textarea matInput rows="2" [(ngModel)]="discoveryData.preferred_alternate_flats" name="preferred_alternate_flats" placeholder="Detail specific unit numbers, higher floor preference, balcony orientation, or layout comparison notes..."></textarea>
+                </mat-form-field>
+              </div>
+            </div>
+
+            <!-- Panel: When wanting Other Sites / Projects -->
+            <div *ngIf="discoveryData.future_visit_intent === 'VISIT_OTHER_SITES' || discoveryData.future_visit_intent === 'BOTH'" class="dynamic-subpanel subpanel-projects">
+              <div class="subpanel-title">
+                <mat-icon class="subpanel-icon text-emerald">travel_explore</mat-icon>
+                <div>
+                  <strong>Cross-Project Walkthrough Routing</strong>
+                  <p>Select other Contech developments the client wants to visit and schedule transfer transport</p>
+                </div>
+              </div>
+
+              <div class="projects-selector-grid">
+                <div 
+                  *ngFor="let proj of availableProjects"
+                  class="project-select-card"
+                  [class.proj-selected]="isProjectSelected(proj.name)"
+                  (click)="toggleTargetProject(proj.name)">
+                  <div class="proj-check-box">
+                    <mat-icon *ngIf="isProjectSelected(proj.name)">check_box</mat-icon>
+                    <mat-icon *ngIf="!isProjectSelected(proj.name)">check_box_outline_blank</mat-icon>
+                  </div>
+                  <div class="proj-card-info">
+                    <span class="proj-zone-tag">{{ proj.zone }}</span>
+                    <strong class="proj-name">{{ proj.name }}</strong>
+                    <span class="proj-badge">{{ proj.badge }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-grid-2" style="margin-top: 1rem;">
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Target Alternate Projects to Visit</mat-label>
+                  <mat-icon matPrefix class="field-icon">domain</mat-icon>
+                  <input matInput type="text" [(ngModel)]="discoveryData.target_alternate_projects" name="target_alternate_projects" placeholder="e.g. Contech Skyline Elegance (Hebbal)" />
+                  <mat-hint>Click above project cards or type custom location</mat-hint>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Proposed Alternate Visit Date</mat-label>
+                  <mat-icon matPrefix class="field-icon">calendar_month</mat-icon>
+                  <input matInput type="date" [(ngModel)]="discoveryData.alternate_visit_date" name="alternate_visit_date" />
+                </mat-form-field>
+              </div>
+
+              <!-- Transport Cab Chauffeur Booking Toggle -->
+              <div class="transport-booking-box">
+                <div class="transport-info">
+                  <mat-icon class="transport-car-icon">directions_car</mat-icon>
+                  <div>
+                    <strong>Complimentary Fleet Cab Transit Required?</strong>
+                    <p>Dispatch dedicated Contech chauffeur to pick up buyer and transfer between sites</p>
+                  </div>
+                </div>
+                <mat-slide-toggle [(ngModel)]="discoveryData.transport_required" name="transport_required" color="primary">
+                  {{ discoveryData.transport_required ? 'Fleet Cab Requested' : 'Self Transit' }}
+                </mat-slide-toggle>
+              </div>
+            </div>
+
+            <!-- Notes on Why Client Wants Different Flats / Other Sites -->
+            <div class="form-row-full" style="margin-top: 1rem;">
+              <mat-form-field appearance="outline" class="w-full textarea-field">
+                <mat-label>Client Feedback &amp; Reasons regarding Current Site vs Alternate Flats/Sites</mat-label>
+                <mat-icon matPrefix class="field-icon">psychology</mat-icon>
+                <textarea
+                  matInput
+                  rows="2"
+                  [(ngModel)]="discoveryData.client_site_notes"
+                  name="client_site_notes"
+                  placeholder="Record specific rationale: e.g. Client loved the construction quality but wants a higher floor with open views, or wants to compare pricing against the Hebbal project before paying booking token..."
+                ></textarea>
+                <mat-hint>Provides cross-site sales reps and inventory managers complete context on buyer intentions</mat-hint>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- SECTION 3: Objections & Customer Hesitations (UC-05) -->
           <div class="form-section">
             <div class="section-header">
               <div class="section-icon-wrap section-icon-amber">
                 <mat-icon>report_problem</mat-icon>
               </div>
               <div class="section-meta">
-                <h2 class="section-heading">2. Objections &amp; Customer Hesitations (UC-05)</h2>
+                <h2 class="section-heading">3. Objections &amp; Customer Hesitations (UC-05)</h2>
                 <p class="section-subheading">Capture precise buyer pushbacks to trigger personalized recovery strategies</p>
               </div>
             </div>
@@ -174,14 +474,14 @@
             </div>
           </div>
 
-          <!-- SECTION 3: Automated 4-Hour Countdown Follow-up SLA (UC-06) -->
+          <!-- SECTION 4: Automated 4-Hour Countdown Follow-up SLA (UC-06) -->
           <div class="form-section">
             <div class="section-header">
               <div class="section-icon-wrap section-icon-violet">
                 <mat-icon>timer</mat-icon>
               </div>
               <div class="section-meta">
-                <h2 class="section-heading">3. Automated 4-Hour Countdown Follow-up SLA (UC-06)</h2>
+                <h2 class="section-heading">4. Automated 4-Hour Countdown Follow-up SLA (UC-06)</h2>
                 <p class="section-subheading">Mandatory follow-up task dispatched immediately with strict 4-hour breach timer</p>
               </div>
             </div>

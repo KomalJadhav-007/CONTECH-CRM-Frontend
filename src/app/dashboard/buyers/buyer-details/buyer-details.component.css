@@ -605,6 +605,10 @@
   margin-right: 0.35rem;
 }
 
+.text-emerald { color: #059669; }
+.text-amber { color: #d97706; }
+.text-rose { color: #e11d48; }
+
 .btn-action-sm {
   background: #ffffff;
   border: 1px solid #cbd5e1;
