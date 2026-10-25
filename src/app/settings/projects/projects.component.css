@@ -315,24 +315,7 @@
   cursor: not-allowed;
 }
 
-.builder-footer-options {
-  margin-top: 1rem;
-  padding-top: 0.75rem;
-  border-top: 1px dashed #cbd5e1;
-}
 
-.checkbox-container {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  cursor: pointer;
-}
-
-.checkbox-label {
-  font-size: 0.78rem;
-  color: #334155;
-  font-weight: 500;
-}
 
 .form-actions {
   margin-top: 1rem;

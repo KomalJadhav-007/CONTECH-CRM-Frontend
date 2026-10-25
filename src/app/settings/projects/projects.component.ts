@@ -106,7 +106,6 @@ export class ProjectsComponent implements OnInit {
   ];
 
   showPropertyTypesBuilder = true;
-  autoGenerateBatchFlats = true;
 
   projects: any[] = [];
 
@@ -377,40 +376,6 @@ export class ProjectsComponent implements OnInit {
       property_types: this.newProjectPropertyTypes
     };
 
-    // Auto-generate sample flats for each defined configuration across its building/wing & floor range
-    if (this.autoGenerateBatchFlats && this.newProjectPropertyTypes.length > 0) {
-      const generatedUnits: any[] = [];
-      this.newProjectPropertyTypes.forEach((pt, pIdx) => {
-        const wingName = (pt.tower_wing || `Tower ${String.fromCharCode(65 + pIdx)}`).trim();
-        // Extract start and end floor from floor_range (e.g., "Floors 1-10", "Floors 5-18", "Floor 4")
-        let startFloor = 1;
-        let endFloor = 3;
-        const match = (pt.floor_range || '').match(/\d+/g);
-        if (match && match.length >= 2) {
-          startFloor = parseInt(match[0], 10);
-          endFloor = Math.min(startFloor + 2, parseInt(match[1], 10));
-        } else if (match && match.length === 1) {
-          startFloor = parseInt(match[0], 10);
-          endFloor = startFloor + 2;
-        }
-
-        for (let floor = startFloor; floor <= endFloor; floor++) {
-          for (let u = 1; u <= 2; u++) {
-            generatedUnits.push({
-              unit_number: `${wingName} - ${floor}0${u}`,
-              tower_block: wingName,
-              floor_number: floor,
-              bhk_type: pt.bhk_type,
-              area_sqft: pt.super_builtup_area_sqft || 1350,
-              price_lacs: pt.base_price_lacs || 120,
-              facing: pt.facing || 'East Facing',
-              status: 'AVAILABLE'
-            });
-          }
-        }
-      });
-      payload.units = generatedUnits;
-    }
 
     this.settingsService.createProject(payload).subscribe({
       next: (res: any) => {
