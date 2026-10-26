@@ -145,28 +145,40 @@ export class VisitBookingComponent implements OnInit {
         if (res.success && res.vehicles && res.vehicles.length > 0) {
           this.vehicles = res.vehicles;
           if (!this.selectedVehicleId && this.vehicles.length > 0) {
-            this.onVehicleSelect(this.vehicles[0].vehicle_id || this.vehicles[0].id);
+            this.selectedVehicleId = this.vehicles[0].vehicle_id || this.vehicles[0].id;
+            this.bookingData.vehicle_id = this.selectedVehicleId;
+            this.bookingData.cab_number = this.vehicles[0].registration_number;
           }
         }
       },
       error: () => {
         // Fallback default fleet
         this.vehicles = [
-          { id: 1, vehicle_id: 1, registration_number: 'KA-01-MJ-8822', model: 'Innova Crysta Luxury', seating_capacity: 6, fuel_type: 'Diesel', assigned_driver_id: 5, assignedDriver: { name: 'Ramesh Gowda' } },
-          { id: 2, vehicle_id: 2, registration_number: 'KA-03-EA-1090', model: 'Honda City ZX', seating_capacity: 4, fuel_type: 'Petrol', assigned_driver_id: null, assignedDriver: null }
+          { id: 1, vehicle_id: 1, registration_number: 'KA-01-MJ-8822', make_model: 'Toyota Innova Crysta Luxury', seating_capacity: 6, vehicle_type: 'SUV', fuel_type: 'Diesel' },
+          { id: 2, vehicle_id: 2, registration_number: 'KA-05-NB-4411', make_model: 'Honda City ZX', seating_capacity: 4, vehicle_type: 'SEDAN', fuel_type: 'Petrol' },
+          { id: 3, vehicle_id: 3, registration_number: 'KA-03-EX-9900', make_model: 'Mercedes-Benz E-Class VIP', seating_capacity: 4, vehicle_type: 'LUXURY', fuel_type: 'Diesel' }
         ];
       }
     });
   }
 
   onVehicleSelect(vId: any): void {
+    if (vId === 'custom') {
+      this.selectedVehicleId = 'custom' as any;
+      this.bookingData.vehicle_id = null;
+      this.bookingData.cab_number = '';
+      return;
+    }
+
     this.selectedVehicleId = vId ? parseInt(vId, 10) : null;
     if (this.selectedVehicleId) {
       const found = this.vehicles.find(v => (v.vehicle_id || v.id) === this.selectedVehicleId);
       if (found) {
         this.bookingData.vehicle_id = found.vehicle_id || found.id;
         this.bookingData.cab_number = found.registration_number;
-        if (found.assigned_driver_id) {
+        // Keep currently assigned driver! Do NOT overwrite or clear the driver:
+        // Only if no driver has been selected yet, assign default driver if available:
+        if (!this.bookingData.driver_id && found.assigned_driver_id) {
           this.bookingData.driver_id = found.assigned_driver_id;
         }
         this.bookingData.cab_required = true;
@@ -174,6 +186,45 @@ export class VisitBookingComponent implements OnInit {
     } else {
       this.bookingData.vehicle_id = null;
     }
+  }
+
+  onDriverSelect(driverId: any): void {
+    this.bookingData.driver_id = driverId ? parseInt(driverId, 10) : null;
+    if (this.bookingData.driver_id) {
+      const selectedDriver = this.drivers.find(d => (d.user_id || d.id) === this.bookingData.driver_id);
+      // If driver has a default vehicle in profile and no cab number is set yet:
+      if (!this.bookingData.cab_number && selectedDriver?.vehicle_number) {
+        this.bookingData.cab_number = selectedDriver.vehicle_number;
+        const matchingVeh = this.vehicles.find(v => v.registration_number === selectedDriver.vehicle_number);
+        if (matchingVeh) {
+          this.selectedVehicleId = matchingVeh.vehicle_id || matchingVeh.id;
+          this.bookingData.vehicle_id = matchingVeh.vehicle_id || matchingVeh.id;
+        }
+      }
+    }
+  }
+
+  onCabNumberChange(cabNum: string): void {
+    if (!cabNum) {
+      this.selectedVehicleId = null;
+      this.bookingData.vehicle_id = null;
+      return;
+    }
+    const cleanNum = cabNum.trim().toUpperCase();
+    const matchingVeh = this.vehicles.find(v => v.registration_number?.toUpperCase() === cleanNum);
+    if (matchingVeh) {
+      this.selectedVehicleId = matchingVeh.vehicle_id || matchingVeh.id;
+      this.bookingData.vehicle_id = matchingVeh.vehicle_id || matchingVeh.id;
+    } else {
+      this.selectedVehicleId = 'custom' as any;
+      this.bookingData.vehicle_id = null;
+    }
+  }
+
+  getSelectedDriverName(): string {
+    if (!this.bookingData.driver_id) return 'Unassigned';
+    const found = this.drivers.find(d => (d.user_id || d.id) === this.bookingData.driver_id);
+    return found ? found.name : 'Driver #' + this.bookingData.driver_id;
   }
 
 

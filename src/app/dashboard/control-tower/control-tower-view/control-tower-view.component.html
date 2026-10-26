@@ -75,7 +75,7 @@
       <div class="panel-header">
         <div>
           <div class="panel-title-row">
-            <span class="panel-icon">🚨</span>
+            <mat-icon class="panel-icon icon-danger">notification_important</mat-icon>
             <span class="panel-title">Neglected High-Intent Buyers (&gt;48h Inaction)</span>
           </div>
           <p class="panel-subtitle">These ready-to-buy customers are at immediate risk of slipping to competing developers.</p>
@@ -85,7 +85,7 @@
         </div>
       </div>
 
-      <div class="table-responsive">
+      <div class="table-responsive scroller-container">
         <table class="radar-table">
           <thead>
             <tr>
@@ -121,7 +121,8 @@
             </tr>
             <tr *ngIf="radarData.neglected_buyers.length === 0">
               <td colspan="7" class="empty-cell">
-                ✨ Zero neglected buyers detected! All high-intent deals are actively nurtured.
+                <mat-icon class="empty-icon">check_circle</mat-icon>
+                <span>Zero neglected buyers detected. All high-intent deals are actively nurtured.</span>
               </td>
             </tr>
           </tbody>
@@ -136,7 +137,7 @@
       <div class="panel-header">
         <div>
           <div class="panel-title-row">
-            <span class="panel-icon">⚠️</span>
+            <mat-icon class="panel-icon icon-warning">warning</mat-icon>
             <span class="panel-title">At-Risk Site Visits (Missing 4-Way Confirmations)</span>
           </div>
           <p class="panel-subtitle">Prevent dispatching empty cabs and wasting driver resources.</p>
@@ -146,7 +147,7 @@
         </div>
       </div>
 
-      <div class="table-responsive">
+      <div class="table-responsive scroller-container">
         <table class="radar-table">
           <thead>
             <tr>
@@ -193,7 +194,8 @@
             </tr>
             <tr *ngIf="radarData.at_risk_visits.length === 0">
               <td colspan="7" class="empty-cell">
-                ✅ All today's visits have 100% 4-way confirmations!
+                <mat-icon class="empty-icon">check_circle</mat-icon>
+                <span>All today's visits have 100% 4-way confirmations.</span>
               </td>
             </tr>
           </tbody>
@@ -208,7 +210,7 @@
       <div class="panel-header">
         <div>
           <div class="panel-title-row">
-            <span class="panel-icon">⏰</span>
+            <mat-icon class="panel-icon icon-danger">schedule</mat-icon>
             <span class="panel-title">Overdue Follow-Up Tasks (SLA Breaches)</span>
           </div>
           <p class="panel-subtitle">Next best actions that have breached the 4-hour countdown SLA deadline.</p>
@@ -218,7 +220,7 @@
         </div>
       </div>
 
-      <div class="table-responsive">
+      <div class="table-responsive scroller-container">
         <table class="radar-table">
           <thead>
             <tr>

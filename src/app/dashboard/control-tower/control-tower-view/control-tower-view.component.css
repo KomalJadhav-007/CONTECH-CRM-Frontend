@@ -218,7 +218,18 @@
 }
 
 .panel-icon {
-  font-size: 1.05rem;
+  font-size: 1.15rem !important;
+  width: 1.15rem !important;
+  height: 1.15rem !important;
+  line-height: 1.15rem !important;
+}
+
+.panel-icon.icon-danger {
+  color: #dc2626;
+}
+
+.panel-icon.icon-warning {
+  color: #d97706;
 }
 
 .panel-title {
@@ -261,28 +272,56 @@
   white-space: nowrap;
 }
 
-/* Table */
+/* Table Scroller Container (Horizontal & Vertical Scroller with Sticky Header) */
 .table-responsive {
   overflow-x: auto;
+  overflow-y: auto;
+  max-height: 380px;
   width: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f8fafc;
+}
+
+.table-responsive::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: #f8fafc;
+  border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .radar-table {
   width: 100%;
+  min-width: 880px;
   border-collapse: collapse;
   font-size: 0.78rem;
 }
 
 .radar-table th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   text-align: left;
-  padding: 0.65rem 0.75rem;
+  padding: 0.75rem 0.85rem;
   font-size: 0.68rem;
   font-weight: 700;
   color: #64748b;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 2px solid #e2e8f0;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 .radar-table td {
@@ -374,6 +413,20 @@
   padding: 2.25rem 1rem !important;
   color: #64748b;
   font-size: 0.85rem;
+}
+
+.empty-cell .empty-icon {
+  vertical-align: middle;
+  margin-right: 0.45rem;
+  color: #16a34a;
+  font-size: 1.25rem !important;
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+  line-height: 1.25rem !important;
+}
+
+.empty-cell span {
+  vertical-align: middle;
 }
 
 /* Actions */

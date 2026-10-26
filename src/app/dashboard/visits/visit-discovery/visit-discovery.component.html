@@ -85,10 +85,10 @@
                 <mat-label>Visit Outcome Status</mat-label>
                 <mat-icon matPrefix class="field-icon">flag</mat-icon>
                 <mat-select [(ngModel)]="discoveryData.outcome" name="outcome">
-                  <mat-option value="HOT_NEGOTIATION">🔥 Hot Deal (Active Negotiation)</mat-option>
-                  <mat-option value="WARM_CONSIDERING">⚡ Warm (Considering 2nd Visit)</mat-option>
-                  <mat-option value="BOOKED">🎉 Token Booked on Site</mat-option>
-                  <mat-option value="COLD_LOST">❄️ Cold / Budget Mismatch</mat-option>
+                  <mat-option value="HOT_NEGOTIATION">Hot Deal (Active Negotiation)</mat-option>
+                  <mat-option value="WARM_CONSIDERING">Warm (Considering 2nd Visit)</mat-option>
+                  <mat-option value="BOOKED">Token Booked on Site</mat-option>
+                  <mat-option value="COLD_LOST">Cold / Budget Mismatch</mat-option>
                 </mat-select>
               </mat-form-field>
 
@@ -104,19 +104,153 @@
               </mat-form-field>
             </div>
 
-            <div class="form-row-full" style="margin-top: 0.25rem;">
-              <mat-form-field appearance="outline" class="w-full">
-                <mat-label>Shortlisted Flat / Unit Numbers</mat-label>
-                <mat-icon matPrefix class="field-icon">apartment</mat-icon>
-                <input
-                  matInput
-                  type="text"
-                  [(ngModel)]="discoveryData.shortlisted_units"
-                  name="shortlisted_units"
-                  placeholder="e.g. Tower B - Unit 402 (3BHK East Facing, 1650 sq.ft, Floor 4)"
-                />
-                <mat-hint>Specific inventory unit numbers buyer expressed active interest in</mat-hint>
-              </mat-form-field>
+            <!-- Inventory Header & Available Flats Counter -->
+            <div class="flat-selection-wrapper">
+              <div class="flat-selection-header">
+                <div class="flat-project-badge">
+                  <mat-icon class="proj-badge-icon">business</mat-icon>
+                  <span>Project Inventory: <strong>{{ visit.project?.name || 'Current Project' }}</strong></span>
+                </div>
+                <div class="flat-inventory-stats">
+                  <span class="stat-pill stat-avail" [class.stat-zero]="availableFlatsCount === 0">
+                    <mat-icon>check_circle</mat-icon>
+                    <strong>{{ availableFlatsCount }}</strong> Flats Available
+                  </span>
+                  <span class="stat-pill stat-total">
+                    <mat-icon>apartment</mat-icon>
+                    Total {{ totalFlatsCount }} Units
+                  </span>
+                </div>
+              </div>
+
+              <!-- Dropdown for Selecting Flat / Unit -->
+              <div class="form-row-full" *ngIf="!customUnitMode" style="margin-top: 0.25rem;">
+                <mat-form-field appearance="outline" class="w-full flat-select-field">
+                  <mat-label>Select Shortlisted Flat from {{ visit.project?.name || 'Project' }}</mat-label>
+                  <mat-icon matPrefix class="field-icon">apartment</mat-icon>
+                  
+                  <mat-select 
+                    [(ngModel)]="selectedUnitNumber" 
+                    name="selected_unit_dropdown"
+                    (selectionChange)="onUnitSelect($event.value)"
+                    placeholder="Choose an available flat / unit number...">
+                    
+                    <!-- Trigger display when selected -->
+                    <mat-select-trigger *ngIf="selectedUnit">
+                      <div class="select-trigger-content">
+                        <span class="trigger-unit">{{ selectedUnit.unit_number }}</span>
+                        <span class="trigger-bhk">({{ selectedUnit.bhk_type }})</span>
+                        <span class="trigger-facing" *ngIf="selectedUnit.facing">• {{ selectedUnit.facing }}</span>
+                        <span class="trigger-floor" *ngIf="selectedUnit.floor_number">• Floor {{ selectedUnit.floor_number }}</span>
+                        <span class="trigger-price" *ngIf="selectedUnit.price_lacs">• ₹{{ selectedUnit.price_lacs }}L</span>
+                        <span class="status-pill-sm" [ngClass]="selectedUnit.status === 'AVAILABLE' ? 'pill-avail' : 'pill-reserved'">
+                          {{ selectedUnit.status }}
+                        </span>
+                      </div>
+                    </mat-select-trigger>
+
+                    <!-- Optgroup 1: Available Flats -->
+                    <mat-optgroup [label]="'AVAILABLE FLATS (' + availableFlatsCount + ' UNITS AVAILABLE)'">
+                      <mat-option *ngFor="let u of getAvailableUnits()" [value]="u.unit_number">
+                        <div class="flat-opt-row">
+                          <div class="flat-opt-primary">
+                            <span class="flat-opt-number">{{ u.unit_number }}</span>
+                            <span class="flat-opt-badge-avail">AVAILABLE</span>
+                          </div>
+                          <div class="flat-opt-meta">
+                            <span class="opt-tag tag-bhk">{{ u.bhk_type }}</span>
+                            <span class="opt-tag tag-floor" *ngIf="u.floor_number">Floor {{ u.floor_number }}</span>
+                            <span class="opt-tag tag-facing" *ngIf="u.facing">{{ u.facing }}</span>
+                            <span class="opt-tag tag-area" *ngIf="u.area_sqft">{{ u.area_sqft }} sq.ft</span>
+                            <span class="opt-tag tag-price" *ngIf="u.price_lacs">₹{{ u.price_lacs }} Lacs</span>
+                          </div>
+                        </div>
+                      </mat-option>
+                      <mat-option *ngIf="getAvailableUnits().length === 0" disabled>
+                        <em>No flats currently marked available in this project</em>
+                      </mat-option>
+                    </mat-optgroup>
+
+                    <!-- Optgroup 2: Other Project Units (Reserved / Booked) -->
+                    <mat-optgroup *ngIf="getOtherUnits().length > 0" label="RESERVED / BOOKED FLATS">
+                      <mat-option *ngFor="let u of getOtherUnits()" [value]="u.unit_number">
+                        <div class="flat-opt-row">
+                          <div class="flat-opt-primary">
+                            <span class="flat-opt-number">{{ u.unit_number }}</span>
+                            <span class="flat-opt-badge-other">{{ u.status }}</span>
+                          </div>
+                          <div class="flat-opt-meta">
+                            <span class="opt-tag tag-bhk">{{ u.bhk_type }}</span>
+                            <span class="opt-tag tag-facing" *ngIf="u.facing">{{ u.facing }}</span>
+                            <span class="opt-tag tag-price" *ngIf="u.price_lacs">₹{{ u.price_lacs }} Lacs</span>
+                          </div>
+                        </div>
+                      </mat-option>
+                    </mat-optgroup>
+
+                    <!-- Custom Option -->
+                    <mat-optgroup label="CUSTOM">
+                      <mat-option value="__CUSTOM__">
+                        <div class="flat-opt-custom">
+                          <mat-icon class="custom-opt-icon">edit_note</mat-icon>
+                          <span>Type custom flat number manually...</span>
+                        </div>
+                      </mat-option>
+                    </mat-optgroup>
+                  </mat-select>
+
+                  <mat-hint>
+                    <strong>{{ availableFlatsCount }}</strong> available flats found for <strong>{{ visit.project?.name || 'this project' }}</strong>.
+                  </mat-hint>
+                </mat-form-field>
+              </div>
+
+              <!-- Manual / Custom Text Input fallback if user chose custom mode -->
+              <div class="form-row-full" *ngIf="customUnitMode" style="margin-top: 0.25rem;">
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Custom Shortlisted Flat / Unit Number</mat-label>
+                  <mat-icon matPrefix class="field-icon">edit_square</mat-icon>
+                  <input
+                    matInput
+                    type="text"
+                    [(ngModel)]="discoveryData.shortlisted_units"
+                    name="shortlisted_units"
+                    placeholder="e.g. Tower C - Unit 604 (3 BHK East Facing)"
+                  />
+                  <button mat-button matSuffix type="button" class="switch-btn" (click)="switchToDropdownUnit()">
+                    <mat-icon>list</mat-icon> Pick from Inventory
+                  </button>
+                  <mat-hint>Entering custom flat number manually</mat-hint>
+                </mat-form-field>
+              </div>
+
+              <!-- Selected Flat Quick Card Preview -->
+              <div *ngIf="selectedUnit && !customUnitMode" class="selected-flat-card">
+                <div class="card-left">
+                  <div class="unit-icon-box">
+                    <mat-icon>apartment</mat-icon>
+                  </div>
+                  <div class="unit-card-details">
+                    <div class="unit-title-row">
+                      <strong class="unit-num">{{ selectedUnit.unit_number }}</strong>
+                      <span class="unit-status-tag" [ngClass]="selectedUnit.status === 'AVAILABLE' ? 'status-avail' : 'status-reserved'">
+                        {{ selectedUnit.status === 'AVAILABLE' ? 'Available for Booking' : selectedUnit.status }}
+                      </span>
+                    </div>
+                    <div class="unit-spec-badges">
+                      <span class="badge-item"><mat-icon>meeting_room</mat-icon> {{ selectedUnit.bhk_type }}</span>
+                      <span class="badge-item" *ngIf="selectedUnit.tower_block"><mat-icon>domain</mat-icon> {{ selectedUnit.tower_block }}</span>
+                      <span class="badge-item" *ngIf="selectedUnit.floor_number"><mat-icon>layers</mat-icon> Floor {{ selectedUnit.floor_number }}</span>
+                      <span class="badge-item" *ngIf="selectedUnit.facing"><mat-icon>explore</mat-icon> {{ selectedUnit.facing }}</span>
+                      <span class="badge-item" *ngIf="selectedUnit.area_sqft"><mat-icon>square_foot</mat-icon> {{ selectedUnit.area_sqft }} sq.ft</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-right" *ngIf="selectedUnit.price_lacs">
+                  <span class="price-label">Base Price</span>
+                  <strong class="price-val">₹{{ selectedUnit.price_lacs }} L</strong>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -221,11 +355,11 @@
                   <mat-label>Payment Mode</mat-label>
                   <mat-icon matPrefix class="field-icon">account_balance_wallet</mat-icon>
                   <mat-select [(ngModel)]="discoveryData.token_payment_mode" name="token_payment_mode">
-                    <mat-option value="UPI / Immediate Transfer">⚡ UPI / QR Payment</mat-option>
-                    <mat-option value="Cheque / DD">📝 Cheque / Demand Draft</mat-option>
-                    <mat-option value="RTGS / NEFT Wire">🏦 RTGS / NEFT Wire Transfer</mat-option>
-                    <mat-option value="Credit / Debit Card">💳 POS Credit / Debit Card</mat-option>
-                    <mat-option value="Cash Token Voucher">💵 Cash Token Voucher</mat-option>
+                    <mat-option value="UPI / Immediate Transfer">UPI / QR Payment</mat-option>
+                    <mat-option value="Cheque / DD">Cheque / Demand Draft</mat-option>
+                    <mat-option value="RTGS / NEFT Wire">RTGS / NEFT Wire Transfer</mat-option>
+                    <mat-option value="Credit / Debit Card">POS Credit / Debit Card</mat-option>
+                    <mat-option value="Cash Token Voucher">Cash Token Voucher</mat-option>
                   </mat-select>
                 </mat-form-field>
               </div>
@@ -474,19 +608,70 @@
             </div>
           </div>
 
-          <!-- SECTION 4: Automated 4-Hour Countdown Follow-up SLA (UC-06) -->
+          <!-- SECTION 4: Customizable Countdown Follow-up SLA (UC-06) -->
           <div class="form-section">
             <div class="section-header">
               <div class="section-icon-wrap section-icon-violet">
                 <mat-icon>timer</mat-icon>
               </div>
               <div class="section-meta">
-                <h2 class="section-heading">4. Automated 4-Hour Countdown Follow-up SLA (UC-06)</h2>
-                <p class="section-subheading">Mandatory follow-up task dispatched immediately with strict 4-hour breach timer</p>
+                <h2 class="section-heading">4. Customizable Countdown Follow-up SLA (UC-06)</h2>
+                <p class="section-subheading">Configure customized follow-up timeline and client breach timer</p>
               </div>
             </div>
 
-            <div class="form-grid-2">
+            <!-- SLA Duration & Client Time Window Control Box -->
+            <div class="sla-duration-control-box">
+              <div class="sla-control-header">
+                <div class="sla-control-title">
+                  <mat-icon class="sla-title-icon">schedule</mat-icon>
+                  <div>
+                    <strong>Client Follow-Up Time Window</strong>
+                    <p class="sla-subtitle">Select or enter how much time to give for closing follow-up actions with this client</p>
+                  </div>
+                </div>
+                <div class="sla-calculated-deadline">
+                  <span class="deadline-label">Target Breach Deadline:</span>
+                  <span class="deadline-time">{{ getCalculatedDeadline() }}</span>
+                </div>
+              </div>
+
+              <!-- Preset Duration Chips -->
+              <div class="sla-chips-row">
+                <button 
+                  type="button" 
+                  *ngFor="let preset of slaPresets"
+                  class="sla-preset-chip"
+                  [class.sla-preset-active]="discoveryData.follow_up_sla_hours === preset.hours"
+                  (click)="setSlaHours(preset.hours)">
+                  <mat-icon *ngIf="discoveryData.follow_up_sla_hours === preset.hours" class="preset-check">check</mat-icon>
+                  <span class="preset-lbl">{{ preset.label }}</span>
+                  <span class="preset-sub">({{ preset.subtitle }})</span>
+                </button>
+              </div>
+
+              <!-- Custom Hours Input Field -->
+              <div class="sla-custom-input-row" style="margin-top: 0.75rem;">
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Custom SLA Time (Hours)</mat-label>
+                  <mat-icon matPrefix class="field-icon">hourglass_top</mat-icon>
+                  <input
+                    matInput
+                    type="number"
+                    step="0.5"
+                    min="0.5"
+                    max="168"
+                    [(ngModel)]="discoveryData.follow_up_sla_hours"
+                    name="follow_up_sla_hours"
+                    placeholder="e.g. 2, 4, 6, 12, 24, 48"
+                  />
+                  <span matSuffix class="sla-suffix-text">hours</span>
+                  <mat-hint>Enter any custom number of hours granted to the sales executive for this client</mat-hint>
+                </mat-form-field>
+              </div>
+            </div>
+
+            <div class="form-grid-2" style="margin-top: 0.75rem;">
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Immediate Follow-Up Task Title</mat-label>
                 <mat-icon matPrefix class="field-icon">task_alt</mat-icon>
@@ -512,17 +697,17 @@
               </mat-form-field>
             </div>
 
-            <!-- 4-Hour Countdown SLA Banner -->
+            <!-- Dynamic SLA Countdown Banner -->
             <div class="sla-countdown-banner">
               <div class="sla-icon-wrap">
                 <mat-icon>alarm_on</mat-icon>
               </div>
               <div class="sla-content">
-                <strong>Strict 4-Hour Follow-Up Dispatch Protocol (SOW UC-06)</strong>
+                <strong>Configured {{ discoveryData.follow_up_sla_hours || 4 }}-Hour Follow-Up Dispatch Protocol (SOW UC-06)</strong>
                 <p>
                   Saving this discovery record logs all customer walkthrough findings, updates buyer score momentum,
                   and dispatches a high-priority SLA task to <strong>{{ visit.salesRep?.name || 'Amit Verma (Account Executive)' }}</strong>
-                  with a hard <strong>4-hour countdown deadline</strong> to address objections.
+                  with a target <strong>{{ discoveryData.follow_up_sla_hours || 4 }}-hour countdown deadline</strong> ({{ getCalculatedDeadline() }}).
                 </p>
               </div>
             </div>
@@ -535,7 +720,7 @@
             </a>
             <button mat-flat-button color="primary" type="submit" class="btn-submit" [disabled]="saving">
               <mat-icon *ngIf="!saving">check_circle</mat-icon>
-              <span *ngIf="!saving">Save Discovery &amp; Trigger 4h Countdown Task &rarr;</span>
+              <span *ngIf="!saving">Save Discovery &amp; Trigger {{ discoveryData.follow_up_sla_hours || 4 }}h Countdown Task &rarr;</span>
               <span *ngIf="saving">Recording Discovery...</span>
             </button>
           </div>

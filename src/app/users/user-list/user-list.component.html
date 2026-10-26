@@ -88,6 +88,11 @@
                   <div class="user-full-name">{{ u.name }}</div>
                   <div class="user-email">{{ u.email }}</div>
                   <div class="user-phone" *ngIf="u.phone">{{ u.phone }}</div>
+                  <div class="driver-vehicle-badge" *ngIf="u.vehicle_number || isDriverRole(u.role)">
+                    <mat-icon class="driver-veh-icon">directions_car</mat-icon>
+                    <span class="driver-veh-num">{{ u.vehicle_number || 'No Vehicle Assigned' }}</span>
+                    <span class="driver-veh-type" *ngIf="u.vehicle_type">{{ u.vehicle_type }}</span>
+                  </div>
                 </div>
               </div>
             </td>
@@ -318,6 +323,53 @@
           </div>
         </div>
 
+        <!-- DRIVER VEHICLE DETAILS (Conditional when role is Driver) -->
+        <div *ngIf="isDriverRole(newUser.role)" class="driver-fleet-config-card">
+          <div class="driver-fleet-header">
+            <div class="fleet-header-left">
+              <mat-icon class="fleet-header-icon">directions_car</mat-icon>
+              <div>
+                <h4 class="fleet-title">Driver &amp; Vehicle Details</h4>
+                <p class="fleet-subtitle">Configure fleet cab assignment and vehicle registration for buyer transit.</p>
+              </div>
+            </div>
+            <span class="fleet-badge-live">Fleet Master Sync</span>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label">Vehicle Type <span class="required">*</span></label>
+              <select [(ngModel)]="newUser.vehicle_type" class="form-select">
+                <option *ngFor="let vt of vehicleTypes" [value]="vt">{{ vt }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Vehicle / Registration Number <span class="required">*</span></label>
+              <input
+                type="text"
+                [(ngModel)]="newUser.vehicle_number"
+                class="form-input font-mono text-uppercase"
+                placeholder="e.g. KA-01-MJ-8822"
+              />
+            </div>
+          </div>
+
+          <div class="form-group vehicle-model-group">
+            <label class="form-label">Vehicle Make &amp; Model (Optional)</label>
+            <input
+              type="text"
+              [(ngModel)]="newUser.vehicle_model"
+              class="form-input"
+              placeholder="e.g. Toyota Innova Crysta (Luxury 6-Seater)"
+            />
+          </div>
+
+          <div class="fleet-sync-note">
+            <mat-icon class="fleet-note-icon">verified</mat-icon>
+            <span>This vehicle will be automatically registered in the Fleet Master and available for site visit bookings.</span>
+          </div>
+        </div>
+
         <!-- PROJECT-SCOPED ACCESS CONTROL -->
         <div class="project-scope-config-card">
           <div class="project-scope-header">
@@ -512,6 +564,53 @@
             >
               🔑 Manage Individual Permissions &rarr;
             </a>
+          </div>
+        </div>
+
+        <!-- DRIVER VEHICLE DETAILS (Conditional when role is Driver) -->
+        <div *ngIf="isDriverRole(editingUser.role)" class="driver-fleet-config-card">
+          <div class="driver-fleet-header">
+            <div class="fleet-header-left">
+              <mat-icon class="fleet-header-icon">directions_car</mat-icon>
+              <div>
+                <h4 class="fleet-title">Driver &amp; Vehicle Details</h4>
+                <p class="fleet-subtitle">Update fleet cab assignment and vehicle registration number.</p>
+              </div>
+            </div>
+            <span class="fleet-badge-live">Fleet Master Sync</span>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label">Vehicle Type <span class="required">*</span></label>
+              <select [(ngModel)]="editingUser.vehicle_type" class="form-select">
+                <option *ngFor="let vt of vehicleTypes" [value]="vt">{{ vt }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Vehicle / Registration Number <span class="required">*</span></label>
+              <input
+                type="text"
+                [(ngModel)]="editingUser.vehicle_number"
+                class="form-input font-mono text-uppercase"
+                placeholder="e.g. KA-01-MJ-8822"
+              />
+            </div>
+          </div>
+
+          <div class="form-group vehicle-model-group">
+            <label class="form-label">Vehicle Make &amp; Model (Optional)</label>
+            <input
+              type="text"
+              [(ngModel)]="editingUser.vehicle_model"
+              class="form-input"
+              placeholder="e.g. Toyota Innova Crysta (Luxury 6-Seater)"
+            />
+          </div>
+
+          <div class="fleet-sync-note">
+            <mat-icon class="fleet-note-icon">verified</mat-icon>
+            <span>Vehicle records and driver assignments will automatically update across the Fleet and Site Visit modules.</span>
           </div>
         </div>
 
