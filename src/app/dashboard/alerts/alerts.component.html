@@ -1,0 +1,711 @@
+<div class="alerts-page-wrapper">
+  <!-- Progress Bar for Scanning / Loading -->
+  <mat-progress-bar *ngIf="loading || isRefreshing" mode="indeterminate" class="scan-progress-bar"></mat-progress-bar>
+
+  <!-- Page Header -->
+  <div class="page-header-row">
+    <div class="header-left">
+      <div class="eyebrow-tag">PIPELINE &middot; MISSED ACTIONS &amp; SLA CONTROL</div>
+      <h1 class="page-title">Alerts &amp; Missed Follow-ups Hub</h1>
+      <p class="page-subtitle">
+        Proactively rescue slipped deals, overdue follow-ups, and active prospects missing scheduled next touchpoints.
+      </p>
+    </div>
+    <div class="header-actions">
+      <button mat-stroked-button type="button" class="btn-secondary" (click)="acknowledgeAll()"
+        matTooltip="Mark all active in-app alerts as acknowledged">
+        <span>Acknowledge All</span>
+      </button>
+
+      <button mat-flat-button type="button" class="btn-primary" [disabled]="isRefreshing || loading"
+        (click)="loadAlertsData(true)">
+        <span>{{ isRefreshing ? 'Scanning Hub...' : 'Refresh Alerts' }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast Feedback Banner -->
+  <div *ngIf="feedbackMessage" class="feedback-banner success-banner">
+    <span>{{ feedbackMessage }}</span>
+  </div>
+
+  <!-- Error Feedback Banner -->
+  <div *ngIf="errorMessage" class="feedback-banner error-banner">
+    <span>{{ errorMessage }}</span>
+  </div>
+
+  <!-- Top 5 Stat KPI Cards -->
+  <div class="stats-grid-5">
+    <!-- Card 1: Overdue Follow-ups -->
+    <mat-card appearance="outlined" class="stat-card stat-red" [class.active-card]="activeTab === 'overdue'"
+      (click)="activeTab = 'overdue'" matRipple>
+      <mat-card-content class="stat-content">
+        <div class="stat-top">
+          <div class="stat-label">MISSED FOLLOW-UPS</div>
+        </div>
+        <div class="stat-value text-red">{{ summary.overdue_tasks_count || overdueTasks.length }}</div>
+        <div class="stat-subtext">Overdue SLA countdown breached</div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Card 2: Missing Next Action -->
+    <mat-card appearance="outlined" class="stat-card stat-amber" [class.active-card]="activeTab === 'missing_action'"
+      (click)="activeTab = 'missing_action'" matRipple>
+      <mat-card-content class="stat-content">
+        <div class="stat-top">
+          <div class="stat-label">MISSING NEXT ACTION</div>
+        </div>
+        <div class="stat-value text-amber">{{ summary.missing_next_actions_count || missingNextActions.length }}</div>
+        <div class="stat-subtext">Active deals with 0 follow-up set</div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Card 3: Neglected Hot Leads -->
+    <mat-card appearance="outlined" class="stat-card stat-purple" [class.active-card]="activeTab === 'neglected'"
+      (click)="activeTab = 'neglected'" matRipple>
+      <mat-card-content class="stat-content">
+        <div class="stat-top">
+          <div class="stat-label">NEGLECTED HOT LEADS</div>
+        </div>
+        <div class="stat-value text-purple">{{ summary.neglected_buyers_count || neglectedBuyers.length }}</div>
+        <div class="stat-subtext">&gt;48 hrs without communication</div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Card 4: Visit Exceptions -->
+    <mat-card appearance="outlined" class="stat-card stat-cyan" [class.active-card]="activeTab === 'visits'"
+      (click)="activeTab = 'visits'" matRipple>
+      <mat-card-content class="stat-content">
+        <div class="stat-top">
+          <div class="stat-label">VISIT EXCEPTIONS</div>
+        </div>
+        <div class="stat-value text-cyan">{{ summary.at_risk_visits_today || atRiskVisits.length }}</div>
+        <div class="stat-subtext">Missing 4-way confirmations</div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Card 5: Pipeline at Risk -->
+    <mat-card appearance="outlined" class="stat-card stat-emerald">
+      <mat-card-content class="stat-content">
+        <div class="stat-top">
+          <div class="stat-label">EXPOSURE AT RISK</div>
+        </div>
+        <div class="stat-value text-emerald">₹{{ summary.gross_pipeline_at_risk_cr || '0.00' }} Cr</div>
+        <div class="stat-subtext">Revenue stalled in bottlenecks</div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Filter & Tab Toolbar -->
+  <div class="toolbar-section">
+    <!-- Category Tabs -->
+    <div class="tabs-group">
+      <button type="button" class="tab-pill" [class.active]="activeTab === 'all'" (click)="activeTab = 'all'">
+        <span>All Alerts</span>
+        <span class="count-badge">{{ totalItemsCount }}</span>
+      </button>
+
+      <button type="button" class="tab-pill" [class.active]="activeTab === 'overdue'" (click)="activeTab = 'overdue'">
+        <span>Missed Follow-ups</span>
+        <span class="count-badge">{{ overdueTasks.length }}</span>
+      </button>
+
+      <button type="button" class="tab-pill" [class.active]="activeTab === 'missing_action'"
+        (click)="activeTab = 'missing_action'">
+        <span>Missing Next Action</span>
+        <span class="count-badge">{{ missingNextActions.length }}</span>
+      </button>
+
+      <button type="button" class="tab-pill" [class.active]="activeTab === 'neglected'"
+        (click)="activeTab = 'neglected'">
+        <span>Neglected (&gt;48h)</span>
+        <span class="count-badge">{{ neglectedBuyers.length }}</span>
+      </button>
+
+      <button type="button" class="tab-pill" [class.active]="activeTab === 'visits'" (click)="activeTab = 'visits'">
+        <span>Site Visits</span>
+        <span class="count-badge">{{ atRiskVisits.length }}</span>
+      </button>
+
+      <button type="button" class="tab-pill" [class.active]="activeTab === 'system'" (click)="activeTab = 'system'">
+        <span>System Logs</span>
+        <span class="count-badge">{{ inAppAlerts.length }}</span>
+      </button>
+    </div>
+
+    <!-- Search & Quick Filter Controls -->
+    <div class="controls-group">
+      <div class="search-box">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input type="text" [(ngModel)]="searchQuery" placeholder="Search by buyer, phone, rep..."
+          class="search-input" />
+        <button *ngIf="searchQuery" type="button" class="clear-btn" (click)="searchQuery = ''">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <mat-select *ngIf="activeTab === 'system' || activeTab === 'all'" [(ngModel)]="severityFilter"
+        class="severity-select">
+        <mat-option value="ALL">All Severities</mat-option>
+        <mat-option value="CRITICAL">Critical Only</mat-option>
+        <mat-option value="WARNING">Warnings</mat-option>
+        <mat-option value="INFO">Info</mat-option>
+      </mat-select>
+    </div>
+  </div>
+
+  <!-- SECTION 1: MISSED / OVERDUE FOLLOW-UPS -->
+  <div class="alert-section"
+    *ngIf="(activeTab === 'all' || activeTab === 'overdue') && filteredOverdueTasks.length > 0">
+    <div class="section-header-row">
+      <div class="section-title-wrapper">
+        <div>
+          <h2 class="section-heading">Missed Follow-Ups &amp; SLA Countdown Breaches</h2>
+          <p class="section-desc">
+            These tasks have passed their scheduled turnaround deadline. Immediate buyer outreach required.
+          </p>
+        </div>
+      </div>
+      <span class="section-badge red-badge-pill">
+        {{ filteredOverdueTasks.length }} OVERDUE TASKS
+      </span>
+    </div>
+
+    <div class="cards-list">
+      <div *ngFor="let task of filteredOverdueTasks" class="alert-card overdue-card">
+        <div class="card-body">
+          <!-- Top Metadata Row: Status, Priority, SLA Deadline -->
+          <div class="card-top-meta">
+            <span class="overdue-tag">
+              <span>{{ task.overdue_formatted }}</span>
+            </span>
+            <span class="priority-chip" [class.priority-critical]="task.priority === 'CRITICAL'">
+              {{ task.priority || 'HIGH' }} PRIORITY
+            </span>
+            <span class="sla-target-time">
+              <span>Original Due: {{ task.due_at | date:'dd MMM yyyy, hh:mm a' }}</span>
+            </span>
+          </div>
+
+          <!-- Main Task Title & Context -->
+          <div class="task-info-container">
+            <h3 class="task-title">{{ task.title }}</h3>
+            <div class="task-context-box" *ngIf="task.description">
+              <span class="context-label">FOLLOW-UP NOTES &amp; OBJECTIONS:</span>
+              <p class="context-text">{{ task.description }}</p>
+            </div>
+          </div>
+
+          <!-- Structured Prospect & Executive Meta Bar -->
+          <div class="card-meta-bar">
+            <!-- Prospect Block -->
+            <div class="meta-block" *ngIf="task.buyer">
+              <span class="meta-bar-label">PROSPECT / BUYER</span>
+              <div class="meta-bar-val">
+                <span class="prospect-name" (click)="viewBuyer(task.buyer, $event)">
+                  {{ task.buyer.full_name }}
+                </span>
+                <span class="budget-tag" *ngIf="task.buyer.budget_max_lacs">
+                  ₹{{ task.buyer.budget_max_lacs }} Lacs
+                </span>
+                <div class="phone-quick-actions" *ngIf="task.buyer.phone">
+                  <a [href]="'tel:' + task.buyer.phone" class="phone-action-btn" matTooltip="Call Prospect">
+                    <span>{{ task.buyer.phone }}</span>
+                  </a>
+                  <a [href]="'https://wa.me/' + (task.buyer.phone | slice:0:10)" target="_blank"
+                    class="wa-action-btn" matTooltip="Chat on WhatsApp">
+                    <span>WhatsApp</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Assigned Rep Block -->
+            <div class="meta-block">
+              <span class="meta-bar-label">ASSIGNED EXECUTIVE</span>
+              <div class="meta-bar-val rep-val-wrap">
+                <div class="rep-details">
+                  <span class="rep-name">{{ task.assignedUser?.name || 'Unassigned Representative' }}</span>
+                  <span class="rep-role">Sales Specialist</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Action Buttons Row -->
+          <div class="card-actions-row">
+            <button mat-flat-button type="button" class="btn-action-primary" (click)="openCompleteModal(task)">
+              <span>Log &amp; Complete Follow-up</span>
+            </button>
+
+            <button mat-stroked-button type="button" class="btn-action-secondary"
+              (click)="openScheduleModal(task.buyer || { buyer_id: task.buyer_id }, 'Rescheduled: ' + task.title)">
+              <span>Reschedule</span>
+            </button>
+
+            <button mat-stroked-button type="button" class="btn-action-secondary"
+              (click)="openReassignModal(task.buyer || { buyer_id: task.buyer_id, assignedRep: task.assignedUser })">
+              <span>Reassign Rep</span>
+            </button>
+
+            <button *ngIf="task.buyer" mat-button type="button" class="btn-link" (click)="viewBuyer(task.buyer)">
+              <span>View Prospect Details &rarr;</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: MISSING NEXT ACTION ("THINGS THAT ARE MISS OUT") -->
+  <div class="alert-section"
+    *ngIf="(activeTab === 'all' || activeTab === 'missing_action') && filteredMissingActions.length > 0">
+    <div class="section-header-row">
+      <div class="section-title-wrapper">
+        <div>
+          <h2 class="section-heading">Missing Next Action &middot; Forgotten Pipeline Prospects</h2>
+          <p class="section-desc">
+            Active prospects with ZERO upcoming follow-ups scheduled. These deals are slipping through the cracks!
+          </p>
+        </div>
+      </div>
+      <span class="section-badge amber-badge-pill">
+        {{ filteredMissingActions.length }} LEADS WITHOUT NEXT STEP
+      </span>
+    </div>
+
+    <div class="table-responsive panel-table-container">
+      <table class="custom-alerts-table">
+        <thead>
+          <tr>
+            <th>BUYER / PROSPECT</th>
+            <th>INTENT SCORE</th>
+            <th>BUDGET</th>
+            <th>PIPELINE STAGE</th>
+            <th>LAST TOUCHPOINT</th>
+            <th>ASSIGNED REP</th>
+            <th class="text-right">URGENT ACTION</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let buyer of filteredMissingActions">
+            <td>
+              <div class="buyer-cell">
+                <span class="buyer-name-link" (click)="viewBuyer(buyer)">
+                  {{ buyer.full_name }}
+                </span>
+                <span class="buyer-phone-small">
+                  <a [href]="'tel:' + buyer.phone">{{ buyer.phone }}</a>
+                </span>
+              </div>
+            </td>
+            <td>
+              <div class="intent-pill" [class.high-score]="buyer.intent_score >= 80">
+                <span>{{ buyer.intent_score || 85 }}/100</span>
+              </div>
+            </td>
+            <td>
+              <div class="budget-text">₹{{ buyer.budget_max_lacs || 120 }} Lacs</div>
+            </td>
+            <td>
+              <span class="stage-chip">{{ buyer.lead_status || 'ENGAGED' }}</span>
+            </td>
+            <td>
+              <div class="inactive-duration">
+                <span>{{ buyer.days_inactive }}</span>
+              </div>
+            </td>
+            <td>
+              <div class="rep-text">{{ buyer.assignedRep?.name || 'Unassigned' }}</div>
+            </td>
+            <td class="text-right">
+              <div class="table-action-buttons">
+                <button mat-flat-button color="accent" type="button" class="btn-schedule-now"
+                  (click)="openScheduleModal(buyer, 'Scheduled Next Follow-Up')">
+                  <span>Schedule Follow-up</span>
+                </button>
+
+                <button mat-stroked-button type="button" class="btn-reassign" matTooltip="Reassign Sales Rep"
+                  (click)="openReassignModal(buyer)">Reassign</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECTION 3: NEGLECTED HIGH-INTENT LEADS (>48H) -->
+  <div class="alert-section"
+    *ngIf="(activeTab === 'all' || activeTab === 'neglected') && filteredNeglectedBuyers.length > 0">
+    <div class="section-header-row">
+      <div class="section-title-wrapper">
+        <div>
+          <h2 class="section-heading">Neglected High-Intent Buyers (&gt;48h Silence)</h2>
+          <p class="section-desc">
+            High intent customers ready to buy who haven't had a callback or WhatsApp touchpoint in over 48 hours.
+          </p>
+        </div>
+      </div>
+      <span class="section-badge purple-badge-pill">
+        {{ filteredNeglectedBuyers.length }} NEGLECTED DEALS
+      </span>
+    </div>
+
+    <div class="neglected-cards-grid">
+      <div *ngFor="let buyer of filteredNeglectedBuyers" class="neglected-card">
+        <div class="neglected-header">
+          <div>
+            <div class="neglected-name" (click)="viewBuyer(buyer)">{{ buyer.full_name }}</div>
+            <div class="neglected-phone">
+              <a [href]="'tel:' + buyer.phone">{{ buyer.phone }}</a>
+            </div>
+          </div>
+          <div class="intent-badge">
+            Score: {{ buyer.intent_score || 95 }}
+          </div>
+        </div>
+
+        <div class="neglected-meta-row">
+          <div>
+            <span class="meta-label">BUDGET:</span>
+            <span class="meta-val">₹{{ buyer.budget_max_lacs }} Lacs</span>
+          </div>
+          <div>
+            <span class="meta-label">REP:</span>
+            <span class="meta-val">{{ buyer.assignedRep?.name || 'Unassigned' }}</span>
+          </div>
+        </div>
+
+        <div class="neglected-footer">
+          <button mat-flat-button type="button" class="btn-rescue"
+            (click)="openScheduleModal(buyer, 'Urgent Rescue Follow-Up Call')">
+            <span>Rescue Deal</span>
+          </button>
+          <button mat-stroked-button type="button" class="btn-reassign" (click)="openReassignModal(buyer)">
+            <span>Reassign Rep</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: SITE VISIT EXCEPTIONS -->
+  <div class="alert-section" *ngIf="(activeTab === 'all' || activeTab === 'visits') && filteredAtRiskVisits.length > 0">
+    <div class="section-header-row">
+      <div class="section-title-wrapper">
+        <div>
+          <h2 class="section-heading">At-Risk Site Visits (Missing 4-Way Confirmations)</h2>
+          <p class="section-desc">
+            Visits scheduled for today that lack confirmation from customer, driver, rep, or site coordinator.
+          </p>
+        </div>
+      </div>
+      <span class="section-badge cyan-badge-pill">
+        {{ filteredAtRiskVisits.length }} AT-RISK VISITS
+      </span>
+    </div>
+
+    <div class="table-responsive panel-table-container">
+      <table class="custom-alerts-table">
+        <thead>
+          <tr>
+            <th>VISITOR / BUYER</th>
+            <th>TIME SLOT</th>
+            <th>PROJECT</th>
+            <th>DRIVER CONFIRM</th>
+            <th>REP CONFIRM</th>
+            <th class="text-right">ACTION</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let visit of filteredAtRiskVisits">
+            <td>
+              <div class="buyer-cell">
+                <span class="buyer-name-link" (click)="viewBuyer(visit.buyer)">
+                  {{ visit.buyer ? visit.buyer.full_name : 'Customer' }}
+                </span>
+                <span class="buyer-phone-small">{{ visit.buyer ? visit.buyer.phone : '' }}</span>
+              </div>
+            </td>
+            <td>
+              <span class="slot-badge">{{ visit.time_slot || 'Today' }}</span>
+            </td>
+            <td>{{ visit.project?.name || 'Premium Project' }}</td>
+            <td>
+              <span class="confirm-badge" [class.confirmed]="visit.driver_confirmed">
+                {{ visit.driver_confirmed ? 'Confirmed' : 'Pending' }}
+              </span>
+            </td>
+            <td>
+              <span class="confirm-badge" [class.confirmed]="visit.rep_confirmed">
+                {{ visit.rep_confirmed ? 'Confirmed' : 'Pending' }}
+              </span>
+            </td>
+            <td class="text-right">
+              <a mat-stroked-button routerLink="/visits" class="btn-check-visit">
+                Manage in Site Visits &rarr;
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECTION 5: IN-APP OPERATIONAL NOTIFICATIONS -->
+  <div class="alert-section" *ngIf="(activeTab === 'all' || activeTab === 'system') && filteredInAppAlerts.length > 0">
+    <div class="section-header-row">
+      <div class="section-title-wrapper">
+        <div>
+          <h2 class="section-heading">System Operational Exception Alerts</h2>
+          <p class="section-desc">
+            Control Tower automated pipeline monitors and system triggers.
+          </p>
+        </div>
+      </div>
+      <span class="section-badge blue-badge-pill">
+        {{ filteredInAppAlerts.length }} ACTIVE ALERTS
+      </span>
+    </div>
+
+    <div class="system-alerts-list">
+      <div *ngFor="let alert of filteredInAppAlerts" class="system-alert-item"
+        [class.unacknowledged]="!alert.is_acknowledged">
+        <div class="system-alert-content">
+          <div class="system-alert-header">
+            <span class="alert-title">{{ alert.title }}</span>
+            <span class="alert-time">{{ alert.created_at | date:'dd MMM, hh:mm a' }}</span>
+          </div>
+          <p class="alert-message">{{ alert.message }}</p>
+          <div class="alert-footer-tags">
+            <span class="module-chip">{{ alert.related_module || 'SYSTEM' }}</span>
+            <span class="severity-chip" [class.sev-crit]="alert.severity === 'CRITICAL'">
+              {{ alert.severity }}
+            </span>
+          </div>
+        </div>
+        <div class="system-alert-actions">
+          <button *ngIf="!alert.is_acknowledged" mat-stroked-button type="button" class="btn-ack"
+            (click)="acknowledgeAlert(alert.in_app_alert_id || alert.id, $event)">
+            Acknowledge
+          </button>
+          <button mat-flat-button type="button" class="btn-resolve"
+            (click)="resolveAlert(alert.in_app_alert_id || alert.id, $event)">
+            Resolve
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMPTY STATE WHEN PIPELINE IS 100% CLEAR -->
+  <div class="empty-state-panel" *ngIf="!loading && totalItemsCount === 0">
+    <h3 class="empty-title">Pipeline In Perfect Health!</h3>
+    <p class="empty-subtitle">
+      Zero missed follow-ups, zero abandoned prospects, and all active deals have verified upcoming touchpoints.
+    </p>
+    <button mat-stroked-button type="button" (click)="loadAlertsData(true)" class="btn-rescan">
+Scan Pipeline Again
+    </button>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- MODAL 1: SCHEDULE FOLLOW-UP FOR MISSED/SLIPPED PROSPECT          -->
+  <!-- ================================================================= -->
+  <div *ngIf="showScheduleModal" class="custom-modal-backdrop" (click)="closeScheduleModal()">
+    <mat-card class="custom-modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-row">
+          <div class="modal-icon-badge amber-badge">
+          </div>
+          <div>
+            <h3 class="modal-title">Schedule Follow-up</h3>
+            <span class="modal-subtitle">Prospect: {{ scheduleForm.buyer_name }} ({{ scheduleForm.buyer_phone }})</span>
+          </div>
+        </div>
+        <button mat-icon-button type="button" (click)="closeScheduleModal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="quick-due-chips-row">
+          <span class="chips-label">Quick Due Shortcuts:</span>
+          <button type="button" class="quick-chip" (click)="setQuickDue(2)">In 2 Hours</button>
+          <button type="button" class="quick-chip" (click)="setQuickDue(4)">In 4 Hours (SLA)</button>
+          <button type="button" class="quick-chip" (click)="setQuickDueTomorrow()">Tomorrow 10 AM</button>
+          <button type="button" class="quick-chip" (click)="setQuickDue(48)">In 2 Days</button>
+        </div>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Follow-up Title / Reason</mat-label>
+          <input matInput [(ngModel)]="scheduleForm.title" placeholder="e.g. Call to discuss 3BHK unit options" />
+        </mat-form-field>
+
+        <div class="form-grid-2">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Due Date &amp; Time</mat-label>
+            <input matInput type="datetime-local" [(ngModel)]="scheduleForm.due_date" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Priority Level</mat-label>
+            <mat-select [(ngModel)]="scheduleForm.priority">
+              <mat-option value="CRITICAL">Critical (High-Intent)</mat-option>
+              <mat-option value="HIGH">High Priority</mat-option>
+              <mat-option value="NORMAL">Normal</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Assign To Sales Representative</mat-label>
+          <mat-select [(ngModel)]="scheduleForm.assigned_to_id">
+            <mat-option *ngFor="let rep of salesReps" [value]="rep.user_id || rep.id">
+              {{ rep.name }} ({{ rep.role?.name || rep.role_name || 'Sales Rep' }})
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Task Instructions / Notes</mat-label>
+          <textarea matInput rows="3" [(ngModel)]="scheduleForm.description"
+            placeholder="Add specific context or instructions for this follow-up..."></textarea>
+        </mat-form-field>
+      </div>
+
+      <div class="modal-footer">
+        <button mat-button type="button" (click)="closeScheduleModal()">Cancel</button>
+        <button mat-flat-button color="primary" type="button" class="btn-modal-submit" [disabled]="submittingAction"
+          (click)="submitScheduleFollowUp()">
+          <span>{{ submittingAction ? 'Scheduling...' : 'Save & Schedule Follow-Up' }}</span>
+        </button>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- MODAL 2: LOG & COMPLETE FOLLOW-UP WITH OPTIONAL NEXT TASK        -->
+  <!-- ================================================================= -->
+  <div *ngIf="showCompleteModal" class="custom-modal-backdrop" (click)="closeCompleteModal()">
+    <mat-card class="custom-modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-row">
+          <div class="modal-icon-badge green-badge">
+          </div>
+          <div>
+            <h3 class="modal-title">Complete Follow-up</h3>
+            <span class="modal-subtitle">{{ completeForm.task_title }} &middot; {{ completeForm.buyer_name }}</span>
+          </div>
+        </div>
+        <button mat-icon-button type="button" (click)="closeCompleteModal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Call / Interaction Outcome</mat-label>
+          <mat-select [(ngModel)]="completeForm.outcome_status">
+            <mat-option value="Interested - Requested Detailed Quotation">Interested - Requested Detailed
+              Quotation</mat-option>
+            <mat-option value="Site Visit Requested & Scheduled">Site Visit Requested &amp; Scheduled</mat-option>
+            <mat-option value="Followed Up - Discussion Ongoing">Followed Up - Discussion Ongoing</mat-option>
+            <mat-option value="Follow-up Again in 2 Days">Follow-up Again in 2 Days</mat-option>
+            <mat-option value="Price Objection - Reviewing Discounts">Price Objection - Reviewing Discounts</mat-option>
+            <mat-option value="Not Reachable - Left WhatsApp Message">Not Reachable - Left WhatsApp Message</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Outcome Notes &amp; Client Feedback</mat-label>
+          <textarea matInput rows="3" [(ngModel)]="completeForm.outcome_notes"
+            placeholder="Document what the customer discussed, floor preference, budget, objections..."></textarea>
+        </mat-form-field>
+
+        <div class="schedule-next-toggle-box">
+          <label class="toggle-label">
+            <input type="checkbox" [(ngModel)]="completeForm.schedule_next" class="custom-checkbox" />
+            <span class="checkbox-title">Schedule the next follow-up task now (Prevent deal leakage)</span>
+          </label>
+
+          <div *ngIf="completeForm.schedule_next" class="next-task-fields">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Next Task Title</mat-label>
+              <input matInput [(ngModel)]="completeForm.next_title" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Next Follow-Up Due Date</mat-label>
+              <input matInput type="datetime-local" [(ngModel)]="completeForm.next_date" />
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button mat-button type="button" (click)="closeCompleteModal()">Cancel</button>
+        <button mat-flat-button color="primary" type="button" class="btn-modal-submit" [disabled]="submittingAction"
+          (click)="submitCompleteFollowUp()">
+          <span>{{ submittingAction ? 'Recording...' : 'Save & Mark Completed' }}</span>
+        </button>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- MODAL 3: REASSIGN BUYER / DEAL TO ACTIVE SALES EXECUTIVE          -->
+  <!-- ================================================================= -->
+  <div *ngIf="showReassignModal" class="custom-modal-backdrop" (click)="closeReassignModal()">
+    <mat-card class="custom-modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-row">
+          <div class="modal-icon-badge purple-badge">
+          </div>
+          <div>
+            <h3 class="modal-title">Reassign Sales Representative</h3>
+            <span class="modal-subtitle">Prospect: {{ reassignForm.buyer_name }}</span>
+          </div>
+        </div>
+        <button mat-icon-button type="button" (click)="closeReassignModal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="reassign-desc">
+          Transfer this prospect to an active sales representative to guarantee timely callbacks and follow-ups.
+        </p>
+
+        <div class="current-rep-badge-row">
+          <span class="badge-label">Current Owner:</span>
+          <span class="badge-val">{{ reassignForm.current_rep_name }}</span>
+        </div>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>New Assigned Sales Executive</mat-label>
+          <mat-select [(ngModel)]="reassignForm.reassigned_rep_id">
+            <mat-option *ngFor="let rep of salesReps" [value]="rep.user_id || rep.id">
+              {{ rep.name }} ({{ rep.role?.name || rep.role_name || 'Sales' }})
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Reassignment Reason / Transfer Notes</mat-label>
+          <textarea matInput rows="2" [(ngModel)]="reassignForm.notes"
+            placeholder="e.g. Previous rep overloaded; urgent follow-up required."></textarea>
+        </mat-form-field>
+      </div>
+
+      <div class="modal-footer">
+        <button mat-button type="button" (click)="closeReassignModal()">Cancel</button>
+        <button mat-flat-button color="primary" type="button" class="btn-modal-submit" [disabled]="submittingAction"
+          (click)="submitReassign()">
+          <span>{{ submittingAction ? 'Reassigning...' : 'Confirm Reassignment' }}</span>
+        </button>
+      </div>
+    </mat-card>
+  </div>
+</div>

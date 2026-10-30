@@ -1,236 +1,520 @@
 <div class="prospects-page-wrapper">
-  <!-- Header -->
+  <!-- Loading Progress Bar -->
+  <mat-progress-bar *ngIf="loading" mode="indeterminate" class="page-progress-bar"></mat-progress-bar>
+
+  <!-- Page Header -->
   <div class="page-title-row">
-    <div>
-      <div class="section-tag">PIPELINE &middot; LEAD QUALIFICATION</div>
-      <h1 class="page-title">Prospects</h1>
+    <div class="title-left">
+      <div class="section-tag">
+        PIPELINE &middot; LEAD QUALIFICATION &amp; SCORING
+      </div>
+      <div class="title-with-badge">
+        <h1 class="page-title">Prospects</h1>
+        <span class="count-pill">{{ filteredProspects.length }} of {{ prospects.length }} Active</span>
+      </div>
       <p class="page-subtitle">
         Buyer records enriched with the Contech CRM Buyer Score, next best action and estimated revenue at risk.
       </p>
     </div>
     <div class="top-actions">
-      <button mat-stroked-button type="button" class="btn-mat-action" (click)="openImportModal()">
-        <mat-icon>upload_file</mat-icon> Import CSV
+      <button mat-stroked-button type="button" class="btn-action-stroked" (click)="openImportModal()" matTooltip="Bulk upload prospects via CSV">
+        <mat-icon>upload_file</mat-icon>
+        <span>Import CSV</span>
       </button>
-      <button mat-stroked-button type="button" class="btn-mat-action" (click)="exportCSV()">
-        <mat-icon>download</mat-icon> Export CSV
+      <button mat-stroked-button type="button" class="btn-action-stroked" (click)="exportCSV()" matTooltip="Export filtered prospect records to CSV">
+        <mat-icon>download</mat-icon>
+        <span>Export CSV</span>
       </button>
-      <a mat-flat-button color="primary" routerLink="/buyers/new">
-        <mat-icon>person_add</mat-icon> New Prospect
+      <a mat-flat-button class="btn-action-primary" routerLink="/buyers/new">
+        <mat-icon>person_add</mat-icon>
+        <span>New Prospect</span>
       </a>
     </div>
   </div>
 
-  <!-- Feedback Message Banner -->
+  <!-- Feedback Toast Banner -->
   <div *ngIf="feedbackMessage" class="feedback-banner">
-    <mat-icon class="feedback-icon">check_circle</mat-icon> {{ feedbackMessage }}
+    <div class="feedback-content">
+      <mat-icon class="feedback-icon">check_circle</mat-icon>
+      <span>{{ feedbackMessage }}</span>
+    </div>
+    <button class="feedback-close" (click)="feedbackMessage = ''">
+      <mat-icon>close</mat-icon>
+    </button>
   </div>
 
-  <!-- Filter Bar with Angular Material Form Fields -->
-  <div class="filters-bar-mat">
-    <mat-form-field appearance="outline" class="search-field-mat">
-      <mat-label>Search prospects</mat-label>
-      <mat-icon matPrefix>search</mat-icon>
+  <!-- Top Executive Metric KPI Cards -->
+  <div class="kpi-grid-5">
+    <!-- Card 1: Total Prospects -->
+    <div class="kpi-card kpi-slate" [class.active-kpi]="activeQuickTab === 'all'" (click)="setQuickTab('all')" matRipple>
+      <div class="kpi-top">
+        <span class="kpi-label">TOTAL PROSPECTS</span>
+      </div>
+      <div class="kpi-value">{{ prospects.length }}</div>
+      <div class="kpi-subtext">All pipeline qualification leads</div>
+    </div>
+
+    <!-- Card 2: Very High Intent -->
+    <div class="kpi-card kpi-emerald" [class.active-kpi]="activeQuickTab === 'high_intent'" (click)="setQuickTab('high_intent')" matRipple>
+      <div class="kpi-top">
+        <span class="kpi-label">HIGH INTENT (SCORE &ge;85)</span>
+      </div>
+      <div class="kpi-value text-emerald">{{ getVeryHighIntentCount() }}</div>
+      <div class="kpi-subtext">Top purchase propensity buyers</div>
+    </div>
+
+    <!-- Card 3: Revenue Exposure At Risk -->
+    <div class="kpi-card kpi-amber" matRipple>
+      <div class="kpi-top">
+        <span class="kpi-label">REVENUE AT RISK</span>
+      </div>
+      <div class="kpi-value text-amber">{{ getTotalExposureAtRisk() }}</div>
+      <div class="kpi-subtext">Weighted pipeline risk exposure</div>
+    </div>
+
+    <!-- Card 4: Site Visits & Negotiations -->
+    <div class="kpi-card kpi-indigo" [class.active-kpi]="activeQuickTab === 'visits' || activeQuickTab === 'negotiation'" (click)="setQuickTab('visits')" matRipple>
+      <div class="kpi-top">
+        <span class="kpi-label">VISITS &amp; NEGOTIATIONS</span>
+      </div>
+      <div class="kpi-value text-indigo">{{ getVisitsAndNegotiationCount() }}</div>
+      <div class="kpi-subtext">Active site tours &amp; closing stages</div>
+    </div>
+
+    <!-- Card 5: SLA Breached / Urgent -->
+    <div class="kpi-card kpi-rose" [class.active-kpi]="activeQuickTab === 'sla'" (click)="setQuickTab('sla')" matRipple>
+      <div class="kpi-top">
+        <span class="kpi-label">URGENT / OVERDUE SLA</span>
+      </div>
+      <div class="kpi-value text-rose">{{ getSlaBreachedCount() }}</div>
+      <div class="kpi-subtext">Needs owner or overdue touchpoint</div>
+    </div>
+  </div>
+
+  <!-- Quick Filter Tabs Row -->
+  <div class="quick-tabs-bar">
+    <button
+      type="button"
+      class="quick-tab-pill"
+      [class.active]="activeQuickTab === 'all'"
+      (click)="setQuickTab('all')"
+    >
+      <span>All Prospects</span>
+      <span class="tab-badge">{{ prospects.length }}</span>
+    </button>
+    <button
+      type="button"
+      class="quick-tab-pill"
+      [class.active]="activeQuickTab === 'high_intent'"
+      (click)="setQuickTab('high_intent')"
+    >
+      <span>High Intent (&ge;85)</span>
+      <span class="tab-badge">{{ getVeryHighIntentCount() }}</span>
+    </button>
+    <button
+      type="button"
+      class="quick-tab-pill"
+      [class.active]="activeQuickTab === 'visits'"
+      (click)="setQuickTab('visits')"
+    >
+      <span>Site Visits</span>
+    </button>
+    <button
+      type="button"
+      class="quick-tab-pill"
+      [class.active]="activeQuickTab === 'negotiation'"
+      (click)="setQuickTab('negotiation')"
+    >
+      <span>Negotiations</span>
+    </button>
+    <button
+      type="button"
+      class="quick-tab-pill tab-danger"
+      [class.active]="activeQuickTab === 'sla'"
+      (click)="setQuickTab('sla')"
+    >
+      <span>SLA Breached</span>
+      <span class="tab-badge badge-danger" *ngIf="getSlaBreachedCount() > 0">{{ getSlaBreachedCount() }}</span>
+    </button>
+
+    <div class="quick-tabs-spacer"></div>
+
+    <button *ngIf="hasActiveFilters" type="button" class="btn-clear-filters" (click)="resetFilters()">
+      <mat-icon>filter_alt_off</mat-icon>
+      <span>Reset Filters</span>
+    </button>
+  </div>
+
+  <!-- Sleek Modern Filter Toolbar (No Truncation) -->
+  <div class="filters-toolbar">
+    <!-- Search Field -->
+    <div class="search-input-box">
+      <mat-icon class="search-box-icon">search</mat-icon>
       <input
-        matInput
         type="text"
         [(ngModel)]="searchQuery"
-        placeholder="Search name, mobile or email"
+        placeholder="Search name, phone, email, source..."
+        class="search-text-input"
       />
-    </mat-form-field>
+      <button *ngIf="searchQuery" type="button" class="search-clear-btn" (click)="searchQuery = ''" matTooltip="Clear search">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
 
-    <mat-form-field appearance="outline" class="select-field-mat">
-      <mat-label>Stage</mat-label>
-      <mat-icon matPrefix>timeline</mat-icon>
-      <mat-select [(ngModel)]="selectedStage">
-        <mat-option value="all">All stages</mat-option>
-        <mat-option value="New">New</mat-option>
-        <mat-option value="Contacted">Contacted</mat-option>
-        <mat-option value="Qualified">Qualified</mat-option>
-        <mat-option value="High Intent">High Intent</mat-option>
-        <mat-option value="Site Visit Scheduled">Site Visit Scheduled</mat-option>
-        <mat-option value="Visit Completed">Visit Completed</mat-option>
-        <mat-option value="Negotiation">Negotiation</mat-option>
-        <mat-option value="Booking Intent">Booking Intent</mat-option>
-        <mat-option value="Booked">Booked</mat-option>
-      </mat-select>
-    </mat-form-field>
+    <!-- Filter Dropdown 1: Stage -->
+    <div class="filter-dropdown-wrap">
+      <select [(ngModel)]="selectedStage" class="filter-native-select" (change)="currentPage = 1">
+        <option value="all">Stage: All stages</option>
+        <option value="New">New</option>
+        <option value="Contacted">Contacted</option>
+        <option value="Qualified">Qualified</option>
+        <option value="High Intent">High Intent</option>
+        <option value="Site Visit Scheduled">Site Visit Scheduled</option>
+        <option value="Visit Completed">Visit Completed</option>
+        <option value="Negotiation">Negotiation</option>
+        <option value="Booking Intent">Booking Intent</option>
+        <option value="Booked">Booked</option>
+      </select>
+      <mat-icon class="dropdown-arrow-icon">arrow_drop_down</mat-icon>
+    </div>
 
-    <mat-form-field appearance="outline" class="select-field-mat">
-      <mat-label>Lead Source</mat-label>
-      <mat-icon matPrefix>campaign</mat-icon>
-      <mat-select [(ngModel)]="selectedSource">
-        <mat-option value="all">All sources</mat-option>
-        <mat-option value="Google Ads">Google Ads</mat-option>
-        <mat-option value="Meta Ads">Meta Ads</mat-option>
-        <mat-option value="Referral">Referral</mat-option>
-        <mat-option value="SimpliQualify">SimpliQualify</mat-option>
-        <mat-option value="Website">Website</mat-option>
-        <mat-option value="Instagram">Instagram</mat-option>
-        <mat-option value="Property Portal">Property Portal</mat-option>
-      </mat-select>
-    </mat-form-field>
+    <!-- Filter Dropdown 2: Lead Source -->
+    <div class="filter-dropdown-wrap">
+      <select [(ngModel)]="selectedSource" class="filter-native-select" (change)="currentPage = 1">
+        <option value="all">Source: All sources</option>
+        <option value="Google Ads">Google Ads</option>
+        <option value="Meta Ads">Meta Ads</option>
+        <option value="Referral">Referral</option>
+        <option value="SimpliQualify">SimpliQualify</option>
+        <option value="Website">Website</option>
+        <option value="Instagram">Instagram</option>
+        <option value="Property Portal">Property Portal</option>
+      </select>
+      <mat-icon class="dropdown-arrow-icon">arrow_drop_down</mat-icon>
+    </div>
 
-    <mat-form-field appearance="outline" class="select-field-mat">
-      <mat-label>Intent Band</mat-label>
-      <mat-icon matPrefix>trending_up</mat-icon>
-      <mat-select [(ngModel)]="selectedIntentBand">
-        <mat-option value="all">All intent bands</mat-option>
-        <mat-option value="very_high">Very High Intent</mat-option>
-        <mat-option value="high">High Intent</mat-option>
-        <mat-option value="qualified">Qualified</mat-option>
-      </mat-select>
-    </mat-form-field>
+    <!-- Filter Dropdown 3: Intent Band (Guaranteed No Ellipsis / Truncation) -->
+    <div class="filter-dropdown-wrap intent-dropdown-wrap">
+      <select [(ngModel)]="selectedIntentBand" class="filter-native-select" (change)="currentPage = 1">
+        <option value="all">Intent: All intent bands</option>
+        <option value="very_high">Very High Intent (&ge;90)</option>
+        <option value="high">High Intent (80&ndash;89)</option>
+        <option value="qualified">Qualified (&lt;80)</option>
+      </select>
+      <mat-icon class="dropdown-arrow-icon">arrow_drop_down</mat-icon>
+    </div>
 
-    <mat-form-field appearance="outline" class="select-field-mat">
-      <mat-label>Assigned Owner</mat-label>
-      <mat-icon matPrefix>account_circle</mat-icon>
-      <mat-select [(ngModel)]="selectedOwner">
-        <mat-option value="all">All owners</mat-option>
-        <mat-option *ngFor="let o of owners" [value]="o">{{ o }}</mat-option>
-      </mat-select>
-    </mat-form-field>
+    <!-- Filter Dropdown 4: Assigned Owner -->
+    <div class="filter-dropdown-wrap owner-dropdown-wrap">
+      <select [(ngModel)]="selectedOwner" class="filter-native-select" (change)="currentPage = 1">
+        <option value="all">Owner: All owners</option>
+        <option value="Unassigned">Unassigned Only</option>
+        <option *ngFor="let o of owners" [value]="o" [hidden]="o === 'Unassigned'">{{ getOwnerName(o) }}</option>
+      </select>
+      <mat-icon class="dropdown-arrow-icon">arrow_drop_down</mat-icon>
+    </div>
   </div>
 
   <!-- Prospects Table Card -->
-  <mat-card class="table-card mat-elevation-z1">
-    <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
+  <div class="table-card-container">
     <div class="table-responsive">
       <table class="prospects-table">
         <thead>
           <tr>
-            <th>BUYER</th>
-            <th>SCORE</th>
-            <th>STAGE</th>
-            <th>REQUIREMENT</th>
-            <th>OWNER</th>
-            <th>NEXT BEST ACTION</th>
-            <th class="text-right">AT RISK</th>
-            <th class="text-right">ACTIONS</th>
+            <th class="col-buyer" (click)="toggleSort('name')">
+              <div class="th-content">
+                <span>BUYER</span>
+                <mat-icon class="sort-icon" *ngIf="sortField === 'name'">{{ sortDirection === 'asc' ? 'north' : 'south' }}</mat-icon>
+              </div>
+            </th>
+            <th class="col-score" (click)="toggleSort('score')">
+              <div class="th-content">
+                <span>SCORE</span>
+                <mat-icon class="sort-icon" *ngIf="sortField === 'score'">{{ sortDirection === 'asc' ? 'north' : 'south' }}</mat-icon>
+              </div>
+            </th>
+            <th class="col-stage" (click)="toggleSort('stage')">
+              <div class="th-content">
+                <span>STAGE</span>
+                <mat-icon class="sort-icon" *ngIf="sortField === 'stage'">{{ sortDirection === 'asc' ? 'north' : 'south' }}</mat-icon>
+              </div>
+            </th>
+            <th class="col-req">
+              <div class="th-content">
+                <span>REQUIREMENT</span>
+              </div>
+            </th>
+            <th class="col-owner">
+              <div class="th-content">
+                <span>ASSIGNED OWNER</span>
+              </div>
+            </th>
+            <th class="col-action">
+              <div class="th-content">
+                <span>NEXT BEST ACTION</span>
+              </div>
+            </th>
+            <th class="col-risk text-right" (click)="toggleSort('at_risk')">
+              <div class="th-content justify-end">
+                <span>AT RISK</span>
+                <mat-icon class="sort-icon" *ngIf="sortField === 'at_risk'">{{ sortDirection === 'asc' ? 'north' : 'south' }}</mat-icon>
+              </div>
+            </th>
+            <th class="col-actions text-right">
+              <div class="th-content justify-end">
+                <span>ACTIONS</span>
+              </div>
+            </th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let p of filteredProspects" [class.editing-row]="editingBuyerId === p.id">
+          <!-- Empty State -->
+          <tr *ngIf="pagedProspects.length === 0">
+            <td colspan="8" class="empty-state-cell">
+              <div class="empty-state-wrap">
+                <div class="empty-icon-box">
+                  <mat-icon>person_search</mat-icon>
+                </div>
+                <h3 class="empty-title">No prospects match your criteria</h3>
+                <p class="empty-desc">Try clearing your search query or reset filter dropdowns to view all active pipeline records.</p>
+                <button mat-stroked-button type="button" class="btn-action-stroked" (click)="resetFilters()">
+                  <mat-icon>filter_alt_off</mat-icon> Reset All Filters
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Data Rows -->
+          <tr *ngFor="let p of pagedProspects" [class.editing-row]="editingBuyerId === p.id" class="prospect-row">
             <!-- Normal Mode -->
             <ng-container *ngIf="editingBuyerId !== p.id">
-              <td>
-                <div class="buyer-name">
-                  <a [routerLink]="['/buyers', p.id]" class="buyer-link">{{ p.name }}</a>
+              <!-- Buyer Cell -->
+              <td class="col-buyer">
+                <div class="buyer-profile-cell">
+                  <div class="buyer-avatar" [style.background]="getAvatarColor(p.name)">
+                    {{ getInitials(p.name) }}
+                  </div>
+                  <div class="buyer-info">
+                    <a [routerLink]="['/buyers', p.id]" class="buyer-name-link" matTooltip="Open Buyer 360 Profile">
+                      {{ p.name }}
+                    </a>
+                    <div class="buyer-sub-meta">
+                      <span class="source-tag">{{ p.source }}</span>
+                      <a *ngIf="p.phone" [href]="'tel:' + p.phone" class="phone-link" (click)="$event.stopPropagation()">
+                        <mat-icon class="meta-icon">call</mat-icon>
+                        <span>{{ p.phone }}</span>
+                      </a>
+                      <a *ngIf="!p.phone && p.email" [href]="'mailto:' + p.email" class="email-link" (click)="$event.stopPropagation()">
+                        <mat-icon class="meta-icon">mail_outline</mat-icon>
+                        <span class="email-text">{{ p.email }}</span>
+                      </a>
+                    </div>
+                  </div>
                 </div>
-                <div class="buyer-contact">{{ p.source }} &middot; {{ p.phone }}</div>
               </td>
-              <td>
-                <div class="score-pill">
-                  <span class="score-num">{{ p.score }}</span>
-                  <span class="score-delta">&#9650; {{ p.delta }}</span>
+
+              <!-- Score Cell -->
+              <td class="col-score">
+                <div class="score-cell-container" [matTooltip]="'Buyer Intent Score: ' + p.score + '/100 (4-dimension AI model)'">
+                  <div class="score-badge" [ngClass]="getScoreClass(p.score)">
+                    <span class="score-number">{{ p.score }}</span>
+                    <span class="score-delta-text" *ngIf="p.delta">&Delta; +{{ p.delta }}</span>
+                  </div>
+                  <div class="score-micro-bar">
+                    <div class="bar-fill" [style.width.%]="p.score" [ngClass]="getScoreBarClass(p.score)"></div>
+                  </div>
                 </div>
               </td>
-              <td>
-                <span class="stage-badge">{{ p.stage }}</span>
-              </td>
-              <td>
-                <div class="req-bhk">{{ p.bhk }}</div>
-                <div class="req-budget">{{ p.budget }}</div>
-              </td>
-              <td>
-                <span class="owner-pill" [class.unassigned]="p.owner === 'Unassigned'">
-                  {{ p.owner }}
+
+              <!-- Stage Cell -->
+              <td class="col-stage">
+                <span class="stage-pill" [ngClass]="getStageClass(p.stage)">
+                  <span class="stage-dot"></span>
+                  <span class="stage-text">{{ p.stage }}</span>
                 </span>
               </td>
-              <td>
-                <div class="action-text">{{ p.next_action }}</div>
-                <div class="sla-text" *ngIf="p.sla_breached">SLA breached &middot; {{ p.sla_time }}</div>
+
+              <!-- Requirement Cell -->
+              <td class="col-req">
+                <div class="requirement-box">
+                  <span class="bhk-chip">{{ p.bhk }}</span>
+                  <span class="budget-display">{{ formatBudgetDisplay(p.budget) }}</span>
+                </div>
               </td>
-              <td class="text-right risk-value">{{ p.at_risk }}</td>
-              <td class="text-right actions-cell">
-                <button
-                  mat-icon-button
-                  type="button"
-                  (click)="startEdit(p)"
-                  matTooltip="Quick Edit Prospect"
-                >
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button
-                  mat-icon-button
-                  color="warn"
-                  type="button"
-                  (click)="deleteBuyer(p)"
-                  matTooltip="Delete Prospect"
-                >
-                  <mat-icon>delete</mat-icon>
-                </button>
+
+              <!-- Owner Cell -->
+              <td class="col-owner">
+                <div class="owner-cell-wrap">
+                  <ng-container *ngIf="p.owner !== 'Unassigned'">
+                    <div class="owner-avatar-circle">
+                      {{ getInitials(getOwnerName(p.owner)) }}
+                    </div>
+                    <div class="owner-text-wrap">
+                      <span class="owner-name-text">{{ getOwnerName(p.owner) }}</span>
+                      <span class="owner-role-text">{{ getOwnerRole(p.owner) }}</span>
+                    </div>
+                  </ng-container>
+                  <ng-container *ngIf="p.owner === 'Unassigned'">
+                    <span class="unassigned-pill" matTooltip="High intent lead requires sales executive assignment">
+                      <span>Unassigned</span>
+                    </span>
+                  </ng-container>
+                </div>
+              </td>
+
+              <!-- Next Best Action Cell -->
+              <td class="col-action">
+                <div class="next-action-wrap">
+                  <div class="action-title-row">
+                    <span class="action-title-text">{{ p.next_action }}</span>
+                  </div>
+                  <div class="sla-overdue-chip" *ngIf="p.sla_breached">
+                    <span>SLA breached &middot; {{ p.sla_time }}</span>
+                  </div>
+                </div>
+              </td>
+
+              <!-- At Risk Cell -->
+              <td class="col-risk text-right">
+                <div class="at-risk-wrap">
+                  <span class="risk-amount-text">{{ p.at_risk }}</span>
+                  <span class="risk-label-sub">est. exposure</span>
+                </div>
+              </td>
+
+              <!-- Actions Cell -->
+              <td class="col-actions text-right actions-column-cell">
+                <div class="row-actions-group">
+                  <button
+                    mat-icon-button
+                    type="button"
+                    class="action-btn edit-btn"
+                    (click)="startEdit(p)"
+                    matTooltip="Quick Edit Prospect"
+                  >
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    color="warn"
+                    type="button"
+                    class="action-btn delete-btn"
+                    (click)="deleteBuyer(p)"
+                    matTooltip="Delete Prospect"
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
               </td>
             </ng-container>
 
             <!-- Edit Mode -->
             <ng-container *ngIf="editingBuyerId === p.id">
-              <td>
-                <input type="text" [(ngModel)]="editForm.name" class="inline-input" placeholder="Full name" />
-                <input type="text" [(ngModel)]="editForm.phone" class="inline-input sub-input" placeholder="Phone" />
+              <td class="col-buyer">
+                <input type="text" [(ngModel)]="editForm.name" class="inline-edit-input" placeholder="Full name" />
+                <input type="text" [(ngModel)]="editForm.phone" class="inline-edit-input sub-input" placeholder="Phone Number" />
               </td>
-              <td>
-                <div class="score-pill">
-                  <span class="score-num">{{ p.score }}</span>
+              <td class="col-score">
+                <div class="score-cell-container">
+                  <div class="score-badge" [ngClass]="getScoreClass(p.score)">
+                    <span class="score-number">{{ p.score }}</span>
+                  </div>
                 </div>
               </td>
-              <td>
-                <select [(ngModel)]="editForm.stage" class="inline-select">
+              <td class="col-stage">
+                <select [(ngModel)]="editForm.stage" class="inline-edit-select">
+                  <option value="New">New</option>
+                  <option value="Contacted">Contacted</option>
                   <option value="Qualified">Qualified</option>
                   <option value="High Intent">High Intent</option>
-                  <option value="Booking Intent">Booking Intent</option>
                   <option value="Site Visit Scheduled">Site Visit Scheduled</option>
-                  <option value="Negotiation">Negotiation</option>
                   <option value="Visit Completed">Visit Completed</option>
+                  <option value="Negotiation">Negotiation</option>
+                  <option value="Booking Intent">Booking Intent</option>
+                  <option value="Booked">Booked</option>
                 </select>
               </td>
-              <td>
-                <select [(ngModel)]="editForm.bhk" class="inline-select">
+              <td class="col-req">
+                <select [(ngModel)]="editForm.bhk" class="inline-edit-select">
                   <option value="1 BHK">1 BHK</option>
                   <option value="2 BHK">2 BHK</option>
                   <option value="3 BHK">3 BHK</option>
                   <option value="4 BHK">4 BHK</option>
                 </select>
               </td>
-              <td>
-                <span class="owner-pill">{{ p.owner }}</span>
+              <td class="col-owner">
+                <div class="owner-cell-wrap">
+                  <span class="owner-name-text">{{ p.owner }}</span>
+                </div>
               </td>
-              <td>
-                <div class="action-text">{{ p.next_action }}</div>
+              <td class="col-action">
+                <div class="action-title-text">{{ p.next_action }}</div>
               </td>
-              <td class="text-right risk-value">{{ p.at_risk }}</td>
-              <td class="text-right actions-cell">
-                <button mat-flat-button color="primary" type="button" class="btn-save-inline" (click)="saveEdit(p)">Save</button>
-                <button mat-stroked-button type="button" class="btn-cancel-inline" (click)="cancelEdit()">Cancel</button>
+              <td class="col-risk text-right">
+                <span class="risk-amount-text">{{ p.at_risk }}</span>
+              </td>
+              <td class="col-actions text-right actions-column-cell">
+                <div class="inline-actions-box">
+                  <button mat-flat-button type="button" class="btn-save-inline" (click)="saveEdit(p)">Save</button>
+                  <button mat-stroked-button type="button" class="btn-cancel-inline" (click)="cancelEdit()">Cancel</button>
+                </div>
               </td>
             </ng-container>
           </tr>
         </tbody>
       </table>
     </div>
-  </mat-card>
+
+    <!-- Table Footer with Pagination & Summary -->
+    <div class="table-footer-bar">
+      <div class="footer-summary">
+        <span>Showing <strong>{{ pagedProspects.length }}</strong> of <strong>{{ filteredProspects.length }}</strong> prospects</span>
+        <span class="footer-pipe">&middot;</span>
+        <span class="footer-total-risk">Total Exposure: <strong>{{ getTotalExposureAtRisk() }}</strong></span>
+      </div>
+
+      <div class="footer-controls">
+        <div class="page-size-selector">
+          <label>Rows per page:</label>
+          <select [(ngModel)]="pageSize" (change)="currentPage = 1" class="page-size-dropdown">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+          </select>
+        </div>
+
+        <div class="page-navigator">
+          <button type="button" [disabled]="currentPage === 1" (click)="currentPage = currentPage - 1" class="page-nav-btn" aria-label="Previous page">&lsaquo;</button>
+          <span class="page-current-info">Page {{ currentPage }} of {{ totalPages || 1 }}</span>
+          <button type="button" [disabled]="currentPage >= totalPages" (click)="currentPage = currentPage + 1" class="page-nav-btn" aria-label="Next page">&rsaquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- CSV Bulk Import Modal (SOW Sec 6) -->
   <div *ngIf="showImportModal" class="modal-backdrop">
-    <mat-card class="modal-card mat-elevation-z8">
+    <div class="modal-card">
       <div class="modal-header">
         <div>
           <h2 class="modal-title">Bulk Prospect CSV Import</h2>
           <p class="modal-subtitle">Upload CSV to bulk create prospect profiles with automated 4-dimension intent scoring</p>
         </div>
-        <button mat-icon-button type="button" (click)="closeImportModal()">
+        <button class="close-modal-btn" type="button" (click)="closeImportModal()">
           <mat-icon>close</mat-icon>
         </button>
       </div>
 
-      <mat-card-content class="modal-body">
+      <div class="modal-body">
         <div class="template-download-box">
           <div>
             <strong>Need the CSV Template?</strong>
             <p class="sub-text">Download official template with headers matching SOW Section 6 specifications.</p>
           </div>
-          <button mat-stroked-button type="button" (click)="downloadTemplate()">
-            <mat-icon>file_download</mat-icon> Download Template
+          <button mat-stroked-button type="button" class="btn-action-stroked" (click)="downloadTemplate()">
+            <mat-icon>file_download</mat-icon>
+            <span>Download Template</span>
           </button>
         </div>
 
@@ -295,13 +579,13 @@
             </table>
           </div>
         </div>
-      </mat-card-content>
+      </div>
 
-      <mat-card-actions class="modal-footer">
-        <button mat-button type="button" (click)="closeImportModal()">Close</button>
+      <div class="modal-footer">
+        <button mat-stroked-button type="button" class="btn-action-stroked" (click)="closeImportModal()">Close</button>
         <button
           mat-flat-button
-          color="primary"
+          class="btn-action-primary"
           type="button"
           [disabled]="importing || parsedCsvRows.length === 0"
           (click)="executeImport()"
@@ -309,7 +593,7 @@
           <span *ngIf="!importing">Start Bulk Import ({{ parsedCsvRows.length }} rows) &rarr;</span>
           <span *ngIf="importing">Importing Prospects...</span>
         </button>
-      </mat-card-actions>
-    </mat-card>
+      </div>
+    </div>
   </div>
 </div>

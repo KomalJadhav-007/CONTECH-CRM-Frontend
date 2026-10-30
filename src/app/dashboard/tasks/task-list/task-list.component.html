@@ -83,10 +83,10 @@
             <td>
               <div *ngIf="task.status === 'PENDING'">
                 <div *ngIf="!task.is_overdue" class="countdown-tag countdown-active">
-                  ⏳ {{ task.hours_remaining }}h Remaining
+                  {{ task.hours_remaining }}h Remaining
                 </div>
                 <div *ngIf="task.is_overdue" class="countdown-tag countdown-overdue">
-                  🚨 OVERDUE
+                  OVERDUE
                 </div>
                 <div class="target-time">Target: {{ task.due_at | date:'shortTime' }}</div>
               </div>

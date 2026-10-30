@@ -12,6 +12,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatRippleModule } from '@angular/material/core';
 import { BuyerService } from '../buyer.service';
 import { UserService } from '../../../users/user.service';
 
@@ -31,7 +32,8 @@ import { UserService } from '../../../users/user.service';
     MatSelectModule,
     MatTooltipModule,
     MatBadgeModule,
-    MatProgressBarModule
+    MatProgressBarModule,
+    MatRippleModule
   ],
   templateUrl: './buyer-list.component.html',
   styleUrl: './buyer-list.component.css'
@@ -50,6 +52,20 @@ export class BuyerListComponent implements OnInit {
   selectedSource = 'all';
   selectedIntentBand = 'all';
   selectedOwner = 'all';
+
+  // Quick Tab Filter
+  activeQuickTab: 'all' | 'high_intent' | 'visits' | 'negotiation' | 'sla' = 'all';
+
+  // Sorting State
+  sortField: string = 'score';
+  sortDirection: 'asc' | 'desc' = 'desc';
+
+  // Pagination State
+  currentPage: number = 1;
+  pageSize: number = 10;
+
+  // Row Selection State
+  selectedRows: Set<number> = new Set<number>();
 
   owners: string[] = ['Unassigned'];
   dbUsers: any[] = [];
@@ -322,7 +338,8 @@ export class BuyerListComponent implements OnInit {
               id: b.buyer_id || b.id,
               name: b.full_name,
               source: b.lead_source || (b.current_residence ? 'Direct Inquiry' : 'SimpliQualify'),
-              phone: b.phone || '',
+              phone: b.phone || b.mobile || '',
+              email: b.email || '',
               score: b.intent_score || 85,
               delta,
               stage: displayStage,
@@ -348,6 +365,200 @@ export class BuyerListComponent implements OnInit {
         this.rebuildOwnersList();
       }
     });
+  }
+
+  // --- Executive KPI Summary Computations ---
+  getVeryHighIntentCount(): number {
+    return this.prospects.filter(p => p.score >= 90).length;
+  }
+
+  getTotalExposureAtRisk(): string {
+    let totalLacs = 0;
+    for (const p of this.prospects) {
+      if (p.at_risk) {
+        const crMatch = p.at_risk.match(/₹([\d.]+)\s*Cr/);
+        const lMatch = p.at_risk.match(/₹([\d.]+)\s*L/);
+        if (crMatch) {
+          totalLacs += parseFloat(crMatch[1]) * 100;
+        } else if (lMatch) {
+          totalLacs += parseFloat(lMatch[1]);
+        }
+      }
+    }
+    if (totalLacs >= 100) {
+      return `₹${(totalLacs / 100).toFixed(2)} Cr`;
+    }
+    return `₹${totalLacs.toFixed(2)} L`;
+  }
+
+  getVisitsAndNegotiationCount(): number {
+    return this.prospects.filter(p =>
+      ['Site Visit Scheduled', 'Visit Completed', 'Negotiation', 'Booking Intent'].includes(p.stage)
+    ).length;
+  }
+
+  getSlaBreachedCount(): number {
+    return this.prospects.filter(p => p.sla_breached || p.owner === 'Unassigned').length;
+  }
+
+  // --- Quick Tab & Filters ---
+  setQuickTab(tab: 'all' | 'high_intent' | 'visits' | 'negotiation' | 'sla'): void {
+    if (this.activeQuickTab === tab && tab !== 'all') {
+      this.activeQuickTab = 'all';
+    } else {
+      this.activeQuickTab = tab;
+    }
+    this.currentPage = 1;
+  }
+
+  resetFilters(): void {
+    this.searchQuery = '';
+    this.selectedStage = 'all';
+    this.selectedSource = 'all';
+    this.selectedIntentBand = 'all';
+    this.selectedOwner = 'all';
+    this.activeQuickTab = 'all';
+    this.currentPage = 1;
+  }
+
+  get hasActiveFilters(): boolean {
+    return !!(
+      this.searchQuery.trim() ||
+      this.selectedStage !== 'all' ||
+      this.selectedSource !== 'all' ||
+      this.selectedIntentBand !== 'all' ||
+      this.selectedOwner !== 'all' ||
+      this.activeQuickTab !== 'all'
+    );
+  }
+
+  // --- Sorting ---
+  toggleSort(field: string): void {
+    if (this.sortField === field) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortField = field;
+      this.sortDirection = 'desc';
+    }
+    this.currentPage = 1;
+  }
+
+  // --- Row Selection ---
+  toggleSelectAll(): void {
+    if (this.allRowsSelected()) {
+      this.selectedRows.clear();
+    } else {
+      this.pagedProspects.forEach(p => this.selectedRows.add(p.id));
+    }
+  }
+
+  toggleRowSelect(id: number): void {
+    if (this.selectedRows.has(id)) {
+      this.selectedRows.delete(id);
+    } else {
+      this.selectedRows.add(id);
+    }
+  }
+
+  isRowSelected(id: number): boolean {
+    return this.selectedRows.has(id);
+  }
+
+  allRowsSelected(): boolean {
+    if (this.pagedProspects.length === 0) return false;
+    return this.pagedProspects.every(p => this.selectedRows.has(p.id));
+  }
+
+  // --- Presentation Helpers ---
+  getInitials(name: string): string {
+    if (!name) return '??';
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+
+  getAvatarColor(name: string): string {
+    if (!name) return '#64748b';
+    const colors = [
+      '#2563eb', // blue
+      '#7c3aed', // violet
+      '#059669', // emerald
+      '#d97706', // amber
+      '#0891b2', // cyan
+      '#db2777', // pink
+      '#4f46e5'  // indigo
+    ];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash) % colors.length];
+  }
+
+  getOwnerName(ownerStr: string): string {
+    if (!ownerStr || ownerStr === 'Unassigned') return 'Unassigned';
+    const match = ownerStr.match(/^(.*?)\s*\(.*?\)$/);
+    return match ? match[1].trim() : ownerStr.trim();
+  }
+
+  getOwnerRole(ownerStr: string): string {
+    if (!ownerStr || ownerStr === 'Unassigned') return '';
+    const match = ownerStr.match(/\((.*?)\)/);
+    if (match) {
+      const role = match[1].trim();
+      return role.replace('Owner / ', '');
+    }
+    return 'Sales Rep';
+  }
+
+  formatBudgetDisplay(budgetStr: string): string {
+    if (!budgetStr) return 'Flexible';
+    if (budgetStr.includes('Cr')) return budgetStr;
+    const lacsMatch = budgetStr.match(/(\d+(?:\.\d+)?)\s*L[^\d]*(\d+(?:\.\d+)?)\s*L/i);
+    if (lacsMatch) {
+      const min = parseFloat(lacsMatch[1]);
+      const max = parseFloat(lacsMatch[2]);
+      if (min >= 100 && max >= 100) {
+        const minCr = (min / 100).toFixed(2).replace(/\.00$/, '');
+        const maxCr = (max / 100).toFixed(2).replace(/\.00$/, '');
+        return `₹${minCr} – ${maxCr} Cr`;
+      } else if (min >= 100) {
+        const minCr = (min / 100).toFixed(2).replace(/\.00$/, '');
+        return `₹${minCr} Cr – ${max} L`;
+      } else if (max >= 100) {
+        const maxCr = (max / 100).toFixed(2).replace(/\.00$/, '');
+        return `₹${min} L – ${maxCr} Cr`;
+      } else {
+        return `₹${min} – ${max} L`;
+      }
+    }
+    return budgetStr;
+  }
+
+  getScoreClass(score: number): string {
+    if (score >= 90) return 'score-very-high';
+    if (score >= 80) return 'score-high';
+    if (score >= 65) return 'score-qualified';
+    return 'score-warm';
+  }
+
+  getScoreBarClass(score: number): string {
+    if (score >= 90) return 'bar-very-high';
+    if (score >= 80) return 'bar-high';
+    if (score >= 65) return 'bar-qualified';
+    return 'bar-warm';
+  }
+
+  getStageClass(stage: string): string {
+    const s = (stage || '').toLowerCase();
+    if (s.includes('negotiation')) return 'stage-negotiation';
+    if (s.includes('booking') || s.includes('booked')) return 'stage-booking';
+    if (s.includes('completed')) return 'stage-completed';
+    if (s.includes('scheduled')) return 'stage-scheduled';
+    if (s.includes('high intent')) return 'stage-high-intent';
+    if (s.includes('qualified')) return 'stage-qualified';
+    if (s.includes('contacted')) return 'stage-contacted';
+    return 'stage-new';
   }
 
   startEdit(p: any): void {
@@ -382,7 +593,7 @@ export class BuyerListComponent implements OnInit {
         p.bhk = this.editForm.bhk;
         p.stage = this.editForm.stage;
         this.editingBuyerId = null;
-        this.showFeedback(`Prospect "${p.name}" updated successfully in database.`);
+        this.showFeedback(`Prospect "${p.name}" updated successfully.`);
       },
       error: () => {
         p.name = this.editForm.name;
@@ -402,10 +613,12 @@ export class BuyerListComponent implements OnInit {
     this.buyerService.deleteBuyer(p.id).subscribe({
       next: () => {
         this.prospects = this.prospects.filter(item => item.id !== p.id);
+        this.selectedRows.delete(p.id);
         this.showFeedback(`Prospect "${p.name}" deleted from database.`);
       },
       error: () => {
         this.prospects = this.prospects.filter(item => item.id !== p.id);
+        this.selectedRows.delete(p.id);
         this.showFeedback(`Prospect "${p.name}" removed.`);
       }
     });
@@ -417,19 +630,35 @@ export class BuyerListComponent implements OnInit {
       if (this.feedbackMessage === msg) {
         this.feedbackMessage = '';
       }
-    }, 3000);
+    }, 3500);
   }
 
-  get filteredProspects() {
-    return this.prospects.filter(p => {
+  get filteredProspects(): any[] {
+    const filtered = this.prospects.filter(p => {
+      // 1. Quick Tabs
+      if (this.activeQuickTab === 'high_intent' && p.score < 85) return false;
+      if (this.activeQuickTab === 'visits' && !(p.stage || '').includes('Visit')) return false;
+      if (
+        this.activeQuickTab === 'negotiation' &&
+        p.stage !== 'Negotiation' &&
+        p.stage !== 'Booking Intent' &&
+        p.stage !== 'Booked'
+      )
+        return false;
+      if (this.activeQuickTab === 'sla' && !p.sla_breached && p.owner !== 'Unassigned') return false;
+
+      // 2. Search Query
       if (this.searchQuery.trim()) {
         const q = this.searchQuery.toLowerCase();
         const match =
-          p.name.toLowerCase().includes(q) ||
-          p.phone.includes(q) ||
-          p.source.toLowerCase().includes(q);
+          (p.name && p.name.toLowerCase().includes(q)) ||
+          (p.phone && p.phone.includes(q)) ||
+          (p.email && p.email.toLowerCase().includes(q)) ||
+          (p.source && p.source.toLowerCase().includes(q));
         if (!match) return false;
       }
+
+      // 3. Stage Filter
       if (this.selectedStage !== 'all') {
         const pStageNorm = (p.stage || '').toLowerCase().replace(/_/g, ' ');
         const sStageNorm = this.selectedStage.toLowerCase().replace(/_/g, ' ');
@@ -437,28 +666,77 @@ export class BuyerListComponent implements OnInit {
           return false;
         }
       }
-      if (this.selectedSource !== 'all' && p.source.toLowerCase() !== this.selectedSource.toLowerCase()) {
+
+      // 4. Source Filter
+      if (this.selectedSource !== 'all' && (p.source || '').toLowerCase() !== this.selectedSource.toLowerCase()) {
         return false;
       }
+
+      // 5. Intent Band Filter
       if (this.selectedIntentBand !== 'all') {
         if (this.selectedIntentBand === 'very_high' && p.score < 90) return false;
-        if (this.selectedIntentBand === 'high' && (p.score < 85 || p.score >= 90)) return false;
-        if (this.selectedIntentBand === 'qualified' && p.score >= 85) return false;
+        if (this.selectedIntentBand === 'high' && (p.score < 80 || p.score >= 90)) return false;
+        if (this.selectedIntentBand === 'qualified' && p.score >= 80) return false;
       }
+
+      // 6. Owner Filter
       if (this.selectedOwner !== 'all') {
         if (this.selectedOwner === 'Unassigned') {
           if (p.owner !== 'Unassigned') return false;
         } else {
-          if (!p.owner.toLowerCase().includes(this.selectedOwner.toLowerCase()) && 
-              !this.selectedOwner.toLowerCase().includes(p.owner.toLowerCase())) {
+          if (
+            !p.owner.toLowerCase().includes(this.selectedOwner.toLowerCase()) &&
+            !this.selectedOwner.toLowerCase().includes(p.owner.toLowerCase())
+          ) {
             return false;
           }
         }
       }
       return true;
     });
+
+    // Apply Sorting
+    if (this.sortField) {
+      filtered.sort((a, b) => {
+        let valA = a[this.sortField];
+        let valB = b[this.sortField];
+        if (this.sortField === 'score') {
+          valA = Number(valA) || 0;
+          valB = Number(valB) || 0;
+        } else if (this.sortField === 'at_risk') {
+          const getNum = (v: string) => {
+            if (!v) return 0;
+            const cr = v.match(/₹([\d.]+)\s*Cr/);
+            if (cr) return parseFloat(cr[1]) * 100;
+            const l = v.match(/₹([\d.]+)\s*L/);
+            if (l) return parseFloat(l[1]);
+            return 0;
+          };
+          valA = getNum(valA);
+          valB = getNum(valB);
+        } else if (typeof valA === 'string') {
+          valA = valA.toLowerCase();
+          valB = (valB || '').toLowerCase();
+        }
+        if (valA < valB) return this.sortDirection === 'asc' ? -1 : 1;
+        if (valA > valB) return this.sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return filtered;
   }
 
+  get pagedProspects(): any[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredProspects.slice(start, start + this.pageSize);
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.filteredProspects.length / this.pageSize) || 1;
+  }
+
+  // --- CSV Import / Export ---
   showImportModal = false;
   parsedCsvRows: any[] = [];
   importStats: any = null;
@@ -498,7 +776,8 @@ export class BuyerListComponent implements OnInit {
         }
       },
       error: () => {
-        const fallback = 'full_name,phone,email,budget_min_lacs,budget_max_lacs,preferred_bhk,buying_timeframe,lead_source,financing_readiness,occupation,current_residence,workplace_location,notes\n' +
+        const fallback =
+          'full_name,phone,email,budget_min_lacs,budget_max_lacs,preferred_bhk,buying_timeframe,lead_source,financing_readiness,occupation,current_residence,workplace_location,notes\n' +
           'Sunil Gavaskar,+91 98200 11223,sunil.g@example.com,150,220,3 BHK,<30 days,Google Ads,Pre-approved Loan,Business / Entrepreneur,Indiranagar Bengaluru,Whitefield Tech Park,Interested in east-facing tower\n';
         const blob = new Blob([fallback], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
@@ -568,7 +847,9 @@ export class BuyerListComponent implements OnInit {
         if (res.success) {
           this.importStats = res.results;
           this.loadBuyers();
-          this.showFeedback(`Import finished: ${res.results.imported_count} imported, ${res.results.duplicate_count} duplicates skipped.`);
+          this.showFeedback(
+            `Import finished: ${res.results.imported_count} imported, ${res.results.duplicate_count} duplicates skipped.`
+          );
         } else {
           this.importError = res.message || 'Import failed';
         }
@@ -609,5 +890,3 @@ export class BuyerListComponent implements OnInit {
     document.body.removeChild(link);
   }
 }
-
-

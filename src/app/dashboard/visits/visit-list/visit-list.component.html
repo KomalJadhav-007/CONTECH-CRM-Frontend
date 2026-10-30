@@ -110,7 +110,7 @@
             </td>
             <td>
               <div *ngIf="visit.cab_required">
-                <div class="cab-badge">🚗 {{ visit.cab_number || 'Cab Assigned' }}</div>
+                <div class="cab-badge">{{ visit.cab_number || 'Cab Assigned' }}</div>
                 <div class="sub-text">{{ visit.driver?.name || 'Driver assigned' }}</div>
               </div>
               <span *ngIf="!visit.cab_required" class="sub-text">Self-Drive</span>
@@ -175,7 +175,7 @@
               </span>
               <div *ngIf="visit.status === 'CANCELLED' || visit.status === 'NO_SHOW'" style="margin-top: 0.25rem;">
                 <span class="recovery-pill">
-                  {{ visit.status === 'NO_SHOW' ? '⚡ 30m SLA Recovery' : '⏱️ 2h SLA Recovery' }}
+                  {{ visit.status === 'NO_SHOW' ? '30m SLA Recovery' : '2h SLA Recovery' }}
                 </span>
               </div>
             </td>
@@ -224,7 +224,7 @@
       <div class="modal-header">
         <div>
           <h2 class="modal-title">
-            {{ cancelForm.status === 'NO_SHOW' ? '🚨 Mark Visit No-Show & Trigger 30m Recovery' : '⚠️ Cancel Visit & Initiate 2h Recovery' }}
+            {{ cancelForm.status === 'NO_SHOW' ? 'Mark Visit No-Show & Trigger 30m Recovery' : 'Cancel Visit & Initiate 2h Recovery' }}
           </h2>
           <p class="modal-subtitle">
             Visit #{{ selectedVisitForCancel?.id }} &middot; {{ selectedVisitForCancel?.buyer?.full_name }} ({{ selectedVisitForCancel?.project?.name }})
@@ -237,7 +237,7 @@
 
       <div class="modal-body">
         <div *ngIf="cancelError" class="modal-error-banner">
-          ⚠️ {{ cancelError }}
+          {{ cancelError }}
         </div>
 
         <div class="recovery-info-callout">

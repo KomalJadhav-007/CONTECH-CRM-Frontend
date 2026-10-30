@@ -60,8 +60,8 @@
     <mat-card *ngFor="let trip of filteredTrips" class="trip-card">
       <div class="trip-top-bar">
         <div class="trip-time-info">
-          <span class="trip-time">⏰ {{ trip.siteVisit?.time_slot || 'Today' }}</span>
-          <span class="cab-tag">🚗 {{ trip.siteVisit?.cab_number || 'Company Fleet' }}</span>
+          <span class="trip-time">{{ trip.siteVisit?.time_slot || 'Today' }}</span>
+          <span class="cab-tag">{{ trip.siteVisit?.cab_number || 'Company Fleet' }}</span>
         </div>
         <span
           class="stage-badge"
@@ -78,7 +78,7 @@
       <!-- Passenger Details -->
       <div class="passenger-section">
         <div class="passenger-header">
-          <div class="passenger-name">👤 {{ trip.passenger_name }}</div>
+          <div class="passenger-name">{{ trip.passenger_name }}</div>
           <a mat-stroked-button [href]="'tel:' + trip.passenger_phone" class="btn-phone">
             <mat-icon style="font-size: 16px; width: 16px; height: 16px;">phone</mat-icon> {{ trip.passenger_phone }}
           </a>
@@ -111,71 +111,76 @@
         <button
           mat-flat-button
           color="primary"
-          style="width: 100%;"
+          class="btn-trip-action"
+          style="width: 100%; min-height: 44px; font-size: 0.95rem; font-weight: 600;"
           type="button"
           *ngIf="trip.trip_status === 'ASSIGNED'"
           [disabled]="updatingId === trip.id"
           (click)="updateStatus(trip, 'STARTED')"
         >
-          🚀 Start Trip to Buyer Location
+          Start Trip to Buyer Location
         </button>
 
         <button
           mat-flat-button
           color="primary"
-          style="width: 100%;"
+          class="btn-trip-action"
+          style="width: 100%; min-height: 44px; font-size: 0.95rem; font-weight: 600;"
           type="button"
           *ngIf="trip.trip_status === 'STARTED'"
           [disabled]="updatingId === trip.id"
           (click)="updateStatus(trip, 'ARRIVED_PICKUP')"
         >
-          📍 Arrived at Buyer House
+          Arrived at Buyer Location
         </button>
 
         <button
           mat-flat-button
           color="primary"
-          style="width: 100%;"
+          class="btn-trip-action"
+          style="width: 100%; min-height: 44px; font-size: 0.95rem; font-weight: 600;"
           type="button"
           *ngIf="trip.trip_status === 'ARRIVED_PICKUP'"
           [disabled]="updatingId === trip.id"
           (click)="updateStatus(trip, 'PASSENGER_ONBOARD')"
         >
-          👥 Passenger Onboard &amp; Heading to Site
+          Passenger Onboard &amp; Heading to Site
         </button>
 
         <button
           mat-flat-button
           color="primary"
-          style="width: 100%;"
+          class="btn-trip-action"
+          style="width: 100%; min-height: 44px; font-size: 0.95rem; font-weight: 600;"
           type="button"
           *ngIf="trip.trip_status === 'PASSENGER_ONBOARD'"
           [disabled]="updatingId === trip.id"
           (click)="updateStatus(trip, 'DROPPED_AT_SITE')"
         >
-          🏁 Dropped Buyer at Sales Gallery
+          Dropped Buyer at Sales Gallery
         </button>
 
         <button
           mat-flat-button
           color="accent"
-          style="width: 100%;"
+          class="btn-trip-action"
+          style="width: 100%; min-height: 44px; font-size: 0.95rem; font-weight: 600;"
           type="button"
           *ngIf="trip.trip_status === 'DROPPED_AT_SITE'"
           [disabled]="updatingId === trip.id"
           (click)="updateStatus(trip, 'COMPLETED')"
         >
-          ✅ Complete Return Journey
+          Complete Return Journey
         </button>
 
         <button
           mat-stroked-button
-          style="width: 100%;"
+          style="width: 100%; min-height: 44px; font-size: 0.95rem; font-weight: 600;"
           type="button"
           *ngIf="trip.trip_status === 'COMPLETED'"
           disabled
         >
-          ✓ Trip Fully Completed
+          Trip Fully Completed
         </button>
       </div>
     </mat-card>
@@ -184,7 +189,7 @@
   <!-- Empty State Card -->
   <mat-card *ngIf="filteredTrips.length === 0 && !loading" class="table-card empty-card">
     <div class="empty-state">
-      <div class="empty-icon">🚗</div>
+      <div class="empty-icon"><mat-icon style="font-size: 44px; width: 44px; height: 44px; color: #94a3b8;">directions_car</mat-icon></div>
       <h2 class="empty-title">No Pending Trips Assigned</h2>
       <p class="empty-subtitle">You are all caught up for today. New dispatch notifications will appear here.</p>
     </div>

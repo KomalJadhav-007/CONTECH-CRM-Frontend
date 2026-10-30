@@ -11,7 +11,7 @@
     <div class="header-actions">
       <!-- Give Access to Person quick button -->
       <button type="button" class="btn-action-person" (click)="openQuickGrantModal()" title="Grant or customize access for a specific person">
-        <span>👤 Grant Access to Person</span>
+        <span>Grant Access to Person</span>
       </button>
 
       <button *ngIf="accessScope === 'ROLE' && isCustomRole(selectedRole)" type="button" class="btn-action-danger" (click)="deleteCurrentRole()" title="Delete this custom role">
@@ -46,7 +46,7 @@
         [class.active]="accessScope === 'ROLE'"
         (click)="setAccessScope('ROLE')"
       >
-        <span class="scope-mode-icon">👥</span>
+        <span class="scope-mode-icon"></span>
         <div class="scope-mode-text-wrap">
           <span class="scope-mode-title">Role-Based Access</span>
           <span class="scope-mode-desc">Apply permissions across all users with a specific role</span>
@@ -60,7 +60,7 @@
         [class.active]="accessScope === 'USER'"
         (click)="setAccessScope('USER')"
       >
-        <span class="scope-mode-icon">👤</span>
+        <span class="scope-mode-icon"></span>
         <div class="scope-mode-text-wrap">
           <span class="scope-mode-title">Specific Person Access</span>
           <span class="scope-mode-desc">Grant individualized overrides to a specific team member</span>
@@ -170,7 +170,7 @@
           ⭐ Custom Overrides Active ({{ getUserOverriddenCount() }} rules modified)
         </span>
         <span *ngIf="!isUserOverridden(selectedUserId)" class="user-status-pill inherit-active">
-          🔄 Inheriting Base Role Defaults
+          Inheriting Base Role Defaults
         </span>
 
         <button
@@ -200,31 +200,31 @@
             <span class="person-designation" *ngIf="selectedUser.designation">{{ selectedUser.designation }}</span>
           </div>
           <div class="person-contact-sub">
-            <span class="person-email">✉️ {{ selectedUser.email }}</span>
-            <span class="person-phone" *ngIf="selectedUser.phone">&bull; 📞 {{ selectedUser.phone }}</span>
-            <span class="person-manager" *ngIf="selectedUser.manager_name && selectedUser.manager_name !== 'None'">&bull; 👤 Manager: {{ selectedUser.manager_name }}</span>
+            <span class="person-email">{{ selectedUser.email }}</span>
+            <span class="person-phone" *ngIf="selectedUser.phone">&bull; {{ selectedUser.phone }}</span>
+            <span class="person-manager" *ngIf="selectedUser.manager_name && selectedUser.manager_name !== 'None'">&bull; Manager: {{ selectedUser.manager_name }}</span>
           </div>
 
           <div class="person-projects-scope-row">
-            <span class="scope-label">🏢 Project Scope:</span>
+            <span class="scope-label">Project Scope:</span>
             <span *ngIf="selectedUser.has_all_projects_access || !selectedUser.assigned_projects || selectedUser.assigned_projects.length === 0" class="badge-all-projects-scope">
-              🌐 All Projects (Universal)
+              All Projects (Universal)
             </span>
             <div *ngIf="!selectedUser.has_all_projects_access && selectedUser.assigned_projects && selectedUser.assigned_projects.length > 0" class="scoped-projects-inline">
               <span *ngFor="let p of selectedUser.assigned_projects" class="badge-scoped-project">
-                🏢 {{ p.name }}
+                {{ p.name }}
               </span>
             </div>
             <button type="button" class="btn-edit-projects-scope" (click)="openProjectAssignModal(selectedUser)">
-              ⚙️ Change Project Assignment
+              Change Project Assignment
             </button>
           </div>
 
           <p class="person-hint-text" *ngIf="isUserOverridden(selectedUserId)">
-            💡 Individual overrides take precedence over the user's base role. Cells marked with ⭐ differ from default <strong>{{ getUserRoleName(selectedUser) }}</strong> permissions.
+            Individual overrides take precedence over the user's base role. Cells marked with ⭐ differ from default <strong>{{ getUserRoleName(selectedUser) }}</strong> permissions.
           </p>
           <p class="person-hint-text" *ngIf="!isUserOverridden(selectedUserId)">
-            💡 This person is currently inheriting the default permissions from the <strong>{{ getUserRoleName(selectedUser) }}</strong> role. Toggle any permission to create an individual override.
+            This person is currently inheriting the default permissions from the <strong>{{ getUserRoleName(selectedUser) }}</strong> role. Toggle any permission to create an individual override.
           </p>
         </div>
       </div>
@@ -250,8 +250,8 @@
   <div *ngIf="notificationMessage" class="matrix-notification-banner" [ngClass]="'notification-' + notificationType">
     <span class="notification-icon">
       <ng-container [ngSwitch]="notificationType">
-        <span *ngSwitchCase="'success'">✓</span>
-        <span *ngSwitchCase="'warn'">⚠️</span>
+        <span *ngSwitchCase="'success'"></span>
+        <span *ngSwitchCase="'warn'"></span>
         <span *ngSwitchDefault>ℹ️</span>
       </ng-container>
     </span>
@@ -307,7 +307,7 @@
         <div class="matrix-role-selector" *ngIf="accessScope === 'USER'">
           <select [(ngModel)]="selectedUserId" (ngModelChange)="onUserChange()" class="role-select user-highlight-select">
             <option *ngFor="let u of users" [value]="u.user_id || u.id">
-              👤 {{ u.name }} ({{ getUserRoleName(u) }})
+              {{ u.name }} ({{ getUserRoleName(u) }})
             </option>
           </select>
         </div>
@@ -343,7 +343,7 @@
             (click)="setAccessScope('ROLE')"
             title="Switch to Role Matrix"
           >
-            👥 By Role
+            By Role
           </button>
           <button
             type="button"
@@ -352,7 +352,7 @@
             (click)="setAccessScope('USER')"
             title="Switch to Specific Person Access"
           >
-            👤 By Person
+            By Person
           </button>
         </div>
       </div>
@@ -505,7 +505,7 @@
                   *ngIf="isCellOverriddenForUser(mod, col)"
                   [title]="'Custom individual override for ' + selectedUser?.name + ' (differs from ' + getUserRoleName(selectedUser) + ' default)'"
                 >
-                  ★
+                  
                 </span>
               </label>
             </td>
@@ -524,7 +524,7 @@
       <div class="legend-header-row">
         <div class="legend-title">PERMISSION GUIDE &bull; OPERATIONAL RIGHTS</div>
         <div class="legend-indicator-info" *ngIf="accessScope === 'USER'">
-          <span class="legend-star-indicator">★</span>
+          <span class="legend-star-indicator"></span>
           <span>Indicates individual override customized specifically for this person (diverges from base role)</span>
         </div>
       </div>
@@ -590,7 +590,7 @@
           <label class="modal-label">Target Person *</label>
           <select [(ngModel)]="quickGrantTargetUserId" class="modal-select">
             <option *ngFor="let u of users" [value]="u.user_id || u.id">
-              👤 {{ u.name }} — Base Role: {{ getUserRoleName(u) }} ({{ u.email }})
+              {{ u.name }} — Base Role: {{ getUserRoleName(u) }} ({{ u.email }})
             </option>
           </select>
         </div>
@@ -598,7 +598,7 @@
           <label class="modal-label">Initial Permissions Template</label>
           <select [(ngModel)]="quickGrantSource" class="modal-select">
             <optgroup label="Preset Access Levels">
-              <option value="all">🌟 Full System Access (Grant All Permissions)</option>
+              <option value="all">Full System Access (Grant All Permissions)</option>
             </optgroup>
             <optgroup label="Role Templates">
               <option *ngFor="let r of roles" [value]="'role:' + r">Role: {{ r }}</option>
@@ -640,7 +640,7 @@
             [class.active]="projectAssignAll"
             (click)="projectAssignAll = true"
           >
-            🌐 All Projects (Universal)
+            All Projects (Universal)
           </button>
           <button
             type="button"
@@ -648,12 +648,12 @@
             [class.active]="!projectAssignAll"
             (click)="projectAssignAll = false"
           >
-            🎯 Specific Project(s) Only
+            Specific Project(s) Only
           </button>
         </div>
 
         <div *ngIf="projectAssignAll" class="scope-all-banner" style="margin-top: 1rem;">
-          <span class="globe-anim">🌐</span>
+          <span class="globe-anim"></span>
           <div>
             <strong>Full Organization Project Visibility</strong>
             <p>{{ projectAssignUser?.name }} will see and manage all current and future projects, including their inventory, visits, and bookings.</p>
@@ -673,16 +673,16 @@
               (click)="toggleProjectInAssignModal(proj.id || proj.project_id)"
             >
               <div class="proj-checkbox-indicator">
-                <span *ngIf="isProjectSelectedInAssignModal(proj.id || proj.project_id)">✓</span>
+                <span *ngIf="isProjectSelectedInAssignModal(proj.id || proj.project_id)"></span>
               </div>
               <div class="proj-assignment-info">
                 <div class="proj-name">{{ proj.name }}</div>
-                <div class="proj-location">📍 {{ proj.location || proj.code || 'Bengaluru' }}</div>
+                <div class="proj-location">{{ proj.location || proj.code || 'Bengaluru' }}</div>
               </div>
             </div>
           </div>
           <div *ngIf="projectAssignIds.length === 0" class="scope-warning-hint">
-            ⚠️ Please select at least one project, or switch to "All Projects".
+            Please select at least one project, or switch to "All Projects".
           </div>
         </div>
       </div>

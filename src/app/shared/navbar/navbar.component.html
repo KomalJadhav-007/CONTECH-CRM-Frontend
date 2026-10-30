@@ -44,7 +44,7 @@
               *ngIf="!alert.is_acknowledged"
               (click)="ackAlert(alert)"
             >
-              ✓ Acknowledge
+              Acknowledge
             </button>
             <button
               type="button"
@@ -57,13 +57,13 @@
         </div>
 
         <div *ngIf="alerts.length === 0" class="no-alerts-msg">
-          ✨ No active alerts. Pipeline is clear!
+          No active alerts. Pipeline is clear!
         </div>
       </div>
 
       <div class="alerts-footer">
-        <a routerLink="/control-tower" (click)="closeAlertModal()" class="footer-link">Go to Control Tower &rarr;</a>
-        <a routerLink="/audit-logs" (click)="closeAlertModal()" class="footer-link">Audit Trail &rarr;</a>
+        <a routerLink="/alerts" (click)="closeAlertModal()" class="footer-link">View All Alerts &amp; Follow-ups &rarr;</a>
+        <a routerLink="/control-tower" (click)="closeAlertModal()" class="footer-link">Control Tower &rarr;</a>
       </div>
     </div>
 
@@ -152,20 +152,25 @@
       <div class="popover-links">
         <ng-container *ngIf="canAccessAdminLinks()">
           <a routerLink="/settings" (click)="closeProfileModal()" class="popover-nav-item">
-            <span>⚙️ Organisation Settings</span>
+            <mat-icon class="popover-nav-icon">settings</mat-icon>
+            <span>Organisation Settings</span>
           </a>
           <a routerLink="/access-control" (click)="closeProfileModal()" class="popover-nav-item">
-            <span>🛡️ Access Control &amp; Permissions</span>
+            <mat-icon class="popover-nav-icon">security</mat-icon>
+            <span>Access Control &amp; Permissions</span>
           </a>
           <a routerLink="/team" (click)="closeProfileModal()" class="popover-nav-item">
-            <span>👥 Team &amp; Sales Users</span>
+            <mat-icon class="popover-nav-icon">group</mat-icon>
+            <span>Team &amp; Sales Users</span>
           </a>
           <a routerLink="/audit-logs" (click)="closeProfileModal()" class="popover-nav-item">
-            <span>📋 Security &amp; Audit Logs</span>
+            <mat-icon class="popover-nav-icon">fact_check</mat-icon>
+            <span>Security &amp; Audit Logs</span>
           </a>
         </ng-container>
         <button type="button" class="popover-nav-item popover-btn-action" (click)="openChangePasswordModal()">
-          <span>🔑 Change Password</span>
+          <mat-icon class="popover-nav-icon">lock_reset</mat-icon>
+          <span>Change Password</span>
         </button>
       </div>
 
@@ -190,10 +195,10 @@
 
         <div class="modal-body">
           <div *ngIf="changePasswordError" class="modal-alert alert-error">
-            <span>⚠️ {{ changePasswordError }}</span>
+            <span>{{ changePasswordError }}</span>
           </div>
           <div *ngIf="changePasswordSuccess" class="modal-alert alert-success">
-            <span>✅ {{ changePasswordSuccess }}</span>
+            <span>{{ changePasswordSuccess }}</span>
           </div>
 
           <!-- Current User Snapshot -->
@@ -275,8 +280,8 @@
                 <mat-icon>{{ showConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
               </button>
               <mat-hint *ngIf="passwordForm.newPassword && passwordForm.confirmPassword">
-                <span *ngIf="passwordForm.newPassword === passwordForm.confirmPassword" style="color: #059669; font-weight: 600;">✓ Passwords match</span>
-                <span *ngIf="passwordForm.newPassword !== passwordForm.confirmPassword" style="color: #dc2626; font-weight: 600;">⚠️ Passwords do not match</span>
+                <span *ngIf="passwordForm.newPassword === passwordForm.confirmPassword" style="color: #059669; font-weight: 600;">Passwords match</span>
+                <span *ngIf="passwordForm.newPassword !== passwordForm.confirmPassword" style="color: #dc2626; font-weight: 600;">Passwords do not match</span>
               </mat-hint>
             </mat-form-field>
 

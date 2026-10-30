@@ -653,6 +653,23 @@ export class UserListComponent implements OnInit {
     return parts[0].slice(0, 2).toUpperCase();
   }
 
+  getCleanName(name: string): string {
+    if (!name) return '';
+    return name.replace(/\s*\([^)]*\)/g, '').trim();
+  }
+
+  getManagerName(mgr: string): string {
+    if (!mgr || mgr.toLowerCase() === 'none') return '';
+    const match = mgr.match(/^([^(]+)/);
+    return match ? match[1].trim() : mgr.trim();
+  }
+
+  getManagerRole(mgr: string): string {
+    if (!mgr || mgr.toLowerCase() === 'none') return '';
+    const match = mgr.match(/\(([^)]+)\)/);
+    return match ? match[1].trim() : '';
+  }
+
   getRoleBadge(role: string): string {
     return this.roleMetadata[role]?.badge || 'Custom';
   }

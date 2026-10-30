@@ -153,7 +153,6 @@
           <h2 class="panel-title">AI Intent Diagnosis & Next Best Step</h2>
         </div>
         <div class="recommendation-box">
-          <div class="rec-icon">💡</div>
           <div class="rec-content">
             <strong>Recommended Next Action</strong>
             <p *ngIf="buyer.intent_urgency === 'HIGH' || buyer.intent_band === 'VERY_HIGH_INTENT'">
@@ -261,7 +260,7 @@
 
             <!-- In-Visit Discovery & Shortlisted Units -->
             <div *ngIf="visit.discovery" class="discovery-box">
-              <div class="discovery-title">🎯 In-Visit Shortlist & Objections:</div>
+              <div class="discovery-title">In-Visit Shortlist &amp; Objections:</div>
               <div class="discovery-item">
                 <span class="label">Shortlisted Unit:</span>
                 <span>{{ visit.discovery.shortlisted_units || 'None' }}</span>
@@ -272,16 +271,16 @@
                       [class.text-amber]="visit.discovery.booking_decision === 'CONSIDERING'"
                       [class.text-rose]="visit.discovery.booking_decision === 'NOT_BOOKED'"
                       style="font-weight: 600;">
-                  {{ visit.discovery.booking_decision === 'BOOKED_SPECIFIC' ? '🎉 Booked (' + (visit.discovery.booked_unit_number || 'Unit') + ' - ₹' + (visit.discovery.token_amount_lacs || '5') + 'L Token)' :
-                     visit.discovery.booking_decision === 'CONSIDERING' ? '⚡ Shortlisted & Evaluating' : '❌ Not Booking This Specific Site' }}
+                  {{ visit.discovery.booking_decision === 'BOOKED_SPECIFIC' ? 'Booked (' + (visit.discovery.booked_unit_number || 'Unit') + ' - ₹' + (visit.discovery.token_amount_lacs || '5') + 'L Token)' :
+                     visit.discovery.booking_decision === 'CONSIDERING' ? 'Shortlisted & Evaluating' : 'Not Booking This Specific Site' }}
                 </span>
               </div>
               <div class="discovery-item" *ngIf="visit.discovery.future_visit_intent && visit.discovery.future_visit_intent !== 'NONE'">
                 <span class="label">Next Walkthrough:</span>
                 <span>
-                  {{ visit.discovery.future_visit_intent === 'VISIT_DIFFERENT_FLATS' ? '🏢 Different Flats (' + (visit.discovery.alternate_flat_specs || 'Alternative Floors') + ')' :
-                     visit.discovery.future_visit_intent === 'VISIT_OTHER_SITES' ? '🌆 Other Sites (' + (visit.discovery.target_alternate_projects || 'Other Projects') + ')' :
-                     visit.discovery.future_visit_intent === 'BOTH' ? '🔄 Both (Different Flats & Other Projects)' : '' }}
+                  {{ visit.discovery.future_visit_intent === 'VISIT_DIFFERENT_FLATS' ? 'Different Flats (' + (visit.discovery.alternate_flat_specs || 'Alternative Floors') + ')' :
+                     visit.discovery.future_visit_intent === 'VISIT_OTHER_SITES' ? 'Other Sites (' + (visit.discovery.target_alternate_projects || 'Other Projects') + ')' :
+                     visit.discovery.future_visit_intent === 'BOTH' ? 'Both (Different Flats & Other Projects)' : '' }}
                 </span>
               </div>
               <div class="discovery-item" *ngIf="visit.discovery.objection_notes">
@@ -426,6 +425,7 @@
               <mat-option value="4 BHK Penthouse">4 BHK Penthouse</mat-option>
               <mat-option value="5 BHK Ultra-Luxury">5 BHK Ultra-Luxury</mat-option>
               <mat-option value="Villa">Exclusive Villa</mat-option>
+              <mat-option value="Plot">Plot / Land</mat-option>
             </mat-select>
           </mat-form-field>
         </div>

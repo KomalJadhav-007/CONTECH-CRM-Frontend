@@ -10,7 +10,8 @@
     </div>
     <div class="header-actions">
       <a routerLink="/access-control" class="btn-action-outline" title="Manage role-based permission matrix">
-        <span class="icon">🛡️</span> Access Control Matrix
+        <mat-icon class="header-action-mat-icon">security</mat-icon>
+        <span>Access Control Matrix</span>
       </a>
       <button type="button" class="btn-action-primary" (click)="openAddUserModal()">
         <span class="icon">+</span> Add New User
@@ -55,9 +56,9 @@
 
   <!-- Feedback Message Banner -->
   <div *ngIf="feedbackMessage" class="feedback-banner" [ngClass]="'feedback-' + feedbackType">
-    <span class="feedback-icon" *ngIf="feedbackType === 'success'">✓</span>
-    <span class="feedback-icon" *ngIf="feedbackType === 'warn'">⚠️</span>
-    <span class="feedback-icon" *ngIf="feedbackType === 'info'">ℹ️</span>
+    <mat-icon class="feedback-mat-icon" *ngIf="feedbackType === 'success'">check_circle</mat-icon>
+    <mat-icon class="feedback-mat-icon" *ngIf="feedbackType === 'warn'">warning</mat-icon>
+    <mat-icon class="feedback-mat-icon" *ngIf="feedbackType === 'info'">info</mat-icon>
     <span class="feedback-text">{{ feedbackMessage }}</span>
   </div>
 
@@ -67,25 +68,25 @@
       <table class="team-table">
         <thead>
           <tr>
-            <th>USER</th>
-            <th>DESIGNATION</th>
-            <th>ROLE (ACCESS CONTROL)</th>
-            <th>PROJECT ACCESS</th>
-            <th>REPORTING MANAGER</th>
-            <th>STATUS</th>
-            <th>LAST LOGIN</th>
-            <th>ACTIONS</th>
+            <th class="col-user">USER</th>
+            <th class="col-designation">DESIGNATION</th>
+            <th class="col-role">ROLE (ACCESS CONTROL)</th>
+            <th class="col-project">PROJECT ACCESS</th>
+            <th class="col-manager">REPORTING MANAGER</th>
+            <th class="col-status">STATUS</th>
+            <th class="col-last-login">LAST LOGIN</th>
+            <th class="col-actions">ACTIONS</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let u of filteredUsers">
-            <td>
+            <td class="col-user">
               <div class="user-cell">
                 <div class="user-avatar" [style.backgroundColor]="getRoleColor(u.role) + '20'" [style.color]="getRoleColor(u.role)">
                   {{ getInitials(u.name) }}
                 </div>
                 <div class="user-meta">
-                  <div class="user-full-name">{{ u.name }}</div>
+                  <div class="user-full-name">{{ getCleanName(u.name) }}</div>
                   <div class="user-email">{{ u.email }}</div>
                   <div class="user-phone" *ngIf="u.phone">{{ u.phone }}</div>
                   <div class="driver-vehicle-badge" *ngIf="u.vehicle_number || isDriverRole(u.role)">
@@ -96,10 +97,10 @@
                 </div>
               </div>
             </td>
-            <td class="designation-cell">
+            <td class="col-designation designation-cell">
               <span class="designation-badge">{{ u.designation }}</span>
             </td>
-            <td>
+            <td class="col-role">
               <div class="role-cell-wrapper">
                 <select
                   [(ngModel)]="u.role"
@@ -121,28 +122,35 @@
                   class="user-custom-override-tag"
                   title="Has individual custom access overrides"
                 >
-                  ⭐ Custom Access
+                  <mat-icon class="override-tag-icon">tune</mat-icon>
+                  <span>Custom</span>
                 </span>
               </div>
             </td>
-            <td>
+            <td class="col-project">
               <div class="project-access-cell">
                 <span *ngIf="u.has_all_projects_access || !u.assigned_projects || u.assigned_projects.length === 0" class="badge-all-projects-scope" title="Universal access to all projects">
-                  <span class="scope-icon">🌐</span> All Projects
+                  <mat-icon class="scope-mat-icon">public</mat-icon>
+                  <span>All Projects</span>
                 </span>
                 <div *ngIf="!u.has_all_projects_access && u.assigned_projects && u.assigned_projects.length > 0" class="scoped-projects-list">
                   <span *ngFor="let p of u.assigned_projects" class="badge-scoped-project" [title]="p.location || p.name">
-                    🏢 {{ p.name }}
+                    <mat-icon class="scope-mat-icon">apartment</mat-icon>
+                    <span>{{ p.name }}</span>
                   </span>
                 </div>
               </div>
             </td>
-            <td>
-              <span class="designation-badge" style="background: rgba(148, 163, 184, 0.1); border-color: rgba(148, 163, 184, 0.2);">
-                👤 {{ u.manager_name }}
-              </span>
+            <td class="col-manager">
+              <div class="manager-cell" *ngIf="getManagerName(u.manager_name); else noManager">
+                <div class="manager-name">{{ getManagerName(u.manager_name) }}</div>
+                <div class="manager-role" *ngIf="getManagerRole(u.manager_name)">{{ getManagerRole(u.manager_name) }}</div>
+              </div>
+              <ng-template #noManager>
+                <span class="manager-empty">—</span>
+              </ng-template>
             </td>
-            <td>
+            <td class="col-status">
               <div class="status-cell">
                 <span class="status-pill" [class.status-active]="u.status === 'active'" [class.status-inactive]="u.status !== 'active'">
                   {{ u.status === 'active' ? 'Active' : 'Inactive' }}
@@ -156,16 +164,16 @@
                 </button>
               </div>
             </td>
-            <td class="last-login-cell">{{ u.last_login }}</td>
-            <td>
+            <td class="col-last-login last-login-cell">{{ u.last_login }}</td>
+            <td class="col-actions">
               <div class="action-buttons-cell">
                 <a
                   [routerLink]="['/access-control']"
                   [queryParams]="{ userId: u.user_id || u.id }"
                   class="btn-access-user"
-                  title="Configure individual permissions for this person"
+                  title="Configure access & permissions"
                 >
-                  🔑 Access
+                  Access
                 </a>
                 <button
                   type="button"
@@ -187,7 +195,7 @@
             </td>
           </tr>
           <tr *ngIf="filteredUsers.length === 0">
-            <td colspan="6" class="empty-table-cell">
+            <td colspan="8" class="empty-table-cell">
               No team members match your filter criteria.
             </td>
           </tr>
@@ -316,7 +324,7 @@
           </div>
 
           <div class="preview-footer-note">
-            💡 Permissions for <strong>{{ newUser.role }}</strong> are managed globally.
+            Permissions for <strong>{{ newUser.role }}</strong> are managed globally.
             <a routerLink="/access-control" (click)="closeAddUserModal()" class="preview-link">
               Customize permissions in Access Control →
             </a>
@@ -374,7 +382,7 @@
         <div class="project-scope-config-card">
           <div class="project-scope-header">
             <div class="scope-header-left">
-              <span class="scope-icon-header">🏢</span>
+              <mat-icon class="scope-icon-header">apartment</mat-icon>
               <div>
                 <h4 class="scope-title">Project Access Control</h4>
                 <p class="scope-subtitle">Specify which project(s) this user is authorized to handle and see across the CRM.</p>
@@ -387,7 +395,8 @@
                 [class.active]="newUser.all_projects"
                 (click)="newUser.all_projects = true"
               >
-                🌐 All Projects
+                <mat-icon class="tab-mat-icon">public</mat-icon>
+                <span>All Projects</span>
               </button>
               <button
                 type="button"
@@ -395,13 +404,14 @@
                 [class.active]="!newUser.all_projects"
                 (click)="newUser.all_projects = false"
               >
-                🎯 Specific Project(s)
+                <mat-icon class="tab-mat-icon">domain</mat-icon>
+                <span>Specific Project(s)</span>
               </button>
             </div>
           </div>
 
           <div *ngIf="newUser.all_projects" class="scope-all-banner">
-            <span class="globe-anim">🌐</span>
+            <mat-icon class="globe-mat-icon">public</mat-icon>
             <div>
               <strong>Universal Project Visibility</strong>
               <p>User will have visibility and operations across all existing and newly created projects in the CRM.</p>
@@ -420,16 +430,19 @@
                 (click)="toggleProjectForNewUser(proj.id || proj.project_id)"
               >
                 <div class="proj-checkbox-indicator">
-                  <span *ngIf="isProjectSelectedForNewUser(proj.id || proj.project_id)">✓</span>
+                  <mat-icon class="check-indicator" *ngIf="isProjectSelectedForNewUser(proj.id || proj.project_id)">check</mat-icon>
                 </div>
                 <div class="proj-assignment-info">
                   <div class="proj-name">{{ proj.name }}</div>
-                  <div class="proj-location">📍 {{ proj.location || proj.code || 'Bengaluru' }}</div>
+                  <div class="proj-location">
+                    <mat-icon class="loc-pin-icon">location_on</mat-icon>
+                    <span>{{ proj.location || proj.code || 'Bengaluru' }}</span>
+                  </div>
                 </div>
               </div>
             </div>
             <div *ngIf="newUser.assigned_project_ids.length === 0" class="scope-warning-hint">
-              ⚠️ Please select at least one project, or switch to "All Projects".
+              Please select at least one project, or switch to "All Projects".
             </div>
           </div>
         </div>
@@ -550,10 +563,10 @@
           <div class="user-perm-override-box">
             <div class="override-box-desc">
               <span *ngIf="accessControlService.hasUserOverride(editingUser.id || editingUser.user_id)" class="override-text-active">
-                ⭐ <strong>Custom individual access active for {{ editingUser.name }}</strong> (overriding base role defaults).
+                <strong>Custom individual access active for {{ editingUser.name }}</strong> (overriding base role defaults).
               </span>
               <span *ngIf="!accessControlService.hasUserOverride(editingUser.id || editingUser.user_id)" class="override-text-default">
-                🔄 Currently inheriting standard permissions from the <strong>{{ editingUser.role }}</strong> role.
+                Currently inheriting standard permissions from the <strong>{{ editingUser.role }}</strong> role.
               </span>
             </div>
             <a
@@ -562,7 +575,7 @@
               (click)="closeEditUserModal()"
               class="btn-manage-individual-perms"
             >
-              🔑 Manage Individual Permissions &rarr;
+              Manage Individual Permissions &rarr;
             </a>
           </div>
         </div>
@@ -618,7 +631,7 @@
         <div class="project-scope-config-card">
           <div class="project-scope-header">
             <div class="scope-header-left">
-              <span class="scope-icon-header">🏢</span>
+              <mat-icon class="scope-icon-header">apartment</mat-icon>
               <div>
                 <h4 class="scope-title">Assigned Project Scope</h4>
                 <p class="scope-subtitle">Limit this user's visibility and operations to specific project(s).</p>
@@ -631,7 +644,8 @@
                 [class.active]="editingUser.all_projects"
                 (click)="editingUser.all_projects = true"
               >
-                🌐 All Projects
+                <mat-icon class="tab-mat-icon">public</mat-icon>
+                <span>All Projects</span>
               </button>
               <button
                 type="button"
@@ -639,13 +653,14 @@
                 [class.active]="!editingUser.all_projects"
                 (click)="editingUser.all_projects = false"
               >
-                🎯 Specific Project(s)
+                <mat-icon class="tab-mat-icon">domain</mat-icon>
+                <span>Specific Project(s)</span>
               </button>
             </div>
           </div>
 
           <div *ngIf="editingUser.all_projects" class="scope-all-banner">
-            <span class="globe-anim">🌐</span>
+            <mat-icon class="globe-mat-icon">public</mat-icon>
             <div>
               <strong>Universal Project Visibility</strong>
               <p>User has full access across all current and future projects in the organization.</p>
@@ -664,16 +679,19 @@
                 (click)="toggleProjectForEditingUser(proj.id || proj.project_id)"
               >
                 <div class="proj-checkbox-indicator">
-                  <span *ngIf="isProjectSelectedForEditingUser(proj.id || proj.project_id)">✓</span>
+                  <mat-icon class="check-indicator" *ngIf="isProjectSelectedForEditingUser(proj.id || proj.project_id)">check</mat-icon>
                 </div>
                 <div class="proj-assignment-info">
                   <div class="proj-name">{{ proj.name }}</div>
-                  <div class="proj-location">📍 {{ proj.location || proj.code || 'Bengaluru' }}</div>
+                  <div class="proj-location">
+                    <mat-icon class="loc-pin-icon">location_on</mat-icon>
+                    <span>{{ proj.location || proj.code || 'Bengaluru' }}</span>
+                  </div>
                 </div>
               </div>
             </div>
             <div *ngIf="editingUser.assigned_project_ids?.length === 0" class="scope-warning-hint">
-              ⚠️ Please select at least one project, or switch to "All Projects".
+              Please select at least one project, or switch to "All Projects".
             </div>
           </div>
         </div>
@@ -740,7 +758,7 @@
       <div class="modal-header safeguard-modal-header">
         <div>
           <div class="safeguard-badge">DEACTIVATION SAFEGUARD (SOW SEC 5)</div>
-          <h2 class="modal-title safeguard-title">🛡️ Deactivation Safeguard Triggered</h2>
+          <h2 class="modal-title safeguard-title">Deactivation Safeguard Triggered</h2>
           <p class="modal-subtitle safeguard-subtitle">Open leads, site visits &amp; tasks must be safely transferred before user disposition.</p>
         </div>
         <button type="button" class="btn-close-modal" (click)="closeReassignModal()">&times;</button>

@@ -11,7 +11,7 @@
     </div>
     <div class="header-actions">
       <button mat-stroked-button type="button" (click)="refreshCurrentTab()">
-        <mat-icon>refresh</mat-icon> Refresh
+        Refresh
       </button>
     </div>
   </div>
@@ -25,7 +25,7 @@
       [class.active]="activeTab === 'AUDIT_LOGS'"
       (click)="activeTab = 'AUDIT_LOGS'"
     >
-      💾 Security &amp; Activity Audit Trail ({{ logs.length }})
+      Security &amp; Activity Audit Trail ({{ logs.length }})
     </button>
     <button
       mat-button
@@ -34,7 +34,7 @@
       [class.active]="activeTab === 'IN_APP_ALERTS'"
       (click)="activeTab = 'IN_APP_ALERTS'; loadAlerts()"
     >
-      🔔 In-App Leakage Alerts ({{ alerts.length }})
+      In-App Leakage Alerts ({{ alerts.length }})
       <span *ngIf="unackAlertsCount > 0" class="badge-pill">{{ unackAlertsCount }}</span>
     </button>
   </div>
@@ -213,7 +213,7 @@
                   (click)="ackAlert(alert)"
                   style="margin-right: 0.5rem;"
                 >
-                  ✓ Acknowledge
+                  Acknowledge
                 </button>
                 <button
                   mat-flat-button

@@ -5,5 +5,11 @@ export const DASHBOARD_ROUTES: Routes = [
     path: '',
     loadComponent: () =>
       import('./dashboard-overview/dashboard-overview.component').then(m => m.DashboardOverviewComponent)
+  },
+  {
+    path: 'alerts',
+    loadComponent: () =>
+      import('./alerts/alerts.component').then(m => m.AlertsComponent)
   }
 ];
+
