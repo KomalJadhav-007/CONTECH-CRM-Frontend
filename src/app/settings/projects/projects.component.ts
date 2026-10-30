@@ -135,7 +135,7 @@ export class ProjectsComponent implements OnInit {
       recommendedTypes: [
         {
           name: 'Grade-A Bare Shell Office',
-          bhk_type: 'Office Space',
+          bhk_type: 'Commercial Unit',
           carpet_area_sqft: 1200,
           super_builtup_area_sqft: 1650,
           base_price_lacs: 160,
@@ -145,8 +145,8 @@ export class ProjectsComponent implements OnInit {
           floor_range: 'Floors 3-12'
         },
         {
-          name: 'High-Street Retail Showroom',
-          bhk_type: 'Retail Shop',
+          name: 'High-Street Retail Store',
+          bhk_type: 'Commercial Unit',
           carpet_area_sqft: 850,
           super_builtup_area_sqft: 1100,
           base_price_lacs: 195,
@@ -212,7 +212,7 @@ export class ProjectsComponent implements OnInit {
       recommendedTypes: [
         {
           name: 'Retail Commercial Storefront',
-          bhk_type: 'Retail Shop',
+          bhk_type: 'Commercial Unit',
           carpet_area_sqft: 950,
           super_builtup_area_sqft: 1200,
           base_price_lacs: 175,
@@ -282,10 +282,7 @@ export class ProjectsComponent implements OnInit {
     'Commercial Plot',
     'Farm House Plot',
     'Villa Plot',
-    'Office Space',
-    'Retail Shop',
-    'Commercial Unit',
-    'Showroom'
+    'Commercial Unit'
   ];
 
   showCustomTypeInput: { [key: string]: boolean } = {};
@@ -607,8 +604,8 @@ export class ProjectsComponent implements OnInit {
         starting_price_lacs: 160,
         status: 'active',
         property_types: [
-          { name: 'Grade-A Bare Shell Office', bhk_type: 'Office Space', base_price_lacs: 160, total_units: 25 },
-          { name: 'High-Street Retail Showroom', bhk_type: 'Retail Shop', base_price_lacs: 195, total_units: 12 }
+          { name: 'Grade-A Bare Shell Office', bhk_type: 'Commercial Unit', base_price_lacs: 160, total_units: 25 },
+          { name: 'High-Street Retail Store', bhk_type: 'Commercial Unit', base_price_lacs: 195, total_units: 12 }
         ]
       },
       {
