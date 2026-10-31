@@ -368,6 +368,64 @@ export class ProjectsComponent implements OnInit {
     this.syncConfigurationsText();
   }
 
+  // --- Front Road Width Custom Creator ---
+  showCustomWidthInput: { [key: string]: boolean } = {};
+  customWidthValues: { [key: string]: string } = {};
+
+  onFrontWidthChange(target: any, fieldKey: string): void {
+    if (target.front_road_width === '__CUSTOM__') {
+      this.showCustomWidthInput[fieldKey] = true;
+      this.customWidthValues[fieldKey] = '';
+    } else {
+      this.showCustomWidthInput[fieldKey] = false;
+    }
+  }
+
+  applyCustomFrontWidth(target: any, fieldKey: string): void {
+    const val = (this.customWidthValues[fieldKey] || '').trim();
+    if (val) {
+      if (!this.frontWidthOptions.includes(val)) {
+        this.frontWidthOptions.push(val);
+      }
+      target.front_road_width = val;
+      this.showCustomWidthInput[fieldKey] = false;
+    }
+  }
+
+  cancelCustomFrontWidth(target: any, fieldKey: string): void {
+    this.showCustomWidthInput[fieldKey] = false;
+    target.front_road_width = '40 ft Road';
+  }
+
+  // --- Plot / Unit Location Custom Creator ---
+  showCustomPlotLocInput: { [key: string]: boolean } = {};
+  customPlotLocValues: { [key: string]: string } = {};
+
+  onPlotLocChange(target: any, fieldKey: string): void {
+    if (target.plot_location === '__CUSTOM__') {
+      this.showCustomPlotLocInput[fieldKey] = true;
+      this.customPlotLocValues[fieldKey] = '';
+    } else {
+      this.showCustomPlotLocInput[fieldKey] = false;
+    }
+  }
+
+  applyCustomPlotLoc(target: any, fieldKey: string): void {
+    const val = (this.customPlotLocValues[fieldKey] || '').trim();
+    if (val) {
+      if (!this.plotLocationOptions.includes(val)) {
+        this.plotLocationOptions.push(val);
+      }
+      target.plot_location = val;
+      this.showCustomPlotLocInput[fieldKey] = false;
+    }
+  }
+
+  cancelCustomPlotLoc(target: any, fieldKey: string): void {
+    this.showCustomPlotLocInput[fieldKey] = false;
+    target.plot_location = 'Center / Intermediate Plot';
+  }
+
   // --- Project Purpose & Category Methods ---
   showCustomPurposeInput = false;
   customPurposeInput = '';

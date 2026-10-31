@@ -180,15 +180,49 @@
             </div>
             <div class="type-row-col col-road-width">
               <label class="sub-label">Front Side Width</label>
-              <select [(ngModel)]="pt.front_road_width" [name]="'pt_width_' + i" class="input-field-sm select-field">
+              <select [(ngModel)]="pt.front_road_width" [name]="'pt_width_' + i" (change)="onFrontWidthChange(pt, 'pt_width_' + i)" class="input-field-sm select-field">
                 <option *ngFor="let w of frontWidthOptions" [value]="w">{{ w }}</option>
+                <option value="__CUSTOM__">+ Create Custom Width...</option>
               </select>
+              <div *ngIf="showCustomWidthInput['pt_width_' + i]" class="custom-type-entry-row">
+                <input
+                  type="text"
+                  [(ngModel)]="customWidthValues['pt_width_' + i]"
+                  placeholder="e.g. 45 ft Road"
+                  class="custom-type-input"
+                  (keydown.enter)="applyCustomFrontWidth(pt, 'pt_width_' + i)"
+                  autofocus
+                />
+                <button type="button" class="btn-apply-type" (click)="applyCustomFrontWidth(pt, 'pt_width_' + i)" title="Save Width">
+                  <mat-icon class="sm-icon">check</mat-icon>
+                </button>
+                <button type="button" class="btn-cancel-type" (click)="cancelCustomFrontWidth(pt, 'pt_width_' + i)" title="Cancel">
+                  <mat-icon class="sm-icon">close</mat-icon>
+                </button>
+              </div>
             </div>
             <div class="type-row-col col-plot-loc">
               <label class="sub-label">Plot / Unit Location</label>
-              <select [(ngModel)]="pt.plot_location" [name]="'pt_loc_' + i" class="input-field-sm select-field">
+              <select [(ngModel)]="pt.plot_location" [name]="'pt_loc_' + i" (change)="onPlotLocChange(pt, 'pt_loc_' + i)" class="input-field-sm select-field">
                 <option *ngFor="let loc of plotLocationOptions" [value]="loc">{{ loc }}</option>
+                <option value="__CUSTOM__">+ Create Custom Location...</option>
               </select>
+              <div *ngIf="showCustomPlotLocInput['pt_loc_' + i]" class="custom-type-entry-row">
+                <input
+                  type="text"
+                  [(ngModel)]="customPlotLocValues['pt_loc_' + i]"
+                  placeholder="e.g. Highway Corner"
+                  class="custom-type-input"
+                  (keydown.enter)="applyCustomPlotLoc(pt, 'pt_loc_' + i)"
+                  autofocus
+                />
+                <button type="button" class="btn-apply-type" (click)="applyCustomPlotLoc(pt, 'pt_loc_' + i)" title="Save Location">
+                  <mat-icon class="sm-icon">check</mat-icon>
+                </button>
+                <button type="button" class="btn-cancel-type" (click)="cancelCustomPlotLoc(pt, 'pt_loc_' + i)" title="Cancel">
+                  <mat-icon class="sm-icon">close</mat-icon>
+                </button>
+              </div>
             </div>
             <div class="type-row-col col-sqft">
               <label class="sub-label">Super Built-up (sqft)</label>
@@ -552,15 +586,49 @@
           </div>
           <div class="form-field">
             <label class="field-label">Front Side Width</label>
-            <select [(ngModel)]="newFlatForm.front_road_width" class="input-field select-field">
+            <select [(ngModel)]="newFlatForm.front_road_width" (change)="onFrontWidthChange(newFlatForm, 'newFlatWidth')" class="input-field select-field">
               <option *ngFor="let w of frontWidthOptions" [value]="w">{{ w }}</option>
+              <option value="__CUSTOM__">+ Create Custom Width...</option>
             </select>
+            <div *ngIf="showCustomWidthInput['newFlatWidth']" class="custom-type-entry-row">
+              <input
+                type="text"
+                [(ngModel)]="customWidthValues['newFlatWidth']"
+                placeholder="e.g. 45 ft Road"
+                class="custom-type-input"
+                (keydown.enter)="applyCustomFrontWidth(newFlatForm, 'newFlatWidth')"
+                autofocus
+              />
+              <button type="button" class="btn-apply-type" (click)="applyCustomFrontWidth(newFlatForm, 'newFlatWidth')" title="Save Width">
+                <mat-icon class="sm-icon">check</mat-icon>
+              </button>
+              <button type="button" class="btn-cancel-type" (click)="cancelCustomFrontWidth(newFlatForm, 'newFlatWidth')" title="Cancel">
+                <mat-icon class="sm-icon">close</mat-icon>
+              </button>
+            </div>
           </div>
           <div class="form-field">
             <label class="field-label">Plot / Unit Location</label>
-            <select [(ngModel)]="newFlatForm.plot_location" class="input-field select-field">
+            <select [(ngModel)]="newFlatForm.plot_location" (change)="onPlotLocChange(newFlatForm, 'newFlatLoc')" class="input-field select-field">
               <option *ngFor="let loc of plotLocationOptions" [value]="loc">{{ loc }}</option>
+              <option value="__CUSTOM__">+ Create Custom Location...</option>
             </select>
+            <div *ngIf="showCustomPlotLocInput['newFlatLoc']" class="custom-type-entry-row">
+              <input
+                type="text"
+                [(ngModel)]="customPlotLocValues['newFlatLoc']"
+                placeholder="e.g. Highway Corner"
+                class="custom-type-input"
+                (keydown.enter)="applyCustomPlotLoc(newFlatForm, 'newFlatLoc')"
+                autofocus
+              />
+              <button type="button" class="btn-apply-type" (click)="applyCustomPlotLoc(newFlatForm, 'newFlatLoc')" title="Save Location">
+                <mat-icon class="sm-icon">check</mat-icon>
+              </button>
+              <button type="button" class="btn-cancel-type" (click)="cancelCustomPlotLoc(newFlatForm, 'newFlatLoc')" title="Cancel">
+                <mat-icon class="sm-icon">close</mat-icon>
+              </button>
+            </div>
           </div>
           <div class="form-field">
             <label class="field-label">Super Built-up Area (sqft)</label>
@@ -792,15 +860,49 @@
           </div>
           <div class="form-field">
             <label class="field-label">Front Side Width</label>
-            <select [(ngModel)]="newTypeForm.front_road_width" class="input-field select-field">
+            <select [(ngModel)]="newTypeForm.front_road_width" (change)="onFrontWidthChange(newTypeForm, 'newTypeWidth')" class="input-field select-field">
               <option *ngFor="let w of frontWidthOptions" [value]="w">{{ w }}</option>
+              <option value="__CUSTOM__">+ Create Custom Width...</option>
             </select>
+            <div *ngIf="showCustomWidthInput['newTypeWidth']" class="custom-type-entry-row">
+              <input
+                type="text"
+                [(ngModel)]="customWidthValues['newTypeWidth']"
+                placeholder="e.g. 45 ft Road"
+                class="custom-type-input"
+                (keydown.enter)="applyCustomFrontWidth(newTypeForm, 'newTypeWidth')"
+                autofocus
+              />
+              <button type="button" class="btn-apply-type" (click)="applyCustomFrontWidth(newTypeForm, 'newTypeWidth')" title="Save Width">
+                <mat-icon class="sm-icon">check</mat-icon>
+              </button>
+              <button type="button" class="btn-cancel-type" (click)="cancelCustomFrontWidth(newTypeForm, 'newTypeWidth')" title="Cancel">
+                <mat-icon class="sm-icon">close</mat-icon>
+              </button>
+            </div>
           </div>
           <div class="form-field">
             <label class="field-label">Plot / Unit Location</label>
-            <select [(ngModel)]="newTypeForm.plot_location" class="input-field select-field">
+            <select [(ngModel)]="newTypeForm.plot_location" (change)="onPlotLocChange(newTypeForm, 'newTypeLoc')" class="input-field select-field">
               <option *ngFor="let loc of plotLocationOptions" [value]="loc">{{ loc }}</option>
+              <option value="__CUSTOM__">+ Create Custom Location...</option>
             </select>
+            <div *ngIf="showCustomPlotLocInput['newTypeLoc']" class="custom-type-entry-row">
+              <input
+                type="text"
+                [(ngModel)]="customPlotLocValues['newTypeLoc']"
+                placeholder="e.g. Corner + Boulevard"
+                class="custom-type-input"
+                (keydown.enter)="applyCustomPlotLoc(newTypeForm, 'newTypeLoc')"
+                autofocus
+              />
+              <button type="button" class="btn-apply-type" (click)="applyCustomPlotLoc(newTypeForm, 'newTypeLoc')" title="Save Location">
+                <mat-icon class="sm-icon">check</mat-icon>
+              </button>
+              <button type="button" class="btn-cancel-type" (click)="cancelCustomPlotLoc(newTypeForm, 'newTypeLoc')" title="Cancel">
+                <mat-icon class="sm-icon">close</mat-icon>
+              </button>
+            </div>
           </div>
           <div class="form-field">
             <label class="field-label">Carpet Area (sqft)</label>
