@@ -55,7 +55,7 @@ export class VisitDiscoveryComponent implements OnInit {
     time_slot: '11:00 AM - 12:30 PM (Peak Slot)',
     buyer: {
       full_name: 'Deepa Sharma',
-      phone: '+91 98765 43218',
+      phone: '7058533669',
       preferred_bhk: '3 BHK'
     },
     project: {

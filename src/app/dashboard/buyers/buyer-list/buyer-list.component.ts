@@ -123,7 +123,7 @@ export class BuyerListComponent implements OnInit {
       id: 1,
       name: 'Sneha Kulkarni',
       source: 'SimpliQualify',
-      phone: '+91 98765 43211',
+      phone: '7058533669',
       score: 92,
       delta: 6,
       stage: 'Qualified',
@@ -142,7 +142,7 @@ export class BuyerListComponent implements OnInit {
       id: 2,
       name: 'Anand Bhagat',
       source: 'Google Ads',
-      phone: '+91 98765 43212',
+      phone: '7058533669',
       score: 91,
       delta: 6,
       stage: 'High Intent',
@@ -161,7 +161,7 @@ export class BuyerListComponent implements OnInit {
       id: 3,
       name: 'Deepa Sharma',
       source: 'Referral',
-      phone: '+91 98765 43218',
+      phone: '7058533669',
       score: 90,
       delta: 2,
       stage: 'Booking Intent',
@@ -180,7 +180,7 @@ export class BuyerListComponent implements OnInit {
       id: 4,
       name: 'Rahul Deshmukh',
       source: 'SimpliQualify',
-      phone: '+91 98765 43210',
+      phone: '7058533669',
       score: 89,
       delta: 5,
       stage: 'Site Visit Scheduled',
@@ -199,7 +199,7 @@ export class BuyerListComponent implements OnInit {
       id: 5,
       name: 'Neha Agarwal',
       source: 'Instagram',
-      phone: '+91 98765 43215',
+      phone: '7058533669',
       score: 88,
       delta: 2,
       stage: 'Negotiation',
@@ -218,7 +218,7 @@ export class BuyerListComponent implements OnInit {
       id: 6,
       name: 'Harish Menon',
       source: 'Referral',
-      phone: '+91 98765 43239',
+      phone: '7058533669',
       score: 87,
       delta: 2,
       stage: 'Visit Completed',
@@ -237,7 +237,7 @@ export class BuyerListComponent implements OnInit {
       id: 7,
       name: 'Sameer Kale',
       source: 'Website',
-      phone: '+91 98765 43214',
+      phone: '7058533669',
       score: 87,
       delta: 4,
       stage: 'Visit Completed',
@@ -256,7 +256,7 @@ export class BuyerListComponent implements OnInit {
       id: 8,
       name: 'Girish Naik',
       source: 'Property Portal',
-      phone: '+91 98765 43225',
+      phone: '7058533669',
       score: 86,
       delta: 4,
       stage: 'Site Visit Scheduled',
@@ -275,7 +275,7 @@ export class BuyerListComponent implements OnInit {
       id: 9,
       name: 'Suhas Kirloskar',
       source: 'Referral',
-      phone: '+91 98765 43227',
+      phone: '7058533669',
       score: 85,
       delta: 1,
       stage: 'Negotiation',
@@ -294,7 +294,7 @@ export class BuyerListComponent implements OnInit {
       id: 10,
       name: 'Pooja Mehta',
       source: 'Meta Ads',
-      phone: '+91 98765 43213',
+      phone: '7058533669',
       score: 84,
       delta: 4,
       stage: 'Site Visit Scheduled',
@@ -439,7 +439,7 @@ export class BuyerListComponent implements OnInit {
               id: b.buyer_id || b.id,
               name: b.full_name,
               source: b.lead_source || (b.current_residence ? 'Direct Inquiry' : 'SimpliQualify'),
-              phone: b.phone || b.mobile || '',
+              phone: (b.phone && b.phone.trim()) ? b.phone.trim() : '7058533669',
               email: b.email || '',
               score: b.intent_score !== undefined && b.intent_score !== null ? b.intent_score : 85,
               delta: b.intent_delta !== undefined && b.intent_delta !== null ? b.intent_delta : delta,
@@ -725,7 +725,7 @@ export class BuyerListComponent implements OnInit {
 
     this.editForm = {
       name: p.name,
-      phone: p.phone,
+      phone: p.phone || '7058533669',
       bhk: p.bhk,
       budget: p.budget,
       stage: p.stage,
@@ -755,7 +755,7 @@ export class BuyerListComponent implements OnInit {
     const targetId = p.buyer_id || p.id;
     const payload: any = {
       full_name: this.editForm.name,
-      phone: this.editForm.phone,
+      phone: (this.editForm.phone && this.editForm.phone.trim()) ? this.editForm.phone.trim() : '7058533669',
       preferred_bhk: this.editForm.bhk,
       lead_status: this.editForm.stage,
       project_id: newProjectId,
@@ -1190,7 +1190,7 @@ export class BuyerListComponent implements OnInit {
       error: () => {
         const fallback =
           'full_name,phone,email,budget_min_lacs,budget_max_lacs,preferred_bhk,buying_timeframe,lead_source,financing_readiness,occupation,current_residence,workplace_location,notes\n' +
-          'Sunil Gavaskar,+91 98200 11223,sunil.g@example.com,150,220,3 BHK,<30 days,Google Ads,Pre-approved Loan,Business / Entrepreneur,Indiranagar Bengaluru,Whitefield Tech Park,Interested in east-facing tower\n';
+          'Sunil Gavaskar,7058533669,sunil.g@example.com,150,220,3 BHK,<30 days,Google Ads,Pre-approved Loan,Business / Entrepreneur,Indiranagar Bengaluru,Whitefield Tech Park,Interested in east-facing tower\n';
         const blob = new Blob([fallback], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');

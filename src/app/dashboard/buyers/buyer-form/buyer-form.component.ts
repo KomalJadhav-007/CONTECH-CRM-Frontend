@@ -71,7 +71,7 @@ export class BuyerFormComponent implements OnInit {
 
   buyerData: any = {
     full_name: '',
-    phone: '',
+    phone: '7058533669',
     email: '',
     project_id: 1,
     preferred_project: 'Contech Crown Heights',

@@ -67,7 +67,7 @@ export class UserListComponent implements OnInit {
   newUser = {
     name: '',
     email: '',
-    phone: '',
+    phone: '7058533669',
     designation: '',
     role: 'Account Executive',
     vehicle_type: 'SUV',
@@ -188,12 +188,12 @@ export class UserListComponent implements OnInit {
 
   private loadFallbackUsers(): void {
     this.users = [
-      { id: 1, name: 'Rajesh Sharma (Director)', email: 'director@contechcrm.com', phone: '+91 98450 12345', designation: 'Managing Director / CXO', role: 'Sales Head', status: 'active', last_login: 'Today' },
-      { id: 2, name: 'Priya Nair (Sales Manager)', email: 'manager@contechcrm.com', phone: '+91 98451 23456', designation: 'Sales Manager', role: 'Sales Manager', status: 'active', last_login: 'Yesterday' },
-      { id: 3, name: 'Amit Verma (Senior Sales Rep)', email: 'rep@contechcrm.com', phone: '+91 98452 34567', designation: 'Sales Representative', role: 'Account Executive', status: 'active', last_login: '2 days ago' },
-      { id: 4, name: 'Suresh Kumar (Logistics Coordinator)', email: 'coordinator@contechcrm.com', phone: '+91 98453 45678', designation: 'Logistics Coordinator', role: 'Site Visit Coordinator', status: 'active', last_login: 'Never' },
-      { id: 5, name: 'Ramesh Gowda (Company Driver)', email: 'driver@contechcrm.com', phone: '+91 98454 56789', designation: 'Company Driver', role: 'Driver', vehicle_type: 'SUV', vehicle_number: 'KA-01-MJ-8822', vehicle_model: 'Toyota Innova Crysta (Luxury Edition)', status: 'active', last_login: 'Today' },
-      { id: 6, name: 'System Admin', email: 'admin@contechcrm.com', phone: '+91 98455 67890', designation: 'System Administrator', role: 'Org Admin', status: 'active', last_login: 'Today' }
+      { id: 1, name: 'Rajesh Sharma (Director)', email: 'director@contechcrm.com', phone: '7058533669', designation: 'Managing Director / CXO', role: 'Sales Head', status: 'active', last_login: 'Today' },
+      { id: 2, name: 'Priya Nair (Sales Manager)', email: 'manager@contechcrm.com', phone: '7058533669', designation: 'Sales Manager', role: 'Sales Manager', status: 'active', last_login: 'Yesterday' },
+      { id: 3, name: 'Amit Verma (Senior Sales Rep)', email: 'rep@contechcrm.com', phone: '7058533669', designation: 'Sales Representative', role: 'Account Executive', status: 'active', last_login: '2 days ago' },
+      { id: 4, name: 'Suresh Kumar (Logistics Coordinator)', email: 'coordinator@contechcrm.com', phone: '7058533669', designation: 'Logistics Coordinator', role: 'Site Visit Coordinator', status: 'active', last_login: 'Never' },
+      { id: 5, name: 'Ramesh Gowda (Company Driver)', email: 'driver@contechcrm.com', phone: '7058533669', designation: 'Company Driver', role: 'Driver', vehicle_type: 'SUV', vehicle_number: 'KA-01-MJ-8822', vehicle_model: 'Toyota Innova Crysta (Luxury Edition)', status: 'active', last_login: 'Today' },
+      { id: 6, name: 'System Admin', email: 'admin@contechcrm.com', phone: '7058533669', designation: 'System Administrator', role: 'Org Admin', status: 'active', last_login: 'Today' }
     ];
   }
 
@@ -233,7 +233,7 @@ export class UserListComponent implements OnInit {
     this.newUser = {
       name: '',
       email: '',
-      phone: '',
+      phone: '7058533669',
       designation: '',
       role: this.roles[3] || 'Account Executive',
       vehicle_type: 'SUV',

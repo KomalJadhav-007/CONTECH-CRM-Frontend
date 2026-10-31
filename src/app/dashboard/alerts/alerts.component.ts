@@ -77,7 +77,7 @@ export class AlertsComponent implements OnInit {
   scheduleForm = {
     buyer_id: 0,
     buyer_name: '',
-    buyer_phone: '',
+    buyer_phone: '7058533669',
     title: '',
     countdown_hours: 4,
     due_date: '',
@@ -212,7 +212,7 @@ export class AlertsComponent implements OnInit {
     this.scheduleForm = {
       buyer_id: buyerId,
       buyer_name: buyer.full_name || 'Prospect',
-      buyer_phone: buyer.phone || '',
+      buyer_phone: buyer.phone || '7058533669',
       title: defaultTitle,
       countdown_hours: 4,
       due_date: dateFormatted,
