@@ -194,7 +194,13 @@ export class TaskListComponent implements OnInit {
       next: (res) => {
         this.loading = false;
         if (res.success) {
-          this.tasks = res.tasks;
+          const list = res.tasks || [];
+          list.sort((a: any, b: any) => {
+            const idA = a.follow_up_task_id || a.id || 0;
+            const idB = b.follow_up_task_id || b.id || 0;
+            return idB - idA;
+          });
+          this.tasks = list;
         }
       },
       error: () => {
