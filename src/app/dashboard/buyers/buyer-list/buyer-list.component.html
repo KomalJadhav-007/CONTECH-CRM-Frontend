@@ -213,10 +213,426 @@
       </select>
       <mat-icon class="dropdown-arrow-icon">arrow_drop_down</mat-icon>
     </div>
+
+    <!-- Filter Dropdown 5: Project -->
+    <div class="filter-dropdown-wrap project-dropdown-wrap">
+      <select [(ngModel)]="selectedProject" class="filter-native-select" (change)="currentPage = 1">
+        <option value="all">Project: All Projects</option>
+        <option *ngFor="let prj of projectsList" [value]="prj.project_id || prj.id">{{ prj.name }}</option>
+      </select>
+      <mat-icon class="dropdown-arrow-icon">arrow_drop_down</mat-icon>
+    </div>
+
+    <!-- View Mode Switcher -->
+    <div class="view-mode-toggle-wrap">
+      <button 
+        type="button" 
+        class="view-toggle-btn" 
+        [class.active]="viewMode === 'project_cards'" 
+        (click)="viewMode = 'project_cards'"
+        matTooltip="View Prospects grouped in Project Containers">
+        <mat-icon class="toggle-icon">view_agenda</mat-icon>
+        <span>Project Containers</span>
+      </button>
+      <button 
+        type="button" 
+        class="view-toggle-btn" 
+        [class.active]="viewMode === 'table'" 
+        (click)="viewMode = 'table'"
+        matTooltip="View Flat Table of All Prospects">
+        <mat-icon class="toggle-icon">table_chart</mat-icon>
+        <span>All Prospects</span>
+      </button>
+    </div>
   </div>
 
-  <!-- Prospects Table Card -->
-  <div class="table-card-container">
+  <!-- ========================================== -->
+  <!-- PROJECT CARDS / CONTAINERS VIEW            -->
+  <!-- ========================================== -->
+  <div *ngIf="viewMode === 'project_cards'" class="project-cards-view-wrap">
+    <!-- If all prospects filtered out -->
+    <div *ngIf="filteredProspects.length === 0" class="empty-state-wrap global-empty-card">
+      <div class="empty-icon-box">
+        <mat-icon>person_search</mat-icon>
+      </div>
+      <h3 class="empty-title">No prospects match your criteria</h3>
+      <p class="empty-desc">Try clearing your search query or reset filter dropdowns to view all active pipeline records.</p>
+      <button mat-stroked-button type="button" class="btn-action-stroked" (click)="resetFilters()">
+        <mat-icon>filter_alt_off</mat-icon> Reset All Filters
+      </button>
+    </div>
+
+    <!-- Project Container Cards -->
+    <div class="project-card-container" *ngFor="let group of projectGroups">
+      <!-- Project Container Header -->
+      <div class="project-container-header">
+        <div class="project-header-left">
+          <div class="project-icon-box">
+            <mat-icon>business</mat-icon>
+          </div>
+          <div class="project-title-meta">
+            <div class="project-title-row">
+              <h2 class="project-title">{{ group.project.name }}</h2>
+              <span class="project-code-badge" *ngIf="group.project.code">{{ group.project.code }}</span>
+              <span class="project-type-badge">{{ group.project.project_type || 'Residential' }}</span>
+            </div>
+            <div class="project-location-row" *ngIf="group.project.location">
+              <mat-icon class="loc-icon">location_on</mat-icon>
+              <span>{{ group.project.location }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="project-header-stats">
+          <div class="project-stat-pill">
+            <mat-icon class="stat-icon">people</mat-icon>
+            <span class="stat-num">{{ group.totalCount }}</span>
+            <span class="stat-lbl">Prospects</span>
+          </div>
+          <div class="project-stat-pill stat-pill-emerald" *ngIf="group.highIntentCount > 0">
+            <mat-icon class="stat-icon">trending_up</mat-icon>
+            <span class="stat-num">{{ group.highIntentCount }}</span>
+            <span class="stat-lbl">High Intent</span>
+          </div>
+          <div class="project-stat-pill stat-pill-amber">
+            <mat-icon class="stat-icon">shield</mat-icon>
+            <span class="stat-num">{{ group.exposureDisplay }}</span>
+            <span class="stat-lbl">At Risk</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Project Container Body -->
+      <div class="project-container-body">
+        <div class="table-responsive" *ngIf="group.prospects.length > 0">
+          <table class="prospects-table">
+            <thead>
+              <tr>
+                <th class="col-buyer" (click)="toggleSort('name')">
+                  <div class="th-content">
+                    <span>BUYER</span>
+                    <mat-icon class="sort-icon" *ngIf="sortField === 'name'">{{ sortDirection === 'asc' ? 'north' : 'south' }}</mat-icon>
+                  </div>
+                </th>
+                <th class="col-score" (click)="toggleSort('score')">
+                  <div class="th-content">
+                    <span>SCORE</span>
+                    <mat-icon class="sort-icon" *ngIf="sortField === 'score'">{{ sortDirection === 'asc' ? 'north' : 'south' }}</mat-icon>
+                  </div>
+                </th>
+                <th class="col-stage" (click)="toggleSort('stage')">
+                  <div class="th-content">
+                    <span>STAGE</span>
+                    <mat-icon class="sort-icon" *ngIf="sortField === 'stage'">{{ sortDirection === 'asc' ? 'north' : 'south' }}</mat-icon>
+                  </div>
+                </th>
+                <th class="col-req">
+                  <div class="th-content">
+                    <span>REQUIREMENT</span>
+                  </div>
+                </th>
+                <th class="col-owner">
+                  <div class="th-content">
+                    <span>ASSIGNED OWNER</span>
+                  </div>
+                </th>
+                <th class="col-action">
+                  <div class="th-content">
+                    <span>NEXT BEST ACTION</span>
+                  </div>
+                </th>
+                <th class="col-risk text-right" (click)="toggleSort('at_risk')">
+                  <div class="th-content justify-end">
+                    <span>AT RISK</span>
+                    <mat-icon class="sort-icon" *ngIf="sortField === 'at_risk'">{{ sortDirection === 'asc' ? 'north' : 'south' }}</mat-icon>
+                  </div>
+                </th>
+                <th class="col-actions text-right">
+                  <div class="th-content justify-end">
+                    <span>ACTIONS</span>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of group.prospects" [class.editing-row]="editingBuyerId === p.id" class="prospect-row">
+                <!-- Normal Mode -->
+                <ng-container *ngIf="editingBuyerId !== p.id">
+                  <!-- Buyer Cell -->
+                  <td class="col-buyer">
+                    <div class="buyer-profile-cell">
+                      <div class="buyer-avatar" [style.background]="getAvatarColor(p.name)">
+                        {{ getInitials(p.name) }}
+                      </div>
+                      <div class="buyer-info">
+                        <a [routerLink]="['/buyers', p.id]" class="buyer-name-link" matTooltip="Open Buyer 360 Profile">
+                          {{ p.name }}
+                        </a>
+                        <div class="buyer-sub-meta">
+                          <span class="source-tag">{{ p.source }}</span>
+                          <a *ngIf="p.phone" [href]="'tel:' + p.phone" class="phone-link" (click)="$event.stopPropagation()">
+                            <mat-icon class="meta-icon">call</mat-icon>
+                            <span>{{ p.phone }}</span>
+                          </a>
+                          <a *ngIf="!p.phone && p.email" [href]="'mailto:' + p.email" class="email-link" (click)="$event.stopPropagation()">
+                            <mat-icon class="meta-icon">mail_outline</mat-icon>
+                            <span class="email-text">{{ p.email }}</span>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Score Cell -->
+                  <td class="col-score">
+                    <div class="score-cell-container" [matTooltip]="'Buyer Intent Score: ' + p.score + '/100 (Manually Assessed)'">
+                      <div class="score-badge" [ngClass]="getScoreClass(p.score)">
+                        <span class="score-number">{{ p.score }}</span>
+                        <span class="score-delta-text">{{ (p.delta !== undefined && p.delta !== null ? p.delta : 5) >= 0 ? '▲' : '▼' }} {{ (p.delta !== undefined && p.delta !== null ? p.delta : 5) >= 0 ? (p.delta !== undefined && p.delta !== null ? p.delta : 5) : -(p.delta) }}</span>
+                      </div>
+                      <div class="score-micro-bar">
+                        <div class="bar-fill" [style.width.%]="p.score" [ngClass]="getScoreBarClass(p.score)"></div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Stage Cell -->
+                  <td class="col-stage">
+                    <span class="stage-pill" [ngClass]="getStageClass(p.stage)">
+                      <span class="stage-dot"></span>
+                      <span class="stage-text">{{ p.stage }}</span>
+                    </span>
+                  </td>
+
+                  <!-- Requirement Cell -->
+                  <td class="col-req">
+                    <div class="requirement-box">
+                      <span class="bhk-chip">{{ p.bhk }}</span>
+                      <span class="budget-display">{{ formatBudgetDisplay(p.budget) }}</span>
+                    </div>
+                  </td>
+
+                  <!-- Owner Cell -->
+                  <td class="col-owner">
+                    <div class="owner-cell-wrap">
+                      <ng-container *ngIf="p.owner !== 'Unassigned'">
+                        <div class="owner-avatar-circle">
+                          {{ getInitials(getOwnerName(p.owner)) }}
+                        </div>
+                        <div class="owner-text-wrap">
+                          <span class="owner-name-text">{{ getOwnerName(p.owner) }}</span>
+                          <span class="owner-role-text">{{ getOwnerRole(p.owner) }}</span>
+                        </div>
+                      </ng-container>
+                      <ng-container *ngIf="p.owner === 'Unassigned'">
+                        <span class="unassigned-pill" matTooltip="High intent lead requires sales executive assignment">
+                          <span>Unassigned</span>
+                        </span>
+                      </ng-container>
+                    </div>
+                  </td>
+
+                  <!-- Next Best Action Cell -->
+                  <td class="col-action">
+                    <div class="next-action-wrap">
+                      <div class="action-title-row">
+                        <span class="action-title-text">{{ p.next_action }}</span>
+                      </div>
+                      <div class="sla-overdue-chip" *ngIf="p.sla_breached">
+                        <span>SLA breached &middot; {{ p.sla_time }}</span>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- At Risk Cell -->
+                  <td class="col-risk text-right">
+                    <div class="at-risk-wrap">
+                      <span class="risk-amount-text">{{ p.at_risk }}</span>
+                      <span class="risk-label-sub">est. exposure</span>
+                    </div>
+                  </td>
+
+                  <!-- Actions Cell -->
+                  <td class="col-actions text-right actions-column-cell">
+                    <div class="row-actions-group">
+                      <button
+                        mat-icon-button
+                        type="button"
+                        class="action-btn followup-btn"
+                        (click)="openFollowUpModal(p)"
+                        matTooltip="Schedule Follow-up for this Prospect"
+                      >
+                        <mat-icon>add_task</mat-icon>
+                      </button>
+                      <button
+                        mat-icon-button
+                        type="button"
+                        class="action-btn edit-btn"
+                        (click)="startEdit(p)"
+                        matTooltip="Quick Edit Prospect"
+                      >
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                      <button
+                        mat-icon-button
+                        color="warn"
+                        type="button"
+                        class="action-btn delete-btn"
+                        (click)="deleteBuyer(p)"
+                        matTooltip="Delete Prospect"
+                      >
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <!-- Edit Mode Inside Project Container -->
+                <ng-container *ngIf="editingBuyerId === p.id">
+                  <td class="col-buyer">
+                    <input type="text" [(ngModel)]="editForm.name" class="inline-edit-input" placeholder="Full name" />
+                    <input type="text" [(ngModel)]="editForm.phone" class="inline-edit-input sub-input" placeholder="Phone Number" />
+                    <div class="edit-project-row">
+                      <span class="edit-project-lbl">Project:</span>
+                      <select [(ngModel)]="editForm.project_id" class="inline-edit-select project-inline-select">
+                        <option *ngFor="let prj of projectsList" [value]="prj.project_id || prj.id">{{ prj.name }}</option>
+                      </select>
+                    </div>
+                  </td>
+                  <td class="col-score">
+                    <div class="inline-score-editor">
+                      <div class="score-input-group">
+                        <span class="score-edit-lbl">Score:</span>
+                        <input
+                          type="number"
+                          [(ngModel)]="editForm.score"
+                          min="0"
+                          max="100"
+                          class="inline-edit-input score-num-input"
+                          title="Intent Score (0-100)"
+                        />
+                      </div>
+                      <div class="score-input-group delta-group">
+                        <span class="delta-symbol">▲</span>
+                        <input
+                          type="number"
+                          [(ngModel)]="editForm.delta"
+                          class="inline-edit-input delta-num-input"
+                          title="Intent Delta Score (±)"
+                        />
+                      </div>
+                      <div class="score-badge-live" [ngClass]="getScoreClass(editForm.score || p.score)">
+                        <span class="live-score">{{ editForm.score || p.score }}</span>
+                        <span class="live-delta">▲ {{ editForm.delta !== undefined ? editForm.delta : p.delta }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="col-stage">
+                    <select [(ngModel)]="editForm.stage" class="inline-edit-select">
+                      <option value="New">New</option>
+                      <option value="Contacted">Contacted</option>
+                      <option value="Qualified">Qualified</option>
+                      <option value="High Intent">High Intent</option>
+                      <option value="Site Visit Scheduled">Site Visit Scheduled</option>
+                      <option value="Visit Completed">Visit Completed</option>
+                      <option value="Negotiation">Negotiation</option>
+                      <option value="Booking Intent">Booking Intent</option>
+                      <option value="Booked">Booked</option>
+                    </select>
+                  </td>
+                  <td class="col-req">
+                    <select [(ngModel)]="editForm.bhk" class="inline-edit-select">
+                      <option value="1 BHK">1 BHK</option>
+                      <option value="2 BHK">2 BHK</option>
+                      <option value="3 BHK">3 BHK</option>
+                      <option value="4 BHK">4 BHK</option>
+                      <option value="5 BHK">5 BHK</option>
+                      <option value="Penthouse">Penthouse</option>
+                      <option value="Villa">Villa</option>
+                      <option value="Duplex">Duplex</option>
+                      <option value="Plot">Plot</option>
+                      <option value="Residential Plot">Residential Plot</option>
+                      <option value="Commercial Plot">Commercial Plot</option>
+                      <option value="Farm House Plot">Farm House Plot</option>
+                      <option value="Villa Plot">Villa Plot</option>
+                    </select>
+                  </td>
+                  <td class="col-owner">
+                    <div class="owner-cell-wrap">
+                      <span class="owner-name-text">{{ p.owner }}</span>
+                    </div>
+                  </td>
+                  <td class="col-action col-action-edit">
+                    <div class="edit-followup-box">
+                      <div class="edit-followup-header">
+                        <label class="edit-followup-toggle">
+                          <input type="checkbox" [(ngModel)]="editForm.add_follow_up" />
+                          <span class="edit-toggle-title">
+                            <mat-icon class="icon-inline">add_task</mat-icon> + Add Follow-up
+                          </span>
+                        </label>
+                      </div>
+
+                      <div class="edit-followup-body" *ngIf="editForm.add_follow_up">
+                        <input
+                          type="text"
+                          [(ngModel)]="editForm.follow_up_title"
+                          class="inline-edit-input followup-title-field"
+                          placeholder="Follow-up requirement / task"
+                        />
+                        <div class="edit-followup-subrow">
+                          <input
+                            type="datetime-local"
+                            [(ngModel)]="editForm.follow_up_due"
+                            class="inline-edit-input followup-datetime-field"
+                            title="Scheduled Due Date & Time"
+                          />
+                          <select [(ngModel)]="editForm.follow_up_priority" class="inline-edit-select followup-prio-field">
+                            <option value="HIGH">High Priority</option>
+                            <option value="URGENT">Urgent SLA</option>
+                            <option value="MEDIUM">Medium</option>
+                            <option value="LOW">Low</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div class="edit-followup-current" *ngIf="!editForm.add_follow_up">
+                        <span class="current-label">Current:</span>
+                        <span class="current-val">{{ p.next_action }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="col-risk text-right">
+                    <span class="risk-amount-text">{{ p.at_risk }}</span>
+                  </td>
+                  <td class="col-actions text-right actions-column-cell">
+                    <div class="inline-actions-box">
+                      <button mat-flat-button type="button" class="btn-save-inline" (click)="saveEdit(p)">Save</button>
+                      <button mat-stroked-button type="button" class="btn-cancel-inline" (click)="cancelEdit()">Cancel</button>
+                    </div>
+                  </td>
+                </ng-container>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Project Empty State -->
+        <div class="project-empty-state" *ngIf="group.prospects.length === 0">
+          <mat-icon class="empty-icon">person_outline</mat-icon>
+          <span>No prospects currently assigned to {{ group.project.name }}.</span>
+          <a [routerLink]="['/buyers/new']" class="btn-add-prospect-link">
+            <mat-icon>add</mat-icon> Add Prospect to this Project
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- FLAT TABLE VIEW (ALL PROSPECTS)            -->
+  <!-- ========================================== -->
+  <div *ngIf="viewMode === 'table'" class="table-card-container">
     <div class="table-responsive">
       <table class="prospects-table">
         <thead>
@@ -300,6 +716,7 @@
                     </a>
                     <div class="buyer-sub-meta">
                       <span class="source-tag">{{ p.source }}</span>
+                      <span class="project-tag-pill" *ngIf="p.project_name">{{ p.project_name }}</span>
                       <a *ngIf="p.phone" [href]="'tel:' + p.phone" class="phone-link" (click)="$event.stopPropagation()">
                         <mat-icon class="meta-icon">call</mat-icon>
                         <span>{{ p.phone }}</span>
@@ -422,6 +839,12 @@
               <td class="col-buyer">
                 <input type="text" [(ngModel)]="editForm.name" class="inline-edit-input" placeholder="Full name" />
                 <input type="text" [(ngModel)]="editForm.phone" class="inline-edit-input sub-input" placeholder="Phone Number" />
+                <div class="edit-project-row">
+                  <span class="edit-project-lbl">Project:</span>
+                  <select [(ngModel)]="editForm.project_id" class="inline-edit-select project-inline-select">
+                    <option *ngFor="let prj of projectsList" [value]="prj.project_id || prj.id">{{ prj.name }}</option>
+                  </select>
+                </div>
               </td>
               <td class="col-score">
                 <div class="inline-score-editor">

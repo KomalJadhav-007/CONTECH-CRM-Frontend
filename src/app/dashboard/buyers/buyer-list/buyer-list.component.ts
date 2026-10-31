@@ -16,6 +16,7 @@ import { MatRippleModule } from '@angular/material/core';
 import { BuyerService } from '../buyer.service';
 import { UserService } from '../../../users/user.service';
 import { TaskService } from '../../tasks/task.service';
+import { SettingsService } from '../../../settings/settings.service';
 
 @Component({
   selector: 'app-buyer-list',
@@ -43,6 +44,7 @@ export class BuyerListComponent implements OnInit {
   private buyerService = inject(BuyerService);
   private userService = inject(UserService);
   private taskService = inject(TaskService);
+  private settingsService = inject(SettingsService);
   private router = inject(Router);
 
   loading = false;
@@ -54,6 +56,19 @@ export class BuyerListComponent implements OnInit {
   selectedSource = 'all';
   selectedIntentBand = 'all';
   selectedOwner = 'all';
+  selectedProject: string | number = 'all';
+
+  // View Mode: 'project_cards' displays each Project as a Card/Container with its prospects inside
+  viewMode: 'project_cards' | 'table' = 'project_cards';
+
+  // Available Projects List
+  projectsList: any[] = [
+    { project_id: 1, id: 1, name: 'Contech Crown Heights', code: 'CCH-BLR', location: 'Whitefield, Bengaluru', project_type: 'Luxury Residential' },
+    { project_id: 2, id: 2, name: 'Contech Skyline Elegance', code: 'CSE-BLR', location: 'Indiranagar, Bengaluru', project_type: 'Premium High-Rise' },
+    { project_id: 3, id: 3, name: 'Contech Greenfield Sanctuary', code: 'CGS-BLR', location: 'Sarjapur Road, Bengaluru', project_type: 'Eco Luxury Villas' },
+    { project_id: 4, id: 4, name: 'Contech Emerald Meadows Plotted Layout', code: 'CONTEC-0409', location: 'Devenahalli, Bengaluru', project_type: 'Plotted Development' },
+    { project_id: 5, id: 5, name: 'Contech Business Square', code: 'CONTEC-0438', location: 'Koramangala, Bengaluru', project_type: 'Commercial & Retail' }
+  ];
 
   // Follow-up modal state
   showFollowUpModal = false;
@@ -102,7 +117,10 @@ export class BuyerListComponent implements OnInit {
       next_action: 'Assign owner and call within 15 minutes',
       sla_breached: true,
       sla_time: '40 days ago',
-      at_risk: '₹1.43 Cr'
+      at_risk: '₹1.43 Cr',
+      project_id: 1,
+      project_name: 'Contech Crown Heights',
+      project_code: 'CCH-BLR'
     },
     {
       id: 2,
@@ -118,7 +136,10 @@ export class BuyerListComponent implements OnInit {
       next_action: 'Buyer Score 91 - assign owner immediately',
       sla_breached: true,
       sla_time: '40 days ago',
-      at_risk: '₹2.18 Cr'
+      at_risk: '₹2.18 Cr',
+      project_id: 1,
+      project_name: 'Contech Crown Heights',
+      project_code: 'CCH-BLR'
     },
     {
       id: 3,
@@ -134,7 +155,10 @@ export class BuyerListComponent implements OnInit {
       next_action: 'Initiate booking paperwork',
       sla_breached: true,
       sla_time: '39 days ago',
-      at_risk: '₹1.23 Cr'
+      at_risk: '₹1.23 Cr',
+      project_id: 1,
+      project_name: 'Contech Crown Heights',
+      project_code: 'CCH-BLR'
     },
     {
       id: 4,
@@ -150,7 +174,10 @@ export class BuyerListComponent implements OnInit {
       next_action: 'Confirm Saturday site visit',
       sla_breached: true,
       sla_time: '39 days ago',
-      at_risk: '₹1.51 Cr'
+      at_risk: '₹1.51 Cr',
+      project_id: 2,
+      project_name: 'Contech Skyline Elegance',
+      project_code: 'CSE-BLR'
     },
     {
       id: 5,
@@ -166,7 +193,10 @@ export class BuyerListComponent implements OnInit {
       next_action: 'Manager intervention on price objection',
       sla_breached: true,
       sla_time: '40 days ago',
-      at_risk: '₹1.65 Cr'
+      at_risk: '₹1.65 Cr',
+      project_id: 2,
+      project_name: 'Contech Skyline Elegance',
+      project_code: 'CSE-BLR'
     },
     {
       id: 6,
@@ -182,7 +212,10 @@ export class BuyerListComponent implements OnInit {
       next_action: 'Share proposal and initiate negotiation',
       sla_breached: true,
       sla_time: '40 days ago',
-      at_risk: '₹2.02 Cr'
+      at_risk: '₹2.02 Cr',
+      project_id: 2,
+      project_name: 'Contech Skyline Elegance',
+      project_code: 'CSE-BLR'
     },
     {
       id: 7,
@@ -198,7 +231,10 @@ export class BuyerListComponent implements OnInit {
       next_action: 'Share proposal for shortlisted unit',
       sla_breached: true,
       sla_time: '40 days ago',
-      at_risk: '₹1.22 Cr'
+      at_risk: '₹1.22 Cr',
+      project_id: 3,
+      project_name: 'Contech Greenfield Sanctuary',
+      project_code: 'CGS-BLR'
     },
     {
       id: 8,
@@ -214,7 +250,10 @@ export class BuyerListComponent implements OnInit {
       next_action: 'Confirm AE and vehicle for tomorrow visit',
       sla_breached: true,
       sla_time: '39 days ago',
-      at_risk: '₹1.86 Cr'
+      at_risk: '₹1.86 Cr',
+      project_id: 3,
+      project_name: 'Contech Greenfield Sanctuary',
+      project_code: 'CGS-BLR'
     },
     {
       id: 9,
@@ -230,7 +269,10 @@ export class BuyerListComponent implements OnInit {
       next_action: 'Manager to close pricing gap',
       sla_breached: true,
       sla_time: '39 days ago',
-      at_risk: '₹2.03 Cr'
+      at_risk: '₹2.03 Cr',
+      project_id: 4,
+      project_name: 'Contech Emerald Meadows Plotted Layout',
+      project_code: 'CONTEC-0409'
     },
     {
       id: 10,
@@ -246,13 +288,37 @@ export class BuyerListComponent implements OnInit {
       next_action: 'Confirm pickup and visit slot',
       sla_breached: true,
       sla_time: '39 days ago',
-      at_risk: '₹73.50 L'
+      at_risk: '₹73.50 L',
+      project_id: 5,
+      project_name: 'Contech Business Square',
+      project_code: 'CONTEC-0438'
     }
   ];
 
   ngOnInit(): void {
     this.loadOwners();
+    this.loadProjects();
     this.loadBuyers();
+  }
+
+  loadProjects(): void {
+    this.settingsService.getSettings().subscribe({
+      next: (res: any) => {
+        if (res && res.projects && res.projects.length > 0) {
+          this.projectsList = res.projects.map((p: any) => ({
+            project_id: p.project_id || p.id,
+            id: p.project_id || p.id,
+            name: p.name,
+            code: p.code || '',
+            location: p.location || '',
+            project_type: p.project_type || 'Residential'
+          }));
+        }
+      },
+      error: () => {
+        // Keep fallback projectsList
+      }
+    });
   }
 
   loadOwners(): void {
@@ -348,6 +414,10 @@ export class BuyerListComponent implements OnInit {
             else if (b.intent_score >= 90) delta = 2;
             else if (b.intent_score >= 68) delta = 3;
 
+            // Project mapping
+            const prjId = b.project_id || (b.project ? b.project.project_id : 1);
+            const prjObj = b.project || this.projectsList.find(p => (p.project_id || p.id) == prjId);
+
             return {
               buyer_id: b.buyer_id || b.id,
               id: b.buyer_id || b.id,
@@ -365,7 +435,11 @@ export class BuyerListComponent implements OnInit {
               next_action: nextAction,
               sla_breached: slaBreached,
               sla_time: slaTime,
-              at_risk: atRiskText
+              at_risk: atRiskText,
+              project_id: prjId,
+              project_name: prjObj ? prjObj.name : (b.preferred_project || 'Contech Crown Heights'),
+              project_code: prjObj ? (prjObj.code || '') : '',
+              project_location: prjObj ? (prjObj.location || '') : ''
             };
           });
           this.rebuildOwnersList();
@@ -432,6 +506,7 @@ export class BuyerListComponent implements OnInit {
     this.selectedSource = 'all';
     this.selectedIntentBand = 'all';
     this.selectedOwner = 'all';
+    this.selectedProject = 'all';
     this.activeQuickTab = 'all';
     this.currentPage = 1;
   }
@@ -443,6 +518,7 @@ export class BuyerListComponent implements OnInit {
       this.selectedSource !== 'all' ||
       this.selectedIntentBand !== 'all' ||
       this.selectedOwner !== 'all' ||
+      this.selectedProject !== 'all' ||
       this.activeQuickTab !== 'all'
     );
   }
@@ -589,6 +665,7 @@ export class BuyerListComponent implements OnInit {
       budget: p.budget,
       stage: p.stage,
       owner: p.owner,
+      project_id: p.project_id || 1,
       score: p.score !== undefined && p.score !== null ? p.score : 85,
       delta: p.delta !== undefined && p.delta !== null ? p.delta : 5,
       add_follow_up: false,
@@ -608,6 +685,7 @@ export class BuyerListComponent implements OnInit {
     const newScore = this.editForm.score !== undefined && this.editForm.score !== null ? parseInt(this.editForm.score) : p.score;
     const newDelta = this.editForm.delta !== undefined && this.editForm.delta !== null ? parseInt(this.editForm.delta) : (p.delta || 5);
     const newBand = newScore >= 80 ? 'HIGH' : (newScore >= 50 ? 'MEDIUM' : 'LOW');
+    const newProjectId = this.editForm.project_id ? Number(this.editForm.project_id) : p.project_id;
 
     const targetId = p.buyer_id || p.id;
     const payload: any = {
@@ -615,6 +693,7 @@ export class BuyerListComponent implements OnInit {
       phone: this.editForm.phone,
       preferred_bhk: this.editForm.bhk,
       lead_status: this.editForm.stage,
+      project_id: newProjectId,
       intent_score: newScore,
       intent_delta: newDelta,
       intent_band: newBand,
@@ -633,6 +712,15 @@ export class BuyerListComponent implements OnInit {
         p.stage = this.editForm.stage;
         p.score = newScore;
         p.delta = newDelta;
+        if (newProjectId) {
+          p.project_id = newProjectId;
+          const matched = this.projectsList.find(pr => (pr.project_id || pr.id) == newProjectId);
+          if (matched) {
+            p.project_name = matched.name;
+            p.project_code = matched.code;
+            p.project_location = matched.location;
+          }
+        }
 
         if (this.editForm.add_follow_up && this.editForm.follow_up_title && this.editForm.follow_up_title.trim()) {
           const taskPayload = {
@@ -859,6 +947,12 @@ export class BuyerListComponent implements OnInit {
           }
         }
       }
+
+      // 7. Project Filter
+      if (this.selectedProject !== 'all') {
+        if (p.project_id != this.selectedProject) return false;
+      }
+
       return true;
     });
 
@@ -892,6 +986,83 @@ export class BuyerListComponent implements OnInit {
     }
 
     return filtered;
+  }
+
+  get projectGroups(): any[] {
+    const filtered = this.filteredProspects;
+    
+    // Determine which projects to include
+    let prjs = this.projectsList;
+    if (this.selectedProject !== 'all') {
+      prjs = this.projectsList.filter(prj => (prj.project_id || prj.id) == this.selectedProject);
+    }
+
+    const groups: any[] = [];
+    prjs.forEach(prj => {
+      const pId = prj.project_id || prj.id;
+      const projectProspects = filtered.filter(p => p.project_id == pId);
+
+      // Compute project-level stats
+      const totalCount = projectProspects.length;
+      const highIntentCount = projectProspects.filter(p => p.score >= 85).length;
+      
+      let totalLacs = 0;
+      projectProspects.forEach(p => {
+        if (p.at_risk) {
+          const crMatch = p.at_risk.match(/₹([\d.]+)\s*Cr/);
+          const lMatch = p.at_risk.match(/₹([\d.]+)\s*L/);
+          if (crMatch) totalLacs += parseFloat(crMatch[1]) * 100;
+          else if (lMatch) totalLacs += parseFloat(lMatch[1]);
+        }
+      });
+
+      const exposureDisplay = totalLacs >= 100
+        ? `₹${(totalLacs / 100).toFixed(2)} Cr`
+        : `₹${totalLacs.toFixed(2)} L`;
+
+      groups.push({
+        project: prj,
+        prospects: projectProspects,
+        totalCount,
+        highIntentCount,
+        exposureDisplay
+      });
+    });
+
+    // Handle any prospects with project_id not matching standard projects
+    const knownIds = new Set(this.projectsList.map(prj => prj.project_id || prj.id));
+    const unassignedProspects = filtered.filter(p => !p.project_id || !knownIds.has(p.project_id));
+    if (unassignedProspects.length > 0 && this.selectedProject === 'all') {
+      let totalLacs = 0;
+      unassignedProspects.forEach(p => {
+        if (p.at_risk) {
+          const crMatch = p.at_risk.match(/₹([\d.]+)\s*Cr/);
+          const lMatch = p.at_risk.match(/₹([\d.]+)\s*L/);
+          if (crMatch) totalLacs += parseFloat(crMatch[1]) * 100;
+          else if (lMatch) totalLacs += parseFloat(lMatch[1]);
+        }
+      });
+      const exposureDisplay = totalLacs >= 100
+        ? `₹${(totalLacs / 100).toFixed(2)} Cr`
+        : `₹${totalLacs.toFixed(2)} L`;
+
+      groups.push({
+        project: {
+          project_id: 0,
+          id: 0,
+          name: 'Other / Unassigned Project',
+          code: 'GEN-BLR',
+          location: 'Bengaluru Region',
+          project_type: 'Mixed'
+        },
+        prospects: unassignedProspects,
+        totalCount: unassignedProspects.length,
+        highIntentCount: unassignedProspects.filter(p => p.score >= 85).length,
+        exposureDisplay
+      });
+    }
+
+    return groups;
   }
 
   get pagedProspects(): any[] {
