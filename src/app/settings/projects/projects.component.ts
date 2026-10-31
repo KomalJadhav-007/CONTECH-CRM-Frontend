@@ -25,6 +25,8 @@ export interface PropertyTypeConfig {
   facing: string;
   tower_wing?: string;
   floor_range?: string;
+  front_road_width?: string;
+  plot_location?: string;
 }
 
 @Component({
@@ -109,7 +111,9 @@ export class ProjectsComponent implements OnInit {
           total_units: 30, 
           facing: 'East Facing',
           tower_wing: 'Tower A / Wing 1',
-          floor_range: 'Floors 1-10'
+          floor_range: 'Floors 1-10',
+          front_road_width: '40 ft Road',
+          plot_location: 'Center / Intermediate Plot'
         },
         { 
           name: '3 BHK Royal Grand', 
@@ -120,7 +124,9 @@ export class ProjectsComponent implements OnInit {
           total_units: 40, 
           facing: 'North-East Facing',
           tower_wing: 'Tower B / Wing 2',
-          floor_range: 'Floors 5-18'
+          floor_range: 'Floors 5-18',
+          front_road_width: '60 ft Avenue',
+          plot_location: 'Corner Plot'
         }
       ]
     },
@@ -142,7 +148,9 @@ export class ProjectsComponent implements OnInit {
           total_units: 25,
           facing: 'Main Boulevard Facing',
           tower_wing: 'Tower Alpha / Floors 3-12',
-          floor_range: 'Floors 3-12'
+          floor_range: 'Floors 3-12',
+          front_road_width: '80 ft Main Road',
+          plot_location: 'Main Road / Boulevard Facing'
         },
         {
           name: 'High-Street Retail Store',
@@ -153,7 +161,9 @@ export class ProjectsComponent implements OnInit {
           total_units: 12,
           facing: 'Frontage Main Road',
           tower_wing: 'Podium Ground Floor',
-          floor_range: 'Ground Level'
+          floor_range: 'Ground Level',
+          front_road_width: '60 ft Avenue',
+          plot_location: 'Corner Plot'
         }
       ]
     },
@@ -175,7 +185,9 @@ export class ProjectsComponent implements OnInit {
           total_units: 35,
           facing: 'East Facing',
           tower_wing: 'Sector 1 / Green Avenue',
-          floor_range: 'Ground Plotted Site'
+          floor_range: 'Ground Plotted Site',
+          front_road_width: '30 ft Road',
+          plot_location: 'Center / Intermediate Plot'
         },
         {
           name: '30x50 Premium Plot (1500 Sqft)',
@@ -186,7 +198,9 @@ export class ProjectsComponent implements OnInit {
           total_units: 25,
           facing: 'North Facing',
           tower_wing: 'Sector 2 / Boulevard',
-          floor_range: 'Ground Plotted Site'
+          floor_range: 'Ground Plotted Site',
+          front_road_width: '40 ft Road',
+          plot_location: 'Park / Garden Facing Plot'
         },
         {
           name: '40x60 Executive Villa Plot (2400 Sqft)',
@@ -197,7 +211,9 @@ export class ProjectsComponent implements OnInit {
           total_units: 15,
           facing: 'Corner / Park Facing',
           tower_wing: 'Executive Enclave',
-          floor_range: 'Corner Site'
+          floor_range: 'Corner Site',
+          front_road_width: '60 ft Avenue',
+          plot_location: 'Corner + Park Facing (Dual Prime)'
         }
       ]
     },
@@ -219,7 +235,9 @@ export class ProjectsComponent implements OnInit {
           total_units: 14,
           facing: 'Main Promenade',
           tower_wing: 'Commercial Podium',
-          floor_range: 'Ground & 1st'
+          floor_range: 'Ground & 1st',
+          front_road_width: '80 ft Main Road',
+          plot_location: 'Corner Plot'
         },
         {
           name: '3 BHK Sky Residence',
@@ -230,7 +248,9 @@ export class ProjectsComponent implements OnInit {
           total_units: 36,
           facing: 'North-East Facing',
           tower_wing: 'Tower 1 / Residential',
-          floor_range: 'Floors 3-18'
+          floor_range: 'Floors 3-18',
+          front_road_width: '60 ft Avenue',
+          plot_location: 'Main Road / Boulevard Facing'
         }
       ]
     }
@@ -250,7 +270,9 @@ export class ProjectsComponent implements OnInit {
       total_units: 30, 
       facing: 'East Facing',
       tower_wing: 'Tower A / Wing 1',
-      floor_range: 'Floors 1-10'
+      floor_range: 'Floors 1-10',
+      front_road_width: '40 ft Road',
+      plot_location: 'Center / Intermediate Plot'
     },
     { 
       name: '3 BHK Royal', 
@@ -261,11 +283,37 @@ export class ProjectsComponent implements OnInit {
       total_units: 40, 
       facing: 'North-East Facing',
       tower_wing: 'Tower B / Wing 2',
-      floor_range: 'Floors 5-18'
+      floor_range: 'Floors 5-18',
+      front_road_width: '60 ft Avenue',
+      plot_location: 'Corner Plot'
     }
   ];
 
   showPropertyTypesBuilder = true;
+
+  // Front Road Width & Plot Location Options
+  frontWidthOptions: string[] = [
+    '30 ft Road',
+    '40 ft Road',
+    '50 ft Road',
+    '60 ft Avenue',
+    '80 ft Main Road',
+    '100 ft Grand Boulevard',
+    '120+ ft Expressway',
+    '24 ft Internal Lane'
+  ];
+
+  plotLocationOptions: string[] = [
+    'Center / Intermediate Plot',
+    'Corner Plot',
+    'Park / Garden Facing Plot',
+    'Main Road / Boulevard Facing',
+    'Corner + Park Facing (Dual Prime)',
+    'Cul-de-sac / End Plot',
+    'Lake / Water Body Facing',
+    'North-East Corner (Vastu Prime)',
+    'Standard / Regular'
+  ];
 
   // Predefined & Dynamic Typology Options
   typologyOptions: string[] = [
@@ -473,6 +521,8 @@ export class ProjectsComponent implements OnInit {
     area_sqft: 1280,
     price_lacs: 125.00,
     facing: 'East Facing',
+    front_road_width: '40 ft Road',
+    plot_location: 'Center / Intermediate Plot',
     status: 'AVAILABLE',
     notes: ''
   };
@@ -498,6 +548,8 @@ export class ProjectsComponent implements OnInit {
     facing: 'East Facing',
     tower_wing: 'Tower A / Wing 1',
     floor_range: 'Floors 1-14',
+    front_road_width: '40 ft Road',
+    plot_location: 'Center / Intermediate Plot',
     description: ''
   };
 
@@ -659,7 +711,9 @@ export class ProjectsComponent implements OnInit {
       total_units: 15,
       facing: 'Panoramic Park Facing',
       tower_wing: `Tower ${nextWing} / Wing ${this.newProjectPropertyTypes.length + 1}`,
-      floor_range: 'Floors 12-24'
+      floor_range: 'Floors 12-24',
+      front_road_width: '40 ft Road',
+      plot_location: 'Center / Intermediate Plot'
     });
     this.syncConfigurationsText();
   }
@@ -953,6 +1007,8 @@ export class ProjectsComponent implements OnInit {
       area_sqft: primaryType ? primaryType.super_builtup_area_sqft : 1280,
       price_lacs: primaryType ? primaryType.base_price_lacs : 125.00,
       facing: primaryType ? primaryType.facing : 'East Facing',
+      front_road_width: primaryType && primaryType.front_road_width ? primaryType.front_road_width : '40 ft Road',
+      plot_location: primaryType && primaryType.plot_location ? primaryType.plot_location : 'Center / Intermediate Plot',
       status: 'AVAILABLE',
       notes: ''
     };
@@ -1090,6 +1146,8 @@ export class ProjectsComponent implements OnInit {
       facing: 'East Facing',
       tower_wing: 'Tower B / Wing 2',
       floor_range: 'Floors 5-18',
+      front_road_width: '40 ft Road',
+      plot_location: 'Center / Intermediate Plot',
       description: ''
     };
     this.showTypeModal = true;

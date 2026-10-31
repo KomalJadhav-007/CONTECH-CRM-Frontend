@@ -178,6 +178,18 @@
               <label class="sub-label">Floor(s) / Range</label>
               <input type="text" [(ngModel)]="pt.floor_range" [name]="'pt_floor_' + i" class="input-field-sm" placeholder="e.g. Floors 1-14" />
             </div>
+            <div class="type-row-col col-road-width">
+              <label class="sub-label">Front Side Width</label>
+              <select [(ngModel)]="pt.front_road_width" [name]="'pt_width_' + i" class="input-field-sm select-field">
+                <option *ngFor="let w of frontWidthOptions" [value]="w">{{ w }}</option>
+              </select>
+            </div>
+            <div class="type-row-col col-plot-loc">
+              <label class="sub-label">Plot / Unit Location</label>
+              <select [(ngModel)]="pt.plot_location" [name]="'pt_loc_' + i" class="input-field-sm select-field">
+                <option *ngFor="let loc of plotLocationOptions" [value]="loc">{{ loc }}</option>
+              </select>
+            </div>
             <div class="type-row-col col-sqft">
               <label class="sub-label">Super Built-up (sqft)</label>
               <input type="number" [(ngModel)]="pt.super_builtup_area_sqft" [name]="'pt_sqft_' + i" class="input-field-sm" placeholder="1350" />
@@ -539,6 +551,18 @@
             </div>
           </div>
           <div class="form-field">
+            <label class="field-label">Front Side Width</label>
+            <select [(ngModel)]="newFlatForm.front_road_width" class="input-field select-field">
+              <option *ngFor="let w of frontWidthOptions" [value]="w">{{ w }}</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="field-label">Plot / Unit Location</label>
+            <select [(ngModel)]="newFlatForm.plot_location" class="input-field select-field">
+              <option *ngFor="let loc of plotLocationOptions" [value]="loc">{{ loc }}</option>
+            </select>
+          </div>
+          <div class="form-field">
             <label class="field-label">Super Built-up Area (sqft)</label>
             <input type="number" [(ngModel)]="newFlatForm.area_sqft" class="input-field" placeholder="1350" />
           </div>
@@ -767,6 +791,18 @@
             <input type="text" [(ngModel)]="newTypeForm.floor_range" class="input-field" placeholder="e.g. Floors 1-14" />
           </div>
           <div class="form-field">
+            <label class="field-label">Front Side Width</label>
+            <select [(ngModel)]="newTypeForm.front_road_width" class="input-field select-field">
+              <option *ngFor="let w of frontWidthOptions" [value]="w">{{ w }}</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="field-label">Plot / Unit Location</label>
+            <select [(ngModel)]="newTypeForm.plot_location" class="input-field select-field">
+              <option *ngFor="let loc of plotLocationOptions" [value]="loc">{{ loc }}</option>
+            </select>
+          </div>
+          <div class="form-field">
             <label class="field-label">Carpet Area (sqft)</label>
             <input type="number" [(ngModel)]="newTypeForm.carpet_area_sqft" class="input-field" placeholder="1250" />
           </div>
@@ -801,6 +837,8 @@
             <th>TYPOLOGY</th>
             <th>BUILDING / WING</th>
             <th>FLOOR(S)</th>
+            <th>ROAD WIDTH</th>
+            <th>LOCATION / POSITION</th>
             <th class="text-right">CARPET AREA</th>
             <th class="text-right">SUPER BUILT-UP</th>
             <th class="text-right">BASE PRICE</th>
@@ -815,6 +853,8 @@
             <td><span class="bhk-badge">{{ pt.bhk_type }}</span></td>
             <td><span class="wing-tag">{{ pt.tower_wing || 'Tower A / Wing 1' }}</span></td>
             <td><span class="floor-tag">{{ pt.floor_range || 'All Floors' }}</span></td>
+            <td><span class="wing-tag" style="background: #f8fafc; color: #475569; border-color: #cbd5e1;">{{ pt.front_road_width || '40 ft Road' }}</span></td>
+            <td><span class="wing-tag" style="background: #ecfdf5; color: #065f46; border-color: #a7f3d0;">{{ pt.plot_location || 'Center / Intermediate' }}</span></td>
             <td class="text-right">{{ pt.carpet_area_sqft ? pt.carpet_area_sqft + ' sqft' : '-' }}</td>
             <td class="text-right font-semibold">{{ pt.super_builtup_area_sqft ? pt.super_builtup_area_sqft + ' sqft' : '-' }}</td>
             <td class="text-right font-bold text-green">₹{{ pt.base_price_lacs }} L</td>
