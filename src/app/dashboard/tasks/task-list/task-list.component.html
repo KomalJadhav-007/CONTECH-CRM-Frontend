@@ -9,6 +9,9 @@
       </p>
     </div>
     <div class="top-actions">
+      <button mat-flat-button color="primary" type="button" class="btn-create-followup" (click)="openCreateModal()">
+        <mat-icon>add</mat-icon> Add Follow-up for Prospect
+      </button>
       <button mat-stroked-button type="button" (click)="loadTasks()">
         <mat-icon>refresh</mat-icon> Refresh Tasks
       </button>
@@ -295,6 +298,150 @@
         <button type="button" class="btn-cancel" (click)="closeCompleteModal()" [disabled]="completingTask">Cancel</button>
         <button type="button" class="btn-confirm" (click)="submitTaskCompletion()" [disabled]="completingTask">
           {{ completingTask ? 'Saving...' : '✓ Complete Follow-up & Record Intent' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Create New Follow-Up for Any Prospect -->
+  <div class="modal-backdrop" *ngIf="createTaskModalOpen" (click)="closeCreateModal()">
+    <div class="modal-dialog-custom" (click)="$event.stopPropagation()">
+      <div class="modal-header-custom">
+        <div>
+          <h2 class="modal-title-custom">+ Create Follow-up for Prospect</h2>
+          <p class="modal-subtitle-custom">
+            Schedule a follow-up flow for any prospect and manually specify their current intent score &amp; delta.
+          </p>
+        </div>
+        <button type="button" class="close-x-btn" (click)="closeCreateModal()">&times;</button>
+      </div>
+
+      <div class="modal-body-custom">
+        <!-- Prospect Selector -->
+        <div class="form-group-custom">
+          <label class="form-label-custom">Select Prospect / Buyer <span class="required-star">*</span></label>
+          <select class="form-control-custom" [(ngModel)]="createForm.buyer_id" (change)="onBuyerSelectChange()">
+            <option [ngValue]="null" disabled>-- Choose a prospect --</option>
+            <option *ngFor="let b of prospectsList" [value]="b.buyer_id || b.id">
+              {{ b.full_name }} &bull; {{ b.preferred_bhk }} (Max ₹{{ b.budget_max_lacs }}L) &bull; Intent: {{ b.intent_score || 95 }}/100
+            </option>
+          </select>
+        </div>
+
+        <!-- Task Title -->
+        <div class="form-group-custom">
+          <label class="form-label-custom">Follow-up Requirement / Task Title <span class="required-star">*</span></label>
+          <input
+            type="text"
+            class="form-control-custom"
+            [(ngModel)]="createForm.title"
+            placeholder="e.g. Urgent Strategy Call with Buyer / Floor Rise Discussion"
+          />
+        </div>
+
+        <!-- Task Description -->
+        <div class="form-group-custom">
+          <label class="form-label-custom">Detailed Context / Interaction Goals</label>
+          <textarea
+            class="form-control-custom"
+            rows="2"
+            [(ngModel)]="createForm.description"
+            placeholder="Enter discussion agenda, customer preferences, or unit pricing clarifications..."
+          ></textarea>
+        </div>
+
+        <!-- Manual Intent Score & Delta Setting (matching Image 2) -->
+        <div class="manual-intent-panel">
+          <div class="intent-panel-header">
+            <div>
+              <div class="intent-panel-title">Buyer Intent Score (Manual Assessment)</div>
+              <div class="intent-panel-sub">
+                Manually record or update the buyer's intent score for this follow-up touchpoint.
+              </div>
+            </div>
+            <!-- Live Preview matching Image 2 -->
+            <div class="intent-preview-wrapper">
+              <span class="preview-label">Live Intent Badge:</span>
+              <div class="score-badge-exact" [ngClass]="createForm.manual_intent_score >= 80 ? 'badge-high' : (createForm.manual_intent_score >= 50 ? 'badge-med' : 'badge-low')">
+                <span class="score-number">{{ createForm.manual_intent_score }}</span>
+                <span class="score-delta-symbol">{{ createForm.manual_intent_delta >= 0 ? '▲' : '▼' }}</span>
+                <span class="score-delta-val">{{ createForm.manual_intent_delta >= 0 ? createForm.manual_intent_delta : -createForm.manual_intent_delta }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="intent-inputs-grid">
+            <div>
+              <label class="form-label-custom">Manual Intent Score (0 - 100)</label>
+              <input
+                type="number"
+                min="0"
+                max="100"
+                class="form-control-custom"
+                [(ngModel)]="createForm.manual_intent_score"
+              />
+            </div>
+            <div>
+              <label class="form-label-custom">Intent Delta Score (&plusmn;)</label>
+              <input
+                type="number"
+                class="form-control-custom"
+                [(ngModel)]="createForm.manual_intent_delta"
+                placeholder="+5"
+              />
+            </div>
+          </div>
+
+          <!-- Quick Presets -->
+          <div class="intent-presets-row">
+            <span class="preset-label">Quick Presets:</span>
+            <button type="button" class="preset-btn" (click)="setCreateIntentPreset(95, 5)">95 (Very High ▲ 5)</button>
+            <button type="button" class="preset-btn" (click)="setCreateIntentPreset(90, 4)">90 (High ▲ 4)</button>
+            <button type="button" class="preset-btn" (click)="setCreateIntentPreset(75, 2)">75 (Warm ▲ 2)</button>
+            <button type="button" class="preset-btn" (click)="setCreateIntentPreset(60, 0)">60 (Neutral)</button>
+            <button type="button" class="preset-btn" (click)="setCreateIntentPreset(40, -5)">40 (Cooling ▼ 5)</button>
+          </div>
+        </div>
+
+        <!-- Priority, Assigned Rep & Due Date -->
+        <div class="intent-inputs-grid">
+          <div class="form-group-custom">
+            <label class="form-label-custom">Priority Level</label>
+            <select class="form-control-custom" [(ngModel)]="createForm.priority">
+              <option value="CRITICAL">CRITICAL</option>
+              <option value="URGENT">URGENT</option>
+              <option value="HIGH">HIGH</option>
+              <option value="NORMAL">NORMAL</option>
+            </select>
+          </div>
+          <div class="form-group-custom">
+            <label class="form-label-custom">Assigned Sales Executive</label>
+            <select class="form-control-custom" [(ngModel)]="createForm.assigned_to_id">
+              <option [ngValue]="null">-- Select Representative --</option>
+              <option *ngFor="let rep of salesRepsList" [value]="rep.user_id">
+                {{ rep.name }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Countdown SLA Hours & Target Deadline -->
+        <div class="form-group-custom">
+          <label class="form-label-custom">Countdown SLA / Due Date</label>
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap;">
+            <button type="button" class="preset-btn" [class.active-sla]="createForm.countdown_hours === 1" (click)="setCreateCountdown(1)">1 Hour (Immediate)</button>
+            <button type="button" class="preset-btn" [class.active-sla]="createForm.countdown_hours === 2" (click)="setCreateCountdown(2)">2 Hours (Urgent)</button>
+            <button type="button" class="preset-btn" [class.active-sla]="createForm.countdown_hours === 4" (click)="setCreateCountdown(4)">4 Hours (Standard)</button>
+            <button type="button" class="preset-btn" [class.active-sla]="createForm.countdown_hours === 24" (click)="setCreateCountdown(24)">24 Hours (Next Day)</button>
+          </div>
+          <input type="datetime-local" class="form-control-custom" [(ngModel)]="createForm.due_at" />
+        </div>
+      </div>
+
+      <div class="modal-footer-custom">
+        <button type="button" class="btn-cancel" (click)="closeCreateModal()" [disabled]="creatingTask">Cancel</button>
+        <button type="button" class="btn-confirm" (click)="submitCreateTask()" [disabled]="creatingTask">
+          {{ creatingTask ? 'Creating...' : '+ Create Follow-up Task' }}
         </button>
       </div>
     </div>

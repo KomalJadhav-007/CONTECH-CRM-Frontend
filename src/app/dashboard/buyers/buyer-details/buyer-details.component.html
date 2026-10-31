@@ -356,7 +356,12 @@
             <h2 class="panel-title">Follow-up SLA & Reminders</h2>
             <p class="panel-subtitle">Next best actions and 4-hour countdown commitments</p>
           </div>
-          <span class="badge-warning-pill">{{ (buyer.tasks || []).length }} TASKS</span>
+          <div style="display: flex; align-items: center; gap: 0.65rem;">
+            <button mat-stroked-button color="primary" type="button" class="btn-sm" (click)="openAddFollowUpModal()">
+              <mat-icon>add</mat-icon> Add Follow-up
+            </button>
+            <span class="badge-warning-pill">{{ (buyer.tasks || []).length }} TASKS</span>
+          </div>
         </div>
 
         <div class="tasks-timeline">
@@ -490,6 +495,101 @@
         <button mat-flat-button color="primary" type="button" [disabled]="savingBooking" (click)="submitBooking()">
           <span *ngIf="!savingBooking">Confirm &amp; Seal Sales Closure &rarr;</span>
           <span *ngIf="savingBooking">Recording Closure...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Follow-Up Modal with Manual Intent -->
+  <div *ngIf="showFollowUpModal" class="modal-backdrop" (click)="closeAddFollowUpModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()" style="max-width: 600px;">
+      <div class="modal-header">
+        <div>
+          <div class="modal-supertitle">FOLLOW-UP SLA &amp; INTENT</div>
+          <h2 class="modal-title">+ Add Follow-up for {{ buyer.full_name }}</h2>
+          <p class="modal-subtitle">Schedule follow-up touchpoint and manually adjust buyer intent score &amp; delta.</p>
+        </div>
+        <button mat-icon-button type="button" (click)="closeAddFollowUpModal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <mat-form-field appearance="outline" class="w-full mat-field-custom">
+            <mat-label>Follow-up Requirement / Title *</mat-label>
+            <mat-icon matPrefix>task_alt</mat-icon>
+            <input matInput type="text" [(ngModel)]="followUpForm.title" placeholder="e.g. Discuss revised quote & floor plan" required />
+          </mat-form-field>
+        </div>
+
+        <div class="form-group" style="margin-top: 0.5rem;">
+          <mat-form-field appearance="outline" class="w-full mat-field-custom">
+            <mat-label>Interaction Context &amp; Notes</mat-label>
+            <mat-icon matPrefix>notes</mat-icon>
+            <textarea matInput rows="2" [(ngModel)]="followUpForm.description" placeholder="Discussion points, objections to address, or milestones..."></textarea>
+          </mat-form-field>
+        </div>
+
+        <!-- Manual Intent Score & Delta Section matching Image 2 -->
+        <div style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 10px; padding: 1rem; margin-top: 0.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <div>
+              <strong style="color: #0f172a; font-size: 0.9rem;">Buyer Intent Score (Manual Assessment)</strong>
+              <p style="margin: 0.15rem 0 0; font-size: 0.75rem; color: #64748b;">Set or update buyer's intent score for this follow-up.</p>
+            </div>
+            <!-- Live Preview matching Image 2 -->
+            <div class="score-badge-exact" [ngClass]="followUpForm.manual_intent_score >= 80 ? 'badge-high' : (followUpForm.manual_intent_score >= 50 ? 'badge-med' : 'badge-low')">
+              <span class="score-number">{{ followUpForm.manual_intent_score }}</span>
+              <span class="score-delta-symbol">{{ followUpForm.manual_intent_delta >= 0 ? '▲' : '▼' }}</span>
+              <span class="score-delta-val">{{ followUpForm.manual_intent_delta >= 0 ? followUpForm.manual_intent_delta : -followUpForm.manual_intent_delta }}</span>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <mat-form-field appearance="outline" class="w-full mat-field-custom">
+              <mat-label>Manual Intent Score (0 - 100)</mat-label>
+              <input matInput type="number" min="0" max="100" [(ngModel)]="followUpForm.manual_intent_score" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-full mat-field-custom">
+              <mat-label>Intent Delta Score (&plusmn;)</mat-label>
+              <input matInput type="number" [(ngModel)]="followUpForm.manual_intent_delta" placeholder="+5" />
+            </mat-form-field>
+          </div>
+
+          <!-- Quick Presets -->
+          <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; margin-top: 0.35rem;">
+            <span style="font-size: 0.72rem; font-weight: 600; color: #64748b;">Presets:</span>
+            <button type="button" style="background:#fff; border:1px solid #cbd5e1; border-radius:5px; padding:2px 7px; font-size:0.72rem; cursor:pointer;" (click)="setFollowUpIntentPreset(95, 5)">95 (Very High ▲ 5)</button>
+            <button type="button" style="background:#fff; border:1px solid #cbd5e1; border-radius:5px; padding:2px 7px; font-size:0.72rem; cursor:pointer;" (click)="setFollowUpIntentPreset(90, 4)">90 (High ▲ 4)</button>
+            <button type="button" style="background:#fff; border:1px solid #cbd5e1; border-radius:5px; padding:2px 7px; font-size:0.72rem; cursor:pointer;" (click)="setFollowUpIntentPreset(75, 2)">75 (Warm ▲ 2)</button>
+            <button type="button" style="background:#fff; border:1px solid #cbd5e1; border-radius:5px; padding:2px 7px; font-size:0.72rem; cursor:pointer;" (click)="setFollowUpIntentPreset(60, 0)">60 (Neutral)</button>
+            <button type="button" style="background:#fff; border:1px solid #cbd5e1; border-radius:5px; padding:2px 7px; font-size:0.72rem; cursor:pointer;" (click)="setFollowUpIntentPreset(40, -5)">40 (Cooling ▼ 5)</button>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.75rem;">
+          <mat-form-field appearance="outline" class="w-full mat-field-custom">
+            <mat-label>Priority Level</mat-label>
+            <mat-select [(ngModel)]="followUpForm.priority">
+              <option value="CRITICAL">CRITICAL</option>
+              <option value="URGENT">URGENT</option>
+              <option value="HIGH">HIGH</option>
+              <option value="NORMAL">NORMAL</option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-full mat-field-custom">
+            <mat-label>Target Due Date &amp; Time</mat-label>
+            <input matInput type="datetime-local" [(ngModel)]="followUpForm.due_at" />
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button mat-button type="button" (click)="closeAddFollowUpModal()">Cancel</button>
+        <button mat-flat-button color="primary" type="button" [disabled]="savingFollowUp" (click)="submitAddFollowUp()">
+          <span *ngIf="!savingFollowUp">+ Schedule Follow-up &rarr;</span>
+          <span *ngIf="savingFollowUp">Scheduling...</span>
         </button>
       </div>
     </div>

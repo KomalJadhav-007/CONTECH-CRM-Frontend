@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { TaskService } from '../task.service';
+import { BuyerService } from '../../buyers/buyer.service';
+import { UserService } from '../../../users/user.service';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -36,12 +38,34 @@ import { MatInputModule } from '@angular/material/input';
 })
 export class TaskListComponent implements OnInit {
   private taskService = inject(TaskService);
+  private buyerService = inject(BuyerService);
+  private userService = inject(UserService);
 
   loading = true;
   feedbackMessage = '';
   tasks: any[] = [];
   filterStatus = 'PENDING';
 
+  prospectsList: any[] = [];
+  salesRepsList: any[] = [];
+
+  // Create Follow-up Modal State
+  createTaskModalOpen = false;
+  creatingTask = false;
+  createForm: any = {
+    buyer_id: null,
+    title: '',
+    description: '',
+    assigned_to_id: null,
+    priority: 'HIGH',
+    countdown_hours: 4,
+    due_at: '',
+    manual_intent_score: 95,
+    manual_intent_delta: 5,
+    manual_intent_band: 'HIGH'
+  };
+
+  // Complete Follow-up Modal State
   completeTaskModalOpen = false;
   selectedTaskForCompletion: any = null;
   completingTask = false;
@@ -58,6 +82,107 @@ export class TaskListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadTasks();
+    this.loadProspectsAndReps();
+  }
+
+  loadProspectsAndReps(): void {
+    this.buyerService.getBuyers({ limit: 100 }).subscribe({
+      next: (res) => {
+        if (res.success && res.buyers) {
+          this.prospectsList = res.buyers;
+        }
+      }
+    });
+
+    this.userService.getUsers().subscribe({
+      next: (res) => {
+        if (res.success && res.users) {
+          this.salesRepsList = res.users.filter((u: any) => u.is_active !== false);
+        }
+      }
+    });
+  }
+
+  openCreateModal(): void {
+    const fourHoursLater = new Date(Date.now() + 4 * 60 * 60 * 1000);
+    const defaultBuyer = this.prospectsList[0] || null;
+    const defaultScore = defaultBuyer?.intent_score !== undefined && defaultBuyer?.intent_score !== null ? defaultBuyer.intent_score : 95;
+    const defaultDelta = defaultBuyer?.intent_delta !== undefined && defaultBuyer?.intent_delta !== null ? defaultBuyer.intent_delta : 5;
+
+    this.createForm = {
+      buyer_id: defaultBuyer ? (defaultBuyer.buyer_id || defaultBuyer.id) : null,
+      title: defaultBuyer ? `Follow-up Strategy Call with ${defaultBuyer.full_name}` : 'Follow-up Strategy Call',
+      description: 'Review requirement, quote pricing milestones, and discuss preferred site visit / walkthrough slot.',
+      assigned_to_id: defaultBuyer?.assigned_rep_id || (this.salesRepsList[0]?.user_id || null),
+      priority: 'HIGH',
+      countdown_hours: 4,
+      due_at: fourHoursLater.toISOString().slice(0, 16),
+      manual_intent_score: defaultScore,
+      manual_intent_delta: defaultDelta,
+      manual_intent_band: defaultScore >= 80 ? 'HIGH' : (defaultScore >= 50 ? 'MEDIUM' : 'LOW')
+    };
+
+    this.createTaskModalOpen = true;
+  }
+
+  closeCreateModal(): void {
+    this.createTaskModalOpen = false;
+  }
+
+  onBuyerSelectChange(): void {
+    const selected = this.prospectsList.find(b => (b.buyer_id || b.id) == this.createForm.buyer_id);
+    if (selected) {
+      if (selected.intent_score !== undefined && selected.intent_score !== null) {
+        this.createForm.manual_intent_score = selected.intent_score;
+        this.createForm.manual_intent_delta = selected.intent_delta !== undefined ? selected.intent_delta : 5;
+        this.createForm.manual_intent_band = selected.intent_band || (selected.intent_score >= 80 ? 'HIGH' : 'MEDIUM');
+      }
+      if (selected.assigned_rep_id) {
+        this.createForm.assigned_to_id = selected.assigned_rep_id;
+      }
+      if (!this.createForm.title || this.createForm.title.includes('Follow-up Strategy Call')) {
+        this.createForm.title = `Follow-up Strategy Call with ${selected.full_name}`;
+      }
+    }
+  }
+
+  setCreateIntentPreset(score: number, delta: number): void {
+    this.createForm.manual_intent_score = score;
+    this.createForm.manual_intent_delta = delta;
+    this.createForm.manual_intent_band = score >= 80 ? 'HIGH' : (score >= 50 ? 'MEDIUM' : 'LOW');
+  }
+
+  setCreateCountdown(hours: number): void {
+    this.createForm.countdown_hours = hours;
+    const target = new Date(Date.now() + hours * 60 * 60 * 1000);
+    this.createForm.due_at = target.toISOString().slice(0, 16);
+  }
+
+  submitCreateTask(): void {
+    if (!this.createForm.title) {
+      alert('Please enter a follow-up task title');
+      return;
+    }
+    if (!this.createForm.buyer_id) {
+      alert('Please select a prospect for this follow-up');
+      return;
+    }
+
+    this.creatingTask = true;
+    this.taskService.createTask(this.createForm).subscribe({
+      next: (res) => {
+        this.creatingTask = false;
+        if (res.success) {
+          this.closeCreateModal();
+          this.showFeedback(`Follow-up created successfully for prospect with manual intent score recorded!`);
+          this.loadTasks();
+        }
+      },
+      error: (err) => {
+        this.creatingTask = false;
+        alert('Failed to create follow-up: ' + (err.error?.message || err.message));
+      }
+    });
   }
 
   loadTasks(): void {
