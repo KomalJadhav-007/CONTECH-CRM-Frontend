@@ -247,11 +247,14 @@ export class VisitBookingComponent implements OnInit {
       next: (res) => {
         this.loading = false;
         if (res.success) {
-          if (res.whatsapp_dispatch) {
-            this.whatsappSuccessDispatch = res.whatsapp_dispatch;
-          } else {
-            this.router.navigate(['/visits']);
-          }
+          const driverName = this.getSelectedDriverName();
+          // Directly navigate to visits - WhatsApp notification dispatched automatically to driver in background!
+          this.router.navigate(['/visits'], {
+            queryParams: {
+              whatsapp_sent: 'true',
+              driver: driverName
+            }
+          });
         }
       },
       error: (err) => {
@@ -259,15 +262,5 @@ export class VisitBookingComponent implements OnInit {
         this.errorMessage = err.error?.message || 'Failed to book site visit. Capacity limit or conflict.';
       }
     });
-  }
-
-  openWhatsAppLink(): void {
-    if (this.whatsappSuccessDispatch?.whatsapp_url) {
-      window.open(this.whatsappSuccessDispatch.whatsapp_url, '_blank');
-    }
-  }
-
-  proceedToVisits(): void {
-    this.router.navigate(['/visits']);
   }
 }

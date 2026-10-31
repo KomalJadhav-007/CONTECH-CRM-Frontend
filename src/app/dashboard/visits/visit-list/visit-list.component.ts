@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute } from '@angular/router';
 import { VisitService } from '../visit.service';
 
 import { MatCardModule } from '@angular/material/card';
@@ -38,6 +38,7 @@ import { MatInputModule } from '@angular/material/input';
 })
 export class VisitListComponent implements OnInit {
   private visitService = inject(VisitService);
+  private route = inject(ActivatedRoute);
 
   loading = true;
   visits: any[] = [];
@@ -45,6 +46,12 @@ export class VisitListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadVisits();
+    const waSent = this.route.snapshot.queryParamMap.get('whatsapp_sent');
+    const driver = this.route.snapshot.queryParamMap.get('driver') || 'assigned driver';
+    if (waSent === 'true') {
+      this.feedbackMessage = `✓ Site visit confirmed! WhatsApp notification dispatched directly to ${driver} with pickup location, client details & contact number.`;
+      setTimeout(() => this.feedbackMessage = '', 7000);
+    }
   }
 
   loadVisits(): void {

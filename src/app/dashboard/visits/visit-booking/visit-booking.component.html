@@ -197,64 +197,10 @@
       <div class="form-footer">
         <a mat-button routerLink="/visits">Cancel</a>
         <button mat-flat-button color="primary" type="submit" [disabled]="loading">
-          <span *ngIf="!loading">Confirm Booking &amp; Trigger 4-Way Verification &rarr;</span>
-          <span *ngIf="loading">Scheduling...</span>
+          <span *ngIf="!loading">Confirm Booking &amp; Dispatch Driver &rarr;</span>
+          <span *ngIf="loading">Scheduling &amp; Dispatching WhatsApp...</span>
         </button>
       </div>
     </form>
   </mat-card>
-
-  <!-- WhatsApp Dispatch Confirmation Dialog Modal -->
-  <div class="wa-modal-backdrop" *ngIf="whatsappSuccessDispatch">
-    <div class="wa-modal-card">
-      <div class="wa-modal-header">
-        <div class="wa-modal-icon-box">
-          <mat-icon>check_circle</mat-icon>
-        </div>
-        <div class="wa-modal-title-wrap">
-          <h3 class="wa-modal-title">Site Visit Booked &amp; WhatsApp Sent!</h3>
-          <span class="wa-modal-subtitle">Trip coordinates automatically dispatched to assigned driver</span>
-        </div>
-      </div>
-
-      <div class="wa-modal-body">
-        <div class="wa-summary-box">
-          <div class="wa-summary-row">
-            <span class="lbl">Driver:</span>
-            <span class="val">{{ getSelectedDriverName() }} (+{{ whatsappSuccessDispatch.phone }})</span>
-          </div>
-          <div class="wa-summary-row">
-            <span class="lbl">Passenger:</span>
-            <span class="val">{{ getSelectedBuyerName() }}</span>
-          </div>
-          <div class="wa-summary-row">
-            <span class="lbl">Contact:</span>
-            <span class="val">{{ getSelectedBuyerPhone() }}</span>
-          </div>
-          <div class="wa-summary-row">
-            <span class="lbl">Pickup:</span>
-            <span class="val">{{ bookingData.pickup_address || 'Customer Residence' }}</span>
-          </div>
-          <div class="wa-summary-row">
-            <span class="lbl">Cab:</span>
-            <span class="val font-mono">{{ bookingData.cab_number || 'KA-01-MJ-8822' }}</span>
-          </div>
-        </div>
-
-        <div class="wa-message-preview">
-          <div class="preview-title">WhatsApp Message Content (Free API):</div>
-          <pre class="preview-text">{{ whatsappSuccessDispatch.message }}</pre>
-        </div>
-      </div>
-
-      <div class="wa-modal-footer">
-        <button mat-stroked-button type="button" (click)="proceedToVisits()" class="btn-continue-pipeline">
-          Go to Site Visits &rarr;
-        </button>
-        <button mat-flat-button color="primary" type="button" (click)="openWhatsAppLink()" class="btn-open-wa">
-          <mat-icon>chat</mat-icon> Open in WhatsApp Web / App
-        </button>
-      </div>
-    </div>
-  </div>
 </div>
