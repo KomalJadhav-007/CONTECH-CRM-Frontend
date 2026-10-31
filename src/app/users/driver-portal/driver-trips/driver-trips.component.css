@@ -326,6 +326,45 @@
   margin-top: auto;
 }
 
+.btn-trip-action {
+  width: 100%;
+  min-height: 48px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: 8px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: -0.01em;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-start-trip {
+  background: #3b50df !important;
+  color: #ffffff !important;
+}
+
+.btn-start-trip:hover {
+  background: #2e3ea8 !important;
+  box-shadow: 0 4px 14px rgba(59, 80, 223, 0.35);
+}
+
+.btn-end-trip {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+}
+
+.btn-end-trip:hover {
+  background: #b91c1c !important;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35);
+}
+
+.btn-completed-trip {
+  background: #f0fdf4 !important;
+  border: 1px solid #86efac !important;
+  color: #16a34a !important;
+}
+
 .btn-journey-action {
   width: 100%;
   background: #0f172a;

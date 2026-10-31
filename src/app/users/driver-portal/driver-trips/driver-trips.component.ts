@@ -32,7 +32,7 @@ export class DriverTripsComponent implements OnInit {
       return this.trips.filter(t => t.trip_status !== 'COMPLETED');
     }
     if (this.filterStatus === 'COMPLETED') {
-      return this.trips.filter(t => t.trip_status === 'COMPLETED' || t.trip_status === 'DROPPED_AT_SITE');
+      return this.trips.filter(t => t.trip_status === 'COMPLETED');
     }
     return this.trips;
   }
@@ -71,8 +71,8 @@ export class DriverTripsComponent implements OnInit {
         this.updatingId = null;
         if (res.success) {
           trip.trip_status = nextStatus;
-          this.statusMessage = `Journey status updated to: ${nextStatus}`;
-          setTimeout(() => this.statusMessage = '', 3000);
+          this.statusMessage = `Journey status updated: ${nextStatus === 'STARTED' ? 'Trip Started' : 'Trip Completed'}`;
+          setTimeout(() => this.statusMessage = '', 3500);
         }
       },
       error: () => {

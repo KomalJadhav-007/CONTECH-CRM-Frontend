@@ -71,7 +71,7 @@
             'stage-scheduled': trip.trip_status === 'ASSIGNED'
           }"
         >
-          {{ trip.trip_status }}
+          {{ trip.trip_status === 'STARTED' ? 'IN PROGRESS' : (trip.trip_status === 'COMPLETED' ? 'COMPLETED' : trip.trip_status) }}
         </span>
       </div>
 
@@ -111,81 +111,42 @@
         </div>
       </div>
 
-      <!-- Journey Action Button -->
+      <!-- Journey Action Button: Strictly Start Trip and End Trip -->
       <div class="journey-actions">
+        <!-- Action 1: Start Trip -->
         <button
           mat-flat-button
           color="primary"
-          class="btn-trip-action"
-          style="width: 100%; min-height: 44px; font-size: 0.95rem; font-weight: 600;"
+          class="btn-trip-action btn-start-trip"
           type="button"
           *ngIf="trip.trip_status === 'ASSIGNED'"
           [disabled]="updatingId === trip.id"
           (click)="updateStatus(trip, 'STARTED')"
         >
-          Start Trip to Buyer Location
+          <mat-icon style="margin-right: 6px;">play_arrow</mat-icon> Start Trip
         </button>
 
+        <!-- Action 2: End Trip -->
         <button
           mat-flat-button
-          color="primary"
-          class="btn-trip-action"
-          style="width: 100%; min-height: 44px; font-size: 0.95rem; font-weight: 600;"
+          class="btn-trip-action btn-end-trip"
           type="button"
-          *ngIf="trip.trip_status === 'STARTED'"
-          [disabled]="updatingId === trip.id"
-          (click)="updateStatus(trip, 'ARRIVED_PICKUP')"
-        >
-          Arrived at Buyer Location
-        </button>
-
-        <button
-          mat-flat-button
-          color="primary"
-          class="btn-trip-action"
-          style="width: 100%; min-height: 44px; font-size: 0.95rem; font-weight: 600;"
-          type="button"
-          *ngIf="trip.trip_status === 'ARRIVED_PICKUP'"
-          [disabled]="updatingId === trip.id"
-          (click)="updateStatus(trip, 'PASSENGER_ONBOARD')"
-        >
-          Passenger Onboard &amp; Heading to Site
-        </button>
-
-        <button
-          mat-flat-button
-          color="primary"
-          class="btn-trip-action"
-          style="width: 100%; min-height: 44px; font-size: 0.95rem; font-weight: 600;"
-          type="button"
-          *ngIf="trip.trip_status === 'PASSENGER_ONBOARD'"
-          [disabled]="updatingId === trip.id"
-          (click)="updateStatus(trip, 'DROPPED_AT_SITE')"
-        >
-          Dropped Buyer at Sales Gallery
-        </button>
-
-        <button
-          mat-flat-button
-          color="accent"
-          class="btn-trip-action"
-          style="width: 100%; min-height: 44px; font-size: 0.95rem; font-weight: 600;"
-          type="button"
-          *ngIf="trip.trip_status === 'DROPPED_AT_SITE'"
+          *ngIf="trip.trip_status === 'STARTED' || trip.trip_status === 'ARRIVED_PICKUP' || trip.trip_status === 'PASSENGER_ONBOARD' || trip.trip_status === 'DROPPED_AT_SITE'"
           [disabled]="updatingId === trip.id"
           (click)="updateStatus(trip, 'COMPLETED')"
         >
-          Complete Return Journey
+          <mat-icon style="margin-right: 6px;">stop</mat-icon> End Trip
         </button>
 
+        <!-- Action 3: Trip Completed Status -->
         <button
           mat-stroked-button
-          style="width: 100%; min-height: 44px; font-size: 0.95rem; font-weight: 600;"
+          class="btn-trip-action btn-completed-trip"
           type="button"
           *ngIf="trip.trip_status === 'COMPLETED'"
           disabled
         >
-          Trip Fully Completed
+          <mat-icon style="margin-right: 6px; color: #16a34a;">check_circle</mat-icon> Trip Completed
         </button>
       </div>
     </mat-card>
