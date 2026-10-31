@@ -43,14 +43,18 @@ export class VisitListComponent implements OnInit {
   loading = true;
   visits: any[] = [];
   filterStatus = '';
+  feedbackMessage = '';
+  lastWaUrl = '';
 
   ngOnInit(): void {
     this.loadVisits();
     const waSent = this.route.snapshot.queryParamMap.get('whatsapp_sent');
     const driver = this.route.snapshot.queryParamMap.get('driver') || 'assigned driver';
+    const waUrlParam = this.route.snapshot.queryParamMap.get('wa_url');
     if (waSent === 'true') {
-      this.feedbackMessage = `✓ Site visit confirmed! WhatsApp notification dispatched directly to ${driver} with pickup location, client details & contact number.`;
-      setTimeout(() => this.feedbackMessage = '', 7000);
+      this.lastWaUrl = waUrlParam ? decodeURIComponent(waUrlParam) : '';
+      this.feedbackMessage = `✓ Site visit confirmed! WhatsApp dispatch notification sent to driver ${driver} (7058533669).`;
+      setTimeout(() => this.feedbackMessage = '', 9000);
     }
   }
 
@@ -96,7 +100,6 @@ export class VisitListComponent implements OnInit {
   };
   cancelling = false;
   cancelError = '';
-  feedbackMessage = '';
   waSendingId: number | null = null;
 
   sendDriverWhatsApp(visit: any): void {

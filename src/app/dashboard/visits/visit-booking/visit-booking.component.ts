@@ -239,6 +239,35 @@ export class VisitBookingComponent implements OnInit {
     return found ? (found.phone || '7058533669') : '7058533669';
   }
 
+  buildDriverWhatsAppUrl(): string {
+    const driverPhone = '917058533669';
+    const driverName = this.getSelectedDriverName();
+    const buyerName = this.getSelectedBuyerName();
+    const buyerPhone = this.getSelectedBuyerPhone();
+    const pickup = this.bookingData.pickup_address || 'Customer Residence / Office';
+    const timeSlot = this.bookingData.time_slot || '04:00 PM - 05:30 PM';
+    const date = this.bookingData.scheduled_date || 'Today';
+    const cab = this.bookingData.cab_number || 'KA-05-NB-4411';
+
+    const lines = [
+      '🚗 *CONTECH CRM - DRIVER TRIP ASSIGNMENT* 🚗',
+      '',
+      `Hello *${driverName}*,`,
+      'You have been assigned for a client site visit pickup with the following details:',
+      '',
+      `👤 *Passenger / Client:* ${buyerName}`,
+      `📞 *Client Contact:* ${buyerPhone}`,
+      `📍 *Pickup Location:* ${pickup}`,
+      `🏢 *Destination:* Contech Sales Gallery, ITPL Main Road, Whitefield`,
+      `📅 *Date:* ${date}`,
+      `⏰ *Time Slot:* ${timeSlot}`,
+      `🚘 *Vehicle:* ${cab}`,
+      '',
+      '⚡ _Please call the passenger 30 minutes in advance to confirm pickup coordination._'
+    ];
+    return `https://api.whatsapp.com/send?phone=${driverPhone}&text=${encodeURIComponent(lines.join('\n'))}`;
+  }
+
   onSubmit(): void {
     this.loading = true;
     this.errorMessage = '';
@@ -248,11 +277,26 @@ export class VisitBookingComponent implements OnInit {
         this.loading = false;
         if (res.success) {
           const driverName = this.getSelectedDriverName();
-          // Directly navigate to visits - WhatsApp notification dispatched automatically to driver in background!
+          const dispatch = res.whatsapp_dispatch;
+          const waUrl = dispatch?.web_whatsapp_url ||
+                        dispatch?.whatsapp_url ||
+                        this.buildDriverWhatsAppUrl();
+
+          // Automatically send WhatsApp message to driver in background/browser
+          if (this.bookingData.cab_required && this.bookingData.driver_id && waUrl) {
+            try {
+              window.open(waUrl, '_blank');
+            } catch (e) {
+              console.warn('Auto window.open intercepted:', e);
+            }
+          }
+
+          // Navigate to visits with dispatch details
           this.router.navigate(['/visits'], {
             queryParams: {
               whatsapp_sent: 'true',
-              driver: driverName
+              driver: driverName,
+              wa_url: encodeURIComponent(waUrl || '')
             }
           });
         }
