@@ -263,10 +263,13 @@
     </div>
 
     <!-- Project Container Cards -->
-    <div class="project-card-container" *ngFor="let group of projectGroups">
+    <div class="project-card-container" *ngFor="let group of projectGroups; trackBy: trackByProjectId">
       <!-- Project Container Header -->
-      <div class="project-container-header">
+      <div class="project-container-header" (click)="toggleProjectCollapse(group.project.project_id || group.project.id)">
         <div class="project-header-left">
+          <button type="button" class="btn-collapse-toggle" (click)="$event.stopPropagation(); toggleProjectCollapse(group.project.project_id || group.project.id)" [matTooltip]="isProjectCollapsed(group.project.project_id || group.project.id) ? 'Expand container' : 'Collapse container'">
+            <mat-icon>{{ isProjectCollapsed(group.project.project_id || group.project.id) ? 'chevron_right' : 'expand_more' }}</mat-icon>
+          </button>
           <div class="project-icon-box">
             <mat-icon>business</mat-icon>
           </div>
@@ -303,7 +306,7 @@
       </div>
 
       <!-- Project Container Body -->
-      <div class="project-container-body">
+      <div class="project-container-body" *ngIf="!isProjectCollapsed(group.project.project_id || group.project.id)">
         <div class="table-responsive" *ngIf="group.prospects.length > 0">
           <table class="prospects-table">
             <thead>
@@ -355,9 +358,9 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let p of group.prospects" [class.editing-row]="editingBuyerId === p.id" class="prospect-row">
+              <tr *ngFor="let p of group.prospects; trackBy: trackByProspectId" [class.editing-row]="editingBuyerId == p.id" class="prospect-row">
                 <!-- Normal Mode -->
-                <ng-container *ngIf="editingBuyerId !== p.id">
+                <ng-container *ngIf="editingBuyerId != p.id">
                   <!-- Buyer Cell -->
                   <td class="col-buyer">
                     <div class="buyer-profile-cell">
@@ -370,6 +373,13 @@
                         </a>
                         <div class="buyer-sub-meta">
                           <span class="source-tag">{{ p.source }}</span>
+                          <!-- Project Dropdown Pill: Change Target Project On The Fly -->
+                          <div class="prospect-project-dropdown-pill" (click)="$event.stopPropagation()">
+                            <mat-icon class="pill-prj-icon">domain</mat-icon>
+                            <select [ngModel]="p.project_id" (change)="onProspectProjectChange(p, $event)" class="prospect-project-inline-select" title="Change target project prospect is looking for">
+                              <option *ngFor="let prj of projectsList" [value]="prj.project_id || prj.id">{{ prj.name }}</option>
+                            </select>
+                          </div>
                           <a *ngIf="p.phone" [href]="'tel:' + p.phone" class="phone-link" (click)="$event.stopPropagation()">
                             <mat-icon class="meta-icon">call</mat-icon>
                             <span>{{ p.phone }}</span>
@@ -459,7 +469,7 @@
                         mat-icon-button
                         type="button"
                         class="action-btn followup-btn"
-                        (click)="openFollowUpModal(p)"
+                        (click)="$event.stopPropagation(); openFollowUpModal(p)"
                         matTooltip="Schedule Follow-up for this Prospect"
                       >
                         <mat-icon>add_task</mat-icon>
@@ -468,7 +478,7 @@
                         mat-icon-button
                         type="button"
                         class="action-btn edit-btn"
-                        (click)="startEdit(p)"
+                        (click)="$event.stopPropagation(); startEdit(p)"
                         matTooltip="Quick Edit Prospect"
                       >
                         <mat-icon>edit</mat-icon>
@@ -478,7 +488,7 @@
                         color="warn"
                         type="button"
                         class="action-btn delete-btn"
-                        (click)="deleteBuyer(p)"
+                        (click)="$event.stopPropagation(); deleteBuyer(p)"
                         matTooltip="Delete Prospect"
                       >
                         <mat-icon>delete</mat-icon>
@@ -488,7 +498,7 @@
                 </ng-container>
 
                 <!-- Edit Mode Inside Project Container -->
-                <ng-container *ngIf="editingBuyerId === p.id">
+                <ng-container *ngIf="editingBuyerId == p.id">
                   <td class="col-buyer">
                     <input type="text" [(ngModel)]="editForm.name" class="inline-edit-input" placeholder="Full name" />
                     <input type="text" [(ngModel)]="editForm.phone" class="inline-edit-input sub-input" placeholder="Phone Number" />
@@ -607,8 +617,8 @@
                   </td>
                   <td class="col-actions text-right actions-column-cell">
                     <div class="inline-actions-box">
-                      <button mat-flat-button type="button" class="btn-save-inline" (click)="saveEdit(p)">Save</button>
-                      <button mat-stroked-button type="button" class="btn-cancel-inline" (click)="cancelEdit()">Cancel</button>
+                      <button mat-flat-button type="button" class="btn-save-inline" (click)="$event.stopPropagation(); saveEdit(p)">Save</button>
+                      <button mat-stroked-button type="button" class="btn-cancel-inline" (click)="$event.stopPropagation(); cancelEdit()">Cancel</button>
                     </div>
                   </td>
                 </ng-container>
@@ -716,7 +726,12 @@
                     </a>
                     <div class="buyer-sub-meta">
                       <span class="source-tag">{{ p.source }}</span>
-                      <span class="project-tag-pill" *ngIf="p.project_name">{{ p.project_name }}</span>
+                      <div class="prospect-project-dropdown-pill" (click)="$event.stopPropagation()">
+                        <mat-icon class="pill-prj-icon">domain</mat-icon>
+                        <select [ngModel]="p.project_id" (change)="onProspectProjectChange(p, $event)" class="prospect-project-inline-select" title="Change target project prospect is looking for">
+                          <option *ngFor="let prj of projectsList" [value]="prj.project_id || prj.id">{{ prj.name }}</option>
+                        </select>
+                      </div>
                       <a *ngIf="p.phone" [href]="'tel:' + p.phone" class="phone-link" (click)="$event.stopPropagation()">
                         <mat-icon class="meta-icon">call</mat-icon>
                         <span>{{ p.phone }}</span>
@@ -806,7 +821,7 @@
                     mat-icon-button
                     type="button"
                     class="action-btn followup-btn"
-                    (click)="openFollowUpModal(p)"
+                    (click)="$event.stopPropagation(); openFollowUpModal(p)"
                     matTooltip="Schedule Follow-up for this Prospect"
                   >
                     <mat-icon>add_task</mat-icon>
@@ -815,7 +830,7 @@
                     mat-icon-button
                     type="button"
                     class="action-btn edit-btn"
-                    (click)="startEdit(p)"
+                    (click)="$event.stopPropagation(); startEdit(p)"
                     matTooltip="Quick Edit Prospect"
                   >
                     <mat-icon>edit</mat-icon>
@@ -825,7 +840,7 @@
                     color="warn"
                     type="button"
                     class="action-btn delete-btn"
-                    (click)="deleteBuyer(p)"
+                    (click)="$event.stopPropagation(); deleteBuyer(p)"
                     matTooltip="Delete Prospect"
                   >
                     <mat-icon>delete</mat-icon>
@@ -835,7 +850,7 @@
             </ng-container>
 
             <!-- Edit Mode -->
-            <ng-container *ngIf="editingBuyerId === p.id">
+            <ng-container *ngIf="editingBuyerId == p.id">
               <td class="col-buyer">
                 <input type="text" [(ngModel)]="editForm.name" class="inline-edit-input" placeholder="Full name" />
                 <input type="text" [(ngModel)]="editForm.phone" class="inline-edit-input sub-input" placeholder="Phone Number" />
@@ -954,8 +969,8 @@
               </td>
               <td class="col-actions text-right actions-column-cell">
                 <div class="inline-actions-box">
-                  <button mat-flat-button type="button" class="btn-save-inline" (click)="saveEdit(p)">Save</button>
-                  <button mat-stroked-button type="button" class="btn-cancel-inline" (click)="cancelEdit()">Cancel</button>
+                  <button mat-flat-button type="button" class="btn-save-inline" (click)="$event.stopPropagation(); saveEdit(p)">Save</button>
+                  <button mat-stroked-button type="button" class="btn-cancel-inline" (click)="$event.stopPropagation(); cancelEdit()">Cancel</button>
                 </div>
               </td>
             </ng-container>

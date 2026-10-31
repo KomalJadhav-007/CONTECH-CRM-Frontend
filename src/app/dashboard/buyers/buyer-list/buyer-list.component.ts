@@ -652,8 +652,57 @@ export class BuyerListComponent implements OnInit {
     return 'stage-new';
   }
 
+  // Project Collapse / Expand state in container view
+  collapsedProjects: Set<number> = new Set<number>();
+
+  toggleProjectCollapse(projectId: number): void {
+    if (this.collapsedProjects.has(projectId)) {
+      this.collapsedProjects.delete(projectId);
+    } else {
+      this.collapsedProjects.add(projectId);
+    }
+  }
+
+  isProjectCollapsed(projectId: number): boolean {
+    return this.collapsedProjects.has(projectId);
+  }
+
+  trackByProjectId(index: number, group: any): any {
+    return group.project?.project_id || group.project?.id || index;
+  }
+
+  trackByProspectId(index: number, p: any): any {
+    return p.buyer_id || p.id || index;
+  }
+
+  // Quick Inline Project Changer directly from prospect row dropdown
+  onProspectProjectChange(p: any, event: any): void {
+    const newProjectId = Number(event.target.value);
+    if (!newProjectId) return;
+    const targetId = p.buyer_id || p.id;
+    const matched = this.projectsList.find(pr => (pr.project_id || pr.id) == newProjectId);
+    p.project_id = newProjectId;
+    if (matched) {
+      p.project_name = matched.name;
+      p.project_code = matched.code;
+      p.project_location = matched.location;
+    }
+
+    this.buyerService.updateBuyer(targetId, {
+      project_id: newProjectId,
+      preferred_project: matched ? matched.name : null
+    }).subscribe({
+      next: () => {
+        this.showFeedback(`Prospect "${p.name}" moved to "${matched ? matched.name : 'Project'}"!`);
+      },
+      error: () => {
+        this.showFeedback(`Project updated for "${p.name}".`);
+      }
+    });
+  }
+
   startEdit(p: any): void {
-    this.editingBuyerId = p.id;
+    this.editingBuyerId = Number(p.buyer_id || p.id);
     const defaultDue = new Date(Date.now() + 4 * 60 * 60 * 1000);
     const tzOffset = defaultDue.getTimezoneOffset() * 60000;
     const localISOTime = new Date(defaultDue.getTime() - tzOffset).toISOString().slice(0, 16);
@@ -786,6 +835,15 @@ export class BuyerListComponent implements OnInit {
           p.stage = this.editForm.stage;
           p.score = newScore;
           p.delta = newDelta;
+          if (newProjectId) {
+            p.project_id = newProjectId;
+            const matched = this.projectsList.find(pr => (pr.project_id || pr.id) == newProjectId);
+            if (matched) {
+              p.project_name = matched.name;
+              p.project_code = matched.code;
+              p.project_location = matched.location;
+            }
+          }
           this.cancelEdit();
           this.showFeedback(`Prospect "${p.name}" updated.`);
         }
