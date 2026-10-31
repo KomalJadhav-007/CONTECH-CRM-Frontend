@@ -609,6 +609,7 @@ export class BuyerListComponent implements OnInit {
     const newDelta = this.editForm.delta !== undefined && this.editForm.delta !== null ? parseInt(this.editForm.delta) : (p.delta || 5);
     const newBand = newScore >= 80 ? 'HIGH' : (newScore >= 50 ? 'MEDIUM' : 'LOW');
 
+    const targetId = p.buyer_id || p.id;
     const payload: any = {
       full_name: this.editForm.name,
       phone: this.editForm.phone,
@@ -616,10 +617,15 @@ export class BuyerListComponent implements OnInit {
       lead_status: this.editForm.stage,
       intent_score: newScore,
       intent_delta: newDelta,
-      intent_band: newBand
+      intent_band: newBand,
+      add_follow_up: !!this.editForm.add_follow_up,
+      follow_up_title: this.editForm.follow_up_title,
+      follow_up_due: this.editForm.follow_up_due,
+      follow_up_priority: this.editForm.follow_up_priority,
+      follow_up_notes: this.editForm.follow_up_notes
     };
 
-    this.buyerService.updateBuyer(p.id, payload).subscribe({
+    this.buyerService.updateBuyer(targetId, payload).subscribe({
       next: () => {
         p.name = this.editForm.name;
         p.phone = this.editForm.phone;
@@ -629,11 +635,23 @@ export class BuyerListComponent implements OnInit {
         p.delta = newDelta;
 
         if (this.editForm.add_follow_up && this.editForm.follow_up_title && this.editForm.follow_up_title.trim()) {
+          p.next_action = this.editForm.follow_up_title.trim();
+          p.sla_breached = false;
+          this.cancelEdit();
+          this.showFeedback(`Prospect "${p.name}" updated & follow-up task scheduled!`);
+        } else {
+          this.cancelEdit();
+          this.showFeedback(`Prospect "${p.name}" updated successfully.`);
+        }
+      },
+      error: () => {
+        // Fallback: If updateBuyer fails, attempt direct createTask as safety net
+        if (this.editForm.add_follow_up && this.editForm.follow_up_title && this.editForm.follow_up_title.trim()) {
           const taskPayload = {
-            buyer_id: p.id,
+            buyer_id: targetId,
             title: this.editForm.follow_up_title.trim(),
             description: this.editForm.follow_up_notes || `Follow-up scheduled from prospect edit row for ${p.name}`,
-            due_at: this.editForm.follow_up_due ? new Date(this.editForm.follow_up_due) : new Date(Date.now() + 4 * 3600 * 1000),
+            due_at: this.editForm.follow_up_due,
             priority: this.editForm.follow_up_priority || 'HIGH',
             manual_intent_score: newScore,
             manual_intent_delta: newDelta,
@@ -654,19 +672,15 @@ export class BuyerListComponent implements OnInit {
             }
           });
         } else {
+          p.name = this.editForm.name;
+          p.phone = this.editForm.phone;
+          p.bhk = this.editForm.bhk;
+          p.stage = this.editForm.stage;
+          p.score = newScore;
+          p.delta = newDelta;
           this.cancelEdit();
-          this.showFeedback(`Prospect "${p.name}" updated successfully.`);
+          this.showFeedback(`Prospect "${p.name}" updated.`);
         }
-      },
-      error: () => {
-        p.name = this.editForm.name;
-        p.phone = this.editForm.phone;
-        p.bhk = this.editForm.bhk;
-        p.stage = this.editForm.stage;
-        p.score = newScore;
-        p.delta = newDelta;
-        this.cancelEdit();
-        this.showFeedback(`Prospect "${p.name}" updated.`);
       }
     });
   }
