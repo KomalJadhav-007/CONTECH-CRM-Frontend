@@ -635,10 +635,30 @@ export class BuyerListComponent implements OnInit {
         p.delta = newDelta;
 
         if (this.editForm.add_follow_up && this.editForm.follow_up_title && this.editForm.follow_up_title.trim()) {
-          p.next_action = this.editForm.follow_up_title.trim();
-          p.sla_breached = false;
-          this.cancelEdit();
-          this.showFeedback(`Prospect "${p.name}" updated & follow-up task scheduled!`);
+          const taskPayload = {
+            buyer_id: targetId,
+            title: this.editForm.follow_up_title.trim(),
+            description: this.editForm.follow_up_notes || `Follow-up scheduled from prospect edit row for ${p.name}`,
+            due_at: this.editForm.follow_up_due,
+            priority: this.editForm.follow_up_priority || 'HIGH',
+            manual_intent_score: newScore,
+            manual_intent_delta: newDelta,
+            manual_intent_band: newBand
+          };
+
+          this.taskService.createTask(taskPayload).subscribe({
+            next: () => {
+              p.next_action = this.editForm.follow_up_title.trim();
+              p.sla_breached = false;
+              this.cancelEdit();
+              this.showFeedback(`Prospect "${p.name}" updated & follow-up task scheduled in SLA Engine!`);
+            },
+            error: () => {
+              p.next_action = this.editForm.follow_up_title.trim();
+              this.cancelEdit();
+              this.showFeedback(`Prospect "${p.name}" updated.`);
+            }
+          });
         } else {
           this.cancelEdit();
           this.showFeedback(`Prospect "${p.name}" updated successfully.`);

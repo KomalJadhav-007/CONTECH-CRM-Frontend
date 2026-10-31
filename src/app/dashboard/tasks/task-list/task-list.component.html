@@ -75,15 +75,20 @@
           <tr *ngFor="let task of tasks">
             <td>
               <div class="task-title">{{ task.title }}</div>
-              <div class="task-desc">{{ task.description }}</div>
+              <div class="task-desc" *ngIf="task.description">{{ task.description }}</div>
             </td>
             <td>
               <div class="buyer-name" *ngIf="task.buyer">
                 <a [routerLink]="['/buyers', task.buyer_id]" class="buyer-link">{{ task.buyer.full_name }}</a>
               </div>
-              <div class="buyer-contact">{{ task.buyer?.preferred_bhk }} &middot; Max ₹{{ task.buyer?.budget_max_lacs }}L</div>
+              <div class="buyer-name" *ngIf="!task.buyer">
+                <span style="color: #64748b; font-style: italic;">General Prospect Follow-up</span>
+              </div>
+              <div class="buyer-contact" *ngIf="task.buyer">
+                {{ task.buyer.preferred_bhk || 'Flexible BHK' }} &middot; Max ₹{{ task.buyer.budget_max_lacs || '150' }}L
+              </div>
               <!-- Manual Intent Badge matching Image 2 -->
-              <div class="intent-badge-row" *ngIf="task.buyer?.intent_score !== undefined">
+              <div class="intent-badge-row" *ngIf="task.buyer && task.buyer.intent_score !== undefined && task.buyer.intent_score !== null">
                 <div class="score-badge-exact" [ngClass]="(task.buyer.intent_score >= 80) ? 'badge-high' : ((task.buyer.intent_score >= 50) ? 'badge-med' : 'badge-low')">
                   <span class="score-number">{{ task.buyer.intent_score }}</span>
                   <span class="score-delta-symbol">{{ (task.buyer.intent_delta !== undefined ? task.buyer.intent_delta : 5) >= 0 ? '▲' : '▼' }}</span>
@@ -108,7 +113,7 @@
             <td>
               <mat-form-field appearance="outline" style="width: 120px; margin-bottom: -1.25em;">
                 <mat-select
-                  [ngModel]="task.priority"
+                  [ngModel]="task.priority || 'HIGH'"
                   (ngModelChange)="updateTaskPriority(task, $event)"
                 >
                   <mat-option value="CRITICAL">CRITICAL</mat-option>
@@ -125,7 +130,7 @@
             </td>
             <td>
               <span class="stage-badge" [ngClass]="task.status === 'COMPLETED' ? 'stage-completed' : 'stage-pending'">
-                {{ task.status }}
+                {{ task.status || 'PENDING' }}
               </span>
             </td>
             <td class="text-right actions-cell">
@@ -143,6 +148,7 @@
                   mat-icon-button
                   color="warn"
                   type="button"
+                  class="btn-task-delete"
                   (click)="deleteTask(task)"
                   matTooltip="Delete task from database"
                 >

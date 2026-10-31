@@ -692,3 +692,19 @@
 .btn-confirm:hover {
   background: #1e293b;
 }
+
+.btn-task-delete {
+  color: #ef4444 !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.btn-task-delete mat-icon {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  line-height: 18px !important;
+}
