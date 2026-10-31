@@ -608,14 +608,88 @@
             </div>
           </div>
 
-          <!-- SECTION 4: Customizable Countdown Follow-up SLA (UC-06) -->
+          <!-- SECTION 4: Buyer Intent Score Assessment (Manual Override) -->
+          <div class="form-section">
+            <div class="section-header">
+              <div class="section-icon-wrap section-icon-emerald">
+                <mat-icon>trending_up</mat-icon>
+              </div>
+              <div class="section-meta">
+                <h2 class="section-heading">4. Manual Buyer Intent Assessment (Not Automated)</h2>
+                <p class="section-subheading">Every site visit requires a manual intent assessment &amp; delta score entered directly by the sales executive</p>
+              </div>
+            </div>
+
+            <div class="manual-intent-box">
+              <div class="intent-box-header">
+                <div>
+                  <strong style="color: #0f172a; font-size: 0.95rem;">Assessed Buyer Intent Score</strong>
+                  <p style="margin: 0.2rem 0 0; font-size: 0.78rem; color: #64748b;">
+                    Manually decide the intent score based on this physical walkthrough observation (not machine-automated).
+                  </p>
+                </div>
+
+                <!-- Exact live preview badge matching Image 2 -->
+                <div class="intent-badge-preview">
+                  <span style="font-size: 0.75rem; font-weight: 600; color: #64748b;">Live Intent Badge:</span>
+                  <div class="score-badge-exact" [ngClass]="discoveryData.manual_intent_score >= 80 ? 'badge-high' : (discoveryData.manual_intent_score >= 50 ? 'badge-med' : 'badge-low')">
+                    <span class="score-number">{{ discoveryData.manual_intent_score }}</span>
+                    <span class="score-delta-symbol">{{ discoveryData.manual_intent_delta >= 0 ? '▲' : '▼' }}</span>
+                    <span class="score-delta-val">{{ discoveryData.manual_intent_delta >= 0 ? discoveryData.manual_intent_delta : -discoveryData.manual_intent_delta }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-grid-2" style="margin-top: 1rem;">
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Manual Intent Score (0 - 100)</mat-label>
+                  <mat-icon matPrefix class="field-icon">score</mat-icon>
+                  <input
+                    matInput
+                    type="number"
+                    min="0"
+                    max="100"
+                    [(ngModel)]="discoveryData.manual_intent_score"
+                    name="manual_intent_score"
+                    placeholder="95"
+                  />
+                  <mat-hint>Evaluated buyer buying intent score (e.g. 95 for very high, 75 for qualified)</mat-hint>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Intent Delta Score (&plusmn;)</mat-label>
+                  <mat-icon matPrefix class="field-icon">change_circle</mat-icon>
+                  <input
+                    matInput
+                    type="number"
+                    [(ngModel)]="discoveryData.manual_intent_delta"
+                    name="manual_intent_delta"
+                    placeholder="5"
+                  />
+                  <mat-hint>Score change indicator from prior touchpoint (e.g. +5 or -5)</mat-hint>
+                </mat-form-field>
+              </div>
+
+              <!-- Quick Presets -->
+              <div class="intent-presets-row" style="margin-top: 0.5rem;">
+                <span class="preset-label">Quick Presets:</span>
+                <button type="button" class="preset-btn" (click)="setManualIntentPreset(95, 5)">95 (Very High ▲ 5)</button>
+                <button type="button" class="preset-btn" (click)="setManualIntentPreset(90, 4)">90 (High ▲ 4)</button>
+                <button type="button" class="preset-btn" (click)="setManualIntentPreset(75, 2)">75 (Warm ▲ 2)</button>
+                <button type="button" class="preset-btn" (click)="setManualIntentPreset(60, 0)">60 (Neutral)</button>
+                <button type="button" class="preset-btn" (click)="setManualIntentPreset(40, -5)">40 (Cooling ▼ 5)</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 5: Customizable Countdown Follow-up SLA (UC-06) -->
           <div class="form-section">
             <div class="section-header">
               <div class="section-icon-wrap section-icon-violet">
                 <mat-icon>timer</mat-icon>
               </div>
               <div class="section-meta">
-                <h2 class="section-heading">4. Customizable Countdown Follow-up SLA (UC-06)</h2>
+                <h2 class="section-heading">5. Customizable Countdown Follow-up SLA (UC-06)</h2>
                 <p class="section-subheading">Configure customized follow-up timeline and client breach timer</p>
               </div>
             </div>

@@ -3,13 +3,12 @@
   <div class="dossier-header">
     <div class="header-left">
       <div class="header-badges">
-        <span class="badge-alert-pill" [ngClass]="{
-          'badge-alert-pill': buyer.intent_urgency === 'HIGH' || buyer.intent_band === 'VERY_HIGH_INTENT',
-          'badge-warning-pill': buyer.intent_urgency === 'MEDIUM' || buyer.intent_band === 'HIGH_INTENT',
-          'badge-neutral-pill': buyer.intent_urgency === 'LOW' || buyer.intent_band === 'EMERGING' || buyer.intent_band === 'LOW_INTENT'
-        }">
-          SCORE {{ buyer.intent_score || 85 }}/100 &middot; {{ buyer.intent_band ? buyer.intent_band.replace('_', ' ') : (buyer.intent_urgency + ' URGENCY') }}
-        </span>
+        <!-- Exact Score Badge matching Image 2 -->
+        <div class="score-badge-exact" [ngClass]="(buyer.intent_score || 95) >= 80 ? 'badge-high' : ((buyer.intent_score || 95) >= 50 ? 'badge-med' : 'badge-low')">
+          <span class="score-number">{{ buyer.intent_score || 95 }}</span>
+          <span class="score-delta-symbol">{{ (buyer.intent_delta !== undefined && buyer.intent_delta !== null ? buyer.intent_delta : 5) >= 0 ? '▲' : '▼' }}</span>
+          <span class="score-delta-val">{{ (buyer.intent_delta !== undefined && buyer.intent_delta !== null ? buyer.intent_delta : 5) >= 0 ? (buyer.intent_delta !== undefined && buyer.intent_delta !== null ? buyer.intent_delta : 5) : -(buyer.intent_delta) }}</span>
+        </div>
         <span class="badge-cyan-pill">{{ buyer.lead_status }}</span>
         <span *ngIf="buyer.duplicate_resolution_notes" class="badge-warning-pill" title="Permitted Duplicate / Co-Applicant">
           Co-Applicant Linked
@@ -38,12 +37,13 @@
       <mat-card appearance="outlined" class="detail-panel-card scoring-card">
         <div class="panel-header">
           <div>
-            <h2 class="panel-title">4-Dimension Intent Scoring Engine</h2>
-            <p class="panel-subtitle">Algorithmic intent breakdown weighted across 100 points</p>
+            <h2 class="panel-title">Buyer Intent Scoring</h2>
+            <p class="panel-subtitle">Manually decided and tracked per follow-up &amp; site visit</p>
           </div>
-          <div class="score-pill-large">
-            <span class="score-number">{{ buyer.intent_score || 85 }}</span>
-            <span class="score-max">/100</span>
+          <div class="score-badge-exact" [ngClass]="(buyer.intent_score || 95) >= 80 ? 'badge-high' : ((buyer.intent_score || 95) >= 50 ? 'badge-med' : 'badge-low')">
+            <span class="score-number">{{ buyer.intent_score || 95 }}</span>
+            <span class="score-delta-symbol">{{ (buyer.intent_delta !== undefined && buyer.intent_delta !== null ? buyer.intent_delta : 5) >= 0 ? '▲' : '▼' }}</span>
+            <span class="score-delta-val">{{ (buyer.intent_delta !== undefined && buyer.intent_delta !== null ? buyer.intent_delta : 5) >= 0 ? (buyer.intent_delta !== undefined && buyer.intent_delta !== null ? buyer.intent_delta : 5) : -(buyer.intent_delta) }}</span>
           </div>
         </div>
 
@@ -260,7 +260,14 @@
 
             <!-- In-Visit Discovery & Shortlisted Units -->
             <div *ngIf="visit.discovery" class="discovery-box">
-              <div class="discovery-title">In-Visit Shortlist &amp; Objections:</div>
+              <div class="discovery-title" style="display: flex; justify-content: space-between; align-items: center;">
+                <span>In-Visit Shortlist &amp; Objections:</span>
+                <div *ngIf="visit.discovery.manual_intent_score" class="score-badge-exact" [ngClass]="visit.discovery.manual_intent_score >= 80 ? 'badge-high' : 'badge-med'">
+                  <span class="score-number">{{ visit.discovery.manual_intent_score }}</span>
+                  <span class="score-delta-symbol">{{ (visit.discovery.manual_intent_delta || 5) >= 0 ? '▲' : '▼' }}</span>
+                  <span class="score-delta-val">{{ (visit.discovery.manual_intent_delta || 5) >= 0 ? (visit.discovery.manual_intent_delta || 5) : -(visit.discovery.manual_intent_delta) }}</span>
+                </div>
+              </div>
               <div class="discovery-item">
                 <span class="label">Shortlisted Unit:</span>
                 <span>{{ visit.discovery.shortlisted_units || 'None' }}</span>
@@ -356,13 +363,23 @@
           <div *ngFor="let task of buyer.tasks" class="task-card">
             <div class="task-header">
               <strong>{{ task.title }}</strong>
-              <span class="status-pill" [class.yes]="task.status === 'COMPLETED'" [class.pending]="task.status !== 'COMPLETED'">
-                {{ task.status }}
-              </span>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <div class="score-badge-exact" *ngIf="task.manual_intent_score" [ngClass]="task.manual_intent_score >= 80 ? 'badge-high' : (task.manual_intent_score >= 50 ? 'badge-med' : 'badge-low')">
+                  <span class="score-number">{{ task.manual_intent_score }}</span>
+                  <span class="score-delta-symbol">{{ (task.manual_intent_delta || 5) >= 0 ? '▲' : '▼' }}</span>
+                  <span class="score-delta-val">{{ (task.manual_intent_delta || 5) >= 0 ? (task.manual_intent_delta || 5) : -(task.manual_intent_delta) }}</span>
+                </div>
+                <span class="status-pill" [class.yes]="task.status === 'COMPLETED'" [class.pending]="task.status !== 'COMPLETED'">
+                  {{ task.status }}
+                </span>
+              </div>
             </div>
             <p class="task-desc">{{ task.description }}</p>
+            <div *ngIf="task.outcome_notes" style="margin: 0.4rem 0; font-size: 0.78rem; color: #166534; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 0.35rem 0.65rem; border-radius: 6px;">
+              <strong>Outcome ({{ task.outcome_status || 'Completed' }}):</strong> {{ task.outcome_notes }}
+            </div>
             <div class="task-footer">
-              <span>Assigned: {{ task.assignedUser?.name }}</span>
+              <span>Assigned: {{ task.assignedUser?.name || 'Assigned Rep' }}</span>
               <span class="task-due">Due: {{ task.due_at | date:'short' }}</span>
             </div>
           </div>

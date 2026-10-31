@@ -860,3 +860,59 @@
   font-weight: 600;
   margin-bottom: 1rem;
 }
+
+/* Exact Score Badge matching Image 2 */
+.score-badge-exact {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #f0fdf4;
+  border: 1.5px solid #86efac;
+  border-radius: 8px;
+  padding: 3px 10px;
+  box-shadow: 0 1px 2px rgba(16, 185, 129, 0.05);
+}
+
+.score-badge-exact .score-number {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #047857;
+  line-height: 1;
+}
+
+.score-badge-exact .score-delta-symbol {
+  font-size: 0.8rem;
+  color: #059669;
+  line-height: 1;
+}
+
+.score-badge-exact .score-delta-val {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #047857;
+  line-height: 1;
+}
+
+.score-badge-exact.badge-med {
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+.score-badge-exact.badge-med .score-number,
+.score-badge-exact.badge-med .score-delta-val {
+  color: #b45309;
+}
+.score-badge-exact.badge-med .score-delta-symbol {
+  color: #d97706;
+}
+
+.score-badge-exact.badge-low {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+.score-badge-exact.badge-low .score-number,
+.score-badge-exact.badge-low .score-delta-val {
+  color: #dc2626;
+}
+.score-badge-exact.badge-low .score-delta-symbol {
+  color: #ef4444;
+}

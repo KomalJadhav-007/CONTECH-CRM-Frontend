@@ -624,6 +624,47 @@ Scan Pipeline Again
             placeholder="Document what the customer discussed, floor preference, budget, objections..."></textarea>
         </mat-form-field>
 
+        <!-- Live Manual Intent Score Section matching Image 2 -->
+        <div class="manual-intent-panel-alerts">
+          <div class="intent-panel-header-alerts">
+            <div>
+              <strong style="color: #0f172a; font-size: 0.9rem;">Buyer Intent Score (Manual Assessment)</strong>
+              <p style="margin: 0.2rem 0 0; font-size: 0.74rem; color: #64748b;">
+                Manually entered for this follow-up touchpoint (not calculated automatically).
+              </p>
+            </div>
+            <!-- Live Preview matching Image 2 -->
+            <div class="intent-preview-wrapper-alerts">
+              <span style="font-size: 0.75rem; font-weight: 600; color: #64748b;">Live Badge:</span>
+              <div class="score-badge-exact" [ngClass]="completeForm.manual_intent_score >= 80 ? 'badge-high' : (completeForm.manual_intent_score >= 50 ? 'badge-med' : 'badge-low')">
+                <span class="score-number">{{ completeForm.manual_intent_score }}</span>
+                <span class="score-delta-symbol">{{ completeForm.manual_intent_delta >= 0 ? '▲' : '▼' }}</span>
+                <span class="score-delta-val">{{ completeForm.manual_intent_delta >= 0 ? completeForm.manual_intent_delta : -completeForm.manual_intent_delta }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.75rem;">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Manual Intent Score (0 - 100)</mat-label>
+              <input matInput type="number" min="0" max="100" [(ngModel)]="completeForm.manual_intent_score" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Intent Delta Score (&plusmn;)</mat-label>
+              <input matInput type="number" [(ngModel)]="completeForm.manual_intent_delta" placeholder="+5" />
+            </mat-form-field>
+          </div>
+
+          <div class="intent-presets-row-alerts">
+            <span class="preset-label-alerts">Quick Presets:</span>
+            <button type="button" class="preset-btn-alerts" (click)="setManualIntentPreset(95, 5)">95 (Very High ▲ 5)</button>
+            <button type="button" class="preset-btn-alerts" (click)="setManualIntentPreset(90, 4)">90 (High ▲ 4)</button>
+            <button type="button" class="preset-btn-alerts" (click)="setManualIntentPreset(75, 2)">75 (Warm ▲ 2)</button>
+            <button type="button" class="preset-btn-alerts" (click)="setManualIntentPreset(60, 0)">60 (Neutral)</button>
+            <button type="button" class="preset-btn-alerts" (click)="setManualIntentPreset(40, -5)">40 (Cooling ▼ 5)</button>
+          </div>
+        </div>
+
         <div class="schedule-next-toggle-box">
           <label class="toggle-label">
             <input type="checkbox" [(ngModel)]="completeForm.schedule_next" class="custom-checkbox" />

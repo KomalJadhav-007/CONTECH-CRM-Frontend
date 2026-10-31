@@ -126,7 +126,12 @@ export class VisitDiscoveryComponent implements OnInit {
     // Section 4: Customizable Countdown SLA
     recommended_action: 'Offer 10:90 subvention scheme before 5 PM today.',
     follow_up_title: 'Dispatch customized milestone pricing draft for Unit 402',
-    follow_up_sla_hours: 4
+    follow_up_sla_hours: 4,
+
+    // Manual Intent Score Assessment matching Image 2
+    manual_intent_score: 95,
+    manual_intent_delta: 5,
+    manual_intent_band: 'HIGH'
   };
 
   slaPresets = [
@@ -140,6 +145,12 @@ export class VisitDiscoveryComponent implements OnInit {
 
   setSlaHours(hours: number): void {
     this.discoveryData.follow_up_sla_hours = hours;
+  }
+
+  setManualIntentPreset(score: number, delta: number): void {
+    this.discoveryData.manual_intent_score = score;
+    this.discoveryData.manual_intent_delta = delta;
+    this.discoveryData.manual_intent_band = score >= 80 ? 'HIGH' : (score >= 50 ? 'MEDIUM' : 'LOW');
   }
 
   getCalculatedDeadline(): string {
@@ -181,6 +192,11 @@ export class VisitDiscoveryComponent implements OnInit {
           this.visit = res.visit;
           if (this.visit.discovery) {
             Object.assign(this.discoveryData, this.visit.discovery);
+          }
+          if (this.visit.buyer?.intent_score !== undefined && !this.visit.discovery?.manual_intent_score) {
+            this.discoveryData.manual_intent_score = this.visit.buyer.intent_score;
+            this.discoveryData.manual_intent_delta = this.visit.buyer.intent_delta !== undefined ? this.visit.buyer.intent_delta : 5;
+            this.discoveryData.manual_intent_band = this.visit.buyer.intent_band || (this.discoveryData.manual_intent_score >= 80 ? 'HIGH' : 'MEDIUM');
           }
           this.populateProjectUnits();
         }

@@ -14,8 +14,8 @@ export class TaskService {
     return this.http.get<any>(this.apiUrl, { params });
   }
 
-  completeTask(id: number): Observable<any> {
-    return this.http.patch<any>(`${this.apiUrl}/${id}/complete`, {});
+  completeTask(id: number, payload: any = {}): Observable<any> {
+    return this.http.patch<any>(`${this.apiUrl}/${id}/complete`, payload);
   }
 
   createTask(data: any): Observable<any> {

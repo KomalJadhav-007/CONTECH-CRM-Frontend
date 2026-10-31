@@ -87,12 +87,15 @@ export class AlertsComponent implements OnInit {
   };
 
   showCompleteModal = false;
-  completeForm = {
+  completeForm: any = {
     task_id: 0,
     task_title: '',
     buyer_name: '',
     outcome_status: 'Followed Up - Discussion Ongoing',
     outcome_notes: '',
+    manual_intent_score: 95,
+    manual_intent_delta: 5,
+    manual_intent_band: 'HIGH',
     schedule_next: true,
     next_title: 'Next Follow-up Call',
     next_date: ''
@@ -280,11 +283,20 @@ export class AlertsComponent implements OnInit {
       buyer_name: task.buyer ? task.buyer.full_name : 'Prospect',
       outcome_status: 'Followed Up - Discussion Ongoing',
       outcome_notes: '',
+      manual_intent_score: task.buyer?.intent_score !== undefined ? task.buyer.intent_score : 95,
+      manual_intent_delta: task.buyer?.intent_delta !== undefined ? task.buyer.intent_delta : 5,
+      manual_intent_band: (task.buyer?.intent_score || 95) >= 80 ? 'HIGH' : 'MEDIUM',
       schedule_next: true,
       next_title: `Next Touchpoint with ${task.buyer ? task.buyer.full_name : 'Buyer'}`,
       next_date: tomorrow.toISOString().slice(0, 16)
     };
     this.showCompleteModal = true;
+  }
+
+  setManualIntentPreset(score: number, delta: number): void {
+    this.completeForm.manual_intent_score = score;
+    this.completeForm.manual_intent_delta = delta;
+    this.completeForm.manual_intent_band = score >= 80 ? 'HIGH' : (score >= 50 ? 'MEDIUM' : 'LOW');
   }
 
   closeCompleteModal(): void {
@@ -297,7 +309,11 @@ export class AlertsComponent implements OnInit {
 
     this.alertService.completeFollowUp({
       task_id: this.completeForm.task_id,
+      outcome_status: this.completeForm.outcome_status,
       outcome_notes: fullNotes,
+      manual_intent_score: this.completeForm.manual_intent_score,
+      manual_intent_delta: this.completeForm.manual_intent_delta,
+      manual_intent_band: this.completeForm.manual_intent_band,
       next_follow_up_date: this.completeForm.schedule_next ? this.completeForm.next_date : undefined,
       next_follow_up_title: this.completeForm.schedule_next ? this.completeForm.next_title : undefined
     }).subscribe({

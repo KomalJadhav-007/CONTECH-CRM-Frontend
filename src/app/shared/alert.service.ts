@@ -49,7 +49,11 @@ export class AlertService {
 
   completeFollowUp(payload: {
     task_id: number;
+    outcome_status?: string;
     outcome_notes?: string;
+    manual_intent_score?: number;
+    manual_intent_delta?: number;
+    manual_intent_band?: string;
     next_follow_up_date?: string;
     next_follow_up_title?: string;
   }): Observable<any> {

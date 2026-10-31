@@ -315,10 +315,10 @@
 
               <!-- Score Cell -->
               <td class="col-score">
-                <div class="score-cell-container" [matTooltip]="'Buyer Intent Score: ' + p.score + '/100 (4-dimension AI model)'">
+                <div class="score-cell-container" [matTooltip]="'Buyer Intent Score: ' + p.score + '/100 (Manually Assessed)'">
                   <div class="score-badge" [ngClass]="getScoreClass(p.score)">
                     <span class="score-number">{{ p.score }}</span>
-                    <span class="score-delta-text" *ngIf="p.delta">&Delta; +{{ p.delta }}</span>
+                    <span class="score-delta-text">{{ (p.delta !== undefined && p.delta !== null ? p.delta : 5) >= 0 ? '▲' : '▼' }} {{ (p.delta !== undefined && p.delta !== null ? p.delta : 5) >= 0 ? (p.delta !== undefined && p.delta !== null ? p.delta : 5) : -(p.delta) }}</span>
                   </div>
                   <div class="score-micro-bar">
                     <div class="bar-fill" [style.width.%]="p.score" [ngClass]="getScoreBarClass(p.score)"></div>

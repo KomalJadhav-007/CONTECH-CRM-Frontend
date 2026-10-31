@@ -12,6 +12,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatInputModule } from '@angular/material/input';
 
 @Component({
   selector: 'app-task-list',
@@ -27,7 +28,8 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
     MatSelectModule,
     MatIconModule,
     MatTooltipModule,
-    MatProgressBarModule
+    MatProgressBarModule,
+    MatInputModule
   ],
   templateUrl: './task-list.component.html',
   styleUrl: './task-list.component.css'
@@ -39,6 +41,20 @@ export class TaskListComponent implements OnInit {
   feedbackMessage = '';
   tasks: any[] = [];
   filterStatus = 'PENDING';
+
+  completeTaskModalOpen = false;
+  selectedTaskForCompletion: any = null;
+  completingTask = false;
+
+  outcome_status = 'Call Connected - High Interest';
+  outcome_notes = '';
+  manual_intent_score = 95;
+  manual_intent_delta = 5;
+  manual_intent_band = 'HIGH';
+  schedule_next_follow_up = true;
+  next_follow_up_title = '';
+  next_follow_up_date = '';
+  next_follow_up_priority = 'HIGH';
 
   ngOnInit(): void {
     this.loadTasks();
@@ -63,14 +79,63 @@ export class TaskListComponent implements OnInit {
   }
 
   completeTask(task: any): void {
-    const id = task.follow_up_task_id || task.id;
-    this.taskService.completeTask(id).subscribe({
+    this.openCompleteModal(task);
+  }
+
+  openCompleteModal(task: any): void {
+    this.selectedTaskForCompletion = task;
+    this.outcome_status = 'Call Connected - High Interest';
+    this.outcome_notes = '';
+    this.manual_intent_score = task.buyer?.intent_score !== undefined && task.buyer?.intent_score !== null ? task.buyer.intent_score : 95;
+    this.manual_intent_delta = task.buyer?.intent_delta !== undefined && task.buyer?.intent_delta !== null ? task.buyer.intent_delta : 5;
+    this.manual_intent_band = this.manual_intent_score >= 80 ? 'HIGH' : (this.manual_intent_score >= 50 ? 'MEDIUM' : 'LOW');
+    this.schedule_next_follow_up = true;
+    this.next_follow_up_title = `Next Follow-up Call for ${task.buyer?.full_name || 'Prospect'}`;
+    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    tomorrow.setHours(11, 0, 0, 0);
+    this.next_follow_up_date = tomorrow.toISOString().slice(0, 16);
+    this.next_follow_up_priority = task.priority || 'HIGH';
+    this.completeTaskModalOpen = true;
+  }
+
+  closeCompleteModal(): void {
+    this.completeTaskModalOpen = false;
+    this.selectedTaskForCompletion = null;
+  }
+
+  setManualIntentPreset(score: number, delta: number): void {
+    this.manual_intent_score = score;
+    this.manual_intent_delta = delta;
+    this.manual_intent_band = score >= 80 ? 'HIGH' : (score >= 50 ? 'MEDIUM' : 'LOW');
+  }
+
+  submitTaskCompletion(): void {
+    if (!this.selectedTaskForCompletion) return;
+    this.completingTask = true;
+    const id = this.selectedTaskForCompletion.follow_up_task_id || this.selectedTaskForCompletion.id;
+    const payload = {
+      outcome_status: this.outcome_status,
+      outcome_notes: this.outcome_notes,
+      manual_intent_score: this.manual_intent_score,
+      manual_intent_delta: this.manual_intent_delta,
+      manual_intent_band: this.manual_intent_band,
+      next_follow_up_date: this.schedule_next_follow_up && this.next_follow_up_date ? this.next_follow_up_date : null,
+      next_follow_up_title: this.schedule_next_follow_up && this.next_follow_up_title ? this.next_follow_up_title : null,
+      next_follow_up_priority: this.next_follow_up_priority
+    };
+
+    this.taskService.completeTask(id, payload).subscribe({
       next: (res) => {
+        this.completingTask = false;
         if (res.success) {
-          task.status = 'COMPLETED';
-          this.showFeedback(`Task "${task.title}" completed in database.`);
+          this.closeCompleteModal();
+          this.showFeedback(`Follow-up completed & manual intent score recorded.`);
           this.loadTasks();
         }
+      },
+      error: (err) => {
+        this.completingTask = false;
+        alert('Failed to complete follow-up: ' + (err.error?.message || err.message));
       }
     });
   }

@@ -79,6 +79,14 @@
                 <a [routerLink]="['/buyers', task.buyer_id]" class="buyer-link">{{ task.buyer.full_name }}</a>
               </div>
               <div class="buyer-contact">{{ task.buyer?.preferred_bhk }} &middot; Max ₹{{ task.buyer?.budget_max_lacs }}L</div>
+              <!-- Manual Intent Badge matching Image 2 -->
+              <div class="intent-badge-row" *ngIf="task.buyer?.intent_score !== undefined">
+                <div class="score-badge-exact" [ngClass]="(task.buyer.intent_score >= 80) ? 'badge-high' : ((task.buyer.intent_score >= 50) ? 'badge-med' : 'badge-low')">
+                  <span class="score-number">{{ task.buyer.intent_score }}</span>
+                  <span class="score-delta-symbol">{{ (task.buyer.intent_delta !== undefined ? task.buyer.intent_delta : 5) >= 0 ? '▲' : '▼' }}</span>
+                  <span class="score-delta-val">{{ (task.buyer.intent_delta !== undefined ? task.buyer.intent_delta : 5) >= 0 ? (task.buyer.intent_delta !== undefined ? task.buyer.intent_delta : 5) : -(task.buyer.intent_delta) }}</span>
+                </div>
+              </div>
             </td>
             <td>
               <div *ngIf="task.status === 'PENDING'">
@@ -150,4 +158,145 @@
       </table>
     </div>
   </mat-card>
+
+  <!-- Modal: Complete Follow-Up & Set Manual Intent -->
+  <div class="modal-backdrop" *ngIf="completeTaskModalOpen" (click)="closeCompleteModal()">
+    <div class="modal-dialog-custom" (click)="$event.stopPropagation()">
+      <div class="modal-header-custom">
+        <div>
+          <h2 class="modal-title-custom">Complete Follow-up &amp; Record Intent</h2>
+          <p class="modal-subtitle-custom">
+            Record outcome for <strong>{{ selectedTaskForCompletion?.buyer?.full_name || 'Prospect' }}</strong> and update manual intent score.
+          </p>
+        </div>
+        <button type="button" class="close-x-btn" (click)="closeCompleteModal()">&times;</button>
+      </div>
+
+      <div class="modal-body-custom">
+        <!-- Task context card -->
+        <div class="task-context-box">
+          <div class="context-label">FOLLOW-UP REQUIREMENT:</div>
+          <div class="context-title">{{ selectedTaskForCompletion?.title }}</div>
+          <div class="context-desc" *ngIf="selectedTaskForCompletion?.description">{{ selectedTaskForCompletion?.description }}</div>
+        </div>
+
+        <!-- Outcome Status -->
+        <div class="form-group-custom">
+          <label class="form-label-custom">Follow-up Outcome Status <span class="required-star">*</span></label>
+          <select class="form-control-custom" [(ngModel)]="outcome_status">
+            <option value="Call Connected - High Interest">Call Connected - High Interest</option>
+            <option value="Site Visit Re-scheduled">Site Visit Re-scheduled</option>
+            <option value="Price / Budget Objection">Price / Budget Objection</option>
+            <option value="Location / Vaastu Objection">Location / Vaastu Objection</option>
+            <option value="Considering Alternative Typology">Considering Alternative Typology</option>
+            <option value="Ready for Booking Negotiation">Ready for Booking Negotiation</option>
+            <option value="Call Not Answered / Callback Later">Call Not Answered / Callback Later</option>
+            <option value="Cold / Dropped Interest">Cold / Dropped Interest</option>
+          </select>
+        </div>
+
+        <!-- Outcome Notes -->
+        <div class="form-group-custom">
+          <label class="form-label-custom">Follow-up Discussion Notes</label>
+          <textarea
+            class="form-control-custom"
+            rows="3"
+            [(ngModel)]="outcome_notes"
+            placeholder="Enter key conversation points, objections, buyer requirements discussed..."
+          ></textarea>
+        </div>
+
+        <!-- Live Manual Intent Score Section matching Image 2 -->
+        <div class="manual-intent-panel">
+          <div class="intent-panel-header">
+            <div>
+              <div class="intent-panel-title">Buyer Intent Score (Manual Override)</div>
+              <div class="intent-panel-sub">
+                Manually assessed during this follow-up (not automated).
+              </div>
+            </div>
+            <!-- Live Preview matching Image 2 -->
+            <div class="intent-preview-wrapper">
+              <span class="preview-label">Live Intent Badge:</span>
+              <div class="score-badge-exact" [ngClass]="manual_intent_score >= 80 ? 'badge-high' : (manual_intent_score >= 50 ? 'badge-med' : 'badge-low')">
+                <span class="score-number">{{ manual_intent_score }}</span>
+                <span class="score-delta-symbol">{{ manual_intent_delta >= 0 ? '▲' : '▼' }}</span>
+                <span class="score-delta-val">{{ manual_intent_delta >= 0 ? manual_intent_delta : -manual_intent_delta }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="intent-inputs-grid">
+            <div>
+              <label class="form-label-custom">Manual Intent Score (0 - 100)</label>
+              <input
+                type="number"
+                min="0"
+                max="100"
+                class="form-control-custom"
+                [(ngModel)]="manual_intent_score"
+              />
+            </div>
+            <div>
+              <label class="form-label-custom">Intent Delta Score (&plusmn;)</label>
+              <input
+                type="number"
+                class="form-control-custom"
+                [(ngModel)]="manual_intent_delta"
+                placeholder="+5"
+              />
+            </div>
+          </div>
+
+          <!-- Quick Presets -->
+          <div class="intent-presets-row">
+            <span class="preset-label">Quick Presets:</span>
+            <button type="button" class="preset-btn" (click)="setManualIntentPreset(95, 5)">95 (Very High ▲ 5)</button>
+            <button type="button" class="preset-btn" (click)="setManualIntentPreset(90, 4)">90 (High ▲ 4)</button>
+            <button type="button" class="preset-btn" (click)="setManualIntentPreset(75, 2)">75 (Warm ▲ 2)</button>
+            <button type="button" class="preset-btn" (click)="setManualIntentPreset(60, 0)">60 (Neutral)</button>
+            <button type="button" class="preset-btn" (click)="setManualIntentPreset(40, -5)">40 (Cooling ▼ 5)</button>
+          </div>
+        </div>
+
+        <!-- Multiple Follow-ups: Schedule Next Follow-up -->
+        <div class="next-followup-panel">
+          <label class="checkbox-container">
+            <input type="checkbox" [(ngModel)]="schedule_next_follow_up" />
+            <span class="checkbox-label"><strong>Schedule Next Follow-up</strong> for this prospect (Chain Multiple Follow-ups)</span>
+          </label>
+
+          <div *ngIf="schedule_next_follow_up" class="next-followup-fields">
+            <div class="form-group-custom">
+              <label class="form-label-custom">Next Follow-up Task Title</label>
+              <input type="text" class="form-control-custom" [(ngModel)]="next_follow_up_title" placeholder="e.g. Follow-up proposal review call" />
+            </div>
+
+            <div class="intent-inputs-grid">
+              <div>
+                <label class="form-label-custom">Next Due Date &amp; Time</label>
+                <input type="datetime-local" class="form-control-custom" [(ngModel)]="next_follow_up_date" />
+              </div>
+              <div>
+                <label class="form-label-custom">Priority</label>
+                <select class="form-control-custom" [(ngModel)]="next_follow_up_priority">
+                  <option value="CRITICAL">CRITICAL</option>
+                  <option value="URGENT">URGENT</option>
+                  <option value="HIGH">HIGH</option>
+                  <option value="NORMAL">NORMAL</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer-custom">
+        <button type="button" class="btn-cancel" (click)="closeCompleteModal()" [disabled]="completingTask">Cancel</button>
+        <button type="button" class="btn-confirm" (click)="submitTaskCompletion()" [disabled]="completingTask">
+          {{ completingTask ? 'Saving...' : '✓ Complete Follow-up & Record Intent' }}
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
