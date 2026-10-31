@@ -2235,3 +2235,396 @@
 .prospect-project-inline-select:focus {
   color: #2563eb;
 }
+
+/* ======================================================== */
+/* INTERACTIVE PROJECT CARDS GRID & DOSSIER VIEW            */
+/* ======================================================== */
+.project-grid-view-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.project-grid-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.grid-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.grid-header-icon-box {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grid-header-icon-box mat-icon {
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
+}
+
+.grid-section-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.grid-section-desc {
+  margin: 2px 0 0 0;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.active-focus-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  border-radius: 9999px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.active-focus-pill .focus-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #16a34a;
+}
+
+/* Projects Cards Grid */
+.project-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 1.25rem;
+}
+
+.interactive-project-card {
+  position: relative;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05);
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.interactive-project-card:hover {
+  transform: translateY(-2px);
+  border-color: #94a3b8;
+  box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+}
+
+.interactive-project-card.is-selected {
+  border-color: #2563eb;
+  background: linear-gradient(180deg, #f8faff 0%, #ffffff 100%);
+  box-shadow: 0 10px 25px -3px rgba(37, 99, 235, 0.15), 0 4px 6px -2px rgba(37, 99, 235, 0.08);
+}
+
+.card-selection-indicator {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 10px;
+  border-bottom-left-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  letter-spacing: 0.04em;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25);
+}
+
+.card-selection-indicator .check-icon {
+  font-size: 12px;
+  width: 12px;
+  height: 12px;
+}
+
+.project-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+}
+
+.project-card-icon-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #f1f5f9;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.project-card-icon-box.icon-box-active {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.project-card-icon-box mat-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.project-card-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.project-card-body {
+  margin-bottom: 1rem;
+}
+
+.card-project-name {
+  margin: 0 0 0.35rem 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.3;
+}
+
+.card-project-location {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.card-loc-icon {
+  font-size: 15px;
+  width: 15px;
+  height: 15px;
+  color: #94a3b8;
+}
+
+.card-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+  padding: 0.65rem 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.interactive-project-card.is-selected .card-stats-row {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+}
+
+.card-stat-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.stat-box-val {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.stat-box-lbl {
+  font-size: 0.64rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+
+.card-stat-box.stat-box-emerald .stat-box-val {
+  color: #166534;
+}
+
+.card-stat-box.stat-box-amber .stat-box-val {
+  color: #b45309;
+}
+
+.card-footer-prompt {
+  border-top: 1px dashed #e2e8f0;
+  padding-top: 0.75rem;
+}
+
+.prompt-text {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
+  transition: color 0.15s ease;
+}
+
+.interactive-project-card:hover .prompt-text {
+  color: #2563eb;
+}
+
+.prompt-text-active {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.prompt-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+/* Selected Project Prospects Table Dossier */
+.selected-project-dossier-wrap {
+  margin-top: 0.5rem;
+  background: #ffffff;
+  border: 1.5px solid #bfdbfe;
+  border-radius: 14px;
+  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+}
+
+.dossier-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.2rem 1.75rem;
+  background: linear-gradient(180deg, #eff6ff 0%, #f8faff 100%);
+  border-bottom: 1.5px solid #bfdbfe;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.dossier-left-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dossier-avatar-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #2563eb;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+}
+
+.dossier-avatar-badge mat-icon {
+  font-size: 26px;
+  width: 26px;
+  height: 26px;
+}
+
+.dossier-heading-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.dossier-project-heading {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.dossier-location-text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 500;
+  margin-top: 3px;
+}
+
+.loc-mini-icon {
+  font-size: 15px;
+  width: 15px;
+  height: 15px;
+  color: #94a3b8;
+}
+
+.dossier-right-stats {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.btn-dossier-add-prospect {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.45rem 0.95rem;
+  border-radius: 8px;
+  text-decoration: none;
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
+  transition: all 0.15s ease;
+}
+
+.btn-dossier-add-prospect:hover {
+  background: #1d4ed8;
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+}
+
+.btn-dossier-add-prospect mat-icon {
+  font-size: 17px;
+  width: 17px;
+  height: 17px;
+}
+
+.dossier-empty {
+  padding: 3.5rem 1.5rem !important;
+}

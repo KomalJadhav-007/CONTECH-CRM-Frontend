@@ -58,8 +58,24 @@ export class BuyerListComponent implements OnInit {
   selectedOwner = 'all';
   selectedProject: string | number = 'all';
 
-  // View Mode: 'project_cards' displays each Project as a Card/Container with its prospects inside
-  viewMode: 'project_cards' | 'table' = 'project_cards';
+  // View Mode: 'project_grid' (Cards Grid - click card to view prospects), 'project_cards' (Accordions), 'table' (Flat)
+  viewMode: 'project_grid' | 'project_cards' | 'table' = 'project_grid';
+
+  // Active Project Card selected in 'project_grid' view
+  selectedProjectCardId: number | null = 1;
+
+  selectProjectCard(projectId: number): void {
+    this.selectedProjectCardId = projectId;
+  }
+
+  get selectedProjectGroup(): any {
+    if (!this.projectGroups || this.projectGroups.length === 0) return null;
+    if (this.selectedProjectCardId != null) {
+      const match = this.projectGroups.find(g => (g.project?.project_id || g.project?.id) == this.selectedProjectCardId);
+      if (match) return match;
+    }
+    return this.projectGroups[0] || null;
+  }
 
   // Available Projects List
   projectsList: any[] = [
