@@ -74,9 +74,10 @@
               <div class="buyer-meta">{{ b.stage }} &middot; {{ b.source }}</div>
             </td>
             <td>
-              <div class="score-pill">
-                <span class="score-num">{{ b.score }}</span>
-                <span class="score-delta">&#9650; {{ b.delta }}</span>
+              <div class="score-badge-exact" [ngClass]="b.score >= 80 ? 'badge-high' : (b.score >= 50 ? 'badge-med' : 'badge-low')">
+                <span class="score-number">{{ b.score }}</span>
+                <span class="score-delta-symbol">{{ (b.delta !== undefined ? b.delta : 5) >= 0 ? '▲' : '▼' }}</span>
+                <span class="score-delta-val">{{ (b.delta !== undefined ? b.delta : 5) >= 0 ? (b.delta !== undefined ? b.delta : 5) : -b.delta }}</span>
               </div>
             </td>
             <td class="budget-cell">{{ b.budget }}</td>
