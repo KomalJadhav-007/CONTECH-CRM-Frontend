@@ -90,6 +90,29 @@ export class VisitListComponent implements OnInit {
   cancelling = false;
   cancelError = '';
   feedbackMessage = '';
+  waSendingId: number | null = null;
+
+  sendDriverWhatsApp(visit: any): void {
+    const vId = visit.site_visit_id || visit.id;
+    this.waSendingId = vId;
+    this.visitService.notifyDriverWhatsApp(vId).subscribe({
+      next: (res) => {
+        this.waSendingId = null;
+        if (res.success && res.whatsapp_dispatch?.whatsapp_url) {
+          window.open(res.whatsapp_dispatch.whatsapp_url, '_blank');
+          this.feedbackMessage = `WhatsApp notification generated for driver ${visit.driver?.name || ''}!`;
+          setTimeout(() => this.feedbackMessage = '', 4000);
+        }
+      },
+      error: () => {
+        this.waSendingId = null;
+        const driverPhone = String(visit.driver?.phone || '7058533669').replace(/\D/g, '');
+        const clean = driverPhone.length === 10 ? '91' + driverPhone : driverPhone;
+        const msg = `🚗 CONTECH CRM - TRIP ASSIGNMENT\nPassenger: ${visit.buyer?.full_name || 'Client'}\nContact: ${visit.buyer?.phone || '7058533669'}\nPickup: ${visit.pickup_address || 'Customer Residence'}\nSite: ${visit.project?.name || 'Project Site'}\nDate: ${visit.scheduled_date} (${visit.time_slot})\nCab: ${visit.cab_number || 'KA-01-MJ-8822'}`;
+        window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`, '_blank');
+      }
+    });
+  }
 
   openCancelModal(visit: any, isNoShow: boolean = false): void {
     this.selectedVisitForCancel = visit;

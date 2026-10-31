@@ -112,6 +112,15 @@
               <div *ngIf="visit.cab_required">
                 <div class="cab-badge">{{ visit.cab_number || 'Cab Assigned' }}</div>
                 <div class="sub-text">{{ visit.driver?.name || 'Driver assigned' }}</div>
+                <button
+                  *ngIf="visit.driver_id"
+                  type="button"
+                  class="btn-send-wa-inline"
+                  (click)="sendDriverWhatsApp(visit)"
+                  [disabled]="waSendingId === (visit.site_visit_id || visit.id)"
+                  matTooltip="Dispatch WhatsApp trip coordinates to assigned driver">
+                  <mat-icon class="wa-mini-icon">chat</mat-icon> WhatsApp Driver
+                </button>
               </div>
               <span *ngIf="!visit.cab_required" class="sub-text">Self-Drive</span>
             </td>

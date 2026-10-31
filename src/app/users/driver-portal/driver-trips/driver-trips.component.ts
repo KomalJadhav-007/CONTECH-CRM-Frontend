@@ -56,6 +56,13 @@ export class DriverTripsComponent implements OnInit {
     });
   }
 
+  getPassengerWhatsAppUrl(trip: any): string {
+    const raw = String(trip.passenger_phone || '7058533669').replace(/\D/g, '');
+    const clean = raw.length === 10 ? '91' + raw : raw;
+    const msg = `Hello ${trip.passenger_name || 'Sir/Madam'}, this is your Contech CRM executive driver. I am assigned for your scheduled site visit pickup at ${trip.pickup_address || 'your location'}.`;
+    return `https://wa.me/${clean}?text=${encodeURIComponent(msg)}`;
+  }
+
   updateStatus(trip: any, nextStatus: string): void {
     const id = trip.id || trip.driver_trip_id;
     this.updatingId = id;

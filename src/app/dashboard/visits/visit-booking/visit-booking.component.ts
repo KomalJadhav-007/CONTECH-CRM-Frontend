@@ -221,12 +221,23 @@ export class VisitBookingComponent implements OnInit {
     }
   }
 
+  whatsappSuccessDispatch: any = null;
+
   getSelectedDriverName(): string {
     if (!this.bookingData.driver_id) return 'Unassigned';
     const found = this.drivers.find(d => (d.user_id || d.id) === this.bookingData.driver_id);
     return found ? found.name : 'Driver #' + this.bookingData.driver_id;
   }
 
+  getSelectedBuyerName(): string {
+    const found = this.buyers.find(b => (b.buyer_id || b.id) == this.bookingData.buyer_id);
+    return found ? found.full_name : 'Selected Buyer';
+  }
+
+  getSelectedBuyerPhone(): string {
+    const found = this.buyers.find(b => (b.buyer_id || b.id) == this.bookingData.buyer_id);
+    return found ? (found.phone || '7058533669') : '7058533669';
+  }
 
   onSubmit(): void {
     this.loading = true;
@@ -236,7 +247,11 @@ export class VisitBookingComponent implements OnInit {
       next: (res) => {
         this.loading = false;
         if (res.success) {
-          this.router.navigate(['/visits']);
+          if (res.whatsapp_dispatch) {
+            this.whatsappSuccessDispatch = res.whatsapp_dispatch;
+          } else {
+            this.router.navigate(['/visits']);
+          }
         }
       },
       error: (err) => {
@@ -244,5 +259,15 @@ export class VisitBookingComponent implements OnInit {
         this.errorMessage = err.error?.message || 'Failed to book site visit. Capacity limit or conflict.';
       }
     });
+  }
+
+  openWhatsAppLink(): void {
+    if (this.whatsappSuccessDispatch?.whatsapp_url) {
+      window.open(this.whatsappSuccessDispatch.whatsapp_url, '_blank');
+    }
+  }
+
+  proceedToVisits(): void {
+    this.router.navigate(['/visits']);
   }
 }

@@ -79,9 +79,14 @@
       <div class="passenger-section">
         <div class="passenger-header">
           <div class="passenger-name">{{ trip.passenger_name }}</div>
-          <a mat-stroked-button [href]="'tel:' + trip.passenger_phone" class="btn-phone">
-            <mat-icon style="font-size: 16px; width: 16px; height: 16px;">phone</mat-icon> {{ trip.passenger_phone }}
-          </a>
+          <div class="passenger-actions">
+            <a mat-stroked-button [href]="'tel:' + trip.passenger_phone" class="btn-phone">
+              <mat-icon style="font-size: 16px; width: 16px; height: 16px;">phone</mat-icon> {{ trip.passenger_phone }}
+            </a>
+            <a mat-stroked-button [href]="getPassengerWhatsAppUrl(trip)" target="_blank" class="btn-wa">
+              <mat-icon style="font-size: 16px; width: 16px; height: 16px; color: #16a34a;">chat</mat-icon> WhatsApp
+            </a>
+          </div>
         </div>
       </div>
 

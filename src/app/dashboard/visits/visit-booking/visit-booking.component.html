@@ -157,6 +157,28 @@
           </mat-form-field>
         </div>
 
+        <!-- Automated WhatsApp Notification to Driver Card -->
+        <div class="whatsapp-dispatch-card" *ngIf="bookingData.cab_required && bookingData.driver_id">
+          <div class="wa-header">
+            <div class="wa-icon-box">
+              <mat-icon>chat</mat-icon>
+            </div>
+            <div class="wa-title-block">
+              <div class="wa-title-row">
+                <span class="wa-title">Automated WhatsApp Notification to Driver</span>
+                <span class="wa-badge">FREE API</span>
+              </div>
+              <p class="wa-desc">
+                When booked, the assigned driver (<strong>{{ getSelectedDriverName() }}</strong>) automatically receives a WhatsApp dispatch message with client name, pickup location, client contact number, scheduled slot, and cab registration.
+              </p>
+            </div>
+          </div>
+          <div class="wa-preview-pill">
+            <mat-icon class="preview-icon">contact_phone</mat-icon>
+            <span>Passenger: <strong>{{ getSelectedBuyerName() }}</strong> ({{ getSelectedBuyerPhone() }}) &bull; Pickup: <strong>{{ bookingData.pickup_address || 'Customer Residence' }}</strong></span>
+          </div>
+        </div>
+
         <div class="form-field full-width" style="margin-top: 0.5rem;">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>SPECIAL VISIT NOTES</mat-label>
@@ -181,4 +203,58 @@
       </div>
     </form>
   </mat-card>
+
+  <!-- WhatsApp Dispatch Confirmation Dialog Modal -->
+  <div class="wa-modal-backdrop" *ngIf="whatsappSuccessDispatch">
+    <div class="wa-modal-card">
+      <div class="wa-modal-header">
+        <div class="wa-modal-icon-box">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+        <div class="wa-modal-title-wrap">
+          <h3 class="wa-modal-title">Site Visit Booked &amp; WhatsApp Sent!</h3>
+          <span class="wa-modal-subtitle">Trip coordinates automatically dispatched to assigned driver</span>
+        </div>
+      </div>
+
+      <div class="wa-modal-body">
+        <div class="wa-summary-box">
+          <div class="wa-summary-row">
+            <span class="lbl">Driver:</span>
+            <span class="val">{{ getSelectedDriverName() }} (+{{ whatsappSuccessDispatch.phone }})</span>
+          </div>
+          <div class="wa-summary-row">
+            <span class="lbl">Passenger:</span>
+            <span class="val">{{ getSelectedBuyerName() }}</span>
+          </div>
+          <div class="wa-summary-row">
+            <span class="lbl">Contact:</span>
+            <span class="val">{{ getSelectedBuyerPhone() }}</span>
+          </div>
+          <div class="wa-summary-row">
+            <span class="lbl">Pickup:</span>
+            <span class="val">{{ bookingData.pickup_address || 'Customer Residence' }}</span>
+          </div>
+          <div class="wa-summary-row">
+            <span class="lbl">Cab:</span>
+            <span class="val font-mono">{{ bookingData.cab_number || 'KA-01-MJ-8822' }}</span>
+          </div>
+        </div>
+
+        <div class="wa-message-preview">
+          <div class="preview-title">WhatsApp Message Content (Free API):</div>
+          <pre class="preview-text">{{ whatsappSuccessDispatch.message }}</pre>
+        </div>
+      </div>
+
+      <div class="wa-modal-footer">
+        <button mat-stroked-button type="button" (click)="proceedToVisits()" class="btn-continue-pipeline">
+          Go to Site Visits &rarr;
+        </button>
+        <button mat-flat-button color="primary" type="button" (click)="openWhatsAppLink()" class="btn-open-wa">
+          <mat-icon>chat</mat-icon> Open in WhatsApp Web / App
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

@@ -256,3 +256,265 @@
   font-family: monospace, ui-monospace, SFMono-Regular;
   letter-spacing: 0.04em;
 }
+
+/* WhatsApp Dispatch Card */
+.whatsapp-dispatch-card {
+  margin-top: 0.85rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-left: 4px solid #16a34a;
+  border-radius: 8px;
+  padding: 1rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.wa-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.wa-icon-box {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #16a34a;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.wa-icon-box mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.wa-title-block {
+  flex: 1;
+}
+
+.wa-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.wa-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #14532d;
+}
+
+.wa-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #86efac;
+  padding: 1px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+}
+
+.wa-desc {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.78rem;
+  color: #166534;
+  line-height: 1.4;
+}
+
+.wa-preview-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px solid #bbf7d0;
+  padding: 0.45rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  color: #1e293b;
+}
+
+.preview-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #16a34a;
+}
+
+/* WhatsApp Dispatch Confirmation Modal */
+.wa-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.wa-modal-card {
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 580px;
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+  animation: waModalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes waModalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.wa-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(180deg, #f0fdf4 0%, #dcfce7 100%);
+  border-bottom: 1px solid #bbf7d0;
+}
+
+.wa-modal-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #16a34a;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.3);
+}
+
+.wa-modal-icon-box mat-icon {
+  font-size: 26px;
+  width: 26px;
+  height: 26px;
+}
+
+.wa-modal-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #14532d;
+}
+
+.wa-modal-subtitle {
+  font-size: 0.78rem;
+  color: #166534;
+}
+
+.wa-modal-body {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.wa-summary-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem 1rem;
+}
+
+.wa-summary-row {
+  display: flex;
+  flex-direction: column;
+}
+
+.wa-summary-row .lbl {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.wa-summary-row .val {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.wa-message-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.preview-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+}
+
+.preview-text {
+  background: #fdfbf7;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  padding: 0.85rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: #431407;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 180px;
+  overflow-y: auto;
+  font-family: inherit;
+  margin: 0;
+}
+
+.wa-modal-footer {
+  padding: 1rem 1.5rem;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.btn-open-wa {
+  background: #16a34a !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.3) !important;
+}
+
+.btn-open-wa:hover {
+  background: #15803d !important;
+}
+
+.btn-open-wa mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
