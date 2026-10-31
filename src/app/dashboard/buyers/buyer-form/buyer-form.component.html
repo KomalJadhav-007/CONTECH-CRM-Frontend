@@ -69,6 +69,20 @@
               </div>
             </div>
 
+            <!-- Main Target Project Field (Prospect is Looking For) -->
+            <div style="margin-bottom: 0.5rem;">
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Target / Main Project Prospect is Looking For *</mat-label>
+                <mat-icon matPrefix class="field-icon" style="color: #4f46e5;">domain</mat-icon>
+                <mat-select [(ngModel)]="buyerData.project_id" name="project_id" (selectionChange)="onProjectSelect($event.value)" required>
+                  <mat-option *ngFor="let p of projects" [value]="p.project_id || p.id">
+                    <strong>{{ p.name }}</strong> &nbsp;&middot;&nbsp; {{ p.code || 'BLR' }} &nbsp;&middot;&nbsp; {{ p.location || 'Bengaluru' }}
+                  </mat-option>
+                </mat-select>
+                <mat-hint>Categorizes prospect into this project's dedicated container and enables filtering by project</mat-hint>
+              </mat-form-field>
+            </div>
+
             <div class="form-grid-3">
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Full Name</mat-label>

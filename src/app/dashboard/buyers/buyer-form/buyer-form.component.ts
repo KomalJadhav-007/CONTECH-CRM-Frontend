@@ -1,9 +1,10 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { BuyerService } from '../buyer.service';
 import { UserService } from '../../../users/user.service';
+import { SettingsService } from '../../../settings/settings.service';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -38,9 +39,19 @@ import { MatDividerModule } from '@angular/material/divider';
 export class BuyerFormComponent implements OnInit {
   private buyerService = inject(BuyerService);
   private userService = inject(UserService);
+  private settingsService = inject(SettingsService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   salesReps: any[] = [];
+
+  projects: any[] = [
+    { project_id: 1, id: 1, name: 'Contech Crown Heights', code: 'CCH-BLR', location: 'Whitefield, Bengaluru' },
+    { project_id: 2, id: 2, name: 'Contech Skyline Elegance', code: 'CSE-BLR', location: 'Indiranagar, Bengaluru' },
+    { project_id: 3, id: 3, name: 'Contech Greenfield Sanctuary', code: 'CGS-BLR', location: 'Sarjapur Road, Bengaluru' },
+    { project_id: 4, id: 4, name: 'Contech Emerald Meadows Plotted Layout', code: 'CONTEC-0409', location: 'Devenahalli, Bengaluru' },
+    { project_id: 5, id: 5, name: 'Contech Business Square', code: 'CONTEC-0438', location: 'Koramangala, Bengaluru' }
+  ];
 
   defaultOccupations: string[] = [
     'Salaried IT / Tech Corporate',
@@ -62,6 +73,8 @@ export class BuyerFormComponent implements OnInit {
     full_name: '',
     phone: '',
     email: '',
+    project_id: 1,
+    preferred_project: 'Contech Crown Heights',
     current_residence: '',
     workplace_location: '',
     budget_min_lacs: 120,
@@ -84,6 +97,35 @@ export class BuyerFormComponent implements OnInit {
   ngOnInit(): void {
     this.loadOccupations();
     this.loadSalesReps();
+    this.loadProjects();
+
+    const paramProjectId = this.route.snapshot.queryParams['project_id'];
+    if (paramProjectId) {
+      this.buyerData.project_id = Number(paramProjectId);
+    }
+  }
+
+  loadProjects(): void {
+    this.settingsService.getSettings().subscribe({
+      next: (res: any) => {
+        if (res && res.projects && res.projects.length > 0) {
+          this.projects = res.projects;
+          if (!this.buyerData.project_id) {
+            this.buyerData.project_id = this.projects[0].project_id || this.projects[0].id;
+          }
+          const matched = this.projects.find(p => (p.project_id || p.id) == this.buyerData.project_id);
+          if (matched) this.buyerData.preferred_project = matched.name;
+        }
+      },
+      error: () => {}
+    });
+  }
+
+  onProjectSelect(projectId: number): void {
+    const matched = this.projects.find(p => (p.project_id || p.id) == projectId);
+    if (matched) {
+      this.buyerData.preferred_project = matched.name;
+    }
   }
 
   loadOccupations(): void {
