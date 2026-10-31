@@ -388,6 +388,15 @@
                   <button
                     mat-icon-button
                     type="button"
+                    class="action-btn followup-btn"
+                    (click)="openFollowUpModal(p)"
+                    matTooltip="Schedule Follow-up for this Prospect"
+                  >
+                    <mat-icon>add_task</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    type="button"
                     class="action-btn edit-btn"
                     (click)="startEdit(p)"
                     matTooltip="Quick Edit Prospect"
@@ -415,9 +424,30 @@
                 <input type="text" [(ngModel)]="editForm.phone" class="inline-edit-input sub-input" placeholder="Phone Number" />
               </td>
               <td class="col-score">
-                <div class="score-cell-container">
-                  <div class="score-badge" [ngClass]="getScoreClass(p.score)">
-                    <span class="score-number">{{ p.score }}</span>
+                <div class="inline-score-editor">
+                  <div class="score-input-group">
+                    <span class="score-edit-lbl">Score:</span>
+                    <input
+                      type="number"
+                      [(ngModel)]="editForm.score"
+                      min="0"
+                      max="100"
+                      class="inline-edit-input score-num-input"
+                      title="Intent Score (0-100)"
+                    />
+                  </div>
+                  <div class="score-input-group delta-group">
+                    <span class="delta-symbol">▲</span>
+                    <input
+                      type="number"
+                      [(ngModel)]="editForm.delta"
+                      class="inline-edit-input delta-num-input"
+                      title="Intent Delta Score (±)"
+                    />
+                  </div>
+                  <div class="score-badge-live" [ngClass]="getScoreClass(editForm.score || p.score)">
+                    <span class="live-score">{{ editForm.score || p.score }}</span>
+                    <span class="live-delta">▲ {{ editForm.delta !== undefined ? editForm.delta : p.delta }}</span>
                   </div>
                 </div>
               </td>
@@ -440,6 +470,15 @@
                   <option value="2 BHK">2 BHK</option>
                   <option value="3 BHK">3 BHK</option>
                   <option value="4 BHK">4 BHK</option>
+                  <option value="5 BHK">5 BHK</option>
+                  <option value="Penthouse">Penthouse</option>
+                  <option value="Villa">Villa</option>
+                  <option value="Duplex">Duplex</option>
+                  <option value="Plot">Plot</option>
+                  <option value="Residential Plot">Residential Plot</option>
+                  <option value="Commercial Plot">Commercial Plot</option>
+                  <option value="Farm House Plot">Farm House Plot</option>
+                  <option value="Villa Plot">Villa Plot</option>
                 </select>
               </td>
               <td class="col-owner">
@@ -447,8 +486,45 @@
                   <span class="owner-name-text">{{ p.owner }}</span>
                 </div>
               </td>
-              <td class="col-action">
-                <div class="action-title-text">{{ p.next_action }}</div>
+              <td class="col-action col-action-edit">
+                <div class="edit-followup-box">
+                  <div class="edit-followup-header">
+                    <label class="edit-followup-toggle">
+                      <input type="checkbox" [(ngModel)]="editForm.add_follow_up" />
+                      <span class="edit-toggle-title">
+                        <mat-icon class="icon-inline">add_task</mat-icon> + Add Follow-up
+                      </span>
+                    </label>
+                  </div>
+
+                  <div class="edit-followup-body" *ngIf="editForm.add_follow_up">
+                    <input
+                      type="text"
+                      [(ngModel)]="editForm.follow_up_title"
+                      class="inline-edit-input followup-title-field"
+                      placeholder="Follow-up requirement / task"
+                    />
+                    <div class="edit-followup-subrow">
+                      <input
+                        type="datetime-local"
+                        [(ngModel)]="editForm.follow_up_due"
+                        class="inline-edit-input followup-datetime-field"
+                        title="Scheduled Due Date & Time"
+                      />
+                      <select [(ngModel)]="editForm.follow_up_priority" class="inline-edit-select followup-prio-field">
+                        <option value="HIGH">High Priority</option>
+                        <option value="URGENT">Urgent SLA</option>
+                        <option value="MEDIUM">Medium</option>
+                        <option value="LOW">Low</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="edit-followup-current" *ngIf="!editForm.add_follow_up">
+                    <span class="current-label">Current:</span>
+                    <span class="current-val">{{ p.next_action }}</span>
+                  </div>
+                </div>
               </td>
               <td class="col-risk text-right">
                 <span class="risk-amount-text">{{ p.at_risk }}</span>
@@ -592,6 +668,138 @@
         >
           <span *ngIf="!importing">Start Bulk Import ({{ parsedCsvRows.length }} rows) &rarr;</span>
           <span *ngIf="importing">Importing Prospects...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Schedule / Add Follow-up for Prospect -->
+  <div class="modal-backdrop-custom" *ngIf="showFollowUpModal" (click)="closeFollowUpModal()">
+    <div class="modal-card-custom followup-modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-header-icon bg-indigo">
+          <mat-icon>add_task</mat-icon>
+        </div>
+        <div class="modal-title-wrap">
+          <h2 class="modal-title">Schedule Follow-up for {{ selectedBuyerForFollowUp?.name }}</h2>
+          <p class="modal-subtitle">
+            Create an SLA countdown follow-up task and update the manual intent score for this prospect.
+          </p>
+        </div>
+        <button mat-icon-button type="button" class="btn-close-modal" (click)="closeFollowUpModal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="modal-body-scroll">
+        <!-- Prospect Info Banner -->
+        <div class="modal-buyer-banner" *ngIf="selectedBuyerForFollowUp">
+          <div class="banner-avatar" [style.background]="getAvatarColor(selectedBuyerForFollowUp.name)">
+            {{ getInitials(selectedBuyerForFollowUp.name) }}
+          </div>
+          <div class="banner-details">
+            <div class="banner-name">{{ selectedBuyerForFollowUp.name }} <span class="banner-sub">&middot; {{ selectedBuyerForFollowUp.bhk }} &middot; {{ selectedBuyerForFollowUp.stage }}</span></div>
+            <div class="banner-contact">{{ selectedBuyerForFollowUp.phone }} &middot; Owner: {{ selectedBuyerForFollowUp.owner }}</div>
+          </div>
+          <div class="banner-intent-badge" [ngClass]="getScoreClass(followUpModalForm.manual_intent_score)">
+            {{ followUpModalForm.manual_intent_score }} ▲ {{ followUpModalForm.manual_intent_delta }}
+          </div>
+        </div>
+
+        <!-- Task Title -->
+        <div class="form-group-custom">
+          <label class="form-label-custom">Follow-up Task Requirement <span class="required">*</span></label>
+          <input
+            type="text"
+            [(ngModel)]="followUpModalForm.title"
+            class="form-input-custom"
+            placeholder="e.g. Call buyer to confirm site visit & share quotation"
+          />
+        </div>
+
+        <!-- Due Date & Priority Grid -->
+        <div class="form-grid-2col">
+          <div class="form-group-custom">
+            <label class="form-label-custom">Due Date & Time (SLA Target)</label>
+            <input
+              type="datetime-local"
+              [(ngModel)]="followUpModalForm.due_at"
+              class="form-input-custom"
+            />
+          </div>
+          <div class="form-group-custom">
+            <label class="form-label-custom">Task Priority</label>
+            <select [(ngModel)]="followUpModalForm.priority" class="form-select-custom">
+              <option value="URGENT">Urgent (Immediate SLA)</option>
+              <option value="HIGH">High Priority</option>
+              <option value="MEDIUM">Medium Priority</option>
+              <option value="LOW">Low Priority</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Manual Intent Score & Delta Section -->
+        <div class="modal-intent-section">
+          <div class="intent-section-header">
+            <span class="intent-sec-title"><mat-icon class="icon-inline">psychology</mat-icon> Manual Buyer Intent Assessment</span>
+            <span class="intent-sec-sub">Sets the live intent score for this prospect</span>
+          </div>
+
+          <div class="form-grid-2col">
+            <div class="form-group-custom">
+              <label class="form-label-custom">Manual Intent Score (0 - 100)</label>
+              <input
+                type="number"
+                min="0"
+                max="100"
+                [(ngModel)]="followUpModalForm.manual_intent_score"
+                class="form-input-custom"
+              />
+            </div>
+            <div class="form-group-custom">
+              <label class="form-label-custom">Intent Delta Score (±)</label>
+              <input
+                type="number"
+                [(ngModel)]="followUpModalForm.manual_intent_delta"
+                class="form-input-custom"
+              />
+            </div>
+          </div>
+
+          <!-- Quick Presets -->
+          <div class="quick-presets-row">
+            <span class="preset-label">Quick Presets:</span>
+            <button type="button" class="preset-btn" (click)="setModalIntentPreset(95, 5)">95 (Very High ▲ 5)</button>
+            <button type="button" class="preset-btn" (click)="setModalIntentPreset(90, 4)">90 (High ▲ 4)</button>
+            <button type="button" class="preset-btn" (click)="setModalIntentPreset(75, 2)">75 (Warm ▲ 2)</button>
+            <button type="button" class="preset-btn" (click)="setModalIntentPreset(60, 0)">60 (Neutral)</button>
+            <button type="button" class="preset-btn" (click)="setModalIntentPreset(40, -5)">40 (Cooling ▼ 5)</button>
+          </div>
+        </div>
+
+        <!-- Follow-up Notes -->
+        <div class="form-group-custom">
+          <label class="form-label-custom">Discussion Notes / Objection Context</label>
+          <textarea
+            [(ngModel)]="followUpModalForm.notes"
+            class="form-textarea-custom"
+            rows="3"
+            placeholder="Record customer preferences, objections or key negotiation points..."
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button mat-stroked-button type="button" class="btn-action-stroked" (click)="closeFollowUpModal()">Cancel</button>
+        <button
+          mat-flat-button
+          class="btn-action-primary"
+          type="button"
+          [disabled]="savingFollowUp || !followUpModalForm.title?.trim()"
+          (click)="submitFollowUpModal()"
+        >
+          <span *ngIf="!savingFollowUp">Save & Schedule Follow-up</span>
+          <span *ngIf="savingFollowUp">Scheduling Follow-up...</span>
         </button>
       </div>
     </div>

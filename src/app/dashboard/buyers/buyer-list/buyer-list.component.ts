@@ -15,6 +15,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatRippleModule } from '@angular/material/core';
 import { BuyerService } from '../buyer.service';
 import { UserService } from '../../../users/user.service';
+import { TaskService } from '../../tasks/task.service';
 
 @Component({
   selector: 'app-buyer-list',
@@ -41,6 +42,7 @@ import { UserService } from '../../../users/user.service';
 export class BuyerListComponent implements OnInit {
   private buyerService = inject(BuyerService);
   private userService = inject(UserService);
+  private taskService = inject(TaskService);
   private router = inject(Router);
 
   loading = false;
@@ -52,6 +54,19 @@ export class BuyerListComponent implements OnInit {
   selectedSource = 'all';
   selectedIntentBand = 'all';
   selectedOwner = 'all';
+
+  // Follow-up modal state
+  showFollowUpModal = false;
+  selectedBuyerForFollowUp: any = null;
+  savingFollowUp = false;
+  followUpModalForm: any = {
+    title: '',
+    due_at: '',
+    priority: 'HIGH',
+    manual_intent_score: 95,
+    manual_intent_delta: 5,
+    notes: ''
+  };
 
   // Quick Tab Filter
   activeQuickTab: 'all' | 'high_intent' | 'visits' | 'negotiation' | 'sla' = 'all';
@@ -563,13 +578,24 @@ export class BuyerListComponent implements OnInit {
 
   startEdit(p: any): void {
     this.editingBuyerId = p.id;
+    const defaultDue = new Date(Date.now() + 4 * 60 * 60 * 1000);
+    const tzOffset = defaultDue.getTimezoneOffset() * 60000;
+    const localISOTime = new Date(defaultDue.getTime() - tzOffset).toISOString().slice(0, 16);
+
     this.editForm = {
       name: p.name,
       phone: p.phone,
       bhk: p.bhk,
       budget: p.budget,
       stage: p.stage,
-      owner: p.owner
+      owner: p.owner,
+      score: p.score !== undefined && p.score !== null ? p.score : 85,
+      delta: p.delta !== undefined && p.delta !== null ? p.delta : 5,
+      add_follow_up: false,
+      follow_up_title: `Follow up with ${p.name}`,
+      follow_up_due: localISOTime,
+      follow_up_priority: 'HIGH',
+      follow_up_notes: ''
     };
   }
 
@@ -579,11 +605,18 @@ export class BuyerListComponent implements OnInit {
   }
 
   saveEdit(p: any): void {
-    const payload = {
+    const newScore = this.editForm.score !== undefined && this.editForm.score !== null ? parseInt(this.editForm.score) : p.score;
+    const newDelta = this.editForm.delta !== undefined && this.editForm.delta !== null ? parseInt(this.editForm.delta) : (p.delta || 5);
+    const newBand = newScore >= 80 ? 'HIGH' : (newScore >= 50 ? 'MEDIUM' : 'LOW');
+
+    const payload: any = {
       full_name: this.editForm.name,
       phone: this.editForm.phone,
       preferred_bhk: this.editForm.bhk,
-      lead_status: this.editForm.stage
+      lead_status: this.editForm.stage,
+      intent_score: newScore,
+      intent_delta: newDelta,
+      intent_band: newBand
     };
 
     this.buyerService.updateBuyer(p.id, payload).subscribe({
@@ -592,16 +625,116 @@ export class BuyerListComponent implements OnInit {
         p.phone = this.editForm.phone;
         p.bhk = this.editForm.bhk;
         p.stage = this.editForm.stage;
-        this.editingBuyerId = null;
-        this.showFeedback(`Prospect "${p.name}" updated successfully.`);
+        p.score = newScore;
+        p.delta = newDelta;
+
+        if (this.editForm.add_follow_up && this.editForm.follow_up_title && this.editForm.follow_up_title.trim()) {
+          const taskPayload = {
+            buyer_id: p.id,
+            title: this.editForm.follow_up_title.trim(),
+            description: this.editForm.follow_up_notes || `Follow-up scheduled from prospect edit row for ${p.name}`,
+            due_at: this.editForm.follow_up_due ? new Date(this.editForm.follow_up_due) : new Date(Date.now() + 4 * 3600 * 1000),
+            priority: this.editForm.follow_up_priority || 'HIGH',
+            manual_intent_score: newScore,
+            manual_intent_delta: newDelta,
+            manual_intent_band: newBand
+          };
+
+          this.taskService.createTask(taskPayload).subscribe({
+            next: () => {
+              p.next_action = this.editForm.follow_up_title.trim();
+              p.sla_breached = false;
+              this.cancelEdit();
+              this.showFeedback(`Prospect "${p.name}" updated & follow-up task scheduled!`);
+            },
+            error: () => {
+              p.next_action = this.editForm.follow_up_title.trim();
+              this.cancelEdit();
+              this.showFeedback(`Prospect "${p.name}" updated.`);
+            }
+          });
+        } else {
+          this.cancelEdit();
+          this.showFeedback(`Prospect "${p.name}" updated successfully.`);
+        }
       },
       error: () => {
         p.name = this.editForm.name;
         p.phone = this.editForm.phone;
         p.bhk = this.editForm.bhk;
         p.stage = this.editForm.stage;
-        this.editingBuyerId = null;
+        p.score = newScore;
+        p.delta = newDelta;
+        this.cancelEdit();
         this.showFeedback(`Prospect "${p.name}" updated.`);
+      }
+    });
+  }
+
+  // --- Follow-Up Modal Actions ---
+  openFollowUpModal(p: any): void {
+    this.selectedBuyerForFollowUp = p;
+    const defaultDue = new Date(Date.now() + 4 * 60 * 60 * 1000);
+    const tzOffset = defaultDue.getTimezoneOffset() * 60000;
+    const localISOTime = new Date(defaultDue.getTime() - tzOffset).toISOString().slice(0, 16);
+
+    this.followUpModalForm = {
+      title: `Follow up with ${p.name}`,
+      due_at: localISOTime,
+      priority: 'HIGH',
+      manual_intent_score: p.score !== undefined && p.score !== null ? p.score : 90,
+      manual_intent_delta: p.delta !== undefined && p.delta !== null ? p.delta : 5,
+      notes: ''
+    };
+    this.showFollowUpModal = true;
+  }
+
+  closeFollowUpModal(): void {
+    this.showFollowUpModal = false;
+    this.selectedBuyerForFollowUp = null;
+  }
+
+  setModalIntentPreset(score: number, delta: number): void {
+    this.followUpModalForm.manual_intent_score = score;
+    this.followUpModalForm.manual_intent_delta = delta;
+  }
+
+  submitFollowUpModal(): void {
+    if (!this.selectedBuyerForFollowUp || !this.followUpModalForm.title || !this.followUpModalForm.title.trim()) return;
+    this.savingFollowUp = true;
+    const p = this.selectedBuyerForFollowUp;
+    const score = parseInt(this.followUpModalForm.manual_intent_score) || 85;
+    const delta = parseInt(this.followUpModalForm.manual_intent_delta) || 5;
+    const band = score >= 80 ? 'HIGH' : (score >= 50 ? 'MEDIUM' : 'LOW');
+
+    const taskPayload = {
+      buyer_id: p.id,
+      title: this.followUpModalForm.title.trim(),
+      description: this.followUpModalForm.notes || `Scheduled via Prospects list for ${p.name}`,
+      due_at: this.followUpModalForm.due_at ? new Date(this.followUpModalForm.due_at) : new Date(Date.now() + 4 * 3600 * 1000),
+      priority: this.followUpModalForm.priority || 'HIGH',
+      manual_intent_score: score,
+      manual_intent_delta: delta,
+      manual_intent_band: band
+    };
+
+    this.taskService.createTask(taskPayload).subscribe({
+      next: () => {
+        this.savingFollowUp = false;
+        p.score = score;
+        p.delta = delta;
+        p.next_action = this.followUpModalForm.title.trim();
+        p.sla_breached = false;
+        this.showFeedback(`Follow-up task scheduled for ${p.name} (Score: ${score} ▲ ${delta})!`);
+        this.closeFollowUpModal();
+      },
+      error: () => {
+        this.savingFollowUp = false;
+        p.score = score;
+        p.delta = delta;
+        p.next_action = this.followUpModalForm.title.trim();
+        this.showFeedback(`Follow-up task recorded for ${p.name}.`);
+        this.closeFollowUpModal();
       }
     });
   }

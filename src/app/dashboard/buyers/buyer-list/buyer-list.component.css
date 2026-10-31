@@ -1470,3 +1470,389 @@
   justify-content: flex-end;
   gap: 0.75rem;
 }
+
+/* ==========================================================================
+   Inline Edit: Intent Score Editor & Follow-Up Task Scheduler
+   ========================================================================== */
+.inline-score-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 95px;
+}
+
+.score-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.score-edit-lbl {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #64748b;
+  min-width: 32px;
+}
+
+.score-num-input {
+  width: 52px !important;
+  padding: 0.2rem 0.35rem !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  border-radius: 4px !important;
+  text-align: center;
+}
+
+.delta-group .delta-symbol {
+  color: #10b981;
+  font-size: 0.75rem;
+  font-weight: 800;
+  min-width: 32px;
+}
+
+.delta-num-input {
+  width: 52px !important;
+  padding: 0.2rem 0.35rem !important;
+  font-size: 0.76rem !important;
+  font-weight: 700 !important;
+  color: #059669 !important;
+  border-radius: 4px !important;
+  text-align: center;
+}
+
+.score-badge-live {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  margin-top: 0.15rem;
+  width: fit-content;
+}
+
+.score-badge-live .live-score {
+  font-weight: 800;
+}
+
+.score-badge-live .live-delta {
+  font-size: 0.68rem;
+  opacity: 0.9;
+}
+
+/* Inline Edit: Follow-up Box */
+.col-action-edit {
+  min-width: 250px;
+}
+
+.edit-followup-box {
+  background: #ffffff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 6px;
+  padding: 0.45rem 0.6rem;
+  transition: all 0.2s ease;
+}
+
+.edit-followup-box:focus-within {
+  border-color: #2563eb;
+  background: #f8fafc;
+}
+
+.edit-followup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.3rem;
+}
+
+.edit-followup-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.edit-followup-toggle input[type="checkbox"] {
+  cursor: pointer;
+  accent-color: #2563eb;
+  width: 14px;
+  height: 14px;
+}
+
+.edit-toggle-title {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #1e40af;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.edit-toggle-title .icon-inline {
+  font-size: 15px;
+  width: 15px;
+  height: 15px;
+}
+
+.edit-followup-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+}
+
+.followup-title-field {
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+}
+
+.edit-followup-subrow {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.followup-datetime-field {
+  flex: 1.3;
+  font-size: 0.7rem !important;
+  padding: 0.2rem 0.35rem !important;
+}
+
+.followup-prio-field {
+  flex: 0.9;
+  font-size: 0.7rem !important;
+  padding: 0.2rem 0.35rem !important;
+  font-weight: 600 !important;
+}
+
+.edit-followup-current {
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-top: 0.15rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.edit-followup-current .current-label {
+  font-weight: 600;
+  color: #475569;
+}
+
+/* Follow-up Action Button in normal row */
+.action-btn.followup-btn {
+  color: #2563eb !important;
+  background: #eff6ff !important;
+  border-radius: 4px;
+  width: 30px !important;
+  height: 30px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.15s ease;
+}
+
+.action-btn.followup-btn:hover {
+  background: #dbeafe !important;
+  color: #1d4ed8 !important;
+}
+
+.action-btn.followup-btn mat-icon {
+  font-size: 17px !important;
+  width: 17px !important;
+  height: 17px !important;
+  line-height: 17px !important;
+}
+
+/* ==========================================================================
+   Follow-Up Modal Specific Styling
+   ========================================================================== */
+.followup-modal-card {
+  max-width: 620px !important;
+}
+
+.modal-header-icon.bg-indigo {
+  background: #e0e7ff;
+  color: #4338ca;
+}
+
+.modal-buyer-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.15rem;
+}
+
+.banner-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.banner-details {
+  flex: 1;
+}
+
+.banner-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.banner-sub {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.banner-contact {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-top: 0.15rem;
+}
+
+.banner-intent-badge {
+  font-size: 0.85rem;
+  font-weight: 800;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.modal-intent-section {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  margin-bottom: 1.15rem;
+}
+
+.intent-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.intent-sec-title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #166534;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.intent-sec-title .icon-inline {
+  font-size: 17px;
+  width: 17px;
+  height: 17px;
+}
+
+.intent-sec-sub {
+  font-size: 0.72rem;
+  color: #15803d;
+  font-weight: 500;
+}
+
+.quick-presets-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-top: 0.65rem;
+}
+
+.preset-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #374151;
+}
+
+.preset-btn {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #374151;
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.preset-btn:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+.form-grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-group-custom {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.form-group-custom:last-child {
+  margin-bottom: 0;
+}
+
+.form-label-custom {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.form-label-custom .required {
+  color: #ef4444;
+}
+
+.form-input-custom,
+.form-select-custom,
+.form-textarea-custom {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  color: #0f172a;
+  outline: none;
+  background: #ffffff;
+  box-sizing: border-box;
+  font-family: inherit;
+  transition: border-color 0.15s ease;
+}
+
+.form-input-custom:focus,
+.form-select-custom:focus,
+.form-textarea-custom:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.form-textarea-custom {
+  resize: vertical;
+}
