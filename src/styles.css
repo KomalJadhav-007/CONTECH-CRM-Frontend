@@ -422,3 +422,23 @@ td.text-left,
   z-index: 99999 !important;
 }
 
+/* Global Full Width Form Field Utilities */
+.w-100,
+mat-form-field.w-100,
+.mat-mdc-form-field.w-100 {
+  width: 100% !important;
+  display: block !important;
+}
+
+mat-form-field.w-100 .mat-mdc-text-field-wrapper,
+.mat-mdc-form-field.w-100 .mat-mdc-text-field-wrapper,
+mat-form-field.w-100 .mat-mdc-form-field-flex,
+.mat-mdc-form-field.w-100 .mat-mdc-form-field-flex {
+  width: 100% !important;
+}
+
+.mat-mdc-form-field textarea.mat-mdc-input-element {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+

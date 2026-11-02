@@ -247,9 +247,14 @@
     <mat-card class="modal-card modal-card-manage" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <div>
-          <div class="modal-pretitle">SITE VISIT MANAGEMENT</div>
+          <div class="modal-pretitle">
+            <span>SITE VISIT MANAGEMENT</span>
+            <span class="badge-tag" [class.badge-reschedule]="manageForm.decision === 'RESCHEDULE'" [class.badge-cancel]="manageForm.decision === 'CANCEL'">
+              {{ manageForm.decision === 'RESCHEDULE' ? 'RESCHEDULE WORKFLOW' : 'SLA RECOVERY WORKFLOW' }}
+            </span>
+          </div>
           <h2 class="modal-title">
-            {{ manageForm.decision === 'RESCHEDULE' ? 'Reschedule Site Visit for Next Time' : 'Cancel Site Visit' }}
+            {{ manageForm.decision === 'RESCHEDULE' ? 'Reschedule Site Visit for Next Time' : 'Cancel Site Visit & Initiate SLA Recovery' }}
           </h2>
           <p class="modal-subtitle">
             Visit #{{ selectedVisitForCancel?.site_visit_id || selectedVisitForCancel?.id }} &middot; 
@@ -258,7 +263,7 @@
             Current: {{ selectedVisitForCancel?.scheduled_date }} ({{ selectedVisitForCancel?.time_slot }})
           </p>
         </div>
-        <button mat-icon-button type="button" (click)="closeCancelModal()">
+        <button mat-icon-button type="button" class="close-modal-icon-btn" (click)="closeCancelModal()">
           <mat-icon>close</mat-icon>
         </button>
       </div>
@@ -380,7 +385,10 @@
         <!-- 3. CANCEL PERMANENTLY FORM: When Cancel is selected -->
         <div *ngIf="manageForm.decision === 'CANCEL'" class="cancel-form-panel">
           <div class="recovery-info-callout">
-            <strong>SOW Section 12 SLA Compliance:</strong>
+            <div class="callout-header">
+              <mat-icon class="callout-icon">verified_user</mat-icon>
+              <strong>SOW Section 12 SLA Compliance:</strong>
+            </div>
             <p class="sub-text">
               Permanent cancellations trigger an automatic 2-hour recovery workflow to contact the buyer, document objection causes, and preserve pipeline momentum.
             </p>
@@ -423,7 +431,7 @@
       </div>
 
       <div class="modal-footer">
-        <button mat-button type="button" (click)="closeCancelModal()" [disabled]="cancelling">Dismiss</button>
+        <button mat-button type="button" class="btn-dismiss" (click)="closeCancelModal()" [disabled]="cancelling">Dismiss</button>
 
         <!-- Submit Button for Reschedule -->
         <button
@@ -435,7 +443,7 @@
           [disabled]="cancelling || !manageForm.new_date || !manageForm.new_time_slot"
           (click)="submitManageVisit()"
         >
-          <mat-icon style="font-size: 18px; width: 18px; height: 18px; margin-right: 4px;">event_repeat</mat-icon>
+          <mat-icon style="font-size: 18px; width: 18px; height: 18px; margin-right: 6px;">event_repeat</mat-icon>
           <span *ngIf="!cancelling">Confirm Reschedule for {{ manageForm.new_date }} &rarr;</span>
           <span *ngIf="cancelling">Rescheduling...</span>
         </button>
@@ -450,7 +458,7 @@
           [disabled]="cancelling"
           (click)="submitManageVisit()"
         >
-          <mat-icon style="font-size: 18px; width: 18px; height: 18px; margin-right: 4px;">cancel</mat-icon>
+          <mat-icon style="font-size: 18px; width: 18px; height: 18px; margin-right: 6px;">cancel</mat-icon>
           <span *ngIf="!cancelling">Confirm Permanent Cancellation &amp; Trigger SLA &rarr;</span>
           <span *ngIf="cancelling">Cancelling...</span>
         </button>

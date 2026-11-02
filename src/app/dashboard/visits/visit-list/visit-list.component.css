@@ -558,20 +558,89 @@
 }
 
 /* Site Visit Management Modal Enhancements */
-.modal-card-manage {
-  max-width: 660px !important;
-  max-height: 90vh;
-  overflow-y: auto;
+.modal-card.modal-card-manage,
+mat-card.modal-card-manage {
+  padding: 0 !important;
+  width: 100% !important;
+  max-width: 680px !important;
+  max-height: 90vh !important;
+  display: flex !important;
+  flex-direction: column !important;
   border-radius: 12px !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.3) !important;
+  overflow: hidden !important;
+  background: #ffffff !important;
+}
+
+.modal-card-manage .modal-header {
+  padding: 1.15rem 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-shrink: 0;
+  background: #ffffff;
+}
+
+.modal-card-manage .modal-body {
+  padding: 1.25rem 1.5rem;
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
+
+.modal-card-manage .modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.75rem;
+  background: #f8fafc;
+  flex-shrink: 0;
 }
 
 .modal-pretitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 0.68rem;
   font-weight: 800;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.12em;
   color: #64748b;
   text-transform: uppercase;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.25rem;
+}
+
+.badge-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.badge-reschedule {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.badge-cancel {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.close-modal-icon-btn {
+  color: #94a3b8 !important;
+}
+
+.close-modal-icon-btn:hover {
+  color: #0f172a !important;
+  background: #f1f5f9 !important;
 }
 
 .btn-action-reschedule {
@@ -619,8 +688,8 @@
 .decision-card {
   display: flex;
   align-items: flex-start;
-  gap: 0.65rem;
-  padding: 0.85rem 1rem;
+  gap: 0.75rem;
+  padding: 0.95rem 1rem;
   border-radius: 8px;
   border: 1.5px solid #e2e8f0;
   background: #ffffff;
@@ -639,6 +708,12 @@
   box-shadow: 0 0 0 1px #2563eb;
 }
 
+.decision-card.active:has(.cancel-icon) {
+  border-color: #dc2626;
+  background: #fef2f2;
+  box-shadow: 0 0 0 1px #dc2626;
+}
+
 .decision-radio-indicator {
   margin-top: 2px;
   flex-shrink: 0;
@@ -655,12 +730,6 @@
   color: #dc2626;
 }
 
-.decision-card.active:has(.cancel-icon) {
-  border-color: #dc2626;
-  background: #fef2f2;
-  box-shadow: 0 0 0 1px #dc2626;
-}
-
 .radio-empty {
   display: inline-block;
   width: 18px;
@@ -675,7 +744,7 @@
 }
 
 .decision-card-title {
-  font-size: 0.84rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: #0f172a;
 }
@@ -683,8 +752,8 @@
 .decision-card-desc {
   font-size: 0.72rem;
   color: #64748b;
-  margin-top: 0.2rem;
-  line-height: 1.35;
+  margin-top: 0.25rem;
+  line-height: 1.4;
 }
 
 .reschedule-form-panel, .cancel-form-panel {
@@ -697,11 +766,12 @@
 .reschedule-header-banner {
   display: flex;
   align-items: flex-start;
-  gap: 0.6rem;
+  gap: 0.65rem;
   background: #ffffff;
   border: 1px solid #bfdbfe;
+  border-left: 4px solid #2563eb;
   border-radius: 6px;
-  padding: 0.65rem 0.85rem;
+  padding: 0.75rem 1rem;
   color: #1e40af;
   font-size: 0.8rem;
   line-height: 1.4;
@@ -713,6 +783,39 @@
   width: 20px;
   height: 20px;
   flex-shrink: 0;
+}
+
+.cancel-form-panel .recovery-info-callout {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-left: 4px solid #f59e0b;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  font-size: 0.78rem;
+  color: #92400e;
+}
+
+.cancel-form-panel .recovery-info-callout .callout-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 700;
+  color: #b45309;
+  margin-bottom: 0.25rem;
+}
+
+.cancel-form-panel .recovery-info-callout .callout-icon {
+  font-size: 17px;
+  width: 17px;
+  height: 17px;
+  color: #d97706;
+}
+
+.cancel-form-panel .recovery-info-callout .sub-text {
+  color: #92400e;
+  font-size: 0.74rem;
+  line-height: 1.4;
+  margin: 0;
 }
 
 .form-row-2 {
@@ -727,10 +830,31 @@
   }
 }
 
+/* Modal Form Fields Full Width */
+.modal-card-manage mat-form-field.w-100,
+.modal-card-manage .mat-mdc-form-field.w-100 {
+  width: 100% !important;
+  display: block !important;
+}
+
+.modal-card-manage .mat-mdc-text-field-wrapper {
+  width: 100% !important;
+}
+
+.modal-card-manage textarea.mat-mdc-input-element {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  resize: vertical;
+  min-height: 68px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
 .reschedule-dispatch-notice {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.5rem;
   background: #f0fdf4;
   border: 1px solid #bbf7d0;
   border-radius: 6px;
@@ -738,17 +862,46 @@
   color: #166534;
   font-size: 0.76rem;
   line-height: 1.4;
-  margin-top: 0.75rem;
+  margin-top: 0.85rem;
 }
 
 .btn-confirm-reschedule {
   background: #2563eb !important;
   color: #ffffff !important;
   font-weight: 600 !important;
+  border-radius: 6px !important;
+  padding: 0 1.25rem !important;
+  height: 38px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+.btn-confirm-reschedule:hover {
+  background: #1d4ed8 !important;
 }
 
 .btn-confirm-cancel {
   background: #dc2626 !important;
   color: #ffffff !important;
   font-weight: 600 !important;
+  border-radius: 6px !important;
+  padding: 0 1.25rem !important;
+  height: 38px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+.btn-confirm-cancel:hover {
+  background: #b91c1c !important;
+}
+
+.btn-dismiss {
+  color: #64748b !important;
+  font-weight: 600 !important;
+  border-radius: 6px !important;
+}
+
+.btn-dismiss:hover {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
 }
