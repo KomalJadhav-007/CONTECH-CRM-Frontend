@@ -27,31 +27,31 @@
   <!-- Filter Bar -->
   <div class="filters-bar">
     <button
-      mat-stroked-button
       type="button"
-      class="filter-tab"
+      class="filter-pill"
       [class.active]="filterStatus === 'PENDING'"
-      (click)="filterStatus = 'PENDING'; loadTasks()"
+      (click)="setFilterStatus('PENDING')"
     >
-      Pending SLAs
+      <span>Pending SLAs</span>
+      <span class="pill-count" *ngIf="pendingCount > 0">{{ pendingCount }}</span>
     </button>
     <button
-      mat-stroked-button
       type="button"
-      class="filter-tab"
+      class="filter-pill"
       [class.active]="filterStatus === 'COMPLETED'"
-      (click)="filterStatus = 'COMPLETED'; loadTasks()"
+      (click)="setFilterStatus('COMPLETED')"
     >
-      Completed
+      <span>Completed</span>
+      <span class="pill-count" *ngIf="completedCount > 0">{{ completedCount }}</span>
     </button>
     <button
-      mat-stroked-button
       type="button"
-      class="filter-tab"
+      class="filter-pill"
       [class.active]="filterStatus === ''"
-      (click)="filterStatus = ''; loadTasks()"
+      (click)="setFilterStatus('')"
     >
-      All Tasks
+      <span>All Tasks</span>
+      <span class="pill-count">{{ totalCount }}</span>
     </button>
   </div>
 
@@ -62,41 +62,43 @@
       <table class="prospects-table">
         <thead>
           <tr>
-            <th>TASK &amp; FOLLOW-UP REQUIREMENT</th>
-            <th>BUYER CONTEXT</th>
-            <th>COUNTDOWN SLA</th>
-            <th>PRIORITY</th>
-            <th>ASSIGNED REP</th>
-            <th>STATUS</th>
-            <th class="text-right">ACTIONS</th>
+            <th class="col-task">TASK &amp; FOLLOW-UP REQUIREMENT</th>
+            <th class="col-buyer">BUYER CONTEXT</th>
+            <th class="col-sla">COUNTDOWN SLA</th>
+            <th class="col-priority">PRIORITY</th>
+            <th class="col-rep">ASSIGNED REP</th>
+            <th class="col-status">STATUS</th>
+            <th class="col-actions text-right">ACTIONS</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let task of tasks">
-            <td>
+            <td class="col-task">
               <div class="task-title">{{ task.title }}</div>
               <div class="task-desc" *ngIf="task.description">{{ task.description }}</div>
             </td>
-            <td>
-              <div class="buyer-name" *ngIf="task.buyer">
-                <a [routerLink]="['/buyers', task.buyer_id]" class="buyer-link">{{ task.buyer.full_name }}</a>
-              </div>
-              <div class="buyer-name" *ngIf="!task.buyer">
-                <span style="color: #64748b; font-style: italic;">General Prospect Follow-up</span>
-              </div>
-              <div class="buyer-contact" *ngIf="task.buyer">
-                {{ task.buyer.preferred_bhk || 'Flexible BHK' }} &middot; Max ₹{{ task.buyer.budget_max_lacs || '150' }}L
-              </div>
-              <!-- Manual Intent Badge matching Image 2 -->
-              <div class="intent-badge-row" *ngIf="task.buyer && task.buyer.intent_score !== undefined && task.buyer.intent_score !== null">
-                <div class="score-badge-exact" [ngClass]="(task.buyer.intent_score >= 80) ? 'badge-high' : ((task.buyer.intent_score >= 50) ? 'badge-med' : 'badge-low')">
-                  <span class="score-number">{{ task.buyer.intent_score }}</span>
-                  <span class="score-delta-symbol">{{ (task.buyer.intent_delta !== undefined ? task.buyer.intent_delta : 5) >= 0 ? '▲' : '▼' }}</span>
-                  <span class="score-delta-val">{{ (task.buyer.intent_delta !== undefined ? task.buyer.intent_delta : 5) >= 0 ? (task.buyer.intent_delta !== undefined ? task.buyer.intent_delta : 5) : -(task.buyer.intent_delta) }}</span>
+            <td class="col-buyer">
+              <div class="buyer-cell">
+                <div class="buyer-header-row">
+                  <a *ngIf="task.buyer" [routerLink]="['/buyers', task.buyer_id]" class="buyer-link">
+                    {{ task.buyer.full_name }}
+                  </a>
+                  <span *ngIf="!task.buyer" class="buyer-general">General Prospect</span>
+                  <span
+                    *ngIf="task.buyer && task.buyer.intent_score !== undefined && task.buyer.intent_score !== null"
+                    class="intent-micro-pill"
+                    [ngClass]="getIntentBadgeClass(task.buyer.intent_score)"
+                    matTooltip="Buyer Intent Score &amp; Delta"
+                  >
+                    {{ task.buyer.intent_score }} {{ (task.buyer.intent_delta !== undefined ? task.buyer.intent_delta : 5) >= 0 ? '▲' : '▼' }} {{ (task.buyer.intent_delta !== undefined ? task.buyer.intent_delta : 5) >= 0 ? (task.buyer.intent_delta !== undefined ? task.buyer.intent_delta : 5) : -(task.buyer.intent_delta) }}
+                  </span>
+                </div>
+                <div class="buyer-contact" *ngIf="task.buyer">
+                  {{ task.buyer.preferred_bhk || 'Flexible BHK' }} &middot; Max ₹{{ task.buyer.budget_max_lacs || '150' }}L
                 </div>
               </div>
             </td>
-            <td>
+            <td class="col-sla">
               <div *ngIf="task.status === 'PENDING'">
                 <div *ngIf="!task.is_overdue" class="countdown-tag countdown-active">
                   {{ task.hours_remaining }}h Remaining
@@ -110,56 +112,55 @@
                 <span class="countdown-tag countdown-completed">&#10003; Completed</span>
               </div>
             </td>
-            <td>
-              <mat-form-field appearance="outline" class="table-priority-field" subscriptSizing="dynamic">
-                <mat-select
+            <td class="col-priority">
+              <div class="priority-pill-wrapper" [ngClass]="getPriorityClass(task.priority)">
+                <select
                   [ngModel]="task.priority || 'HIGH'"
                   (ngModelChange)="updateTaskPriority(task, $event)"
-                  panelClass="priority-select-panel"
+                  class="priority-inline-select"
+                  title="Change Priority"
                 >
-                  <mat-option value="CRITICAL"><span class="priority-opt critical">CRITICAL</span></mat-option>
-                  <mat-option value="URGENT"><span class="priority-opt urgent">URGENT</span></mat-option>
-                  <mat-option value="HIGH"><span class="priority-opt high">HIGH</span></mat-option>
-                  <mat-option value="NORMAL"><span class="priority-opt normal">NORMAL</span></mat-option>
-                </mat-select>
-              </mat-form-field>
+                  <option value="CRITICAL">CRITICAL</option>
+                  <option value="URGENT">URGENT</option>
+                  <option value="HIGH">HIGH</option>
+                  <option value="NORMAL">NORMAL</option>
+                </select>
+                <mat-icon class="priority-arrow">arrow_drop_down</mat-icon>
+              </div>
             </td>
-            <td>
+            <td class="col-rep">
               <span class="rep-name" [class.unassigned]="!task.assignedUser?.name || task.assignedUser?.name === 'Unassigned'">
                 {{ task.assignedUser?.name || 'Unassigned' }}
               </span>
             </td>
-            <td>
+            <td class="col-status">
               <span class="stage-badge" [ngClass]="task.status === 'COMPLETED' ? 'stage-completed' : 'stage-pending'">
                 {{ task.status || 'PENDING' }}
               </span>
             </td>
-            <td class="text-right actions-cell">
+            <td class="col-actions text-right">
               <div class="actions-wrapper">
                 <button
                   *ngIf="task.status === 'PENDING'"
-                  mat-flat-button
-                  color="primary"
                   type="button"
-                  class="btn-take-action"
+                  class="btn-take-action-pro"
                   (click)="completeTask(task)"
-                  matTooltip="Execute follow-up call/meeting & record outcome"
+                  matTooltip="Execute follow-up call/meeting &amp; record outcome"
                 >
-                  <mat-icon>bolt</mat-icon>
-                  Take Action
+                  <mat-icon class="btn-action-icon">bolt</mat-icon>
+                  <span>Take Action</span>
                 </button>
                 <div *ngIf="task.status === 'COMPLETED'" class="completed-action-info">
                   <span class="outcome-badge" *ngIf="task.outcome_status">{{ task.outcome_status }}</span>
                   <span class="outcome-badge-done" *ngIf="!task.outcome_status">Action Taken &#10003;</span>
                 </div>
                 <button
-                  mat-icon-button
                   type="button"
-                  class="action-btn delete-btn"
+                  class="btn-delete-task-pro"
                   (click)="deleteTask(task)"
                   matTooltip="Delete task from database"
                 >
-                  <mat-icon>delete_outline</mat-icon>
+                  <mat-icon class="btn-delete-icon">delete_outline</mat-icon>
                 </button>
               </div>
             </td>

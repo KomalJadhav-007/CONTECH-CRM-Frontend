@@ -46,7 +46,11 @@ export class TaskListComponent implements OnInit {
   loading = true;
   feedbackMessage = '';
   tasks: any[] = [];
+  allTasks: any[] = [];
   filterStatus = 'PENDING';
+  pendingCount = 0;
+  completedCount = 0;
+  totalCount = 0;
 
   prospectsList: any[] = [];
   salesRepsList: any[] = [];
@@ -194,10 +198,7 @@ export class TaskListComponent implements OnInit {
 
   loadTasks(): void {
     this.loading = true;
-    const params: any = {};
-    if (this.filterStatus) params.status = this.filterStatus;
-
-    this.taskService.getTasks(params).subscribe({
+    this.taskService.getTasks({}).subscribe({
       next: (res) => {
         this.loading = false;
         if (res.success) {
@@ -207,13 +208,46 @@ export class TaskListComponent implements OnInit {
             const idB = b.follow_up_task_id || b.id || 0;
             return idB - idA;
           });
-          this.tasks = list;
+          this.allTasks = list;
+          this.pendingCount = list.filter((t: any) => t.status === 'PENDING').length;
+          this.completedCount = list.filter((t: any) => t.status === 'COMPLETED').length;
+          this.totalCount = list.length;
+          this.applyFilter();
         }
       },
       error: () => {
         this.loading = false;
       }
     });
+  }
+
+  applyFilter(): void {
+    if (!this.filterStatus) {
+      this.tasks = [...this.allTasks];
+    } else {
+      this.tasks = this.allTasks.filter((t: any) => t.status === this.filterStatus);
+    }
+  }
+
+  setFilterStatus(status: string): void {
+    this.filterStatus = status;
+    this.applyFilter();
+  }
+
+  getPriorityClass(priority: string): string {
+    switch ((priority || '').toUpperCase()) {
+      case 'CRITICAL': return 'priority-critical';
+      case 'URGENT': return 'priority-urgent';
+      case 'HIGH': return 'priority-high';
+      case 'NORMAL': return 'priority-normal';
+      default: return 'priority-high';
+    }
+  }
+
+  getIntentBadgeClass(score: number): string {
+    if (score >= 80) return 'intent-high';
+    if (score >= 50) return 'intent-med';
+    return 'intent-low';
   }
 
   completeTask(task: any): void {
@@ -287,11 +321,16 @@ export class TaskListComponent implements OnInit {
     const id = task.follow_up_task_id || task.id;
     this.taskService.deleteTask(id).subscribe({
       next: () => {
-        this.tasks = this.tasks.filter(t => (t.follow_up_task_id || t.id) !== id);
+        this.allTasks = this.allTasks.filter(t => (t.follow_up_task_id || t.id) !== id);
+        this.pendingCount = this.allTasks.filter(t => t.status === 'PENDING').length;
+        this.completedCount = this.allTasks.filter(t => t.status === 'COMPLETED').length;
+        this.totalCount = this.allTasks.length;
+        this.applyFilter();
         this.showFeedback(`Task "${task.title}" deleted from database.`);
       },
       error: () => {
-        this.tasks = this.tasks.filter(t => (t.follow_up_task_id || t.id) !== id);
+        this.allTasks = this.allTasks.filter(t => (t.follow_up_task_id || t.id) !== id);
+        this.applyFilter();
         this.showFeedback(`Task removed.`);
       }
     });
