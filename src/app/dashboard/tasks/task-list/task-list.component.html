@@ -10,7 +10,7 @@
     </div>
     <div class="top-actions">
       <button mat-flat-button color="primary" type="button" class="btn-create-followup" (click)="openCreateModal()">
-        <mat-icon>add</mat-icon> Add Follow-up for Prospect
+        <mat-icon>add_alarm</mat-icon> Schedule Follow-up
       </button>
       <button mat-stroked-button type="button" (click)="loadTasks()">
         <mat-icon>refresh</mat-icon> Refresh Tasks
@@ -138,12 +138,18 @@
                 <button
                   *ngIf="task.status === 'PENDING'"
                   mat-flat-button
-                  color="primary"
                   type="button"
+                  class="btn-take-action"
                   (click)="completeTask(task)"
+                  matTooltip="Execute follow-up call/meeting & record outcome"
                 >
-                  Done &#10003;
+                  <mat-icon style="font-size: 16px; width: 16px; height: 16px; margin-right: 4px;">bolt</mat-icon>
+                  Take Action
                 </button>
+                <div *ngIf="task.status === 'COMPLETED'" class="completed-action-info">
+                  <span class="outcome-badge" *ngIf="task.outcome_status">{{ task.outcome_status }}</span>
+                  <span class="outcome-badge-done" *ngIf="!task.outcome_status">Action Taken &#10003;</span>
+                </div>
                 <button
                   mat-icon-button
                   color="warn"
@@ -168,14 +174,14 @@
     </div>
   </mat-card>
 
-  <!-- Modal: Complete Follow-Up & Set Manual Intent -->
+  <!-- Modal: Take Action & Record Follow-up Outcome -->
   <div class="modal-backdrop" *ngIf="completeTaskModalOpen" (click)="closeCompleteModal()">
     <div class="modal-dialog-custom" (click)="$event.stopPropagation()">
       <div class="modal-header-custom">
         <div>
-          <h2 class="modal-title-custom">Complete Follow-up &amp; Record Intent</h2>
+          <h2 class="modal-title-custom">Take Action &amp; Record Follow-up Outcome</h2>
           <p class="modal-subtitle-custom">
-            Record outcome for <strong>{{ selectedTaskForCompletion?.buyer?.full_name || 'Prospect' }}</strong> and update manual intent score.
+            Record interaction outcome for <strong>{{ selectedTaskForCompletion?.buyer?.full_name || 'Prospect' }}</strong> and assess updated buyer intent score.
           </p>
         </div>
         <button type="button" class="close-x-btn" (click)="closeCompleteModal()">&times;</button>
@@ -184,9 +190,21 @@
       <div class="modal-body-custom">
         <!-- Task context card -->
         <div class="task-context-box">
-          <div class="context-label">FOLLOW-UP REQUIREMENT:</div>
+          <div class="context-label">SCHEDULED REQUIREMENT / AGENDA:</div>
           <div class="context-title">{{ selectedTaskForCompletion?.title }}</div>
           <div class="context-desc" *ngIf="selectedTaskForCompletion?.description">{{ selectedTaskForCompletion?.description }}</div>
+        </div>
+
+        <!-- Action Channel Executed -->
+        <div class="form-group-custom">
+          <label class="form-label-custom">Action Channel Executed <span class="required-star">*</span></label>
+          <select class="form-control-custom" [(ngModel)]="action_channel">
+            <option value="Phone Call Completed">📞 Phone Strategy Call Completed</option>
+            <option value="WhatsApp Conversation">💬 WhatsApp Conversation Completed</option>
+            <option value="Sales Gallery In-Person Meeting">🏢 Sales Gallery Meeting Completed</option>
+            <option value="Site Visit Walkthrough">🚗 Site Visit Walkthrough Completed</option>
+            <option value="Pricing / Agreement Discussion">📄 Milestone Pricing / Waiver Discussion Completed</option>
+          </select>
         </div>
 
         <!-- Outcome Status -->
@@ -215,16 +233,16 @@
           ></textarea>
         </div>
 
-        <!-- Live Manual Intent Score Section matching Image 2 -->
+        <!-- Live Manual Intent Score Section (Assessed upon taking action) -->
         <div class="manual-intent-panel">
           <div class="intent-panel-header">
             <div>
-              <div class="intent-panel-title">Buyer Intent Score (Manual Override)</div>
+              <div class="intent-panel-title">Buyer Intent Score (Manual Assessment After Action)</div>
               <div class="intent-panel-sub">
-                Manually assessed during this follow-up (not automated).
+                Evaluate buyer's interest and momentum based on this interaction.
               </div>
             </div>
-            <!-- Live Preview matching Image 2 -->
+            <!-- Live Preview -->
             <div class="intent-preview-wrapper">
               <span class="preview-label">Live Intent Badge:</span>
               <div class="score-badge-exact" [ngClass]="manual_intent_score >= 80 ? 'badge-high' : (manual_intent_score >= 50 ? 'badge-med' : 'badge-low')">
@@ -303,34 +321,63 @@
       <div class="modal-footer-custom">
         <button type="button" class="btn-cancel" (click)="closeCompleteModal()" [disabled]="completingTask">Cancel</button>
         <button type="button" class="btn-confirm" (click)="submitTaskCompletion()" [disabled]="completingTask">
-          {{ completingTask ? 'Saving...' : '✓ Complete Follow-up & Record Intent' }}
+          {{ completingTask ? 'Saving...' : '✓ Save Outcome & Complete Follow-up' }}
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Modal: Create New Follow-Up for Any Prospect -->
+  <!-- Modal: Schedule Follow-up for Prospect -->
   <div class="modal-backdrop" *ngIf="createTaskModalOpen" (click)="closeCreateModal()">
     <div class="modal-dialog-custom" (click)="$event.stopPropagation()">
       <div class="modal-header-custom">
         <div>
-          <h2 class="modal-title-custom">+ Create Follow-up for Prospect</h2>
+          <h2 class="modal-title-custom">+ Schedule Follow-up for Prospect</h2>
           <p class="modal-subtitle-custom">
-            Schedule a follow-up flow for any prospect and manually specify their current intent score &amp; delta.
+            Schedule an upcoming follow-up touchpoint with countdown SLA and assigned sales executive.
           </p>
         </div>
         <button type="button" class="close-x-btn" (click)="closeCreateModal()">&times;</button>
       </div>
 
       <div class="modal-body-custom">
+        <!-- Workflow Concept Banner -->
+        <div class="workflow-info-notice">
+          <mat-icon style="font-size: 18px; width: 18px; height: 18px; color: #2563eb; flex-shrink: 0;">info</mat-icon>
+          <span><strong>Workflow Concept:</strong> First schedule the follow-up task with an SLA timer. Once action is taken (call/meeting), log the interaction outcome and update the buyer's intent score.</span>
+        </div>
+
         <!-- Prospect Selector -->
         <div class="form-group-custom">
           <label class="form-label-custom">Select Prospect / Buyer <span class="required-star">*</span></label>
           <select class="form-control-custom" [(ngModel)]="createForm.buyer_id" (change)="onBuyerSelectChange()">
             <option [ngValue]="null" disabled>-- Choose a prospect --</option>
             <option *ngFor="let b of prospectsList" [value]="b.buyer_id || b.id">
-              {{ b.full_name }} &bull; {{ b.preferred_bhk }} (Max ₹{{ b.budget_max_lacs }}L) &bull; Intent: {{ b.intent_score || 95 }}/100
+              {{ b.full_name }} &bull; {{ b.preferred_bhk }} (Max ₹{{ b.budget_max_lacs }}L) &bull; Current Intent: {{ b.intent_score || 95 }}/100
             </option>
+          </select>
+        </div>
+
+        <!-- Selected Prospect Context Card -->
+        <div class="selected-prospect-banner" *ngIf="getSelectedBuyer() as buyer">
+          <div style="font-weight: 700; color: #0f172a; font-size: 0.92rem;">{{ buyer.full_name }}</div>
+          <div class="prospect-meta-chips">
+            <span class="meta-chip">Intent: <strong>{{ buyer.intent_score || 95 }}</strong> {{ (buyer.intent_delta !== undefined ? buyer.intent_delta : 5) >= 0 ? '▲' : '▼' }} {{ buyer.intent_delta || 5 }}</span>
+            <span class="meta-chip">Stage: <strong>{{ buyer.stage || 'New' }}</strong></span>
+            <span class="meta-chip">Requirement: <strong>{{ buyer.preferred_bhk || '3 BHK' }}</strong></span>
+            <span class="meta-chip">Budget: <strong>Max ₹{{ buyer.budget_max_lacs || '225' }}L</strong></span>
+          </div>
+        </div>
+
+        <!-- Follow-up Type / Channel -->
+        <div class="form-group-custom">
+          <label class="form-label-custom">Follow-up Type / Channel <span class="required-star">*</span></label>
+          <select class="form-control-custom" [(ngModel)]="createForm.follow_up_type" (change)="onFollowUpTypeChange()">
+            <option value="Phone Call">📞 Phone Strategy Call</option>
+            <option value="WhatsApp">💬 WhatsApp Interaction</option>
+            <option value="Site Visit Walkthrough">🚗 Site Visit Walkthrough Coordination</option>
+            <option value="In-Person Meeting">🏢 Sales Gallery In-Person Meeting</option>
+            <option value="Pricing & Negotiation">📄 Milestone Pricing &amp; Payment Plan Waiver</option>
           </select>
         </div>
 
@@ -341,13 +388,13 @@
             type="text"
             class="form-control-custom"
             [(ngModel)]="createForm.title"
-            placeholder="e.g. Urgent Strategy Call with Buyer / Floor Rise Discussion"
+            placeholder="e.g. Follow-up Strategy Call with Prospect"
           />
         </div>
 
         <!-- Task Description -->
         <div class="form-group-custom">
-          <label class="form-label-custom">Detailed Context / Interaction Goals</label>
+          <label class="form-label-custom">Interaction Goals &amp; Agenda</label>
           <textarea
             class="form-control-custom"
             rows="2"
@@ -356,60 +403,7 @@
           ></textarea>
         </div>
 
-        <!-- Manual Intent Score & Delta Setting (matching Image 2) -->
-        <div class="manual-intent-panel">
-          <div class="intent-panel-header">
-            <div>
-              <div class="intent-panel-title">Buyer Intent Score (Manual Assessment)</div>
-              <div class="intent-panel-sub">
-                Manually record or update the buyer's intent score for this follow-up touchpoint.
-              </div>
-            </div>
-            <!-- Live Preview matching Image 2 -->
-            <div class="intent-preview-wrapper">
-              <span class="preview-label">Live Intent Badge:</span>
-              <div class="score-badge-exact" [ngClass]="createForm.manual_intent_score >= 80 ? 'badge-high' : (createForm.manual_intent_score >= 50 ? 'badge-med' : 'badge-low')">
-                <span class="score-number">{{ createForm.manual_intent_score }}</span>
-                <span class="score-delta-symbol">{{ createForm.manual_intent_delta >= 0 ? '▲' : '▼' }}</span>
-                <span class="score-delta-val">{{ createForm.manual_intent_delta >= 0 ? createForm.manual_intent_delta : -createForm.manual_intent_delta }}</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="intent-inputs-grid">
-            <div>
-              <label class="form-label-custom">Manual Intent Score (0 - 100)</label>
-              <input
-                type="number"
-                min="0"
-                max="100"
-                class="form-control-custom"
-                [(ngModel)]="createForm.manual_intent_score"
-              />
-            </div>
-            <div>
-              <label class="form-label-custom">Intent Delta Score (&plusmn;)</label>
-              <input
-                type="number"
-                class="form-control-custom"
-                [(ngModel)]="createForm.manual_intent_delta"
-                placeholder="+5"
-              />
-            </div>
-          </div>
-
-          <!-- Quick Presets -->
-          <div class="intent-presets-row">
-            <span class="preset-label">Quick Presets:</span>
-            <button type="button" class="preset-btn" (click)="setCreateIntentPreset(95, 5)">95 (Very High ▲ 5)</button>
-            <button type="button" class="preset-btn" (click)="setCreateIntentPreset(90, 4)">90 (High ▲ 4)</button>
-            <button type="button" class="preset-btn" (click)="setCreateIntentPreset(75, 2)">75 (Warm ▲ 2)</button>
-            <button type="button" class="preset-btn" (click)="setCreateIntentPreset(60, 0)">60 (Neutral)</button>
-            <button type="button" class="preset-btn" (click)="setCreateIntentPreset(40, -5)">40 (Cooling ▼ 5)</button>
-          </div>
-        </div>
-
-        <!-- Priority, Assigned Rep & Due Date -->
+        <!-- Priority & Assigned Rep -->
         <div class="intent-inputs-grid">
           <div class="form-group-custom">
             <label class="form-label-custom">Priority Level</label>
@@ -433,7 +427,7 @@
 
         <!-- Countdown SLA Hours & Target Deadline -->
         <div class="form-group-custom">
-          <label class="form-label-custom">Countdown SLA / Due Date</label>
+          <label class="form-label-custom">Countdown SLA / Scheduled Due Date</label>
           <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap;">
             <button type="button" class="preset-btn" [class.active-sla]="createForm.countdown_hours === 1" (click)="setCreateCountdown(1)">1 Hour (Immediate)</button>
             <button type="button" class="preset-btn" [class.active-sla]="createForm.countdown_hours === 2" (click)="setCreateCountdown(2)">2 Hours (Urgent)</button>
@@ -447,7 +441,7 @@
       <div class="modal-footer-custom">
         <button type="button" class="btn-cancel" (click)="closeCreateModal()" [disabled]="creatingTask">Cancel</button>
         <button type="button" class="btn-confirm" (click)="submitCreateTask()" [disabled]="creatingTask">
-          {{ creatingTask ? 'Creating...' : '+ Create Follow-up Task' }}
+          {{ creatingTask ? 'Scheduling...' : 'Schedule Follow-up' }}
         </button>
       </div>
     </div>

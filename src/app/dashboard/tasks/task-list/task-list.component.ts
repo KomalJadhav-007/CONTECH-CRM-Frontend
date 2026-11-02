@@ -65,17 +65,18 @@ export class TaskListComponent implements OnInit {
     manual_intent_band: 'HIGH'
   };
 
-  // Complete Follow-up Modal State
+  // Complete Follow-up Modal State (Take Action)
   completeTaskModalOpen = false;
   selectedTaskForCompletion: any = null;
   completingTask = false;
 
+  action_channel = 'Phone Call Completed';
   outcome_status = 'Call Connected - High Interest';
   outcome_notes = '';
   manual_intent_score = 95;
   manual_intent_delta = 5;
   manual_intent_band = 'HIGH';
-  schedule_next_follow_up = true;
+  schedule_next_follow_up = false;
   next_follow_up_title = '';
   next_follow_up_date = '';
   next_follow_up_priority = 'HIGH';
@@ -103,23 +104,24 @@ export class TaskListComponent implements OnInit {
     });
   }
 
+  getSelectedBuyer(): any {
+    if (!this.createForm.buyer_id) return null;
+    return this.prospectsList.find(b => (b.buyer_id || b.id) == this.createForm.buyer_id) || null;
+  }
+
   openCreateModal(): void {
     const fourHoursLater = new Date(Date.now() + 4 * 60 * 60 * 1000);
     const defaultBuyer = this.prospectsList[0] || null;
-    const defaultScore = defaultBuyer?.intent_score !== undefined && defaultBuyer?.intent_score !== null ? defaultBuyer.intent_score : 95;
-    const defaultDelta = defaultBuyer?.intent_delta !== undefined && defaultBuyer?.intent_delta !== null ? defaultBuyer.intent_delta : 5;
 
     this.createForm = {
       buyer_id: defaultBuyer ? (defaultBuyer.buyer_id || defaultBuyer.id) : null,
+      follow_up_type: 'Phone Call',
       title: defaultBuyer ? `Follow-up Strategy Call with ${defaultBuyer.full_name}` : 'Follow-up Strategy Call',
       description: 'Review requirement, quote pricing milestones, and discuss preferred site visit / walkthrough slot.',
       assigned_to_id: defaultBuyer?.assigned_rep_id || (this.salesRepsList[0]?.user_id || null),
       priority: 'HIGH',
       countdown_hours: 4,
-      due_at: fourHoursLater.toISOString().slice(0, 16),
-      manual_intent_score: defaultScore,
-      manual_intent_delta: defaultDelta,
-      manual_intent_band: defaultScore >= 80 ? 'HIGH' : (defaultScore >= 50 ? 'MEDIUM' : 'LOW')
+      due_at: fourHoursLater.toISOString().slice(0, 16)
     };
 
     this.createTaskModalOpen = true;
@@ -129,27 +131,30 @@ export class TaskListComponent implements OnInit {
     this.createTaskModalOpen = false;
   }
 
-  onBuyerSelectChange(): void {
-    const selected = this.prospectsList.find(b => (b.buyer_id || b.id) == this.createForm.buyer_id);
-    if (selected) {
-      if (selected.intent_score !== undefined && selected.intent_score !== null) {
-        this.createForm.manual_intent_score = selected.intent_score;
-        this.createForm.manual_intent_delta = selected.intent_delta !== undefined ? selected.intent_delta : 5;
-        this.createForm.manual_intent_band = selected.intent_band || (selected.intent_score >= 80 ? 'HIGH' : 'MEDIUM');
-      }
-      if (selected.assigned_rep_id) {
-        this.createForm.assigned_to_id = selected.assigned_rep_id;
-      }
-      if (!this.createForm.title || this.createForm.title.includes('Follow-up Strategy Call')) {
-        this.createForm.title = `Follow-up Strategy Call with ${selected.full_name}`;
-      }
+  onFollowUpTypeChange(): void {
+    const selected = this.getSelectedBuyer();
+    const name = selected ? selected.full_name : 'Prospect';
+    if (this.createForm.follow_up_type === 'Phone Call') {
+      this.createForm.title = `Strategy Call with ${name}`;
+    } else if (this.createForm.follow_up_type === 'WhatsApp') {
+      this.createForm.title = `WhatsApp Follow-up with ${name}`;
+    } else if (this.createForm.follow_up_type === 'Site Visit Walkthrough') {
+      this.createForm.title = `Site Visit Coordination for ${name}`;
+    } else if (this.createForm.follow_up_type === 'In-Person Meeting') {
+      this.createForm.title = `Sales Gallery Discussion with ${name}`;
+    } else if (this.createForm.follow_up_type === 'Pricing & Negotiation') {
+      this.createForm.title = `Pricing & Payment Plan Review for ${name}`;
     }
   }
 
-  setCreateIntentPreset(score: number, delta: number): void {
-    this.createForm.manual_intent_score = score;
-    this.createForm.manual_intent_delta = delta;
-    this.createForm.manual_intent_band = score >= 80 ? 'HIGH' : (score >= 50 ? 'MEDIUM' : 'LOW');
+  onBuyerSelectChange(): void {
+    const selected = this.getSelectedBuyer();
+    if (selected) {
+      if (selected.assigned_rep_id) {
+        this.createForm.assigned_to_id = selected.assigned_rep_id;
+      }
+      this.onFollowUpTypeChange();
+    }
   }
 
   setCreateCountdown(hours: number): void {
@@ -174,13 +179,13 @@ export class TaskListComponent implements OnInit {
         this.creatingTask = false;
         if (res.success) {
           this.closeCreateModal();
-          this.showFeedback(`Follow-up created successfully for prospect with manual intent score recorded!`);
+          this.showFeedback(`✓ Follow-up scheduled successfully in Pending SLAs!`);
           this.loadTasks();
         }
       },
       error: (err) => {
         this.creatingTask = false;
-        alert('Failed to create follow-up: ' + (err.error?.message || err.message));
+        alert('Failed to schedule follow-up: ' + (err.error?.message || err.message));
       }
     });
   }
@@ -215,12 +220,13 @@ export class TaskListComponent implements OnInit {
 
   openCompleteModal(task: any): void {
     this.selectedTaskForCompletion = task;
+    this.action_channel = 'Phone Call Completed';
     this.outcome_status = 'Call Connected - High Interest';
     this.outcome_notes = '';
     this.manual_intent_score = task.buyer?.intent_score !== undefined && task.buyer?.intent_score !== null ? task.buyer.intent_score : 95;
     this.manual_intent_delta = task.buyer?.intent_delta !== undefined && task.buyer?.intent_delta !== null ? task.buyer.intent_delta : 5;
     this.manual_intent_band = this.manual_intent_score >= 80 ? 'HIGH' : (this.manual_intent_score >= 50 ? 'MEDIUM' : 'LOW');
-    this.schedule_next_follow_up = true;
+    this.schedule_next_follow_up = false;
     this.next_follow_up_title = `Next Follow-up Call for ${task.buyer?.full_name || 'Prospect'}`;
     const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
     tomorrow.setHours(11, 0, 0, 0);
@@ -244,9 +250,10 @@ export class TaskListComponent implements OnInit {
     if (!this.selectedTaskForCompletion) return;
     this.completingTask = true;
     const id = this.selectedTaskForCompletion.follow_up_task_id || this.selectedTaskForCompletion.id;
+    const notesWithChannel = `[Action: ${this.action_channel}] ${this.outcome_notes || ''}`.trim();
     const payload = {
       outcome_status: this.outcome_status,
-      outcome_notes: this.outcome_notes,
+      outcome_notes: notesWithChannel,
       manual_intent_score: this.manual_intent_score,
       manual_intent_delta: this.manual_intent_delta,
       manual_intent_band: this.manual_intent_band,
@@ -260,7 +267,7 @@ export class TaskListComponent implements OnInit {
         this.completingTask = false;
         if (res.success) {
           this.closeCompleteModal();
-          this.showFeedback(`Follow-up completed & manual intent score recorded.`);
+          this.showFeedback(`✓ Action taken & recorded! Follow-up marked complete and buyer intent score updated.`);
           this.loadTasks();
         }
       },
