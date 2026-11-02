@@ -205,24 +205,28 @@
                 <a mat-stroked-button [routerLink]="['/visits/discovery', visit.id]" class="btn-action-view" *ngIf="visit.status !== 'CANCELLED' && visit.status !== 'NO_SHOW'">
                   <mat-icon style="font-size: 16px; width: 16px; height: 16px;">visibility</mat-icon> In-Visit
                 </a>
+
+                <button
+                  mat-stroked-button
+                  type="button"
+                  class="btn-action-reschedule"
+                  *ngIf="visit.status === 'SCHEDULED' || visit.status === 'IN_PROGRESS' || visit.status === 'CANCELLED' || visit.status === 'NO_SHOW'"
+                  (click)="openManageModal(visit, 'RESCHEDULE')"
+                  matTooltip="Reschedule visit for a new date and time slot"
+                >
+                  <mat-icon style="font-size: 15px; width: 15px; height: 15px;">event_repeat</mat-icon>
+                  Reschedule
+                </button>
+
                 <button
                   mat-button
                   color="warn"
                   type="button"
                   *ngIf="visit.status === 'SCHEDULED' || visit.status === 'IN_PROGRESS'"
-                  (click)="openCancelModal(visit, false)"
-                  matTooltip="Cancel visit and initiate recovery"
+                  (click)="openManageModal(visit, 'CANCEL')"
+                  matTooltip="Cancel visit permanently or mark no-show"
                 >
                   Cancel
-                </button>
-                <button
-                  mat-button
-                  type="button"
-                  *ngIf="visit.status === 'SCHEDULED' || visit.status === 'IN_PROGRESS'"
-                  (click)="openCancelModal(visit, true)"
-                  matTooltip="Mark buyer as no-show"
-                >
-                  No-Show
                 </button>
               </div>
             </td>
@@ -238,16 +242,20 @@
     </div>
   </mat-card>
 
-  <!-- SOW Sec 12: Cancellation & No-Show Recovery Modal -->
-  <div *ngIf="showCancelModal" class="modal-backdrop">
-    <mat-card class="modal-card">
+  <!-- Site Visit Management Modal: Reschedule vs Permanent Cancellation -->
+  <div *ngIf="showCancelModal" class="modal-backdrop" (click)="closeCancelModal()">
+    <mat-card class="modal-card modal-card-manage" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <div>
+          <div class="modal-pretitle">SITE VISIT MANAGEMENT</div>
           <h2 class="modal-title">
-            {{ cancelForm.status === 'NO_SHOW' ? 'Mark Visit No-Show & Trigger 30m Recovery' : 'Cancel Visit & Initiate 2h Recovery' }}
+            {{ manageForm.decision === 'RESCHEDULE' ? 'Reschedule Site Visit for Next Time' : 'Cancel Site Visit' }}
           </h2>
           <p class="modal-subtitle">
-            Visit #{{ selectedVisitForCancel?.id }} &middot; {{ selectedVisitForCancel?.buyer?.full_name }} ({{ selectedVisitForCancel?.project?.name }})
+            Visit #{{ selectedVisitForCancel?.site_visit_id || selectedVisitForCancel?.id }} &middot; 
+            <strong>{{ selectedVisitForCancel?.buyer?.full_name }}</strong> 
+            ({{ selectedVisitForCancel?.project?.name }}) &middot;
+            Current: {{ selectedVisitForCancel?.scheduled_date }} ({{ selectedVisitForCancel?.time_slot }})
           </p>
         </div>
         <button mat-icon-button type="button" (click)="closeCancelModal()">
@@ -260,54 +268,191 @@
           {{ cancelError }}
         </div>
 
-        <div class="recovery-info-callout">
-          <strong>SOW Section 12 SLA Compliance:</strong>
-          <p class="sub-text" *ngIf="cancelForm.status === 'NO_SHOW'">
-            No-Show events automatically initiate an urgent 30-minute recovery countdown task assigned to the sales representative to preserve buyer interest before lead turns cold.
-          </p>
-          <p class="sub-text" *ngIf="cancelForm.status === 'CANCELLED'">
-            Cancellations trigger an automatic 2-hour recovery workflow to contact the buyer, document objection causes, and reschedule to a guaranteed alternative slot.
-          </p>
+        <!-- 1. Decision Choice Cards: Reschedule vs Cancel Permanently -->
+        <div class="decision-selector-section">
+          <label class="section-label-bold">DECIDE ACTION FOR THIS VISIT:</label>
+          <div class="decision-cards-grid">
+            <div
+              class="decision-card"
+              [class.active]="manageForm.decision === 'RESCHEDULE'"
+              (click)="manageForm.decision = 'RESCHEDULE'"
+            >
+              <div class="decision-radio-indicator">
+                <mat-icon *ngIf="manageForm.decision === 'RESCHEDULE'" class="icon-checked">check_circle</mat-icon>
+                <span class="radio-empty" *ngIf="manageForm.decision !== 'RESCHEDULE'"></span>
+              </div>
+              <div class="decision-content">
+                <div class="decision-card-title">Reschedule for Next Time</div>
+                <div class="decision-card-desc">
+                  Move appointment to a new date and time slot. Updates calendar and notifies driver.
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="decision-card"
+              [class.active]="manageForm.decision === 'CANCEL'"
+              (click)="manageForm.decision = 'CANCEL'"
+            >
+              <div class="decision-radio-indicator">
+                <mat-icon *ngIf="manageForm.decision === 'CANCEL'" class="icon-checked cancel-icon">check_circle</mat-icon>
+                <span class="radio-empty" *ngIf="manageForm.decision !== 'CANCEL'"></span>
+              </div>
+              <div class="decision-content">
+                <div class="decision-card-title">Cancel Permanently</div>
+                <div class="decision-card-desc">
+                  Drop this visit (e.g. buyer lost interest or booked elsewhere). Initiates SLA recovery.
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div style="margin-top: 1.25rem;">
-          <mat-form-field appearance="outline" class="w-100">
-            <mat-label>Primary Cancellation / No-Show Reason *</mat-label>
-            <mat-select [(ngModel)]="cancelForm.reason">
-              <mat-option value="Buyer requested reschedule due to work conflict">Buyer requested reschedule due to work conflict</mat-option>
-              <mat-option value="Buyer unresponsive at scheduled pickup time">Buyer unresponsive at scheduled pickup time</mat-option>
-              <mat-option value="Severe traffic congestion or heavy rain delay">Severe traffic congestion or heavy rain delay</mat-option>
-              <mat-option value="Company cab / logistics breakdown">Company cab / logistics breakdown</mat-option>
-              <mat-option value="Buyer booked with competitor developer">Buyer booked with competitor developer</mat-option>
-              <mat-option value="Personal / family medical emergency">Personal / family medical emergency</mat-option>
-            </mat-select>
-          </mat-form-field>
+        <!-- 2. RESCHEDULE FORM: When Reschedule is selected -->
+        <div *ngIf="manageForm.decision === 'RESCHEDULE'" class="reschedule-form-panel">
+          <div class="reschedule-header-banner">
+            <mat-icon class="banner-icon">event_available</mat-icon>
+            <div>
+              <strong>Decide New Scheduled Date &amp; Time:</strong>
+              <div class="sub-text">
+                Select the replacement date and preferred walkthrough slot agreed with the buyer.
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row-2" style="margin-top: 1rem;">
+            <!-- New Scheduled Date -->
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>New Scheduled Date *</mat-label>
+              <input
+                matInput
+                type="date"
+                [(ngModel)]="manageForm.new_date"
+                [min]="todayDateStr"
+                required
+              />
+            </mat-form-field>
+
+            <!-- New Time Slot -->
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>New Walkthrough Time Slot *</mat-label>
+              <mat-select [(ngModel)]="manageForm.new_time_slot" required>
+                <mat-option value="09:30 AM - 11:00 AM (Morning Slot)">09:30 AM - 11:00 AM (Morning Slot)</mat-option>
+                <mat-option value="11:00 AM - 12:30 PM (Peak Slot)">11:00 AM - 12:30 PM (Peak Slot)</mat-option>
+                <mat-option value="02:00 PM - 03:30 PM (Afternoon Slot)">02:00 PM - 03:30 PM (Afternoon Slot)</mat-option>
+                <mat-option value="04:00 PM - 05:30 PM (Evening Sunset Slot)">04:00 PM - 05:30 PM (Evening Sunset Slot)</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div style="margin-top: 0.5rem;">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Reason for Rescheduling</mat-label>
+              <mat-select [(ngModel)]="manageForm.reason">
+                <mat-option value="Buyer requested reschedule due to work conflict">Buyer requested reschedule due to work conflict</mat-option>
+                <mat-option value="Buyer requested weekend slot instead">Buyer requested weekend slot instead</mat-option>
+                <mat-option value="Severe traffic congestion or weather delay">Severe traffic congestion or weather delay</mat-option>
+                <mat-option value="Personal / family emergency">Personal / family emergency</mat-option>
+                <mat-option value="Sales gallery / unit model unavailable">Sales gallery / unit model unavailable</mat-option>
+                <mat-option value="Other reschedule reason">Other reschedule reason</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div style="margin-top: 0.5rem;">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Reschedule Notes &amp; Logistics Instructions</mat-label>
+              <textarea
+                matInput
+                rows="2"
+                [(ngModel)]="manageForm.notes"
+                placeholder="Enter special pickup notes, gate pass instructions, or customer requirements for the new slot..."
+              ></textarea>
+            </mat-form-field>
+          </div>
+
+          <div class="reschedule-dispatch-notice">
+            <mat-icon style="font-size: 18px; width: 18px; height: 18px; color: #16a34a; flex-shrink: 0;">check_circle</mat-icon>
+            <span>The assigned driver automatically receives an updated WhatsApp trip notification for <strong>{{ manageForm.new_date }} ({{ manageForm.new_time_slot }})</strong>.</span>
+          </div>
         </div>
 
-        <div style="margin-top: 0.75rem;">
-          <mat-form-field appearance="outline" class="w-100">
-            <mat-label>Recovery Action Notes & Proposed Reschedule Window</mat-label>
-            <textarea
-              matInput
-              rows="3"
-              [(ngModel)]="cancelForm.notes"
-              placeholder="Notes on buyer's objection or preferred alternate weekend for priority luxury pickup..."
-            ></textarea>
-          </mat-form-field>
+        <!-- 3. CANCEL PERMANENTLY FORM: When Cancel is selected -->
+        <div *ngIf="manageForm.decision === 'CANCEL'" class="cancel-form-panel">
+          <div class="recovery-info-callout">
+            <strong>SOW Section 12 SLA Compliance:</strong>
+            <p class="sub-text">
+              Permanent cancellations trigger an automatic 2-hour recovery workflow to contact the buyer, document objection causes, and preserve pipeline momentum.
+            </p>
+          </div>
+
+          <div class="form-row-2" style="margin-top: 1rem;">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Cancellation Type</mat-label>
+              <mat-select [(ngModel)]="manageForm.cancel_type">
+                <mat-option value="CANCELLED">Buyer Cancelled Prior to Visit (2h Recovery)</mat-option>
+                <mat-option value="NO_SHOW">Buyer No-Show at Scheduled Time (30m Recovery)</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Primary Cancellation Reason *</mat-label>
+              <mat-select [(ngModel)]="manageForm.reason">
+                <mat-option value="Buyer lost interest / dropped inquiry">Buyer lost interest / dropped inquiry</mat-option>
+                <mat-option value="Budget mismatch / pricing too high">Budget mismatch / pricing too high</mat-option>
+                <mat-option value="Booked with competitor developer">Booked with competitor developer</mat-option>
+                <mat-option value="Location / Vaastu rejection">Location / Vaastu rejection</mat-option>
+                <mat-option value="Buyer unresponsive / unreachable">Buyer unresponsive / unreachable</mat-option>
+                <mat-option value="Other cancellation reason">Other cancellation reason</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div style="margin-top: 0.5rem;">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Objection Details &amp; Recovery Plan</mat-label>
+              <textarea
+                matInput
+                rows="3"
+                [(ngModel)]="manageForm.notes"
+                placeholder="Document buyer's objections or dropped interest causes..."
+              ></textarea>
+            </mat-form-field>
+          </div>
         </div>
       </div>
 
       <div class="modal-footer">
-        <button mat-button type="button" (click)="closeCancelModal()">Dismiss</button>
+        <button mat-button type="button" (click)="closeCancelModal()" [disabled]="cancelling">Dismiss</button>
+
+        <!-- Submit Button for Reschedule -->
         <button
+          *ngIf="manageForm.decision === 'RESCHEDULE'"
+          mat-flat-button
+          color="primary"
+          type="button"
+          class="btn-confirm-reschedule"
+          [disabled]="cancelling || !manageForm.new_date || !manageForm.new_time_slot"
+          (click)="submitManageVisit()"
+        >
+          <mat-icon style="font-size: 18px; width: 18px; height: 18px; margin-right: 4px;">event_repeat</mat-icon>
+          <span *ngIf="!cancelling">Confirm Reschedule for {{ manageForm.new_date }} &rarr;</span>
+          <span *ngIf="cancelling">Rescheduling...</span>
+        </button>
+
+        <!-- Submit Button for Cancel Permanently -->
+        <button
+          *ngIf="manageForm.decision === 'CANCEL'"
           mat-flat-button
           color="warn"
           type="button"
+          class="btn-confirm-cancel"
           [disabled]="cancelling"
-          (click)="submitCancellationRecovery()"
+          (click)="submitManageVisit()"
         >
-          <span *ngIf="!cancelling">Confirm {{ cancelForm.status }} &amp; Trigger Recovery SLA &rarr;</span>
-          <span *ngIf="cancelling">Triggering Recovery...</span>
+          <mat-icon style="font-size: 18px; width: 18px; height: 18px; margin-right: 4px;">cancel</mat-icon>
+          <span *ngIf="!cancelling">Confirm Permanent Cancellation &amp; Trigger SLA &rarr;</span>
+          <span *ngIf="cancelling">Cancelling...</span>
         </button>
       </div>
     </mat-card>

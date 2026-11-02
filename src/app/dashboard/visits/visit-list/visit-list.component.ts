@@ -90,13 +90,24 @@ export class VisitListComponent implements OnInit {
     });
   }
 
-  // SOW Sec 12: Cancellation & No-Show Recovery Modal State
+  // Site Visit Management Modal: Reschedule vs Permanent Cancellation
   showCancelModal = false;
   selectedVisitForCancel: any = null;
-  cancelForm: any = {
-    status: 'CANCELLED',
-    reason: 'Buyer requested reschedule due to urgent work conflict',
-    notes: 'Attempt recovery call within 2 hours to offer priority Saturday slot.'
+  todayDateStr: string = new Date().toISOString().slice(0, 10);
+  manageForm: {
+    decision: 'RESCHEDULE' | 'CANCEL';
+    new_date: string;
+    new_time_slot: string;
+    cancel_type: 'CANCELLED' | 'NO_SHOW';
+    reason: string;
+    notes: string;
+  } = {
+    decision: 'RESCHEDULE',
+    new_date: '',
+    new_time_slot: '02:00 PM - 03:30 PM (Afternoon Slot)',
+    cancel_type: 'CANCELLED',
+    reason: 'Buyer requested reschedule due to work conflict',
+    notes: ''
   };
   cancelling = false;
   cancelError = '';
@@ -124,15 +135,29 @@ export class VisitListComponent implements OnInit {
     });
   }
 
-  openCancelModal(visit: any, isNoShow: boolean = false): void {
+  openManageModal(visit: any, defaultDecision: 'RESCHEDULE' | 'CANCEL' = 'RESCHEDULE', isNoShow: boolean = false): void {
     this.selectedVisitForCancel = visit;
     this.showCancelModal = true;
     this.cancelError = '';
-    this.cancelForm = {
-      status: isNoShow ? 'NO_SHOW' : 'CANCELLED',
-      reason: isNoShow ? 'Buyer did not arrive at pickup point / unresponsive' : 'Buyer requested reschedule due to work conflict',
-      notes: isNoShow ? 'Trigger immediate 30-minute recovery SLA follow-up task.' : 'Trigger 2-hour recovery SLA follow-up task.'
+
+    const nextDate = new Date();
+    nextDate.setDate(nextDate.getDate() + 1);
+    const defaultDateStr = nextDate.toISOString().slice(0, 10);
+
+    this.manageForm = {
+      decision: isNoShow ? 'CANCEL' : defaultDecision,
+      new_date: visit.scheduled_date || defaultDateStr,
+      new_time_slot: visit.time_slot || '02:00 PM - 03:30 PM (Afternoon Slot)',
+      cancel_type: isNoShow ? 'NO_SHOW' : 'CANCELLED',
+      reason: defaultDecision === 'RESCHEDULE'
+        ? 'Buyer requested reschedule due to work conflict'
+        : (isNoShow ? 'Buyer unresponsive at scheduled pickup time' : 'Buyer lost interest / dropped inquiry'),
+      notes: ''
     };
+  }
+
+  openCancelModal(visit: any, isNoShow: boolean = false): void {
+    this.openManageModal(visit, 'CANCEL', isNoShow);
   }
 
   closeCancelModal(): void {
@@ -140,29 +165,51 @@ export class VisitListComponent implements OnInit {
     this.selectedVisitForCancel = null;
   }
 
-  submitCancellationRecovery(): void {
+  submitManageVisit(): void {
     if (!this.selectedVisitForCancel) return;
     this.cancelling = true;
     this.cancelError = '';
 
     const visitId = this.selectedVisitForCancel.site_visit_id || this.selectedVisitForCancel.id;
-    const payload = {
-      status: this.cancelForm.status,
-      reason: this.cancelForm.reason,
-      notes: this.cancelForm.notes
-    };
+
+    let payload: any = {};
+    if (this.manageForm.decision === 'RESCHEDULE') {
+      if (!this.manageForm.new_date || !this.manageForm.new_time_slot) {
+        this.cancelling = false;
+        this.cancelError = 'Please select both a new scheduled date and time slot for the reschedule.';
+        return;
+      }
+      payload = {
+        decision: 'RESCHEDULE',
+        status: 'SCHEDULED',
+        scheduled_date: this.manageForm.new_date,
+        time_slot: this.manageForm.new_time_slot,
+        reason: this.manageForm.reason,
+        notes: this.manageForm.notes
+      };
+    } else {
+      payload = {
+        decision: 'CANCEL',
+        status: this.manageForm.cancel_type,
+        reason: this.manageForm.reason,
+        notes: this.manageForm.notes
+      };
+    }
 
     this.visitService.updateSiteVisit(visitId, payload).subscribe({
       next: (res) => {
         this.cancelling = false;
         if (res.success) {
-          this.selectedVisitForCancel.status = this.cancelForm.status;
-          this.feedbackMessage = `Visit #${visitId} marked as ${this.cancelForm.status}. Recovery SLA task initiated!`;
+          if (this.manageForm.decision === 'RESCHEDULE') {
+            this.feedbackMessage = `Visit #${visitId} successfully rescheduled to ${this.manageForm.new_date} (${this.manageForm.new_time_slot})! Driver updated via WhatsApp.`;
+          } else {
+            this.feedbackMessage = `Visit #${visitId} marked as ${this.manageForm.cancel_type}. Recovery SLA initiated!`;
+          }
           this.closeCancelModal();
           this.loadVisits();
-          setTimeout(() => this.feedbackMessage = '', 4000);
+          setTimeout(() => this.feedbackMessage = '', 4500);
         } else {
-          this.cancelError = res.message || 'Failed to update visit status';
+          this.cancelError = res.message || 'Failed to update visit';
         }
       },
       error: (err) => {
@@ -170,6 +217,10 @@ export class VisitListComponent implements OnInit {
         this.cancelError = err.error?.message || 'Failed to update visit';
       }
     });
+  }
+
+  submitCancellationRecovery(): void {
+    this.submitManageVisit();
   }
 }
 
