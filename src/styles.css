@@ -412,3 +412,13 @@ td.text-left,
   text-align: left !important;
 }
 
+/* Ensure all Angular Material CDK overlays (selects, menus, datepickers, tooltips) render above modals */
+.cdk-overlay-container,
+.cdk-global-overlay-wrapper {
+  z-index: 99999 !important;
+}
+
+.cdk-overlay-pane {
+  z-index: 99999 !important;
+}
+

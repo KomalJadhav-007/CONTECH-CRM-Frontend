@@ -275,7 +275,7 @@
             <div
               class="decision-card"
               [class.active]="manageForm.decision === 'RESCHEDULE'"
-              (click)="manageForm.decision = 'RESCHEDULE'"
+              (click)="setDecision('RESCHEDULE')"
             >
               <div class="decision-radio-indicator">
                 <mat-icon *ngIf="manageForm.decision === 'RESCHEDULE'" class="icon-checked">check_circle</mat-icon>
@@ -292,7 +292,7 @@
             <div
               class="decision-card"
               [class.active]="manageForm.decision === 'CANCEL'"
-              (click)="manageForm.decision = 'CANCEL'"
+              (click)="setDecision('CANCEL')"
             >
               <div class="decision-radio-indicator">
                 <mat-icon *ngIf="manageForm.decision === 'CANCEL'" class="icon-checked cancel-icon">check_circle</mat-icon>
@@ -347,8 +347,8 @@
 
           <div style="margin-top: 0.5rem;">
             <mat-form-field appearance="outline" class="w-100">
-              <mat-label>Reason for Rescheduling</mat-label>
-              <mat-select [(ngModel)]="manageForm.reason">
+              <mat-label>Reason for Rescheduling *</mat-label>
+              <mat-select [(ngModel)]="manageForm.reschedule_reason" required>
                 <mat-option value="Buyer requested reschedule due to work conflict">Buyer requested reschedule due to work conflict</mat-option>
                 <mat-option value="Buyer requested weekend slot instead">Buyer requested weekend slot instead</mat-option>
                 <mat-option value="Severe traffic congestion or weather delay">Severe traffic congestion or weather delay</mat-option>
@@ -397,7 +397,7 @@
 
             <mat-form-field appearance="outline" class="w-100">
               <mat-label>Primary Cancellation Reason *</mat-label>
-              <mat-select [(ngModel)]="manageForm.reason">
+              <mat-select [(ngModel)]="manageForm.cancel_reason" required>
                 <mat-option value="Buyer lost interest / dropped inquiry">Buyer lost interest / dropped inquiry</mat-option>
                 <mat-option value="Budget mismatch / pricing too high">Budget mismatch / pricing too high</mat-option>
                 <mat-option value="Booked with competitor developer">Booked with competitor developer</mat-option>

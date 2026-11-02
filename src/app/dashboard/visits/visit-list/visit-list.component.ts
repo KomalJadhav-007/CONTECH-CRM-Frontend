@@ -99,19 +99,30 @@ export class VisitListComponent implements OnInit {
     new_date: string;
     new_time_slot: string;
     cancel_type: 'CANCELLED' | 'NO_SHOW';
-    reason: string;
+    reschedule_reason: string;
+    cancel_reason: string;
     notes: string;
   } = {
     decision: 'RESCHEDULE',
     new_date: '',
     new_time_slot: '02:00 PM - 03:30 PM (Afternoon Slot)',
     cancel_type: 'CANCELLED',
-    reason: 'Buyer requested reschedule due to work conflict',
+    reschedule_reason: 'Buyer requested reschedule due to work conflict',
+    cancel_reason: 'Buyer lost interest / dropped inquiry',
     notes: ''
   };
   cancelling = false;
   cancelError = '';
   waSendingId: number | null = null;
+
+  setDecision(decision: 'RESCHEDULE' | 'CANCEL'): void {
+    this.manageForm.decision = decision;
+    if (decision === 'RESCHEDULE' && !this.manageForm.reschedule_reason) {
+      this.manageForm.reschedule_reason = 'Buyer requested reschedule due to work conflict';
+    } else if (decision === 'CANCEL' && !this.manageForm.cancel_reason) {
+      this.manageForm.cancel_reason = 'Buyer lost interest / dropped inquiry';
+    }
+  }
 
   sendDriverWhatsApp(visit: any): void {
     const vId = visit.site_visit_id || visit.id;
@@ -149,9 +160,8 @@ export class VisitListComponent implements OnInit {
       new_date: visit.scheduled_date || defaultDateStr,
       new_time_slot: visit.time_slot || '02:00 PM - 03:30 PM (Afternoon Slot)',
       cancel_type: isNoShow ? 'NO_SHOW' : 'CANCELLED',
-      reason: defaultDecision === 'RESCHEDULE'
-        ? 'Buyer requested reschedule due to work conflict'
-        : (isNoShow ? 'Buyer unresponsive at scheduled pickup time' : 'Buyer lost interest / dropped inquiry'),
+      reschedule_reason: 'Buyer requested reschedule due to work conflict',
+      cancel_reason: isNoShow ? 'Buyer unresponsive at scheduled pickup time' : 'Buyer lost interest / dropped inquiry',
       notes: ''
     };
   }
@@ -184,14 +194,14 @@ export class VisitListComponent implements OnInit {
         status: 'SCHEDULED',
         scheduled_date: this.manageForm.new_date,
         time_slot: this.manageForm.new_time_slot,
-        reason: this.manageForm.reason,
+        reason: this.manageForm.reschedule_reason || 'Buyer requested reschedule due to work conflict',
         notes: this.manageForm.notes
       };
     } else {
       payload = {
         decision: 'CANCEL',
         status: this.manageForm.cancel_type,
-        reason: this.manageForm.reason,
+        reason: this.manageForm.cancel_reason || 'Buyer cancelled visit',
         notes: this.manageForm.notes
       };
     }
