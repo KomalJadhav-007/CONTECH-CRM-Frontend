@@ -15,6 +15,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatInputModule } from '@angular/material/input';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @Component({
   selector: 'app-task-list',
@@ -31,7 +32,8 @@ import { MatInputModule } from '@angular/material/input';
     MatIconModule,
     MatTooltipModule,
     MatProgressBarModule,
-    MatInputModule
+    MatInputModule,
+    MatCheckboxModule
   ],
   templateUrl: './task-list.component.html',
   styleUrl: './task-list.component.css'
