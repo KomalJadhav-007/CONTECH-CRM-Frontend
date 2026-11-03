@@ -1334,6 +1334,12 @@ export class BuyerListComponent implements OnInit {
       row['Project Name'] ||
       row.project ||
       row['Project'] ||
+      row.target_project ||
+      row['Target Project'] ||
+      row.property ||
+      row['Property'] ||
+      row.site ||
+      row['Site'] ||
       row.project_code ||
       row['Project Code'] ||
       row.preferred_project ||
@@ -1341,11 +1347,18 @@ export class BuyerListComponent implements OnInit {
     ).trim();
 
     if (declared) {
-      const match = this.projectsList.find(p =>
-        p.name.toLowerCase() === declared.toLowerCase() ||
-        (p.code && p.code.toLowerCase() === declared.toLowerCase()) ||
-        p.name.toLowerCase().includes(declared.toLowerCase())
-      );
+      const declaredLower = declared.toLowerCase();
+      const match = this.projectsList.find(p => {
+        const pNameLower = p.name.toLowerCase();
+        const pCodeLower = (p.code || '').toLowerCase();
+        return (
+          pNameLower === declaredLower ||
+          pCodeLower === declaredLower ||
+          pNameLower.includes(declaredLower) ||
+          declaredLower.includes(pNameLower) ||
+          (pCodeLower && (pCodeLower.includes(declaredLower) || declaredLower.includes(pCodeLower)))
+        );
+      });
       return match ? match.name : declared;
     }
 
