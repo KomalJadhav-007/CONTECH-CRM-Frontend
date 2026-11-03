@@ -267,13 +267,12 @@
         </div>
         <div>
           <h3 class="grid-section-title">Projects Portfolio Directory</h3>
-          <p class="grid-section-desc">Click any project card below to instantly inspect and manage all prospective buyers targeting that project.</p>
+          <p class="grid-section-desc">Select any project card below to inspect and manage all prospective buyers targeting that project.</p>
         </div>
       </div>
       <div class="grid-header-meta" *ngIf="selectedProjectGroup">
-        <span class="active-focus-pill">
-          <mat-icon class="focus-icon">touch_app</mat-icon>
-          Currently Selected: <strong>{{ selectedProjectGroup.project.name }}</strong>
+        <span class="selected-project-label">
+          Selected Project: <strong>{{ selectedProjectGroup.project.name }}</strong>
         </span>
       </div>
     </div>
@@ -285,12 +284,6 @@
         class="interactive-project-card"
         [class.is-selected]="selectedProjectGroup && (selectedProjectGroup.project.project_id || selectedProjectGroup.project.id) == (group.project.project_id || group.project.id)"
         (click)="selectProjectCard(group.project.project_id || group.project.id)">
-        
-        <!-- Active Selection Top Strip -->
-        <div class="card-selection-indicator" *ngIf="selectedProjectGroup && (selectedProjectGroup.project.project_id || selectedProjectGroup.project.id) == (group.project.project_id || group.project.id)">
-          <mat-icon class="check-icon">check_circle</mat-icon>
-          <span>ACTIVE SELECTION</span>
-        </div>
 
         <!-- Card Top: Icon & Badges -->
         <div class="project-card-top">
