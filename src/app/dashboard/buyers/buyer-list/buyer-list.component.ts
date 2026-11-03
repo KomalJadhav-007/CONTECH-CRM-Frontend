@@ -66,6 +66,7 @@ export class BuyerListComponent implements OnInit {
 
   selectProjectCard(projectId: number): void {
     this.selectedProjectCardId = projectId;
+    this.dossierPage = 1;
   }
 
   get selectedProjectGroup(): any {
@@ -106,9 +107,16 @@ export class BuyerListComponent implements OnInit {
   sortField: string = 'score';
   sortDirection: 'asc' | 'desc' = 'desc';
 
-  // Pagination State
+  // Pagination State - All Prospects (Flat Table)
   currentPage: number = 1;
   pageSize: number = 10;
+
+  // Pagination State - Project Cards Dossier (Selected Project)
+  dossierPage: number = 1;
+  dossierPageSize: number = 10;
+
+  // Pagination State - Project Containers
+  containerPagination: { [key: string]: { page: number; pageSize: number } } = {};
 
   // Row Selection State
   selectedRows: Set<number> = new Set<number>();
@@ -514,6 +522,8 @@ export class BuyerListComponent implements OnInit {
       this.activeQuickTab = tab;
     }
     this.currentPage = 1;
+    this.dossierPage = 1;
+    this.containerPagination = {};
   }
 
   resetFilters(): void {
@@ -525,6 +535,8 @@ export class BuyerListComponent implements OnInit {
     this.selectedProject = 'all';
     this.activeQuickTab = 'all';
     this.currentPage = 1;
+    this.dossierPage = 1;
+    this.containerPagination = {};
   }
 
   get hasActiveFilters(): boolean {
@@ -548,6 +560,7 @@ export class BuyerListComponent implements OnInit {
       this.sortDirection = 'desc';
     }
     this.currentPage = 1;
+    this.dossierPage = 1;
   }
 
   // --- Row Selection ---
@@ -1146,6 +1159,64 @@ export class BuyerListComponent implements OnInit {
 
   get totalPages(): number {
     return Math.ceil(this.filteredProspects.length / this.pageSize) || 1;
+  }
+
+  // --- Project Cards Dossier Pagination ---
+  get pagedDossierProspects(): any[] {
+    if (!this.selectedProjectGroup || !this.selectedProjectGroup.prospects) return [];
+    const start = (this.dossierPage - 1) * this.dossierPageSize;
+    return this.selectedProjectGroup.prospects.slice(start, start + this.dossierPageSize);
+  }
+
+  get totalDossierPages(): number {
+    if (!this.selectedProjectGroup || !this.selectedProjectGroup.prospects) return 1;
+    return Math.ceil(this.selectedProjectGroup.prospects.length / this.dossierPageSize) || 1;
+  }
+
+  // --- Project Containers Pagination ---
+  getContainerPage(projectId: any): number {
+    const key = String(projectId ?? 0);
+    return this.containerPagination[key]?.page || 1;
+  }
+
+  getContainerPageSize(projectId: any): number {
+    const key = String(projectId ?? 0);
+    return this.containerPagination[key]?.pageSize || 10;
+  }
+
+  setContainerPage(projectId: any, page: number): void {
+    const key = String(projectId ?? 0);
+    if (!this.containerPagination[key]) {
+      this.containerPagination[key] = { page: 1, pageSize: 10 };
+    }
+    this.containerPagination[key].page = page;
+  }
+
+  setContainerPageSize(projectId: any, pageSize: any): void {
+    const key = String(projectId ?? 0);
+    const size = Number(pageSize) || 10;
+    if (!this.containerPagination[key]) {
+      this.containerPagination[key] = { page: 1, pageSize: size };
+    } else {
+      this.containerPagination[key].pageSize = size;
+      this.containerPagination[key].page = 1;
+    }
+  }
+
+  getPagedContainerProspects(group: any): any[] {
+    if (!group || !group.prospects) return [];
+    const pId = group.project?.project_id || group.project?.id || 0;
+    const page = this.getContainerPage(pId);
+    const pageSize = this.getContainerPageSize(pId);
+    const start = (page - 1) * pageSize;
+    return group.prospects.slice(start, start + pageSize);
+  }
+
+  getTotalContainerPages(group: any): number {
+    if (!group || !group.prospects) return 1;
+    const pId = group.project?.project_id || group.project?.id || 0;
+    const pageSize = this.getContainerPageSize(pId);
+    return Math.ceil(group.prospects.length / pageSize) || 1;
   }
 
   // --- CSV Import / Export ---

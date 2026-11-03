@@ -438,7 +438,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let p of selectedProjectGroup.prospects; trackBy: trackByProspectId" [class.editing-row]="editingBuyerId == p.id" class="prospect-row">
+              <tr *ngFor="let p of pagedDossierProspects; trackBy: trackByProspectId" [class.editing-row]="editingBuyerId == p.id" class="prospect-row">
                 <!-- Normal Mode -->
                 <ng-container *ngIf="editingBuyerId != p.id">
                   <!-- Buyer Cell -->
@@ -707,6 +707,33 @@
           </table>
         </div>
 
+        <!-- Dossier Table Footer with Pagination & Summary -->
+        <div class="table-footer-bar" *ngIf="selectedProjectGroup.prospects.length > 0">
+          <div class="footer-summary">
+            <span>Showing <strong>{{ pagedDossierProspects.length }}</strong> of <strong>{{ selectedProjectGroup.prospects.length }}</strong> prospects</span>
+            <span class="footer-pipe">&middot;</span>
+            <span class="footer-total-risk">Project Exposure: <strong>{{ selectedProjectGroup.exposureDisplay }}</strong></span>
+          </div>
+
+          <div class="footer-controls">
+            <div class="page-size-selector">
+              <label>Rows per page:</label>
+              <select [(ngModel)]="dossierPageSize" (change)="dossierPage = 1" class="page-size-dropdown">
+                <option [value]="5">5</option>
+                <option [value]="10">10</option>
+                <option [value]="25">25</option>
+                <option [value]="50">50</option>
+              </select>
+            </div>
+
+            <div class="page-navigator">
+              <button type="button" [disabled]="dossierPage === 1" (click)="dossierPage = dossierPage - 1" class="page-nav-btn" aria-label="Previous page">&lsaquo;</button>
+              <span class="page-current-info">Page {{ dossierPage }} of {{ totalDossierPages }}</span>
+              <button type="button" [disabled]="dossierPage >= totalDossierPages" (click)="dossierPage = dossierPage + 1" class="page-nav-btn" aria-label="Next page">&rsaquo;</button>
+            </div>
+          </div>
+        </div>
+
         <!-- Empty State in Dossier if no prospects -->
         <div class="project-empty-state dossier-empty" *ngIf="selectedProjectGroup.prospects.length === 0">
           <mat-icon class="empty-icon">person_outline</mat-icon>
@@ -831,7 +858,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let p of group.prospects; trackBy: trackByProspectId" [class.editing-row]="editingBuyerId == p.id" class="prospect-row">
+              <tr *ngFor="let p of getPagedContainerProspects(group); trackBy: trackByProspectId" [class.editing-row]="editingBuyerId == p.id" class="prospect-row">
                 <!-- Normal Mode -->
                 <ng-container *ngIf="editingBuyerId != p.id">
                   <!-- Buyer Cell -->
@@ -1098,6 +1125,49 @@
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Container Table Footer with Pagination & Summary -->
+        <div class="table-footer-bar" *ngIf="group.prospects.length > 0">
+          <div class="footer-summary">
+            <span>Showing <strong>{{ getPagedContainerProspects(group).length }}</strong> of <strong>{{ group.prospects.length }}</strong> prospects</span>
+            <span class="footer-pipe">&middot;</span>
+            <span class="footer-total-risk">Project Exposure: <strong>{{ group.exposureDisplay }}</strong></span>
+          </div>
+
+          <div class="footer-controls">
+            <div class="page-size-selector">
+              <label>Rows per page:</label>
+              <select
+                [ngModel]="getContainerPageSize(group.project.project_id || group.project.id)"
+                (ngModelChange)="setContainerPageSize(group.project.project_id || group.project.id, $event)"
+                class="page-size-dropdown"
+              >
+                <option [value]="5">5</option>
+                <option [value]="10">10</option>
+                <option [value]="25">25</option>
+                <option [value]="50">50</option>
+              </select>
+            </div>
+
+            <div class="page-navigator">
+              <button
+                type="button"
+                [disabled]="getContainerPage(group.project.project_id || group.project.id) === 1"
+                (click)="setContainerPage(group.project.project_id || group.project.id, getContainerPage(group.project.project_id || group.project.id) - 1)"
+                class="page-nav-btn"
+                aria-label="Previous page"
+              >&lsaquo;</button>
+              <span class="page-current-info">Page {{ getContainerPage(group.project.project_id || group.project.id) }} of {{ getTotalContainerPages(group) }}</span>
+              <button
+                type="button"
+                [disabled]="getContainerPage(group.project.project_id || group.project.id) >= getTotalContainerPages(group)"
+                (click)="setContainerPage(group.project.project_id || group.project.id, getContainerPage(group.project.project_id || group.project.id) + 1)"
+                class="page-nav-btn"
+                aria-label="Next page"
+              >&rsaquo;</button>
+            </div>
+          </div>
         </div>
 
         <!-- Project Empty State -->

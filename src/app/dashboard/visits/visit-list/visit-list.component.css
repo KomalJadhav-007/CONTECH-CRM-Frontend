@@ -756,7 +756,8 @@ mat-card.modal-card-manage {
   line-height: 1.4;
 }
 
-.reschedule-form-panel, .cancel-form-panel {
+.reschedule-form-panel,
+.cancel-form-panel {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
