@@ -120,4 +120,25 @@ export class RevenueAnalyticsComponent implements OnInit {
     if (!maxCount || maxCount === 0) return 0;
     return Math.round((count / maxCount) * 100);
   }
+
+  getIntentBandPct(count: number): number {
+    const total = this.analytics.total_buyers || 1;
+    return Math.min(100, Math.round((count / total) * 100));
+  }
+
+  getBandColorClass(label: string): string {
+    const l = (label || '').toUpperCase();
+    if (l.includes('VERY HIGH')) return 'emerald';
+    if (l.includes('HIGH')) return 'blue';
+    if (l.includes('QUALIFIED')) return 'indigo';
+    if (l.includes('EMERGING')) return 'amber';
+    return 'slate';
+  }
+
+  getHighIntentSharePct(): number {
+    if (!this.analytics.intent_bands || this.analytics.intent_bands.length < 2) return 0;
+    const high = (this.analytics.intent_bands[0]?.count || 0) + (this.analytics.intent_bands[1]?.count || 0);
+    const total = this.analytics.total_buyers || 1;
+    return Math.min(100, Math.round((high / total) * 100));
+  }
 }

@@ -1,110 +1,165 @@
 <div class="analytics-wrapper">
   <!-- Dynamic Loading Bar -->
-  <mat-progress-bar *ngIf="loading" mode="indeterminate" style="margin-bottom: 1rem; border-radius: 4px;"></mat-progress-bar>
+  <mat-progress-bar *ngIf="loading" mode="indeterminate" class="analytics-loader"></mat-progress-bar>
 
   <!-- Top Header -->
   <div class="analytics-header">
-    <div class="category-tag">INTELLIGENCE</div>
-    <h1 class="page-title">Revenue Analytics</h1>
-    <p class="page-subtitle">
-      Conversion, leakage and recovery performance computed from live pipeline and visit data.
-    </p>
+    <div class="header-left">
+      <div class="category-tag">INTELLIGENCE</div>
+      <h1 class="page-title">Revenue Analytics</h1>
+      <p class="page-subtitle">
+        Conversion, leakage and recovery performance computed from live pipeline and visit data.
+      </p>
+    </div>
+    <div class="header-right-meta">
+      <span class="live-pill">
+        <span class="live-pulse"></span>
+        Live Analytics Engine
+      </span>
+    </div>
   </div>
 
   <!-- 8 Metrics Signal Cards Grid -->
   <div class="analytics-metrics-grid">
-    <!-- Row 1 -->
-    <mat-card appearance="outlined" class="metric-card">
+    <!-- Card 1 -->
+    <mat-card appearance="outlined" class="metric-card cyan">
       <div class="card-top-label">LEAD &rarr; VISIT</div>
       <div class="card-main-value">{{ analytics.lead_to_visit_pct }}%</div>
       <div class="card-sub-label">{{ analytics.visits_scheduled_count }} visits scheduled</div>
     </mat-card>
 
-    <mat-card appearance="outlined" class="metric-card">
+    <!-- Card 2 -->
+    <mat-card appearance="outlined" class="metric-card emerald">
       <div class="card-top-label">VISIT &rarr; BOOKING</div>
       <div class="card-main-value">{{ analytics.visit_to_booking_pct }}%</div>
       <div class="card-sub-label">{{ analytics.bookings_count }} booking from {{ analytics.total_visits || analytics.visits_scheduled_count }} visits</div>
     </mat-card>
 
-    <mat-card appearance="outlined" class="metric-card">
+    <!-- Card 3 -->
+    <mat-card appearance="outlined" class="metric-card amber">
       <div class="card-top-label">RECOVERY RATE</div>
       <div class="card-main-value">{{ analytics.recovery_rate_pct }}%</div>
       <div class="card-sub-label">{{ analytics.cancelled_count }} cancelled &middot; {{ analytics.no_shows_count }} no-shows</div>
     </mat-card>
 
-    <mat-card appearance="outlined" class="metric-card">
+    <!-- Card 4 -->
+    <mat-card appearance="outlined" class="metric-card blue">
       <div class="card-top-label">SLA COMPLIANCE</div>
       <div class="card-main-value">{{ analytics.sla_compliance_pct }}%</div>
-      <div class="card-sub-label">{{ analytics.sla_breaches_count }} breaches</div>
+      <div class="card-sub-label">{{ analytics.sla_breaches_count }} breaches logged</div>
     </mat-card>
 
-    <!-- Row 2 -->
-    <mat-card appearance="outlined" class="metric-card">
+    <!-- Card 5 -->
+    <mat-card appearance="outlined" class="metric-card slate">
       <div class="card-top-label">TOTAL BUYERS</div>
       <div class="card-main-value">{{ analytics.total_buyers }}</div>
-      <div class="card-sub-label">&nbsp;</div>
+      <div class="card-sub-label">Active pipeline leads</div>
     </mat-card>
 
-    <mat-card appearance="outlined" class="metric-card high-intent-card">
+    <!-- Card 6 -->
+    <mat-card appearance="outlined" class="metric-card emerald high-intent-card">
       <div class="card-top-label">HIGH INTENT</div>
-      <div class="card-main-value">{{ analytics.high_intent }}</div>
-      <div class="card-sub-label">&nbsp;</div>
+      <div class="card-main-value text-emerald">{{ analytics.high_intent }}</div>
+      <div class="card-sub-label">Score &ge; 80 purchase propensity</div>
     </mat-card>
 
-    <mat-card appearance="outlined" class="metric-card">
+    <!-- Card 7 -->
+    <mat-card appearance="outlined" class="metric-card amber">
       <div class="card-top-label">OPEN FOLLOW-UPS</div>
       <div class="card-main-value">{{ analytics.open_follow_ups }}</div>
-      <div class="card-sub-label">{{ analytics.overdue_follow_ups }} overdue</div>
+      <div class="card-sub-label"><span class="sub-alert-dot" *ngIf="analytics.overdue_follow_ups > 0"></span>{{ analytics.overdue_follow_ups }} overdue SLAs</div>
     </mat-card>
 
-    <mat-card appearance="outlined" class="metric-card revenue-risk-card">
+    <!-- Card 8 -->
+    <mat-card appearance="outlined" class="metric-card danger revenue-risk-card">
       <div class="card-top-label">REVENUE AT RISK</div>
-      <div class="card-main-value">₹{{ analytics.revenue_at_risk_cr }} Cr</div>
-      <div class="card-sub-label">&nbsp;</div>
+      <div class="card-main-value text-danger">₹{{ analytics.revenue_at_risk_cr }} Cr</div>
+      <div class="card-sub-label">Weighted deal risk exposure</div>
     </mat-card>
   </div>
 
-  <!-- PIPELINE FUNNEL SECTION -->
-  <mat-card appearance="outlined" class="section-card funnel-card">
-    <div class="section-header">
-      <h2 class="section-title">PIPELINE FUNNEL</h2>
-      <p class="section-subtitle">Cumulative buyers reaching each stage, with drop-off to the next</p>
-    </div>
-
-    <div class="funnel-container">
-      <div class="funnel-row" *ngFor="let stage of analytics.pipeline_funnel">
-        <div class="funnel-label">{{ stage.stage }}</div>
-        <div class="funnel-bar-area">
-          <div
-            class="funnel-bar"
-            [style.width.%]="getFunnelWidth(stage.count, stage.max_count)"
-          ></div>
+  <!-- PIPELINE FUNNEL & INTENT BAND DISTRIBUTION (2 COLUMNS - SPACE OPTIMIZED) -->
+  <div class="funnel-intent-split-grid">
+    <!-- PIPELINE FUNNEL SECTION -->
+    <mat-card appearance="outlined" class="section-card funnel-card">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">PIPELINE FUNNEL</h2>
+          <p class="section-subtitle">Cumulative stage progression & drop-off</p>
         </div>
-        <div class="funnel-count">{{ stage.count }}</div>
-        <div class="funnel-dropoff" [class.negative]="stage.drop_off !== '0%' && stage.drop_off !== '-0%'">
-          {{ stage.drop_off }}
+        <div class="funnel-top-stat">
+          <span class="funnel-stat-tag">Stage Conversion</span>
         </div>
       </div>
-    </div>
-  </mat-card>
 
-  <!-- INTENT BAND DISTRIBUTION -->
-  <mat-card appearance="outlined" class="section-card intent-band-card" style="margin-top: 1.5rem;">
-    <div class="section-header">
-      <h2 class="section-title">INTENT BAND DISTRIBUTION</h2>
-      <p class="section-subtitle">Contech CRM Buyer Score v1</p>
-    </div>
-
-    <div class="intent-bands-grid">
-      <div class="intent-band-item" *ngFor="let band of analytics.intent_bands">
-        <div class="band-label">{{ band.label }}</div>
-        <div class="band-value">{{ band.count }}</div>
+      <div class="funnel-container">
+        <div class="funnel-row" *ngFor="let stage of analytics.pipeline_funnel">
+          <div class="funnel-label">{{ stage.stage }}</div>
+          <div class="funnel-bar-area">
+            <div
+              class="funnel-bar"
+              [style.width.%]="getFunnelWidth(stage.count, stage.max_count)"
+            ></div>
+          </div>
+          <div class="funnel-count">{{ stage.count }}</div>
+          <div class="funnel-dropoff" [class.negative]="stage.drop_off !== '0%' && stage.drop_off !== '-0%'">
+            {{ stage.drop_off }}
+          </div>
+        </div>
       </div>
-    </div>
-  </mat-card>
+    </mat-card>
+
+    <!-- INTENT BAND DISTRIBUTION SECTION -->
+    <mat-card appearance="outlined" class="section-card intent-band-card">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">INTENT BAND DISTRIBUTION</h2>
+          <p class="section-subtitle">Contech CRM Buyer Score v1 Breakdown</p>
+        </div>
+        <div class="intent-top-stat">
+          <span class="intent-stat-tag">{{ analytics.total_buyers }} Total Buyers</span>
+        </div>
+      </div>
+
+      <div class="intent-bands-vertical-list">
+        <div class="intent-band-row" *ngFor="let band of analytics.intent_bands">
+          <div class="intent-band-row-top">
+            <div class="band-meta">
+              <span class="band-dot" [ngClass]="getBandColorClass(band.label)"></span>
+              <span class="band-title">{{ band.label }}</span>
+            </div>
+            <div class="band-stats">
+              <span class="band-count">{{ band.count }}</span>
+              <span class="band-pct">({{ getIntentBandPct(band.count) }}%)</span>
+            </div>
+          </div>
+          <div class="band-bar-track">
+            <div
+              class="band-bar-fill"
+              [ngClass]="getBandColorClass(band.label)"
+              [style.width.%]="getIntentBandPct(band.count)"
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Executive Quality Callout -->
+      <div class="intent-quality-callout">
+        <div class="quality-item">
+          <span class="quality-label">HIGH PROPENSITY SHARE</span>
+          <span class="quality-val">{{ getHighIntentSharePct() }}%</span>
+        </div>
+        <div class="quality-divider"></div>
+        <div class="quality-item">
+          <span class="quality-label">TOTAL PIPELINE RISK</span>
+          <span class="quality-val text-danger">₹{{ analytics.revenue_at_risk_cr }} Cr</span>
+        </div>
+      </div>
+    </mat-card>
+  </div>
 
   <!-- SOURCE & OWNER PERFORMANCE (2 COLUMNS) -->
-  <div class="tables-split-grid" style="margin-top: 1.5rem;">
+  <div class="tables-split-grid">
     <!-- SOURCE PERFORMANCE -->
     <mat-card appearance="outlined" class="section-card performance-table-card">
       <div class="section-header">
@@ -169,7 +224,7 @@
   </div>
 
   <!-- PROJECT PERFORMANCE -->
-  <mat-card appearance="outlined" class="section-card project-performance-card" style="margin-top: 1.5rem;">
+  <mat-card appearance="outlined" class="section-card project-performance-card">
     <div class="section-header">
       <h2 class="section-title">PROJECT PERFORMANCE</h2>
       <p class="section-subtitle">Demand and risk by project</p>
