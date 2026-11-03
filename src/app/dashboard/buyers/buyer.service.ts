@@ -42,8 +42,8 @@ export class BuyerService {
     return this.http.get<any>(`${this.apiUrl}/csv-template`);
   }
 
-  importBuyersFromCsv(rows: any[]): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/import-csv`, { rows });
+  importBuyersFromCsv(rows: any[], default_project_id?: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/import-csv`, { rows, default_project_id });
   }
 
   recordBooking(data: any): Observable<any> {

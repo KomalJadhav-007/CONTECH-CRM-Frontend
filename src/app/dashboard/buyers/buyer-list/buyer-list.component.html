@@ -1543,13 +1543,13 @@
     </div>
   </div>
 
-  <!-- CSV Bulk Import Modal (SOW Sec 6) -->
+  <!-- Excel & CSV Bulk Import Modal with Project Auto-Distribution (SOW Sec 6) -->
   <div *ngIf="showImportModal" class="modal-backdrop">
     <div class="modal-card">
       <div class="modal-header">
         <div>
-          <h2 class="modal-title">Bulk Prospect CSV Import</h2>
-          <p class="modal-subtitle">Upload CSV to bulk create prospect profiles with automated 4-dimension intent scoring</p>
+          <h2 class="modal-title">Bulk Prospect Import (Excel & CSV)</h2>
+          <p class="modal-subtitle">Upload Excel (.xlsx, .xls) or CSV to auto-distribute prospects across projects with 4-dimension scoring</p>
         </div>
         <button class="close-modal-btn" type="button" (click)="closeImportModal()">
           <mat-icon>close</mat-icon>
@@ -1559,8 +1559,8 @@
       <div class="modal-body">
         <div class="template-download-box">
           <div>
-            <strong>Need the CSV Template?</strong>
-            <p class="sub-text">Download official template with headers matching SOW Section 6 specifications.</p>
+            <strong>Need the Import Template?</strong>
+            <p class="sub-text">Includes project_name header to automatically assign prospects to their specific project cards.</p>
           </div>
           <button mat-stroked-button type="button" class="btn-action-stroked" (click)="downloadTemplate()">
             <mat-icon>file_download</mat-icon>
@@ -1568,12 +1568,28 @@
           </button>
         </div>
 
+        <!-- Project Distribution Fallback Selector -->
+        <div class="project-distribution-selector-box">
+          <div class="selector-info">
+            <span class="selector-title">Target Project Distribution:</span>
+            <span class="selector-hint">Prospects with a declared project (e.g. "Contech Crown Heights", "CCH-BLR") are auto-routed. For rows without a project:</span>
+          </div>
+          <div class="selector-control">
+            <select class="form-select-native" [(ngModel)]="importTargetProjectId">
+              <option value="auto">Auto-detect from file (Default: Crown Heights)</option>
+              <option *ngFor="let prj of projectsList" [value]="prj.project_id || prj.id">
+                Assign to: {{ prj.name }} ({{ prj.code || prj.project_type || 'Project' }})
+              </option>
+            </select>
+          </div>
+        </div>
+
         <div class="upload-zone">
-          <input type="file" accept=".csv" (change)="onFileSelected($event)" id="csvFileInput" class="file-input" />
+          <input type="file" accept=".xlsx, .xls, .csv" (change)="onFileSelected($event)" id="csvFileInput" class="file-input" />
           <label for="csvFileInput" class="upload-label">
             <mat-icon class="upload-icon-mat">cloud_upload</mat-icon>
-            <span class="upload-title">{{ selectedFileName || 'Choose a .CSV file or drag & drop here' }}</span>
-            <span class="upload-hint">Supported columns: full_name, phone, email, budget_min_lacs, budget_max_lacs, preferred_bhk, buying_timeframe, lead_source, financing_readiness</span>
+            <span class="upload-title">{{ selectedFileName || 'Choose an Excel (.xlsx, .xls) or .CSV file or drag & drop here' }}</span>
+            <span class="upload-hint">Supported columns: full_name, phone, email, project_name, budget_min_lacs, budget_max_lacs, preferred_bhk, buying_timeframe, lead_source</span>
           </label>
         </div>
 
@@ -1597,10 +1613,22 @@
           </div>
         </div>
 
+        <!-- Project Distribution Summary Pills -->
+        <div *ngIf="importStats && getProjectsSummaryList().length > 0" class="project-distribution-summary-box">
+          <div class="distribution-summary-title">Distribution Breakdown Across Projects:</div>
+          <div class="distribution-summary-pills">
+            <div class="dist-pill" *ngFor="let item of getProjectsSummaryList()">
+              <mat-icon class="dist-icon">apartment</mat-icon>
+              <span class="dist-name">{{ item.name }}</span>
+              <span class="dist-count">{{ item.count }} prospects</span>
+            </div>
+          </div>
+        </div>
+
         <!-- Preview Table -->
         <div *ngIf="parsedCsvRows.length > 0 && !importStats" class="preview-section">
           <div class="preview-title">
-            <span>Rows Preview ({{ parsedCsvRows.length }} prospects detected)</span>
+            <span>Prospects Preview ({{ parsedCsvRows.length }} rows parsed instantly)</span>
           </div>
           <div class="preview-table-wrapper">
             <table class="preview-table">
@@ -1609,6 +1637,7 @@
                   <th>#</th>
                   <th>Full Name</th>
                   <th>Phone</th>
+                  <th>Target Project</th>
                   <th>Budget</th>
                   <th>BHK</th>
                   <th>Timeframe</th>
@@ -1616,14 +1645,15 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let row of parsedCsvRows.slice(0, 5); let i = index">
+                <tr *ngFor="let row of parsedCsvRows.slice(0, 6); let i = index">
                   <td>{{ i + 1 }}</td>
                   <td><strong>{{ row.full_name || row['Full Name'] || row.name }}</strong></td>
                   <td>{{ row.phone || row['Phone Number'] || row.contact }}</td>
+                  <td><span class="preview-project-badge">{{ getRowProjectName(row) }}</span></td>
                   <td>₹{{ row.budget_min_lacs || '100' }} - {{ row.budget_max_lacs || '200' }}L</td>
                   <td>{{ row.preferred_bhk || '3 BHK' }}</td>
                   <td>{{ row.buying_timeframe || '<30 days' }}</td>
-                  <td>{{ row.lead_source || 'CSV Import' }}</td>
+                  <td>{{ row.lead_source || 'Bulk Import' }}</td>
                 </tr>
               </tbody>
             </table>
@@ -1641,7 +1671,7 @@
           (click)="executeImport()"
         >
           <span *ngIf="!importing">Start Bulk Import ({{ parsedCsvRows.length }} rows) &rarr;</span>
-          <span *ngIf="importing">Importing Prospects...</span>
+          <span *ngIf="importing">Importing & Distributing Prospects...</span>
         </button>
       </div>
     </div>

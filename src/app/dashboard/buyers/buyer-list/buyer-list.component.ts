@@ -17,6 +17,7 @@ import { BuyerService } from '../buyer.service';
 import { UserService } from '../../../users/user.service';
 import { TaskService } from '../../tasks/task.service';
 import { SettingsService } from '../../../settings/settings.service';
+import * as XLSX from 'xlsx';
 
 @Component({
   selector: 'app-buyer-list',
@@ -1219,13 +1220,14 @@ export class BuyerListComponent implements OnInit {
     return Math.ceil(group.prospects.length / pageSize) || 1;
   }
 
-  // --- CSV Import / Export ---
+  // --- Excel & CSV Bulk Import ---
   showImportModal = false;
   parsedCsvRows: any[] = [];
   importStats: any = null;
   importing = false;
   importError = '';
   selectedFileName = '';
+  importTargetProjectId: string = 'auto';
 
   openImportModal(): void {
     this.showImportModal = true;
@@ -1233,6 +1235,7 @@ export class BuyerListComponent implements OnInit {
     this.importStats = null;
     this.importError = '';
     this.selectedFileName = '';
+    this.importTargetProjectId = 'auto';
   }
 
   closeImportModal(): void {
@@ -1241,6 +1244,7 @@ export class BuyerListComponent implements OnInit {
     this.importStats = null;
     this.importError = '';
     this.selectedFileName = '';
+    this.importTargetProjectId = 'auto';
   }
 
   downloadTemplate(): void {
@@ -1251,7 +1255,7 @@ export class BuyerListComponent implements OnInit {
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = res.filename || 'contech_buyers_template.csv';
+          a.download = res.filename || 'contech_prospects_template.csv';
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
@@ -1260,13 +1264,15 @@ export class BuyerListComponent implements OnInit {
       },
       error: () => {
         const fallback =
-          'full_name,phone,email,budget_min_lacs,budget_max_lacs,preferred_bhk,buying_timeframe,lead_source,financing_readiness,occupation,current_residence,workplace_location,notes\n' +
-          'Sunil Gavaskar,7058533669,sunil.g@example.com,150,220,3 BHK,<30 days,Google Ads,Pre-approved Loan,Business / Entrepreneur,Indiranagar Bengaluru,Whitefield Tech Park,Interested in east-facing tower\n';
+          'full_name,phone,email,project_name,budget_min_lacs,budget_max_lacs,preferred_bhk,buying_timeframe,lead_source,financing_readiness,occupation,current_residence,workplace_location\n' +
+          'Suresh Patil,7058533669,suresh.patil@example.com,Contech Crown Heights,150,220,3 BHK,<30 days,Property Portal,PRE_APPROVED_LOAN,Senior Architect,Indiranagar,ITPL Whitefield\n' +
+          'Meera Nambiar,7058533669,meera.n@example.com,Contech Skyline Elegance,180,260,3 BHK,<30 days,Direct Walk-in,PRE_APPROVED_LOAN,Product Director,Koramangala,Outer Ring Road\n' +
+          'Rohan Kulkarni,7058533669,rohan.k@example.com,Contech Greenfield Sanctuary,210,320,4 BHK,<15 days,Referral,PRE_APPROVED_LOAN,Tech Executive,Sarjapur Road,Bellandur\n';
         const blob = new Blob([fallback], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'contech_buyers_template.csv';
+        a.download = 'contech_prospects_template.csv';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -1286,52 +1292,97 @@ export class BuyerListComponent implements OnInit {
     const reader = new FileReader();
     reader.onload = (e: any) => {
       try {
-        const text = e.target.result;
-        const lines = text.split(/\r\n|\n/).filter((l: string) => l.trim().length > 0);
-        if (lines.length < 2) {
-          this.importError = 'CSV file must have a header row and at least one data row.';
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        if (!firstSheetName) {
+          this.importError = 'No sheet found in uploaded spreadsheet.';
           return;
         }
 
-        const headers = lines[0].split(',').map((h: string) => h.trim().replace(/^"|"$/g, ''));
-        const rows: any[] = [];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const rawJson: any[] = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
 
-        for (let i = 1; i < lines.length; i++) {
-          const currentLine = lines[i].split(',').map((cell: string) => cell.trim().replace(/^"|"$/g, ''));
-          if (currentLine.length === headers.length || currentLine.length >= 2) {
-            const rowObj: any = {};
-            headers.forEach((h: string, idx: number) => {
-              rowObj[h] = currentLine[idx] || '';
-            });
-            rows.push(rowObj);
-          }
+        if (!rawJson || rawJson.length === 0) {
+          this.importError = 'The uploaded file contains no data rows.';
+          return;
         }
+
+        // Fast normalization of keys to support both lowercase_underscore and natural headers
+        const rows: any[] = rawJson.map((row) => {
+          const clean: any = {};
+          for (const key of Object.keys(row)) {
+            const trimmedVal = typeof row[key] === 'string' ? row[key].trim() : String(row[key] ?? '').trim();
+            const normalizedKey = key.trim().toLowerCase().replace(/[\s\-\.]+/g, '_');
+            clean[normalizedKey] = trimmedVal;
+            clean[key.trim()] = trimmedVal;
+          }
+          return clean;
+        });
 
         this.parsedCsvRows = rows;
       } catch (err: any) {
-        this.importError = 'Failed to parse CSV file: ' + err.message;
+        this.importError = 'Failed to parse file: ' + err.message;
       }
     };
-    reader.readAsText(file);
+    reader.readAsArrayBuffer(file);
+  }
+
+  getRowProjectName(row: any): string {
+    const declared = (
+      row.project_name ||
+      row['Project Name'] ||
+      row.project ||
+      row['Project'] ||
+      row.project_code ||
+      row['Project Code'] ||
+      row.preferred_project ||
+      ''
+    ).trim();
+
+    if (declared) {
+      const match = this.projectsList.find(p =>
+        p.name.toLowerCase() === declared.toLowerCase() ||
+        (p.code && p.code.toLowerCase() === declared.toLowerCase()) ||
+        p.name.toLowerCase().includes(declared.toLowerCase())
+      );
+      return match ? match.name : declared;
+    }
+
+    if (this.importTargetProjectId && this.importTargetProjectId !== 'auto') {
+      const selectedPrj = this.projectsList.find(p => (p.project_id || p.id) == this.importTargetProjectId);
+      if (selectedPrj) return selectedPrj.name;
+    }
+
+    return (this.projectsList && this.projectsList[0]) ? this.projectsList[0].name : 'Contech Crown Heights';
+  }
+
+  getProjectsSummaryList(): { name: string; count: number }[] {
+    if (!this.importStats || !this.importStats.projects_summary) return [];
+    return Object.entries(this.importStats.projects_summary).map(([name, count]) => ({
+      name,
+      count: count as number
+    }));
   }
 
   executeImport(): void {
     if (this.parsedCsvRows.length === 0) {
-      this.importError = 'Please upload a valid CSV file with buyer rows first.';
+      this.importError = 'Please upload a valid Excel or CSV file with prospect rows first.';
       return;
     }
 
     this.importing = true;
     this.importError = '';
 
-    this.buyerService.importBuyersFromCsv(this.parsedCsvRows).subscribe({
+    this.buyerService.importBuyersFromCsv(this.parsedCsvRows, this.importTargetProjectId).subscribe({
       next: (res) => {
         this.importing = false;
         if (res.success) {
           this.importStats = res.results;
           this.loadBuyers();
+          const projectsCount = Object.keys(res.results.projects_summary || {}).length;
           this.showFeedback(
-            `Import finished: ${res.results.imported_count} imported, ${res.results.duplicate_count} duplicates skipped.`
+            `Import finished: ${res.results.imported_count} imported across ${projectsCount} project(s), ${res.results.duplicate_count} duplicates skipped.`
           );
         } else {
           this.importError = res.message || 'Import failed';
@@ -1339,7 +1390,7 @@ export class BuyerListComponent implements OnInit {
       },
       error: (err) => {
         this.importing = false;
-        this.importError = err.error?.message || 'Failed to import CSV';
+        this.importError = err.error?.message || 'Failed to import file';
       }
     });
   }
