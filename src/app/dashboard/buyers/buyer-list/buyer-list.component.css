@@ -655,6 +655,12 @@
   flex-shrink: 0;
 }
 
+.source-tag.source-instagram {
+  background: #fdf2f8;
+  border-color: #fbcfe8;
+  color: #db2777;
+}
+
 .meta-icon {
   font-size: 13px !important;
   width: 13px !important;

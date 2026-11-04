@@ -445,7 +445,7 @@
                           {{ p.name }}
                         </a>
                         <div class="buyer-sub-meta">
-                          <span class="source-tag">{{ p.source }}</span>
+                          <span class="source-tag" [class.source-instagram]="p.source === 'Instagram'">{{ p.source }}</span>
                           <!-- Project Dropdown Pill: Change Target Project On The Fly -->
                           <div class="prospect-project-dropdown-pill" (click)="$event.stopPropagation()">
                             <mat-icon class="pill-prj-icon">domain</mat-icon>
@@ -865,7 +865,7 @@
                           {{ p.name }}
                         </a>
                         <div class="buyer-sub-meta">
-                          <span class="source-tag">{{ p.source }}</span>
+                          <span class="source-tag" [class.source-instagram]="p.source === 'Instagram'">{{ p.source }}</span>
                           <!-- Project Dropdown Pill: Change Target Project On The Fly -->
                           <div class="prospect-project-dropdown-pill" (click)="$event.stopPropagation()">
                             <mat-icon class="pill-prj-icon">domain</mat-icon>
@@ -1261,7 +1261,7 @@
                       {{ p.name }}
                     </a>
                     <div class="buyer-sub-meta">
-                      <span class="source-tag">{{ p.source }}</span>
+                      <span class="source-tag" [class.source-instagram]="p.source === 'Instagram'">{{ p.source }}</span>
                       <div class="prospect-project-dropdown-pill" (click)="$event.stopPropagation()">
                         <mat-icon class="pill-prj-icon">domain</mat-icon>
                         <select [ngModel]="p.project_id" (change)="onProspectProjectChange(p, $event)" class="prospect-project-inline-select" title="Change target project prospect is looking for">
