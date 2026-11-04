@@ -52,6 +52,10 @@ export class HighIntentRadarComponent implements OnInit {
   selectedBand = 'all';
   selectedOwner = 'all';
 
+  // Pagination State
+  currentPage = 1;
+  pageSize = 10;
+
   owners: string[] = ['Unassigned'];
   salesReps: any[] = [];
   buyers: any[] = [];
@@ -170,6 +174,15 @@ export class HighIntentRadarComponent implements OnInit {
       }
       return true;
     });
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.filteredBuyers.length / this.pageSize) || 1;
+  }
+
+  get pagedBuyers(): any[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredBuyers.slice(start, start + this.pageSize);
   }
 
   openBuyer(buyerId: number): void {

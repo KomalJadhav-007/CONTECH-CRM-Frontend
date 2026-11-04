@@ -32,7 +32,7 @@
   <div class="filter-row" style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1.25rem;">
     <mat-form-field appearance="outline" style="min-width: 180px;">
       <mat-label>Intent Band</mat-label>
-      <mat-select [(ngModel)]="selectedBand">
+      <mat-select [(ngModel)]="selectedBand" (ngModelChange)="currentPage = 1">
         <mat-option value="all">All bands</mat-option>
         <mat-option value="very_high">Very High Intent</mat-option>
         <mat-option value="high">High Intent</mat-option>
@@ -41,7 +41,7 @@
 
     <mat-form-field appearance="outline" style="min-width: 180px;">
       <mat-label>Assigned Owner</mat-label>
-      <mat-select [(ngModel)]="selectedOwner">
+      <mat-select [(ngModel)]="selectedOwner" (ngModelChange)="currentPage = 1">
         <mat-option value="all">All owners</mat-option>
         <mat-option *ngFor="let o of owners" [value]="o">{{ o }}</mat-option>
       </mat-select>
@@ -68,7 +68,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let b of filteredBuyers">
+          <tr *ngFor="let b of pagedBuyers">
             <td>
               <div class="buyer-name">{{ b.name }}</div>
               <div class="buyer-meta">{{ b.stage }} &middot; {{ b.source }}</div>
@@ -106,6 +106,43 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Table Footer with Pagination & Summary -->
+    <div class="table-footer-bar" *ngIf="filteredBuyers.length > 0">
+      <div class="footer-summary">
+        <span>Showing <strong>{{ pagedBuyers.length }}</strong> of <strong>{{ filteredBuyers.length }}</strong> high-intent buyers</span>
+      </div>
+
+      <div class="footer-controls">
+        <div class="page-size-selector">
+          <label>Rows per page:</label>
+          <select [(ngModel)]="pageSize" (change)="currentPage = 1" class="page-size-dropdown">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+          </select>
+        </div>
+
+        <div class="page-navigator">
+          <button
+            type="button"
+            [disabled]="currentPage === 1"
+            (click)="currentPage = currentPage - 1"
+            class="page-nav-btn"
+            aria-label="Previous page"
+          >&lsaquo;</button>
+          <span class="page-current-info">Page {{ currentPage }} of {{ totalPages || 1 }}</span>
+          <button
+            type="button"
+            [disabled]="currentPage >= totalPages"
+            (click)="currentPage = currentPage + 1"
+            class="page-nav-btn"
+            aria-label="Next page"
+          >&rsaquo;</button>
+        </div>
+      </div>
     </div>
   </mat-card>
 </div>
