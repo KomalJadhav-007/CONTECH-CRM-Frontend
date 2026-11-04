@@ -1752,13 +1752,13 @@
         <div class="project-distribution-selector-box">
           <div class="selector-info">
             <span class="selector-title">Target Project Distribution:</span>
-            <span class="selector-hint">Prospects with a declared project (e.g. "Contech Crown Heights", "CCH-BLR") are auto-routed. For rows without a project:</span>
+            <span class="selector-hint">Prospects with declared project in file are auto-routed. For rows without a project column:</span>
           </div>
           <div class="selector-control">
             <select class="form-select-native" [(ngModel)]="importTargetProjectId">
-              <option value="auto">Auto-detect from file (Default: Crown Heights)</option>
+              <option value="auto">Auto-distribute evenly across all projects</option>
               <option *ngFor="let prj of projectsList" [value]="prj.project_id || prj.id">
-                Assign to: {{ prj.name }} ({{ prj.code || prj.project_type || 'Project' }})
+                Assign all to: {{ prj.name }} ({{ prj.code || prj.project_type || 'Project' }})
               </option>
             </select>
           </div>
@@ -1829,7 +1829,7 @@
                   <td>{{ i + 1 }}</td>
                   <td><strong>{{ row.full_name || row['Full Name'] || row.name }}</strong></td>
                   <td>{{ row.phone || row['Phone Number'] || row.contact }}</td>
-                  <td><span class="preview-project-badge">{{ getRowProjectName(row) }}</span></td>
+                  <td><span class="preview-project-badge">{{ getRowProjectName(row, i) }}</span></td>
                   <td>₹{{ row.budget_min_lacs || '100' }} - {{ row.budget_max_lacs || '200' }}L</td>
                   <td>{{ row.preferred_bhk || '3 BHK' }}</td>
                   <td>{{ row.buying_timeframe || '<30 days' }}</td>

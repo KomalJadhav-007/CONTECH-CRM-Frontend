@@ -84,10 +84,10 @@ export class HighIntentRadarComponent implements OnInit {
         if (res && res.success && res.stats) {
           const s = res.stats;
           this.stats = {
-            very_high_intent: s.high_intent_buyers || 4,
-            unassigned_high_intent: s.unassigned_high_intent || 1,
-            sla_breached: s.sla_breaches || 1,
-            revenue_at_risk_cr: s.revenue_at_risk_cr || '4.24'
+            very_high_intent: s.high_intent_buyers !== undefined ? s.high_intent_buyers : 0,
+            unassigned_high_intent: s.unassigned_high_intent !== undefined ? s.unassigned_high_intent : 0,
+            sla_breached: s.sla_breaches !== undefined ? s.sla_breaches : 0,
+            revenue_at_risk_cr: s.revenue_at_risk_cr || '0.00'
           };
         }
       }
@@ -145,7 +145,7 @@ export class HighIntentRadarComponent implements OnInit {
   recalculateStats(): void {
     const veryHigh = this.buyers.filter(b => b.score >= 90).length;
     const unassigned = this.buyers.filter(b => b.owner === 'Unassigned' && b.score >= 71).length;
-    this.stats.very_high_intent = veryHigh || this.stats.very_high_intent;
+    this.stats.very_high_intent = veryHigh;
     this.stats.unassigned_high_intent = unassigned;
   }
 

@@ -1391,7 +1391,7 @@ export class BuyerListComponent implements OnInit {
     reader.readAsArrayBuffer(file);
   }
 
-  getRowProjectName(row: any): string {
+  getRowProjectName(row: any, index: number = 0): string {
     const declared = (
       row.project_name ||
       row['Project Name'] ||
@@ -1430,7 +1430,11 @@ export class BuyerListComponent implements OnInit {
       if (selectedPrj) return selectedPrj.name;
     }
 
-    return (this.projectsList && this.projectsList[0]) ? this.projectsList[0].name : 'Contech Crown Heights';
+    if (this.projectsList && this.projectsList.length > 0) {
+      return this.projectsList[index % this.projectsList.length].name;
+    }
+
+    return 'Contech Crown Heights';
   }
 
   getProjectsSummaryList(): { name: string; count: number }[] {
