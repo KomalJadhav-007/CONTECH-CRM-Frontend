@@ -417,12 +417,12 @@ export class BuyerListComponent implements OnInit {
               slaBreached = true;
               slaTime = 'Unassigned > 24h';
             } else if (rawStatus === 'VISIT_SCHEDULED') {
-              if (b.full_name && b.full_name.includes('Ananya')) {
+              if (b.full_name && b.full_name.includes('Rohiet')) {
                 nextAction = 'Confirm cab KA-01-MJ-8822 & dispatch Unit 703 schedule';
                 slaBreached = true;
                 slaTime = 'Task overdue (3.5h)';
-              } else if (b.full_name && b.full_name.includes('Harish')) {
-                nextAction = 'Confirm sunset slot (4 PM) & driver KA-03-EX-9900';
+              } else if (b.full_name && b.full_name.includes('Jaywant')) {
+                nextAction = 'Confirm sunset slot (4 PM) & driver dispatch';
               } else {
                 nextAction = 'Verify site lounge readiness & buyer confirmations';
               }

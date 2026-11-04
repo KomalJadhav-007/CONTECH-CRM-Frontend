@@ -65,110 +65,110 @@ export class DashboardOverviewComponent implements OnInit {
     todays_visits: [],
     top_revenue_leakage: [
       {
-        buyer_name: 'Anand Bhagat',
+        buyer_name: 'Rohiet Kumar',
+        stage: 'High Intent',
+        category: 'SLA Breach',
+        reason: 'Next best action is past its due time',
+        at_risk: '₹3.10 Cr',
+        severity: 'CRITICAL'
+      },
+      {
+        buyer_name: 'Debashish',
         stage: 'High Intent',
         category: 'Unassigned High-Intent',
-        reason: 'Score 91 buyer has no owner',
-        at_risk: '₹2.18 Cr',
+        reason: 'Score 95 buyer has no assigned owner',
+        at_risk: '₹2.80 Cr',
         severity: 'CRITICAL'
       },
       {
-        buyer_name: 'Anand Bhagat',
+        buyer_name: 'Prasshanth Unnibhavi',
+        stage: 'Negotiation',
+        category: 'SLA Breach',
+        reason: 'Commercial terms review pending',
+        at_risk: '₹2.40 Cr',
+        severity: 'CRITICAL'
+      },
+      {
+        buyer_name: 'Rahool Bhosale',
+        stage: 'Visit Completed',
+        category: 'SLA Breach',
+        reason: 'Post-visit SLA turnaround countdown breached',
+        at_risk: '₹2.30 Cr',
+        severity: 'CRITICAL'
+      },
+      {
+        buyer_name: 'Jaywant Patil',
+        stage: 'Site Visit Scheduled',
+        category: 'SLA Breach',
+        reason: 'Milestone payment schedule dispatch overdue',
+        at_risk: '₹2.25 Cr',
+        severity: 'CRITICAL'
+      },
+      {
+        buyer_name: 'sachin Jadhav',
+        stage: 'Qualified',
+        category: 'SLA Breach',
+        reason: 'Follow-up strategy call overdue',
+        at_risk: '₹2.20 Cr',
+        severity: 'CRITICAL'
+      },
+      {
+        buyer_name: 'Raj Kamal',
         stage: 'High Intent',
         category: 'SLA Breach',
         reason: 'Next best action is past its due time',
-        at_risk: '₹2.18 Cr',
+        at_risk: '₹2.15 Cr',
         severity: 'CRITICAL'
       },
       {
-        buyer_name: 'Suhas Kirloskar',
-        stage: 'Negotiation',
-        category: 'SLA Breach',
-        reason: 'Next best action is past its due time',
-        at_risk: '₹2.03 Cr',
-        severity: 'CRITICAL'
-      },
-      {
-        buyer_name: 'Harish Menon',
-        stage: 'Visit Completed',
-        category: 'SLA Breach',
-        reason: 'Next best action is past its due time',
-        at_risk: '₹2.02 Cr',
-        severity: 'CRITICAL'
-      },
-      {
-        buyer_name: 'Girish Naik',
-        stage: 'Site Visit Scheduled',
-        category: 'SLA Breach',
-        reason: 'Next best action is past its due time',
-        at_risk: '₹1.86 Cr',
-        severity: 'CRITICAL'
-      },
-      {
-        buyer_name: 'Girish Naik',
+        buyer_name: 'Santosh Karkhanis',
         stage: 'Site Visit Scheduled',
         category: 'Visit At Risk',
-        reason: 'Missing: Vehicle & driver confirmed',
-        at_risk: '₹1.86 Cr',
-        severity: 'CRITICAL'
-      },
-      {
-        buyer_name: 'Neha Agarwal',
-        stage: 'Negotiation',
-        category: 'SLA Breach',
-        reason: 'Next best action is past its due time',
-        at_risk: '₹1.65 Cr',
-        severity: 'CRITICAL'
-      },
-      {
-        buyer_name: 'Rahul Deshmukh',
-        stage: 'Site Visit Scheduled',
-        category: 'SLA Breach',
-        reason: 'Next best action is past its due time',
-        at_risk: '₹1.51 Cr',
+        reason: 'Missing driver confirmation',
+        at_risk: '₹2.10 Cr',
         severity: 'CRITICAL'
       }
     ],
     high_intent_radar: [
       {
-        buyer_name: 'Sneha Kulkarni',
-        action: 'Assign owner and call within 15 minutes',
-        time_ago: '40 days ago',
-        score: 92,
+        buyer_name: 'Rohiet Kumar',
+        action: 'Confirm cab & dispatch visit schedule',
+        time_ago: 'Just now',
+        score: 96,
         delta: 6
       },
       {
-        buyer_name: 'Anand Bhagat',
-        action: 'Buyer Score 91 - assign owner immediately',
-        time_ago: '40 days ago',
-        score: 91,
+        buyer_name: 'Debashish',
+        action: 'Buyer Score 95 - assign owner immediately',
+        time_ago: '1 hour ago',
+        score: 95,
         delta: 6
       },
       {
-        buyer_name: 'Deepa Sharma',
-        action: 'Initiate booking paperwork',
-        time_ago: '39 days ago',
-        score: 90,
-        delta: 2
-      },
-      {
-        buyer_name: 'Rahul Deshmukh',
-        action: 'Confirm Saturday site visit',
-        time_ago: '39 days ago',
+        buyer_name: 'Prasshanth Unnibhavi',
+        action: 'Initiate booking paperwork & pricing draft',
+        time_ago: '3 hours ago',
         score: 89,
-        delta: 5
+        delta: 4
       },
       {
-        buyer_name: 'Neha Agarwal',
-        action: 'Manager intervention on price objection',
-        time_ago: '40 days ago',
+        buyer_name: 'Jaywant Patil',
+        action: 'Confirm Saturday site visit & unit shortlist',
+        time_ago: '4 hours ago',
         score: 88,
-        delta: 2
+        delta: 4
       },
       {
-        buyer_name: 'Harish Menon',
+        buyer_name: 'Rahool Bhosale',
+        action: 'Manager intervention on plot pricing',
+        time_ago: '5 hours ago',
+        score: 88,
+        delta: 3
+      },
+      {
+        buyer_name: 'Santosh Karkhanis',
         action: 'Share proposal and initiate negotiation',
-        time_ago: '39 days ago',
+        time_ago: '6 hours ago',
         score: 87,
         delta: 2
       }

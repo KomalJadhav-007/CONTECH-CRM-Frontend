@@ -44,12 +44,12 @@ export class VisitBookingComponent implements OnInit {
   private router = inject(Router);
 
   buyers: any[] = [
-    { id: 1, full_name: 'Sneha Kulkarni', phone: '7058533669', preferred_bhk: '3 BHK' },
-    { id: 2, full_name: 'Anand Bhagat', phone: '7058533669', preferred_bhk: '4 BHK' },
-    { id: 3, full_name: 'Deepa Sharma', phone: '7058533669', preferred_bhk: '3 BHK' },
-    { id: 4, full_name: 'Rahul Deshmukh', phone: '7058533669', preferred_bhk: '3 BHK' },
-    { id: 5, full_name: 'Neha Agarwal', phone: '7058533669', preferred_bhk: '4 BHK' },
-    { id: 6, full_name: 'Harish Menon', phone: '7058533669', preferred_bhk: '4 BHK' }
+    { id: 1, full_name: 'Jaywant Patil', phone: '+919960688432', preferred_bhk: '3 BHK' },
+    { id: 2, full_name: 'Kaustubh Nazirkar', phone: '+919890389995', preferred_bhk: '2 BHK' },
+    { id: 3, full_name: 'sachin Jadhav', phone: '+919130753119', preferred_bhk: '3 BHK' },
+    { id: 4, full_name: 'Suntosh Kamthay', phone: '+918888468001', preferred_bhk: '2 BHK' },
+    { id: 5, full_name: 'Rohiet Kumar', phone: '+919595181850', preferred_bhk: '3 BHK' },
+    { id: 21, full_name: 'Debashish', phone: '+919270308384', preferred_bhk: '3 BHK' }
   ];
 
   salesExecutives: any[] = [
