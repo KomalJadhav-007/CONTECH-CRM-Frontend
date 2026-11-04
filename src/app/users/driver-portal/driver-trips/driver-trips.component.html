@@ -31,7 +31,7 @@
       type="button"
       class="filter-tab"
       [class.active]="filterStatus === ''"
-      (click)="filterStatus = ''"
+      (click)="setFilter('')"
     >
       All Trips ({{ trips.length }})
     </button>
@@ -40,7 +40,7 @@
       type="button"
       class="filter-tab"
       [class.active]="filterStatus === 'ACTIVE'"
-      (click)="filterStatus = 'ACTIVE'"
+      (click)="setFilter('ACTIVE')"
     >
       Active Journeys
     </button>
@@ -49,7 +49,7 @@
       type="button"
       class="filter-tab"
       [class.active]="filterStatus === 'COMPLETED'"
-      (click)="filterStatus = 'COMPLETED'"
+      (click)="setFilter('COMPLETED')"
     >
       Completed
     </button>
@@ -57,7 +57,7 @@
 
   <!-- Trips Cards Grid -->
   <div class="trips-grid" *ngIf="filteredTrips.length > 0">
-    <mat-card *ngFor="let trip of filteredTrips" class="trip-card">
+    <mat-card *ngFor="let trip of pagedTrips" class="trip-card">
       <div class="trip-top-bar">
         <div class="trip-time-info">
           <span class="trip-time">{{ trip.siteVisit?.time_slot || 'Today' }}</span>
@@ -150,6 +150,43 @@
         </button>
       </div>
     </mat-card>
+  </div>
+
+  <!-- Trips Pagination Footer -->
+  <div class="table-footer-bar trips-footer-bar" *ngIf="filteredTrips.length > 0">
+    <div class="footer-summary">
+      <span>Showing <strong>{{ pagedTrips.length }}</strong> of <strong>{{ filteredTrips.length }}</strong> trips</span>
+    </div>
+
+    <div class="footer-controls">
+      <div class="page-size-selector">
+        <label>Trips per page:</label>
+        <select [(ngModel)]="pageSize" (change)="currentPage = 1" class="page-size-dropdown">
+          <option [value]="3">3</option>
+          <option [value]="6">6</option>
+          <option [value]="9">9</option>
+          <option [value]="18">18</option>
+        </select>
+      </div>
+
+      <div class="page-navigator">
+        <button
+          type="button"
+          [disabled]="currentPage === 1"
+          (click)="currentPage = currentPage - 1"
+          class="page-nav-btn"
+          aria-label="Previous page"
+        >&lsaquo;</button>
+        <span class="page-current-info">Page {{ currentPage }} of {{ totalPages || 1 }}</span>
+        <button
+          type="button"
+          [disabled]="currentPage >= totalPages"
+          (click)="currentPage = currentPage + 1"
+          class="page-nav-btn"
+          aria-label="Next page"
+        >&rsaquo;</button>
+      </div>
+    </div>
   </div>
 
   <!-- Empty State Card -->

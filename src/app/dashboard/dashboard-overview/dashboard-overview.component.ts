@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -15,6 +16,7 @@ import { DashboardService } from '../dashboard.service';
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     RouterModule,
     MatCardModule,
     MatButtonModule,
@@ -33,6 +35,19 @@ export class DashboardOverviewComponent implements OnInit {
 
   loading = true;
   todayDateStr = '30 Sept 2026';
+
+  // Pagination for Top Revenue Leakage
+  leakageCurrentPage = 1;
+  leakagePageSize = 5;
+
+  get totalLeakagePages(): number {
+    return Math.max(1, Math.ceil((this.stats.top_revenue_leakage || []).length / this.leakagePageSize));
+  }
+
+  get pagedLeakage(): any[] {
+    const start = (this.leakageCurrentPage - 1) * this.leakagePageSize;
+    return (this.stats.top_revenue_leakage || []).slice(start, start + this.leakagePageSize);
+  }
 
   stats: any = {
     revenue_at_risk_cr: '60.97',

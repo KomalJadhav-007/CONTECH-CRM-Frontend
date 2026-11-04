@@ -5,7 +5,8 @@
       <div class="section-tag">ADMINISTRATION &middot; ACCESS &amp; TEAM</div>
       <h1 class="page-title">Team &amp; Users</h1>
       <p class="page-subtitle">
-        One role per user, project access scoped per person. Deactivation is blocked while a user still owns open pipeline.
+        One role per user, project access scoped per person. Deactivation is blocked while a user still owns open
+        pipeline.
       </p>
     </div>
     <div class="header-actions">
@@ -38,13 +39,8 @@
   <!-- Search & Role Filter Row -->
   <div class="controls-row">
     <div class="search-box">
-      <input
-        type="text"
-        [(ngModel)]="searchQuery"
-        (ngModelChange)="currentPage = 1"
-        class="search-input"
-        placeholder="Search name, email or designation"
-      />
+      <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="currentPage = 1" class="search-input"
+        placeholder="Search name, email or designation" />
     </div>
     <div class="filter-box">
       <label class="filter-label">Filter by Role:</label>
@@ -83,7 +79,8 @@
           <tr *ngFor="let u of pagedUsers">
             <td class="col-user">
               <div class="user-cell">
-                <div class="user-avatar" [style.backgroundColor]="getRoleColor(u.role) + '20'" [style.color]="getRoleColor(u.role)">
+                <div class="user-avatar" [style.backgroundColor]="getRoleColor(u.role) + '20'"
+                  [style.color]="getRoleColor(u.role)">
                   {{ getInitials(u.name) }}
                 </div>
                 <div class="user-meta">
@@ -103,26 +100,16 @@
             </td>
             <td class="col-role">
               <div class="role-cell-wrapper">
-                <select
-                  [(ngModel)]="u.role"
-                  (ngModelChange)="onRoleChange(u)"
-                  class="role-select"
-                  [style.borderLeftColor]="getRoleColor(u.role)"
-                >
+                <select [(ngModel)]="u.role" (ngModelChange)="onRoleChange(u)" class="role-select"
+                  [style.borderLeftColor]="getRoleColor(u.role)">
                   <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
                 </select>
-                <span
-                  class="role-badge-tag"
-                  [style.color]="getRoleColor(u.role)"
-                  [style.backgroundColor]="getRoleColor(u.role) + '15'"
-                >
+                <span class="role-badge-tag" [style.color]="getRoleColor(u.role)"
+                  [style.backgroundColor]="getRoleColor(u.role) + '15'">
                   {{ getRoleBadge(u.role) }}
                 </span>
-                <span
-                  *ngIf="accessControlService.hasUserOverride(u.user_id || u.id)"
-                  class="user-custom-override-tag"
-                  title="Has individual custom access overrides"
-                >
+                <span *ngIf="accessControlService.hasUserOverride(u.user_id || u.id)" class="user-custom-override-tag"
+                  title="Has individual custom access overrides">
                   <mat-icon class="override-tag-icon">tune</mat-icon>
                   <span>Custom</span>
                 </span>
@@ -130,12 +117,15 @@
             </td>
             <td class="col-project">
               <div class="project-access-cell">
-                <span *ngIf="u.has_all_projects_access || !u.assigned_projects || u.assigned_projects.length === 0" class="badge-all-projects-scope" title="Universal access to all projects">
+                <span *ngIf="u.has_all_projects_access || !u.assigned_projects || u.assigned_projects.length === 0"
+                  class="badge-all-projects-scope" title="Universal access to all projects">
                   <mat-icon class="scope-mat-icon">public</mat-icon>
                   <span>All Projects</span>
                 </span>
-                <div *ngIf="!u.has_all_projects_access && u.assigned_projects && u.assigned_projects.length > 0" class="scoped-projects-list">
-                  <span *ngFor="let p of u.assigned_projects" class="badge-scoped-project" [title]="p.location || p.name">
+                <div *ngIf="!u.has_all_projects_access && u.assigned_projects && u.assigned_projects.length > 0"
+                  class="scoped-projects-list">
+                  <span *ngFor="let p of u.assigned_projects" class="badge-scoped-project"
+                    [title]="p.location || p.name">
                     <mat-icon class="scope-mat-icon">apartment</mat-icon>
                     <span>{{ p.name }}</span>
                   </span>
@@ -145,7 +135,8 @@
             <td class="col-manager">
               <div class="manager-cell" *ngIf="getManagerName(u.manager_name); else noManager">
                 <div class="manager-name">{{ getManagerName(u.manager_name) }}</div>
-                <div class="manager-role" *ngIf="getManagerRole(u.manager_name)">{{ getManagerRole(u.manager_name) }}</div>
+                <div class="manager-role" *ngIf="getManagerRole(u.manager_name)">{{ getManagerRole(u.manager_name) }}
+                </div>
               </div>
               <ng-template #noManager>
                 <span class="manager-empty">—</span>
@@ -153,14 +144,11 @@
             </td>
             <td class="col-status">
               <div class="status-cell">
-                <span class="status-pill" [class.status-active]="u.status === 'active'" [class.status-inactive]="u.status !== 'active'">
+                <span class="status-pill" [class.status-active]="u.status === 'active'"
+                  [class.status-inactive]="u.status !== 'active'">
                   {{ u.status === 'active' ? 'Active' : 'Inactive' }}
                 </span>
-                <button
-                  type="button"
-                  class="btn-deactivate"
-                  (click)="toggleDeactivate(u)"
-                >
+                <button type="button" class="btn-deactivate" (click)="toggleDeactivate(u)">
                   {{ u.status === 'active' ? 'Deactivate' : 'Activate' }}
                 </button>
               </div>
@@ -168,28 +156,14 @@
             <td class="col-last-login last-login-cell">{{ u.last_login }}</td>
             <td class="col-actions">
               <div class="action-buttons-cell">
-                <a
-                  [routerLink]="['/access-control']"
-                  [queryParams]="{ userId: u.user_id || u.id }"
-                  class="btn-access-user"
-                  title="Configure access & permissions"
-                >
+                <a [routerLink]="['/access-control']" [queryParams]="{ userId: u.user_id || u.id }"
+                  class="btn-access-user" title="Configure access & permissions">
                   Access
                 </a>
-                <button
-                  type="button"
-                  class="btn-edit-user"
-                  (click)="openEditUserModal(u)"
-                  title="Edit user details"
-                >
+                <button type="button" class="btn-edit-user" (click)="openEditUserModal(u)" title="Edit user details">
                   Edit
                 </button>
-                <button
-                  type="button"
-                  class="btn-delete-user"
-                  (click)="deleteUser(u)"
-                  title="Delete user from database"
-                >
+                <button type="button" class="btn-delete-user" (click)="deleteUser(u)" title="Delete user from database">
                   Delete
                 </button>
               </div>
@@ -207,7 +181,8 @@
     <!-- Table Footer with Pagination & Summary -->
     <div class="table-footer-bar" *ngIf="filteredUsers.length > 0">
       <div class="footer-summary">
-        <span>Showing <strong>{{ pagedUsers.length }}</strong> of <strong>{{ filteredUsers.length }}</strong> users</span>
+        <span>Showing <strong>{{ pagedUsers.length }}</strong> of <strong>{{ filteredUsers.length }}</strong>
+          users</span>
       </div>
 
       <div class="footer-controls">
@@ -222,21 +197,11 @@
         </div>
 
         <div class="page-navigator">
-          <button
-            type="button"
-            [disabled]="currentPage === 1"
-            (click)="currentPage = currentPage - 1"
-            class="page-nav-btn"
-            aria-label="Previous page"
-          >&lsaquo;</button>
+          <button type="button" [disabled]="currentPage === 1" (click)="currentPage = currentPage - 1"
+            class="page-nav-btn" aria-label="Previous page">&lsaquo;</button>
           <span class="page-current-info">Page {{ currentPage }} of {{ totalPages || 1 }}</span>
-          <button
-            type="button"
-            [disabled]="currentPage >= totalPages"
-            (click)="currentPage = currentPage + 1"
-            class="page-nav-btn"
-            aria-label="Next page"
-          >&rsaquo;</button>
+          <button type="button" [disabled]="currentPage >= totalPages" (click)="currentPage = currentPage + 1"
+            class="page-nav-btn" aria-label="Next page">&rsaquo;</button>
         </div>
       </div>
     </div>
@@ -268,42 +233,24 @@
         <div class="form-row-2">
           <div class="form-group">
             <label class="form-label">Full Name <span class="required">*</span></label>
-            <input
-              type="text"
-              [(ngModel)]="newUser.name"
-              class="form-input"
-              placeholder="e.g. Aditi Sen"
-            />
+            <input type="text" [(ngModel)]="newUser.name" class="form-input" placeholder="e.g. Aditi Sen" />
           </div>
           <div class="form-group">
             <label class="form-label">Work Email <span class="required">*</span></label>
-            <input
-              type="email"
-              [(ngModel)]="newUser.email"
-              class="form-input"
-              placeholder="e.g. aditi.sen@contechcrm.com"
-            />
+            <input type="email" [(ngModel)]="newUser.email" class="form-input"
+              placeholder="e.g. aditi.sen@contechcrm.com" />
           </div>
         </div>
 
         <div class="form-row-2">
           <div class="form-group">
             <label class="form-label">Phone Number</label>
-            <input
-              type="text"
-              [(ngModel)]="newUser.phone"
-              class="form-input"
-              placeholder="e.g. 7058533669"
-            />
+            <input type="text" [(ngModel)]="newUser.phone" class="form-input" placeholder="e.g. 7058533669" />
           </div>
           <div class="form-group">
             <label class="form-label">Designation / Title</label>
-            <input
-              type="text"
-              [(ngModel)]="newUser.designation"
-              class="form-input"
-              placeholder="e.g. Senior Property Advisor"
-            />
+            <input type="text" [(ngModel)]="newUser.designation" class="form-input"
+              placeholder="e.g. Senior Property Advisor" />
           </div>
         </div>
 
@@ -325,11 +272,8 @@
           <div class="preview-header">
             <div class="preview-role-tag">
               <span class="preview-role-name">{{ newUserRoleSummary.meta.name }}</span>
-              <span
-                class="preview-badge"
-                [style.backgroundColor]="newUserRoleSummary.meta.color + '20'"
-                [style.color]="newUserRoleSummary.meta.color"
-              >
+              <span class="preview-badge" [style.backgroundColor]="newUserRoleSummary.meta.color + '20'"
+                [style.color]="newUserRoleSummary.meta.color">
                 {{ newUserRoleSummary.meta.badge }}
               </span>
             </div>
@@ -340,7 +284,8 @@
 
           <div class="preview-details">
             <div class="preview-detail-item">
-              <span class="preview-detail-label">Permitted Modules ({{ newUserRoleSummary.grantedModules.length }}):</span>
+              <span class="preview-detail-label">Permitted Modules ({{ newUserRoleSummary.grantedModules.length
+                }}):</span>
               <div class="module-chips-list">
                 <span class="module-chip" *ngFor="let m of newUserRoleSummary.grantedModules.slice(0, 7)">
                   {{ m }}
@@ -391,28 +336,21 @@
             </div>
             <div class="form-group">
               <label class="form-label">Vehicle / Registration Number <span class="required">*</span></label>
-              <input
-                type="text"
-                [(ngModel)]="newUser.vehicle_number"
-                class="form-input font-mono text-uppercase"
-                placeholder="e.g. KA-01-MJ-8822"
-              />
+              <input type="text" [(ngModel)]="newUser.vehicle_number" class="form-input font-mono text-uppercase"
+                placeholder="e.g. KA-01-MJ-8822" />
             </div>
           </div>
 
           <div class="form-group vehicle-model-group">
             <label class="form-label">Vehicle Make &amp; Model (Optional)</label>
-            <input
-              type="text"
-              [(ngModel)]="newUser.vehicle_model"
-              class="form-input"
-              placeholder="e.g. Toyota Innova Crysta (Luxury 6-Seater)"
-            />
+            <input type="text" [(ngModel)]="newUser.vehicle_model" class="form-input"
+              placeholder="e.g. Toyota Innova Crysta (Luxury 6-Seater)" />
           </div>
 
           <div class="fleet-sync-note">
             <mat-icon class="fleet-note-icon">verified</mat-icon>
-            <span>This vehicle will be automatically registered in the Fleet Master and available for site visit bookings.</span>
+            <span>This vehicle will be automatically registered in the Fleet Master and available for site visit
+              bookings.</span>
           </div>
         </div>
 
@@ -423,25 +361,18 @@
               <mat-icon class="scope-icon-header">apartment</mat-icon>
               <div>
                 <h4 class="scope-title">Project Access Control</h4>
-                <p class="scope-subtitle">Specify which project(s) this user is authorized to handle and see across the CRM.</p>
+                <p class="scope-subtitle">Specify which project(s) this user is authorized to handle and see across the
+                  CRM.</p>
               </div>
             </div>
             <div class="scope-toggle-tabs">
-              <button
-                type="button"
-                class="btn-scope-tab"
-                [class.active]="newUser.all_projects"
-                (click)="newUser.all_projects = true"
-              >
+              <button type="button" class="btn-scope-tab" [class.active]="newUser.all_projects"
+                (click)="newUser.all_projects = true">
                 <mat-icon class="tab-mat-icon">public</mat-icon>
                 <span>All Projects</span>
               </button>
-              <button
-                type="button"
-                class="btn-scope-tab"
-                [class.active]="!newUser.all_projects"
-                (click)="newUser.all_projects = false"
-              >
+              <button type="button" class="btn-scope-tab" [class.active]="!newUser.all_projects"
+                (click)="newUser.all_projects = false">
                 <mat-icon class="tab-mat-icon">domain</mat-icon>
                 <span>Specific Project(s)</span>
               </button>
@@ -458,17 +389,16 @@
 
           <div *ngIf="!newUser.all_projects" class="scope-specific-panel">
             <div class="scope-instruction">
-              Select one or more projects this user will be assigned to handle. They will <strong>only see</strong> records (visits, inventory, buyers, bookings) belonging to their assigned projects:
+              Select one or more projects this user will be assigned to handle. They will <strong>only see</strong>
+              records (visits, inventory, buyers, bookings) belonging to their assigned projects:
             </div>
             <div class="project-checkboxes-grid">
-              <div
-                *ngFor="let proj of availableProjects"
-                class="project-assignment-card"
+              <div *ngFor="let proj of availableProjects" class="project-assignment-card"
                 [class.selected]="isProjectSelectedForNewUser(proj.id || proj.project_id)"
-                (click)="toggleProjectForNewUser(proj.id || proj.project_id)"
-              >
+                (click)="toggleProjectForNewUser(proj.id || proj.project_id)">
                 <div class="proj-checkbox-indicator">
-                  <mat-icon class="check-indicator" *ngIf="isProjectSelectedForNewUser(proj.id || proj.project_id)">check</mat-icon>
+                  <mat-icon class="check-indicator"
+                    *ngIf="isProjectSelectedForNewUser(proj.id || proj.project_id)">check</mat-icon>
                 </div>
                 <div class="proj-assignment-info">
                   <div class="proj-name">{{ proj.name }}</div>
@@ -491,25 +421,17 @@
             <mat-form-field appearance="outline" class="w-full mat-field-custom">
               <mat-label>Initial Password</mat-label>
               <mat-icon matPrefix class="field-icon-mat">lock</mat-icon>
-              <input
-                matInput
-                [type]="showNewPassword ? 'text' : 'password'"
-                [(ngModel)]="newUser.password"
-                placeholder="Default: Contech@2026"
-              />
-              <button
-                mat-icon-button
-                matSuffix
-                type="button"
-                (click)="showNewPassword = !showNewPassword"
-                [matTooltip]="showNewPassword ? 'Hide password' : 'Show password'"
-              >
+              <input matInput [type]="showNewPassword ? 'text' : 'password'" [(ngModel)]="newUser.password"
+                placeholder="Default: Contech@2026" />
+              <button mat-icon-button matSuffix type="button" (click)="showNewPassword = !showNewPassword"
+                [matTooltip]="showNewPassword ? 'Hide password' : 'Show password'">
                 <mat-icon>{{ showNewPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
               </button>
               <mat-hint>Initial login password for user</mat-hint>
             </mat-form-field>
             <div class="pwd-quick-actions-mat">
-              <button type="button" mat-stroked-button class="btn-mat-pwd-pill" (click)="setDefaultPasswordForNewUser()">
+              <button type="button" mat-stroked-button class="btn-mat-pwd-pill"
+                (click)="setDefaultPasswordForNewUser()">
                 <mat-icon class="pill-icon">vpn_key</mat-icon> Contech&#64;2026
               </button>
               <button type="button" mat-stroked-button class="btn-mat-pwd-pill" (click)="generatePasswordForNewUser()">
@@ -531,7 +453,8 @@
 
       <div class="modal-footer">
         <button mat-button type="button" class="btn-modal-cancel" (click)="closeAddUserModal()">Cancel</button>
-        <button mat-flat-button color="primary" type="button" class="btn-modal-submit" (click)="submitAddUser()" [disabled]="isSubmitting">
+        <button mat-flat-button color="primary" type="button" class="btn-modal-submit" (click)="submitAddUser()"
+          [disabled]="isSubmitting">
           <span *ngIf="!isSubmitting">Create &amp; Provision User</span>
           <span *ngIf="isSubmitting">Provisioning...</span>
         </button>
@@ -586,11 +509,13 @@
         </div>
 
         <!-- Role Preview for editing user -->
-        <div class="access-preview-card" *ngIf="editingUserRoleSummary" [style.borderLeftColor]="editingUserRoleSummary.meta.color">
+        <div class="access-preview-card" *ngIf="editingUserRoleSummary"
+          [style.borderLeftColor]="editingUserRoleSummary.meta.color">
           <div class="preview-header">
             <div class="preview-role-tag">
               <span class="preview-role-name">{{ editingUserRoleSummary.meta.name }}</span>
-              <span class="preview-badge" [style.backgroundColor]="editingUserRoleSummary.meta.color + '20'" [style.color]="editingUserRoleSummary.meta.color">
+              <span class="preview-badge" [style.backgroundColor]="editingUserRoleSummary.meta.color + '20'"
+                [style.color]="editingUserRoleSummary.meta.color">
                 {{ editingUserRoleSummary.meta.badge }}
               </span>
             </div>
@@ -600,19 +525,18 @@
 
           <div class="user-perm-override-box">
             <div class="override-box-desc">
-              <span *ngIf="accessControlService.hasUserOverride(editingUser.id || editingUser.user_id)" class="override-text-active">
-                <strong>Custom individual access active for {{ editingUser.name }}</strong> (overriding base role defaults).
+              <span *ngIf="accessControlService.hasUserOverride(editingUser.id || editingUser.user_id)"
+                class="override-text-active">
+                <strong>Custom individual access active for {{ editingUser.name }}</strong> (overriding base role
+                defaults).
               </span>
-              <span *ngIf="!accessControlService.hasUserOverride(editingUser.id || editingUser.user_id)" class="override-text-default">
+              <span *ngIf="!accessControlService.hasUserOverride(editingUser.id || editingUser.user_id)"
+                class="override-text-default">
                 Currently inheriting standard permissions from the <strong>{{ editingUser.role }}</strong> role.
               </span>
             </div>
-            <a
-              [routerLink]="['/access-control']"
-              [queryParams]="{ userId: editingUser.id || editingUser.user_id }"
-              (click)="closeEditUserModal()"
-              class="btn-manage-individual-perms"
-            >
+            <a [routerLink]="['/access-control']" [queryParams]="{ userId: editingUser.id || editingUser.user_id }"
+              (click)="closeEditUserModal()" class="btn-manage-individual-perms">
               Manage Individual Permissions &rarr;
             </a>
           </div>
@@ -640,28 +564,21 @@
             </div>
             <div class="form-group">
               <label class="form-label">Vehicle / Registration Number <span class="required">*</span></label>
-              <input
-                type="text"
-                [(ngModel)]="editingUser.vehicle_number"
-                class="form-input font-mono text-uppercase"
-                placeholder="e.g. KA-01-MJ-8822"
-              />
+              <input type="text" [(ngModel)]="editingUser.vehicle_number" class="form-input font-mono text-uppercase"
+                placeholder="e.g. KA-01-MJ-8822" />
             </div>
           </div>
 
           <div class="form-group vehicle-model-group">
             <label class="form-label">Vehicle Make &amp; Model (Optional)</label>
-            <input
-              type="text"
-              [(ngModel)]="editingUser.vehicle_model"
-              class="form-input"
-              placeholder="e.g. Toyota Innova Crysta (Luxury 6-Seater)"
-            />
+            <input type="text" [(ngModel)]="editingUser.vehicle_model" class="form-input"
+              placeholder="e.g. Toyota Innova Crysta (Luxury 6-Seater)" />
           </div>
 
           <div class="fleet-sync-note">
             <mat-icon class="fleet-note-icon">verified</mat-icon>
-            <span>Vehicle records and driver assignments will automatically update across the Fleet and Site Visit modules.</span>
+            <span>Vehicle records and driver assignments will automatically update across the Fleet and Site Visit
+              modules.</span>
           </div>
         </div>
 
@@ -676,21 +593,13 @@
               </div>
             </div>
             <div class="scope-toggle-tabs">
-              <button
-                type="button"
-                class="btn-scope-tab"
-                [class.active]="editingUser.all_projects"
-                (click)="editingUser.all_projects = true"
-              >
+              <button type="button" class="btn-scope-tab" [class.active]="editingUser.all_projects"
+                (click)="editingUser.all_projects = true">
                 <mat-icon class="tab-mat-icon">public</mat-icon>
                 <span>All Projects</span>
               </button>
-              <button
-                type="button"
-                class="btn-scope-tab"
-                [class.active]="!editingUser.all_projects"
-                (click)="editingUser.all_projects = false"
-              >
+              <button type="button" class="btn-scope-tab" [class.active]="!editingUser.all_projects"
+                (click)="editingUser.all_projects = false">
                 <mat-icon class="tab-mat-icon">domain</mat-icon>
                 <span>Specific Project(s)</span>
               </button>
@@ -707,17 +616,16 @@
 
           <div *ngIf="!editingUser.all_projects" class="scope-specific-panel">
             <div class="scope-instruction">
-              Select project(s) assigned to <strong>{{ editingUser.name }}</strong>. They will <strong>only see</strong> records (visits, inventory, buyers, bookings) belonging to these projects:
+              Select project(s) assigned to <strong>{{ editingUser.name }}</strong>. They will <strong>only see</strong>
+              records (visits, inventory, buyers, bookings) belonging to these projects:
             </div>
             <div class="project-checkboxes-grid">
-              <div
-                *ngFor="let proj of availableProjects"
-                class="project-assignment-card"
+              <div *ngFor="let proj of availableProjects" class="project-assignment-card"
                 [class.selected]="isProjectSelectedForEditingUser(proj.id || proj.project_id)"
-                (click)="toggleProjectForEditingUser(proj.id || proj.project_id)"
-              >
+                (click)="toggleProjectForEditingUser(proj.id || proj.project_id)">
                 <div class="proj-checkbox-indicator">
-                  <mat-icon class="check-indicator" *ngIf="isProjectSelectedForEditingUser(proj.id || proj.project_id)">check</mat-icon>
+                  <mat-icon class="check-indicator"
+                    *ngIf="isProjectSelectedForEditingUser(proj.id || proj.project_id)">check</mat-icon>
                 </div>
                 <div class="proj-assignment-info">
                   <div class="proj-name">{{ proj.name }}</div>
@@ -740,20 +648,10 @@
             <mat-form-field appearance="outline" class="w-full mat-field-custom">
               <mat-label>Set / Change Password</mat-label>
               <mat-icon matPrefix class="field-icon-mat">lock</mat-icon>
-              <input
-                matInput
-                [type]="showEditPassword ? 'text' : 'password'"
-                [(ngModel)]="editingUser.password"
-                placeholder="Leave blank to keep unchanged"
-                autocomplete="new-password"
-              />
-              <button
-                mat-icon-button
-                matSuffix
-                type="button"
-                (click)="showEditPassword = !showEditPassword"
-                [matTooltip]="showEditPassword ? 'Hide password' : 'Show password'"
-              >
+              <input matInput [type]="showEditPassword ? 'text' : 'password'" [(ngModel)]="editingUser.password"
+                placeholder="Leave blank to keep unchanged" autocomplete="new-password" />
+              <button mat-icon-button matSuffix type="button" (click)="showEditPassword = !showEditPassword"
+                [matTooltip]="showEditPassword ? 'Hide password' : 'Show password'">
                 <mat-icon>{{ showEditPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
               </button>
               <mat-hint>Optional &bull; Enter 6+ characters to change password</mat-hint>
@@ -770,7 +668,8 @@
 
           <div class="form-group checkbox-group">
             <label class="checkbox-container">
-              <input type="checkbox" [checked]="editingUser.status === 'active'" (change)="editingUser.status = editingUser.status === 'active' ? 'inactive' : 'active'" />
+              <input type="checkbox" [checked]="editingUser.status === 'active'"
+                (change)="editingUser.status = editingUser.status === 'active' ? 'inactive' : 'active'" />
               <span class="checkbox-label">
                 <strong>Account Active</strong>
                 <span class="checkbox-desc">Enable or suspend system access for this user</span>
@@ -782,7 +681,8 @@
 
       <div class="modal-footer">
         <button mat-button type="button" class="btn-modal-cancel" (click)="closeEditUserModal()">Cancel</button>
-        <button mat-flat-button color="primary" type="button" class="btn-modal-submit" (click)="submitEditUser()" [disabled]="isEditing">
+        <button mat-flat-button color="primary" type="button" class="btn-modal-submit" (click)="submitEditUser()"
+          [disabled]="isEditing">
           <span *ngIf="!isEditing">Save Changes</span>
           <span *ngIf="isEditing">Saving...</span>
         </button>
@@ -797,7 +697,8 @@
         <div>
           <div class="safeguard-badge">DEACTIVATION SAFEGUARD (SOW SEC 5)</div>
           <h2 class="modal-title safeguard-title">Deactivation Safeguard Triggered</h2>
-          <p class="modal-subtitle safeguard-subtitle">Open leads, site visits &amp; tasks must be safely transferred before user disposition.</p>
+          <p class="modal-subtitle safeguard-subtitle">Open leads, site visits &amp; tasks must be safely transferred
+            before user disposition.</p>
         </div>
         <button type="button" class="btn-close-modal" (click)="closeReassignModal()">&times;</button>
       </div>
@@ -830,7 +731,8 @@
               {{ target.name }} ({{ target.role }})
             </option>
           </select>
-          <small class="safeguard-help-text">All active prospects, site visits, and SLA tasks will be atomically transferred to this user.</small>
+          <small class="safeguard-help-text">All active prospects, site visits, and SLA tasks will be atomically
+            transferred to this user.</small>
         </div>
 
         <div *ngIf="reassignError" class="modal-error-alert safeguard-error-alert">{{ reassignError }}</div>
@@ -838,7 +740,8 @@
 
       <div class="modal-footer safeguard-modal-footer">
         <button type="button" class="btn-modal-cancel" (click)="closeReassignModal()">Cancel</button>
-        <button type="button" class="btn-safeguard-submit" (click)="confirmReassignment()" [disabled]="isReassigning || !selectedReassignTargetId">
+        <button type="button" class="btn-safeguard-submit" (click)="confirmReassignment()"
+          [disabled]="isReassigning || !selectedReassignTargetId">
           <span *ngIf="!isReassigning">Transfer All &amp; Confirm</span>
           <span *ngIf="isReassigning">Transferring...</span>
         </button>

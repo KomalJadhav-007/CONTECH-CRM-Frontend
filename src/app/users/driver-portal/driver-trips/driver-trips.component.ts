@@ -26,6 +26,24 @@ export class DriverTripsComponent implements OnInit {
   updatingId: number | null = null;
   statusMessage = '';
 
+  // Pagination for Daily Trips
+  currentPage = 1;
+  pageSize = 6;
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredTrips.length / this.pageSize));
+  }
+
+  get pagedTrips(): any[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredTrips.slice(start, start + this.pageSize);
+  }
+
+  setFilter(status: string): void {
+    this.filterStatus = status;
+    this.currentPage = 1;
+  }
+
   get filteredTrips(): any[] {
     if (!this.filterStatus) return this.trips;
     if (this.filterStatus === 'ACTIVE') {

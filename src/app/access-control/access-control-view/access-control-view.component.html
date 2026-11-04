@@ -407,7 +407,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let mod of filteredModules" class="module-row">
+          <tr *ngFor="let mod of pagedModules" class="module-row">
             <td class="module-name-cell">
               <div class="module-title-wrap">
                 <span class="module-name">{{ mod }}</span>
@@ -469,7 +469,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let mod of filteredModules" class="module-row">
+          <tr *ngFor="let mod of pagedModules" class="module-row">
             <td class="module-name-cell">
               <div class="module-title-wrap">
                 <span class="module-name">{{ mod }}</span>
@@ -517,6 +517,43 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Table Footer with Pagination & Summary -->
+    <div class="table-footer-bar" *ngIf="filteredModules.length > 0">
+      <div class="footer-summary">
+        <span>Showing <strong>{{ pagedModules.length }}</strong> of <strong>{{ filteredModules.length }}</strong> modules</span>
+      </div>
+
+      <div class="footer-controls">
+        <div class="page-size-selector">
+          <label>Modules per page:</label>
+          <select [(ngModel)]="pageSize" (change)="currentPage = 1" class="page-size-dropdown">
+            <option [value]="5">5</option>
+            <option [value]="8">8</option>
+            <option [value]="12">12</option>
+            <option [value]="16">16 (All)</option>
+          </select>
+        </div>
+
+        <div class="page-navigator">
+          <button
+            type="button"
+            [disabled]="currentPage === 1"
+            (click)="currentPage = currentPage - 1"
+            class="page-nav-btn"
+            aria-label="Previous page"
+          >&lsaquo;</button>
+          <span class="page-current-info">Page {{ currentPage }} of {{ totalPages || 1 }}</span>
+          <button
+            type="button"
+            [disabled]="currentPage >= totalPages"
+            (click)="currentPage = currentPage + 1"
+            class="page-nav-btn"
+            aria-label="Next page"
+          >&rsaquo;</button>
+        </div>
+      </div>
     </div>
 
     <!-- Permission Guide Footer -->
