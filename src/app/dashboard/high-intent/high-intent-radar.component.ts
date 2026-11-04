@@ -51,6 +51,7 @@ export class HighIntentRadarComponent implements OnInit {
 
   selectedBand = 'all';
   selectedOwner = 'all';
+  searchQuery = '';
 
   // Pagination State
   currentPage = 1;
@@ -172,8 +173,25 @@ export class HighIntentRadarComponent implements OnInit {
       if (this.selectedOwner !== 'all' && b.owner !== this.selectedOwner) {
         return false;
       }
+      if (this.searchQuery && this.searchQuery.trim()) {
+        const q = this.searchQuery.toLowerCase().trim();
+        const matchesName = (b.name || '').toLowerCase().includes(q);
+        const matchesStage = (b.stage || '').toLowerCase().includes(q);
+        const matchesSource = (b.source || '').toLowerCase().includes(q);
+        const matchesAction = (b.next_action || '').toLowerCase().includes(q);
+        if (!matchesName && !matchesStage && !matchesSource && !matchesAction) {
+          return false;
+        }
+      }
       return true;
     });
+  }
+
+  resetFilters(): void {
+    this.selectedBand = 'all';
+    this.selectedOwner = 'all';
+    this.searchQuery = '';
+    this.currentPage = 1;
   }
 
   get totalPages(): number {
