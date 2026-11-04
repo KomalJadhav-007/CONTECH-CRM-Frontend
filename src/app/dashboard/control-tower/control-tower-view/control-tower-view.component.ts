@@ -64,6 +64,65 @@ export class ControlTowerViewComponent implements OnInit {
   isScanning = false;
   successMessage = '';
 
+  // Neglected Buyers Pagination & Search
+  buyerSearchQuery = '';
+  buyerPage = 1;
+  buyerPageSize = 10;
+
+  get filteredNeglectedBuyers(): any[] {
+    const list = this.radarData?.neglected_buyers || [];
+    if (!this.buyerSearchQuery || !this.buyerSearchQuery.trim()) {
+      return list;
+    }
+    const q = this.buyerSearchQuery.toLowerCase().trim();
+    return list.filter((b: any) => {
+      const name = (b.full_name || '').toLowerCase();
+      const phone = (b.phone || '').toLowerCase();
+      const rep = (b.assignedRep?.name || '').toLowerCase();
+      const timeframe = (b.buying_timeframe || '').toLowerCase();
+      return name.includes(q) || phone.includes(q) || rep.includes(q) || timeframe.includes(q);
+    });
+  }
+
+  get totalBuyerPages(): number {
+    return Math.ceil(this.filteredNeglectedBuyers.length / this.buyerPageSize) || 1;
+  }
+
+  get pagedNeglectedBuyers(): any[] {
+    const start = (this.buyerPage - 1) * this.buyerPageSize;
+    return this.filteredNeglectedBuyers.slice(start, start + this.buyerPageSize);
+  }
+
+  // At-Risk Visits Pagination
+  visitPage = 1;
+  visitPageSize = 10;
+
+  get totalVisitPages(): number {
+    const list = this.radarData?.at_risk_visits || [];
+    return Math.ceil(list.length / this.visitPageSize) || 1;
+  }
+
+  get pagedVisits(): any[] {
+    const list = this.radarData?.at_risk_visits || [];
+    const start = (this.visitPage - 1) * this.visitPageSize;
+    return list.slice(start, start + this.visitPageSize);
+  }
+
+  // Overdue Tasks Pagination
+  taskPage = 1;
+  taskPageSize = 10;
+
+  get totalTaskPages(): number {
+    const list = this.radarData?.overdue_tasks || [];
+    return Math.ceil(list.length / this.taskPageSize) || 1;
+  }
+
+  get pagedTasks(): any[] {
+    const list = this.radarData?.overdue_tasks || [];
+    const start = (this.taskPage - 1) * this.taskPageSize;
+    return list.slice(start, start + this.taskPageSize);
+  }
+
   ngOnInit(): void {
     this.loadRadar(false);
     this.loadSalesReps();

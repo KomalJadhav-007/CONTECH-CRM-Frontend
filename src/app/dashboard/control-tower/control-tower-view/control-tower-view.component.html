@@ -30,62 +30,72 @@
     <span>{{ successMessage }}</span>
   </div>
 
-  <!-- 4 Stat Cards Matching High-Intent Radar Design (Left Accent Borders, 4px Radius) -->
+  <!-- 4 Stat Cards - Compact Space Utilization -->
   <div class="stats-grid-4">
-    <mat-card appearance="outlined" class="stat-card risk-card">
-      <mat-card-content class="stat-content">
-        <div class="card-label">TOTAL PIPELINE AT RISK</div>
-        <div class="card-value">
-          ₹{{ radarData.summary.gross_pipeline_at_risk_cr || ((radarData.summary.revenue_at_risk_lacs || 0) / 100).toFixed(2) }} Cr
-        </div>
-        <div class="card-trend text-danger">
-          {{ radarData.summary.total_exceptions_count || 8 }} Active Operational Bottlenecks
-        </div>
-      </mat-card-content>
-    </mat-card>
+    <div class="stat-card risk-card">
+      <div class="card-label">TOTAL PIPELINE AT RISK</div>
+      <div class="card-value">
+        ₹{{ radarData.summary.gross_pipeline_at_risk_cr || ((radarData.summary.revenue_at_risk_lacs || 0) / 100).toFixed(2) }} Cr
+      </div>
+      <div class="card-trend text-danger">
+        {{ radarData.summary.total_exceptions_count || 8 }} Active Operational Bottlenecks
+      </div>
+    </div>
 
-    <mat-card appearance="outlined" class="stat-card amber-card">
-      <mat-card-content class="stat-content">
-        <div class="card-label">AT-RISK SITE VISITS (TODAY)</div>
-        <div class="card-value">{{ radarData.summary.at_risk_visits_today }}</div>
-        <div class="card-trend text-amber">Incomplete 4-way confirmations</div>
-      </mat-card-content>
-    </mat-card>
+    <div class="stat-card amber-card">
+      <div class="card-label">AT-RISK SITE VISITS (TODAY)</div>
+      <div class="card-value">{{ radarData.summary.at_risk_visits_today }}</div>
+      <div class="card-trend text-amber">Incomplete 4-way confirmations</div>
+    </div>
 
-    <mat-card appearance="outlined" class="stat-card blue-card">
-      <mat-card-content class="stat-content">
-        <div class="card-label">OVERDUE FOLLOW-UP TASKS</div>
-        <div class="card-value">{{ radarData.summary.overdue_tasks_count }}</div>
-        <div class="card-trend text-blue">Exceeded 4-hour countdown SLA</div>
-      </mat-card-content>
-    </mat-card>
+    <div class="stat-card blue-card">
+      <div class="card-label">OVERDUE FOLLOW-UP TASKS</div>
+      <div class="card-value">{{ radarData.summary.overdue_tasks_count }}</div>
+      <div class="card-trend text-blue">Exceeded 4-hour countdown SLA</div>
+    </div>
 
-    <mat-card appearance="outlined" class="stat-card green-card">
-      <mat-card-content class="stat-content">
-        <div class="card-label">PIPELINE HEALTH INDEX</div>
-        <div class="card-value">{{ radarData.summary.health_score }}<span class="unit">/100</span></div>
-        <div class="card-trend text-green">Calculated across all sales touchpoints</div>
-      </mat-card-content>
-    </mat-card>
+    <div class="stat-card green-card">
+      <div class="card-label">PIPELINE HEALTH INDEX</div>
+      <div class="card-value">{{ radarData.summary.health_score }}<span class="unit">/100</span></div>
+      <div class="card-trend text-green">Calculated across all sales touchpoints</div>
+    </div>
   </div>
 
   <!-- Section 1: Neglected Hot Buyers Section (UC-07) -->
   <div class="panel-section">
-    <mat-card appearance="outlined" class="panel-card">
+    <div class="panel-card">
       <div class="panel-header">
-        <div>
+        <div class="panel-header-left">
           <div class="panel-title-row">
-            <mat-icon class="panel-icon icon-danger">notification_important</mat-icon>
+            <mat-icon class="panel-icon icon-danger">priority_high</mat-icon>
             <span class="panel-title">Neglected High-Intent Buyers (&gt;48h Inaction)</span>
           </div>
           <p class="panel-subtitle">These ready-to-buy customers are at immediate risk of slipping to competing developers.</p>
         </div>
-        <div class="badge-alert-pill">
-          {{ radarData.neglected_buyers.length }} CRITICAL ALERTS
+
+        <div class="panel-header-right">
+          <!-- Compact Search Box -->
+          <div class="panel-search-box">
+            <mat-icon class="search-box-icon">search</mat-icon>
+            <input
+              type="text"
+              [(ngModel)]="buyerSearchQuery"
+              (ngModelChange)="buyerPage = 1"
+              placeholder="Search buyer, phone, rep..."
+              class="panel-search-input"
+            />
+            <button *ngIf="buyerSearchQuery" type="button" class="search-clear-btn" (click)="buyerSearchQuery = ''; buyerPage = 1" title="Clear">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+
+          <div class="badge-alert-pill">
+            {{ filteredNeglectedBuyers.length }} CRITICAL ALERTS
+          </div>
         </div>
       </div>
 
-      <div class="table-responsive scroller-container">
+      <div class="table-responsive">
         <table class="radar-table">
           <thead>
             <tr>
@@ -99,7 +109,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let buyer of radarData.neglected_buyers">
+            <tr *ngFor="let buyer of pagedNeglectedBuyers">
               <td>
                 <div class="buyer-name">{{ buyer.full_name }}</div>
               </td>
@@ -108,18 +118,18 @@
               <td>{{ buyer.buying_timeframe }}</td>
               <td>{{ buyer.assignedRep?.name || 'Unassigned' }}</td>
               <td>
-                <div class="score-pill">
+                <div class="score-pill" [ngClass]="buyer.intent_score >= 80 ? 'score-high' : (buyer.intent_score >= 50 ? 'score-med' : 'score-low')">
                   <span class="score-num">{{ buyer.intent_score }}</span>
                   <span class="score-max">/100</span>
                 </div>
               </td>
               <td class="text-right">
-                <button mat-flat-button color="warn" type="button" (click)="openRescueModal(buyer)">
+                <button class="btn-rescue-action" type="button" (click)="openRescueModal(buyer)">
                   Rescue Deal &rarr;
                 </button>
               </td>
             </tr>
-            <tr *ngIf="radarData.neglected_buyers.length === 0">
+            <tr *ngIf="filteredNeglectedBuyers.length === 0">
               <td colspan="7" class="empty-cell">
                 <mat-icon class="empty-icon">check_circle</mat-icon>
                 <span>Zero neglected buyers detected. All high-intent deals are actively nurtured.</span>
@@ -128,16 +138,53 @@
           </tbody>
         </table>
       </div>
-    </mat-card>
+
+      <!-- Pagination Footer for Neglected Buyers -->
+      <div class="table-footer-bar" *ngIf="filteredNeglectedBuyers.length > 0">
+        <div class="footer-summary">
+          <span>Showing <strong>{{ pagedNeglectedBuyers.length }}</strong> of <strong>{{ filteredNeglectedBuyers.length }}</strong> alerts</span>
+        </div>
+
+        <div class="footer-controls">
+          <div class="page-size-selector">
+            <label>Rows per page:</label>
+            <select [(ngModel)]="buyerPageSize" (change)="buyerPage = 1" class="page-size-dropdown">
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="25">25</option>
+              <option [value]="50">50</option>
+            </select>
+          </div>
+
+          <div class="page-navigator">
+            <button
+              type="button"
+              [disabled]="buyerPage === 1"
+              (click)="buyerPage = buyerPage - 1"
+              class="page-nav-btn"
+              aria-label="Previous page"
+            >&lsaquo;</button>
+            <span class="page-current-info">Page {{ buyerPage }} of {{ totalBuyerPages || 1 }}</span>
+            <button
+              type="button"
+              [disabled]="buyerPage >= totalBuyerPages"
+              (click)="buyerPage = buyerPage + 1"
+              class="page-nav-btn"
+              aria-label="Next page"
+            >&rsaquo;</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Section 2: At-Risk Imminent Site Visits -->
   <div class="panel-section">
-    <mat-card appearance="outlined" class="panel-card">
+    <div class="panel-card">
       <div class="panel-header">
-        <div>
+        <div class="panel-header-left">
           <div class="panel-title-row">
-            <mat-icon class="panel-icon icon-warning">warning</mat-icon>
+            <mat-icon class="panel-icon icon-warning">warning_amber</mat-icon>
             <span class="panel-title">At-Risk Site Visits (Missing 4-Way Confirmations)</span>
           </div>
           <p class="panel-subtitle">Prevent dispatching empty cabs and wasting driver resources.</p>
@@ -147,7 +194,7 @@
         </div>
       </div>
 
-      <div class="table-responsive scroller-container">
+      <div class="table-responsive">
         <table class="radar-table">
           <thead>
             <tr>
@@ -161,7 +208,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let visit of radarData.at_risk_visits">
+            <tr *ngFor="let visit of pagedVisits">
               <td>
                 <div class="buyer-name">{{ visit.buyer?.full_name }}</div>
               </td>
@@ -187,8 +234,8 @@
                 </span>
               </td>
               <td class="text-right">
-                <a mat-stroked-button [routerLink]="['/visits']">
-                  Resolve in Hub
+                <a class="btn-resolve-link" [routerLink]="['/visits']">
+                  Resolve in Hub &rarr;
                 </a>
               </td>
             </tr>
@@ -201,14 +248,50 @@
           </tbody>
         </table>
       </div>
-    </mat-card>
+
+      <!-- Pagination Footer for At-Risk Visits if > 5 -->
+      <div class="table-footer-bar" *ngIf="radarData.at_risk_visits.length > 5">
+        <div class="footer-summary">
+          <span>Showing <strong>{{ pagedVisits.length }}</strong> of <strong>{{ radarData.at_risk_visits.length }}</strong> visits</span>
+        </div>
+
+        <div class="footer-controls">
+          <div class="page-size-selector">
+            <label>Rows per page:</label>
+            <select [(ngModel)]="visitPageSize" (change)="visitPage = 1" class="page-size-dropdown">
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="25">25</option>
+            </select>
+          </div>
+
+          <div class="page-navigator">
+            <button
+              type="button"
+              [disabled]="visitPage === 1"
+              (click)="visitPage = visitPage - 1"
+              class="page-nav-btn"
+              aria-label="Previous page"
+            >&lsaquo;</button>
+            <span class="page-current-info">Page {{ visitPage }} of {{ totalVisitPages || 1 }}</span>
+            <button
+              type="button"
+              [disabled]="visitPage >= totalVisitPages"
+              (click)="visitPage = visitPage + 1"
+              class="page-nav-btn"
+              aria-label="Next page"
+            >&rsaquo;</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Section 3: Overdue Follow-up Tasks (SLA Breaches) -->
   <div class="panel-section" *ngIf="radarData.overdue_tasks && radarData.overdue_tasks.length > 0">
-    <mat-card appearance="outlined" class="panel-card">
+    <div class="panel-card">
       <div class="panel-header">
-        <div>
+        <div class="panel-header-left">
           <div class="panel-title-row">
             <mat-icon class="panel-icon icon-danger">schedule</mat-icon>
             <span class="panel-title">Overdue Follow-Up Tasks (SLA Breaches)</span>
@@ -220,7 +303,7 @@
         </div>
       </div>
 
-      <div class="table-responsive scroller-container">
+      <div class="table-responsive">
         <table class="radar-table">
           <thead>
             <tr>
@@ -232,7 +315,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let task of radarData.overdue_tasks">
+            <tr *ngFor="let task of pagedTasks">
               <td>
                 <div class="buyer-name">{{ task.title }}</div>
               </td>
@@ -242,7 +325,7 @@
                 <span class="due-badge">{{ task.due_at | date:'medium' }}</span>
               </td>
               <td class="text-right">
-                <a mat-stroked-button routerLink="/tasks">
+                <a class="btn-resolve-link" routerLink="/tasks">
                   Resolve in Tasks &rarr;
                 </a>
               </td>
@@ -250,7 +333,43 @@
           </tbody>
         </table>
       </div>
-    </mat-card>
+
+      <!-- Pagination Footer for Overdue Tasks if > 5 -->
+      <div class="table-footer-bar" *ngIf="radarData.overdue_tasks.length > 5">
+        <div class="footer-summary">
+          <span>Showing <strong>{{ pagedTasks.length }}</strong> of <strong>{{ radarData.overdue_tasks.length }}</strong> tasks</span>
+        </div>
+
+        <div class="footer-controls">
+          <div class="page-size-selector">
+            <label>Rows per page:</label>
+            <select [(ngModel)]="taskPageSize" (change)="taskPage = 1" class="page-size-dropdown">
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="25">25</option>
+            </select>
+          </div>
+
+          <div class="page-navigator">
+            <button
+              type="button"
+              [disabled]="taskPage === 1"
+              (click)="taskPage = taskPage - 1"
+              class="page-nav-btn"
+              aria-label="Previous page"
+            >&lsaquo;</button>
+            <span class="page-current-info">Page {{ taskPage }} of {{ totalTaskPages || 1 }}</span>
+            <button
+              type="button"
+              [disabled]="taskPage >= totalTaskPages"
+              (click)="taskPage = taskPage + 1"
+              class="page-nav-btn"
+              aria-label="Next page"
+            >&rsaquo;</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Rescue Deal Modal (Clean Dialog Matching Theme) -->
