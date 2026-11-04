@@ -93,16 +93,66 @@ export class BuyerFormComponent implements OnInit {
 
   loading = false;
   errorMessage = '';
+  isEditMode = false;
+  buyerId: number | null = null;
 
   ngOnInit(): void {
     this.loadOccupations();
     this.loadSalesReps();
     this.loadProjects();
 
-    const paramProjectId = this.route.snapshot.queryParams['project_id'];
-    if (paramProjectId) {
-      this.buyerData.project_id = Number(paramProjectId);
+    const routeId = this.route.snapshot.params['id'];
+    if (routeId) {
+      this.isEditMode = true;
+      this.buyerId = Number(routeId);
+      this.loadBuyerProfile(this.buyerId);
+    } else {
+      const paramProjectId = this.route.snapshot.queryParams['project_id'];
+      if (paramProjectId) {
+        this.buyerData.project_id = Number(paramProjectId);
+      }
     }
+  }
+
+  loadBuyerProfile(id: number): void {
+    this.loading = true;
+    this.buyerService.getBuyer(id).subscribe({
+      next: (res: any) => {
+        this.loading = false;
+        if (res && res.success && res.buyer) {
+          const b = res.buyer;
+          this.buyerData = {
+            full_name: b.full_name || '',
+            phone: (b.phone && b.phone.trim()) ? b.phone.trim() : '7058533669',
+            email: b.email || '',
+            project_id: b.project_id || (b.project ? b.project.project_id : 1),
+            preferred_project: b.preferred_project || (b.project ? b.project.name : 'Contech Crown Heights'),
+            current_residence: b.current_residence || '',
+            workplace_location: b.workplace_location || '',
+            budget_min_lacs: b.budget_min_lacs !== undefined && b.budget_min_lacs !== null ? Number(b.budget_min_lacs) : 120,
+            budget_max_lacs: b.budget_max_lacs !== undefined && b.budget_max_lacs !== null ? Number(b.budget_max_lacs) : 180,
+            preferred_bhk: b.preferred_bhk || '3 BHK',
+            family_size: b.family_size !== undefined && b.family_size !== null ? Number(b.family_size) : 4,
+            buying_timeframe: b.buying_timeframe || '<30 days',
+            lead_source: b.lead_source || 'Instagram',
+            financing_readiness: b.financing_readiness || 'Pre-approved Loan',
+            occupation: b.occupation || 'Salaried IT / Tech Corporate',
+            assigned_rep_id: b.assigned_rep_id || (b.assignedRep ? b.assignedRep.user_id : null),
+            notes: b.notes || '',
+            allow_duplicate: false,
+            duplicate_resolution_notes: b.duplicate_resolution_notes || ''
+          };
+          this.previousOccupation = this.buyerData.occupation;
+          if (this.buyerData.occupation && !this.occupations.includes(this.buyerData.occupation)) {
+            this.occupations.unshift(this.buyerData.occupation);
+          }
+        }
+      },
+      error: (err: any) => {
+        this.loading = false;
+        this.errorMessage = err.error?.message || 'Failed to load prospect details for editing.';
+      }
+    });
   }
 
   loadProjects(): void {
@@ -237,6 +287,20 @@ export class BuyerFormComponent implements OnInit {
 
     this.loading = true;
     this.errorMessage = '';
+
+    if (this.isEditMode && this.buyerId) {
+      this.buyerService.updateBuyer(this.buyerId, this.buyerData).subscribe({
+        next: (res) => {
+          this.loading = false;
+          this.router.navigate(['/buyers']);
+        },
+        error: (err) => {
+          this.loading = false;
+          this.errorMessage = err.error?.message || 'Failed to update buyer profile.';
+        }
+      });
+      return;
+    }
 
     this.buyerService.createBuyer(this.buyerData).subscribe({
       next: (res) => {

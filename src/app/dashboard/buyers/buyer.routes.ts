@@ -12,6 +12,16 @@ export const BUYER_ROUTES: Routes = [
       import('./buyer-form/buyer-form.component').then(m => m.BuyerFormComponent)
   },
   {
+    path: ':id/edit',
+    loadComponent: () =>
+      import('./buyer-form/buyer-form.component').then(m => m.BuyerFormComponent)
+  },
+  {
+    path: 'edit/:id',
+    loadComponent: () =>
+      import('./buyer-form/buyer-form.component').then(m => m.BuyerFormComponent)
+  },
+  {
     path: ':id',
     loadComponent: () =>
       import('./buyer-details/buyer-details.component').then(m => m.BuyerDetailsComponent)

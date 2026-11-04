@@ -1132,6 +1132,94 @@
   white-space: nowrap !important;
 }
 
+/* Enhanced Inline Edit Prospect Details Matching Image 2 */
+.inline-edit-field-lbl {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 0.15rem;
+  letter-spacing: 0.03em;
+}
+
+.inline-budget-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin-top: 0.25rem;
+  font-size: 0.72rem;
+  color: #475569;
+}
+
+.inline-budget-edit-row .budget-num {
+  width: 50px;
+  padding: 0.2rem 0.35rem;
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+.timeframe-select,
+.owner-inline-select,
+.source-inline-select,
+.finance-inline-select,
+.occ-select {
+  margin-top: 0.25rem;
+  font-size: 0.72rem;
+}
+
+.demographics-edit-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.4rem;
+}
+
+.edit-family-occ-row {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.family-input {
+  width: 45px;
+  padding: 0.2rem 0.3rem;
+  font-size: 0.72rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.btn-full-form-link {
+  color: #2563eb !important;
+  border-color: #bfdbfe !important;
+  background: #eff6ff !important;
+  font-size: 0.72rem !important;
+  font-weight: 600 !important;
+  padding: 0 0.5rem !important;
+  height: 28px !important;
+  border-radius: 4px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.2rem !important;
+  white-space: nowrap !important;
+  text-decoration: none !important;
+}
+
+.btn-full-form-link mat-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+}
+
+.action-btn.full-edit-btn {
+  color: #0284c7;
+}
+
+.action-btn.full-edit-btn:hover {
+  background: #f0f9ff;
+  color: #0369a1;
+}
+
 /* Empty State */
 .empty-state-cell {
   padding: 4rem 1.5rem !important;

@@ -3,12 +3,12 @@
   <div class="page-header">
     <div class="header-left">
       <div class="header-badge">
-        <mat-icon>person_add</mat-icon>
-        <span>NEW PROSPECT INTAKE</span>
+        <mat-icon>{{ isEditMode ? 'edit_note' : 'person_add' }}</mat-icon>
+        <span>{{ isEditMode ? 'EDIT PROSPECT DETAILS' : 'NEW PROSPECT INTAKE' }}</span>
       </div>
-      <h1 class="page-title">Register New Buyer Profile</h1>
+      <h1 class="page-title">{{ isEditMode ? 'Edit Prospect Details · ' + (buyerData.full_name || 'Prospect') : 'Register New Buyer Profile' }}</h1>
       <p class="page-subtitle">
-        Enquiry intake with automated 4-dimension readiness scoring &amp; intelligent Next Best Action assignment
+        {{ isEditMode ? 'Update buyer contact, requirements, project allocation, and 4-dimension scoring parameters' : 'Enquiry intake with automated 4-dimension readiness scoring & intelligent Next Best Action assignment' }}
       </p>
     </div>
     <div class="header-actions">
@@ -354,8 +354,8 @@
               <mat-icon>close</mat-icon> Cancel
             </a>
             <button mat-flat-button color="primary" type="submit" class="btn-submit" [disabled]="loading">
-              <mat-icon *ngIf="!loading">check_circle</mat-icon>
-              <span *ngIf="!loading">Save &amp; Calculate Readiness Score &rarr;</span>
+              <mat-icon *ngIf="!loading">{{ isEditMode ? 'save' : 'check_circle' }}</mat-icon>
+              <span *ngIf="!loading">{{ isEditMode ? 'Save Prospect Changes' : 'Save & Calculate Readiness Score →' }}</span>
               <span *ngIf="loading">Saving Profile...</span>
             </button>
           </div>

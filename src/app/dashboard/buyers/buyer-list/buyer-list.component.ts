@@ -464,7 +464,19 @@ export class BuyerListComponent implements OnInit {
               project_id: prjId,
               project_name: prjObj ? prjObj.name : (b.preferred_project || 'Contech Crown Heights'),
               project_code: prjObj ? (prjObj.code || '') : '',
-              project_location: prjObj ? (prjObj.location || '') : ''
+              project_location: prjObj ? (prjObj.location || '') : '',
+              current_residence: b.current_residence || '',
+              workplace_location: b.workplace_location || '',
+              family_size: b.family_size !== undefined && b.family_size !== null ? b.family_size : 4,
+              budget_min_lacs: b.budget_min_lacs !== undefined && b.budget_min_lacs !== null ? Number(b.budget_min_lacs) : 100,
+              budget_max_lacs: b.budget_max_lacs !== undefined && b.budget_max_lacs !== null ? Number(b.budget_max_lacs) : 180,
+              buying_timeframe: b.buying_timeframe || '<30 days',
+              lead_source: b.lead_source || 'Instagram',
+              occupation: b.occupation || 'Salaried IT / Tech Corporate',
+              financing_readiness: b.financing_readiness || 'Pre-approved Loan',
+              assigned_rep_id: b.assigned_rep_id || (b.assignedRep ? b.assignedRep.user_id : null),
+              notes: b.notes || '',
+              rawBuyer: b
             };
           });
           this.rebuildOwnersList();
@@ -739,8 +751,20 @@ export class BuyerListComponent implements OnInit {
 
     this.editForm = {
       name: p.name,
-      phone: p.phone || '7058533669',
-      bhk: p.bhk,
+      phone: (p.phone && p.phone.trim()) ? p.phone.trim() : '7058533669',
+      email: p.email || (p.rawBuyer ? p.rawBuyer.email : ''),
+      current_residence: p.current_residence || (p.rawBuyer ? p.rawBuyer.current_residence : ''),
+      workplace_location: p.workplace_location || (p.rawBuyer ? p.rawBuyer.workplace_location : ''),
+      family_size: p.family_size !== undefined && p.family_size !== null ? p.family_size : (p.rawBuyer && p.rawBuyer.family_size !== undefined ? p.rawBuyer.family_size : 4),
+      bhk: p.bhk || '3 BHK',
+      budget_min_lacs: p.budget_min_lacs !== undefined && p.budget_min_lacs !== null ? p.budget_min_lacs : (p.rawBuyer && p.rawBuyer.budget_min_lacs !== undefined ? p.rawBuyer.budget_min_lacs : 100),
+      budget_max_lacs: p.budget_max_lacs !== undefined && p.budget_max_lacs !== null ? p.budget_max_lacs : (p.rawBuyer && p.rawBuyer.budget_max_lacs !== undefined ? p.rawBuyer.budget_max_lacs : 180),
+      buying_timeframe: p.buying_timeframe || (p.rawBuyer ? p.rawBuyer.buying_timeframe : '<30 days'),
+      lead_source: p.source || p.lead_source || (p.rawBuyer ? p.rawBuyer.lead_source : 'Instagram'),
+      occupation: p.occupation || (p.rawBuyer ? p.rawBuyer.occupation : 'Salaried IT / Tech Corporate'),
+      financing_readiness: p.financing_readiness || (p.rawBuyer ? p.rawBuyer.financing_readiness : 'Pre-approved Loan'),
+      assigned_rep_id: p.assigned_rep_id || (p.rawBuyer ? p.rawBuyer.assigned_rep_id : null),
+      notes: p.notes || (p.rawBuyer ? p.rawBuyer.notes : ''),
       budget: p.budget,
       stage: p.stage,
       owner: p.owner,
@@ -753,6 +777,11 @@ export class BuyerListComponent implements OnInit {
       follow_up_priority: 'HIGH',
       follow_up_notes: ''
     };
+  }
+
+  openFullEdit(p: any): void {
+    const targetId = p.buyer_id || p.id;
+    this.router.navigate(['/buyers', targetId, 'edit']);
   }
 
   cancelEdit(): void {
@@ -770,7 +799,19 @@ export class BuyerListComponent implements OnInit {
     const payload: any = {
       full_name: this.editForm.name,
       phone: (this.editForm.phone && this.editForm.phone.trim()) ? this.editForm.phone.trim() : '7058533669',
+      email: this.editForm.email || null,
+      current_residence: this.editForm.current_residence || null,
+      workplace_location: this.editForm.workplace_location || null,
+      family_size: this.editForm.family_size !== undefined ? Number(this.editForm.family_size) : 4,
+      budget_min_lacs: this.editForm.budget_min_lacs !== undefined ? Number(this.editForm.budget_min_lacs) : 100,
+      budget_max_lacs: this.editForm.budget_max_lacs !== undefined ? Number(this.editForm.budget_max_lacs) : 180,
       preferred_bhk: this.editForm.bhk,
+      buying_timeframe: this.editForm.buying_timeframe || '<30 days',
+      lead_source: this.editForm.lead_source || 'Instagram',
+      occupation: this.editForm.occupation || 'Salaried IT / Tech Corporate',
+      financing_readiness: this.editForm.financing_readiness || 'Pre-approved Loan',
+      assigned_rep_id: this.editForm.assigned_rep_id ? Number(this.editForm.assigned_rep_id) : null,
+      notes: this.editForm.notes || null,
       lead_status: this.editForm.stage,
       project_id: newProjectId,
       intent_score: newScore,
@@ -787,10 +828,32 @@ export class BuyerListComponent implements OnInit {
       next: () => {
         p.name = this.editForm.name;
         p.phone = this.editForm.phone;
+        p.email = this.editForm.email;
+        p.current_residence = this.editForm.current_residence;
+        p.workplace_location = this.editForm.workplace_location;
+        p.family_size = this.editForm.family_size;
+        p.budget_min_lacs = this.editForm.budget_min_lacs;
+        p.budget_max_lacs = this.editForm.budget_max_lacs;
+        p.buying_timeframe = this.editForm.buying_timeframe;
+        p.lead_source = this.editForm.lead_source;
+        p.source = this.editForm.lead_source;
+        p.occupation = this.editForm.occupation;
+        p.financing_readiness = this.editForm.financing_readiness;
+        p.assigned_rep_id = this.editForm.assigned_rep_id;
+        p.notes = this.editForm.notes;
         p.bhk = this.editForm.bhk;
         p.stage = this.editForm.stage;
         p.score = newScore;
         p.delta = newDelta;
+        p.budget = `₹${this.editForm.budget_min_lacs || 100}L – ₹${this.editForm.budget_max_lacs || 180}L`;
+
+        if (this.editForm.assigned_rep_id) {
+          const repObj = this.dbUsers.find(u => (u.user_id || u.id) == this.editForm.assigned_rep_id);
+          if (repObj) p.owner = repObj.name;
+        } else if (this.editForm.assigned_rep_id === null) {
+          p.owner = 'Unassigned';
+        }
+
         if (newProjectId) {
           p.project_id = newProjectId;
           const matched = this.projectsList.find(pr => (pr.project_id || pr.id) == newProjectId);

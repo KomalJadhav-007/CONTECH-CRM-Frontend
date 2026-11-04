@@ -21,6 +21,9 @@
       <a mat-stroked-button routerLink="/buyers">
         <mat-icon>arrow_back</mat-icon> Back
       </a>
+      <a mat-stroked-button [routerLink]="['/buyers', buyer.buyer_id || buyer.id, 'edit']" class="btn-edit-dossier">
+        <mat-icon>edit</mat-icon> Edit Profile
+      </a>
       <button mat-flat-button color="accent" type="button" (click)="openBookingModal()" *ngIf="buyer.lead_status !== 'BOOKED'">
         <mat-icon>verified</mat-icon> Record Sales Closure
       </button>
