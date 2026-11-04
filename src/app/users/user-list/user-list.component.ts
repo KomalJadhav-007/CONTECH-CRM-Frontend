@@ -49,6 +49,10 @@ export class UserListComponent implements OnInit {
   feedbackMessage = '';
   feedbackType: 'success' | 'warn' | 'info' = 'success';
 
+  // Pagination State
+  currentPage = 1;
+  pageSize = 10;
+
   stats = {
     users: 0,
     active: 0,
@@ -224,6 +228,15 @@ export class UserListComponent implements OnInit {
       const matchesRole = this.selectedRoleFilter === 'ALL' || u.role === this.selectedRoleFilter;
       return matchesSearch && matchesRole;
     });
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.filteredUsers.length / this.pageSize) || 1;
+  }
+
+  get pagedUsers(): any[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredUsers.slice(start, start + this.pageSize);
   }
 
   // --- ADD USER MODAL ACTIONS ---

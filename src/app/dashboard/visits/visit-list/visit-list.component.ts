@@ -46,6 +46,48 @@ export class VisitListComponent implements OnInit {
   feedbackMessage = '';
   lastWaUrl = '';
 
+  // Pagination & Search State
+  currentPage = 1;
+  pageSize = 10;
+  searchQuery = '';
+
+  get filteredVisits(): any[] {
+    let list = this.visits;
+    if (this.filterStatus) {
+      if (this.filterStatus === 'CANCELLED') {
+        list = list.filter((v: any) => v.status === 'CANCELLED' || v.status === 'NO_SHOW');
+      } else {
+        list = list.filter((v: any) => v.status === this.filterStatus);
+      }
+    }
+    if (this.searchQuery && this.searchQuery.trim()) {
+      const q = this.searchQuery.toLowerCase().trim();
+      list = list.filter((v: any) => {
+        const name = (v.buyer?.full_name || '').toLowerCase();
+        const project = (v.project?.name || '').toLowerCase();
+        const rep = (v.salesRep?.name || '').toLowerCase();
+        const driver = (v.driver?.name || v.cab_number || '').toLowerCase();
+        return name.includes(q) || project.includes(q) || rep.includes(q) || driver.includes(q);
+      });
+    }
+    return list;
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.filteredVisits.length / this.pageSize) || 1;
+  }
+
+  get pagedVisits(): any[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredVisits.slice(start, start + this.pageSize);
+  }
+
+  setFilterStatus(status: string): void {
+    this.filterStatus = status;
+    this.currentPage = 1;
+    this.loadVisits();
+  }
+
   ngOnInit(): void {
     this.loadVisits();
     const waSent = this.route.snapshot.queryParamMap.get('whatsapp_sent');

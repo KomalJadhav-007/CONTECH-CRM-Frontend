@@ -41,13 +41,14 @@
       <input
         type="text"
         [(ngModel)]="searchQuery"
+        (ngModelChange)="currentPage = 1"
         class="search-input"
         placeholder="Search name, email or designation"
       />
     </div>
     <div class="filter-box">
       <label class="filter-label">Filter by Role:</label>
-      <select [(ngModel)]="selectedRoleFilter" class="filter-select">
+      <select [(ngModel)]="selectedRoleFilter" (ngModelChange)="currentPage = 1" class="filter-select">
         <option value="ALL">All Roles ({{ users.length }})</option>
         <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
       </select>
@@ -79,7 +80,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let u of filteredUsers">
+          <tr *ngFor="let u of pagedUsers">
             <td class="col-user">
               <div class="user-cell">
                 <div class="user-avatar" [style.backgroundColor]="getRoleColor(u.role) + '20'" [style.color]="getRoleColor(u.role)">
@@ -201,6 +202,43 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Table Footer with Pagination & Summary -->
+    <div class="table-footer-bar" *ngIf="filteredUsers.length > 0">
+      <div class="footer-summary">
+        <span>Showing <strong>{{ pagedUsers.length }}</strong> of <strong>{{ filteredUsers.length }}</strong> users</span>
+      </div>
+
+      <div class="footer-controls">
+        <div class="page-size-selector">
+          <label>Rows per page:</label>
+          <select [(ngModel)]="pageSize" (change)="currentPage = 1" class="page-size-dropdown">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+          </select>
+        </div>
+
+        <div class="page-navigator">
+          <button
+            type="button"
+            [disabled]="currentPage === 1"
+            (click)="currentPage = currentPage - 1"
+            class="page-nav-btn"
+            aria-label="Previous page"
+          >&lsaquo;</button>
+          <span class="page-current-info">Page {{ currentPage }} of {{ totalPages || 1 }}</span>
+          <button
+            type="button"
+            [disabled]="currentPage >= totalPages"
+            (click)="currentPage = currentPage + 1"
+            class="page-nav-btn"
+            aria-label="Next page"
+          >&rsaquo;</button>
+        </div>
+      </div>
     </div>
   </div>
 

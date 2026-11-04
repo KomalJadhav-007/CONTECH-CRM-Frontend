@@ -12,12 +12,7 @@
       </p>
     </div>
     <div class="header-actions">
-      <button
-        mat-stroked-button
-        class="btn-scan"
-        (click)="loadRadar(true)"
-        [disabled]="isScanning"
-      >
+      <button mat-stroked-button class="btn-scan" (click)="loadRadar(true)" [disabled]="isScanning">
         <mat-icon [class.spin-icon]="isScanning">sync</mat-icon>
         <span>{{ isScanning ? 'Scanning Radar...' : 'Scan Radar' }}</span>
       </button>
@@ -35,7 +30,8 @@
     <div class="stat-card risk-card">
       <div class="card-label">TOTAL PIPELINE AT RISK</div>
       <div class="card-value">
-        ₹{{ radarData.summary.gross_pipeline_at_risk_cr || ((radarData.summary.revenue_at_risk_lacs || 0) / 100).toFixed(2) }} Cr
+        ₹{{ radarData.summary.gross_pipeline_at_risk_cr || ((radarData.summary.revenue_at_risk_lacs || 0) /
+        100).toFixed(2) }} Cr
       </div>
       <div class="card-trend text-danger">
         {{ radarData.summary.total_exceptions_count || 8 }} Active Operational Bottlenecks
@@ -70,21 +66,18 @@
             <mat-icon class="panel-icon icon-danger">priority_high</mat-icon>
             <span class="panel-title">Neglected High-Intent Buyers (&gt;48h Inaction)</span>
           </div>
-          <p class="panel-subtitle">These ready-to-buy customers are at immediate risk of slipping to competing developers.</p>
+          <p class="panel-subtitle">These ready-to-buy customers are at immediate risk of slipping to competing
+            developers.</p>
         </div>
 
         <div class="panel-header-right">
           <!-- Compact Search Box -->
           <div class="panel-search-box">
             <mat-icon class="search-box-icon">search</mat-icon>
-            <input
-              type="text"
-              [(ngModel)]="buyerSearchQuery"
-              (ngModelChange)="buyerPage = 1"
-              placeholder="Search buyer, phone, rep..."
-              class="panel-search-input"
-            />
-            <button *ngIf="buyerSearchQuery" type="button" class="search-clear-btn" (click)="buyerSearchQuery = ''; buyerPage = 1" title="Clear">
+            <input type="text" [(ngModel)]="buyerSearchQuery" (ngModelChange)="buyerPage = 1"
+              placeholder="Search buyer, phone, rep..." class="panel-search-input" />
+            <button *ngIf="buyerSearchQuery" type="button" class="search-clear-btn"
+              (click)="buyerSearchQuery = ''; buyerPage = 1" title="Clear">
               <mat-icon>close</mat-icon>
             </button>
           </div>
@@ -118,7 +111,8 @@
               <td>{{ buyer.buying_timeframe }}</td>
               <td>{{ buyer.assignedRep?.name || 'Unassigned' }}</td>
               <td>
-                <div class="score-pill" [ngClass]="buyer.intent_score >= 80 ? 'score-high' : (buyer.intent_score >= 50 ? 'score-med' : 'score-low')">
+                <div class="score-pill"
+                  [ngClass]="buyer.intent_score >= 80 ? 'score-high' : (buyer.intent_score >= 50 ? 'score-med' : 'score-low')">
                   <span class="score-num">{{ buyer.intent_score }}</span>
                   <span class="score-max">/100</span>
                 </div>
@@ -142,7 +136,8 @@
       <!-- Pagination Footer for Neglected Buyers -->
       <div class="table-footer-bar" *ngIf="filteredNeglectedBuyers.length > 0">
         <div class="footer-summary">
-          <span>Showing <strong>{{ pagedNeglectedBuyers.length }}</strong> of <strong>{{ filteredNeglectedBuyers.length }}</strong> alerts</span>
+          <span>Showing <strong>{{ pagedNeglectedBuyers.length }}</strong> of <strong>{{ filteredNeglectedBuyers.length
+              }}</strong> alerts</span>
         </div>
 
         <div class="footer-controls">
@@ -157,21 +152,11 @@
           </div>
 
           <div class="page-navigator">
-            <button
-              type="button"
-              [disabled]="buyerPage === 1"
-              (click)="buyerPage = buyerPage - 1"
-              class="page-nav-btn"
-              aria-label="Previous page"
-            >&lsaquo;</button>
+            <button type="button" [disabled]="buyerPage === 1" (click)="buyerPage = buyerPage - 1" class="page-nav-btn"
+              aria-label="Previous page">&lsaquo;</button>
             <span class="page-current-info">Page {{ buyerPage }} of {{ totalBuyerPages || 1 }}</span>
-            <button
-              type="button"
-              [disabled]="buyerPage >= totalBuyerPages"
-              (click)="buyerPage = buyerPage + 1"
-              class="page-nav-btn"
-              aria-label="Next page"
-            >&rsaquo;</button>
+            <button type="button" [disabled]="buyerPage >= totalBuyerPages" (click)="buyerPage = buyerPage + 1"
+              class="page-nav-btn" aria-label="Next page">&rsaquo;</button>
           </div>
         </div>
       </div>
@@ -214,7 +199,8 @@
               </td>
               <td>{{ visit.time_slot }}</td>
               <td>
-                <span class="status-pill" [class.yes]="visit.customer_confirmed" [class.pending]="!visit.customer_confirmed">
+                <span class="status-pill" [class.yes]="visit.customer_confirmed"
+                  [class.pending]="!visit.customer_confirmed">
                   {{ visit.customer_confirmed ? 'YES' : 'PENDING' }}
                 </span>
               </td>
@@ -224,7 +210,8 @@
                 </span>
               </td>
               <td>
-                <span class="status-pill" [class.yes]="visit.driver_confirmed" [class.pending]="!visit.driver_confirmed">
+                <span class="status-pill" [class.yes]="visit.driver_confirmed"
+                  [class.pending]="!visit.driver_confirmed">
                   {{ visit.driver_confirmed ? 'YES' : 'PENDING' }}
                 </span>
               </td>
@@ -252,7 +239,8 @@
       <!-- Pagination Footer for At-Risk Visits if > 5 -->
       <div class="table-footer-bar" *ngIf="radarData.at_risk_visits.length > 5">
         <div class="footer-summary">
-          <span>Showing <strong>{{ pagedVisits.length }}</strong> of <strong>{{ radarData.at_risk_visits.length }}</strong> visits</span>
+          <span>Showing <strong>{{ pagedVisits.length }}</strong> of <strong>{{ radarData.at_risk_visits.length
+              }}</strong> visits</span>
         </div>
 
         <div class="footer-controls">
@@ -266,21 +254,11 @@
           </div>
 
           <div class="page-navigator">
-            <button
-              type="button"
-              [disabled]="visitPage === 1"
-              (click)="visitPage = visitPage - 1"
-              class="page-nav-btn"
-              aria-label="Previous page"
-            >&lsaquo;</button>
+            <button type="button" [disabled]="visitPage === 1" (click)="visitPage = visitPage - 1" class="page-nav-btn"
+              aria-label="Previous page">&lsaquo;</button>
             <span class="page-current-info">Page {{ visitPage }} of {{ totalVisitPages || 1 }}</span>
-            <button
-              type="button"
-              [disabled]="visitPage >= totalVisitPages"
-              (click)="visitPage = visitPage + 1"
-              class="page-nav-btn"
-              aria-label="Next page"
-            >&rsaquo;</button>
+            <button type="button" [disabled]="visitPage >= totalVisitPages" (click)="visitPage = visitPage + 1"
+              class="page-nav-btn" aria-label="Next page">&rsaquo;</button>
           </div>
         </div>
       </div>
@@ -337,7 +315,8 @@
       <!-- Pagination Footer for Overdue Tasks if > 5 -->
       <div class="table-footer-bar" *ngIf="radarData.overdue_tasks.length > 5">
         <div class="footer-summary">
-          <span>Showing <strong>{{ pagedTasks.length }}</strong> of <strong>{{ radarData.overdue_tasks.length }}</strong> tasks</span>
+          <span>Showing <strong>{{ pagedTasks.length }}</strong> of <strong>{{ radarData.overdue_tasks.length
+              }}</strong> tasks</span>
         </div>
 
         <div class="footer-controls">
@@ -351,21 +330,11 @@
           </div>
 
           <div class="page-navigator">
-            <button
-              type="button"
-              [disabled]="taskPage === 1"
-              (click)="taskPage = taskPage - 1"
-              class="page-nav-btn"
-              aria-label="Previous page"
-            >&lsaquo;</button>
+            <button type="button" [disabled]="taskPage === 1" (click)="taskPage = taskPage - 1" class="page-nav-btn"
+              aria-label="Previous page">&lsaquo;</button>
             <span class="page-current-info">Page {{ taskPage }} of {{ totalTaskPages || 1 }}</span>
-            <button
-              type="button"
-              [disabled]="taskPage >= totalTaskPages"
-              (click)="taskPage = taskPage + 1"
-              class="page-nav-btn"
-              aria-label="Next page"
-            >&rsaquo;</button>
+            <button type="button" [disabled]="taskPage >= totalTaskPages" (click)="taskPage = taskPage + 1"
+              class="page-nav-btn" aria-label="Next page">&rsaquo;</button>
           </div>
         </div>
       </div>
@@ -387,7 +356,8 @@
 
       <div class="modal-body">
         <p class="rescue-description">
-          This buyer has had zero phone callbacks for &gt;48 hours. Reassigning immediately to an available senior representative to protect the deal.
+          This buyer has had zero phone callbacks for &gt;48 hours. Reassigning immediately to an available senior
+          representative to protect the deal.
         </p>
 
         <mat-form-field appearance="outline" class="w-full">
@@ -401,7 +371,8 @@
 
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Intervention Action Notes</mat-label>
-          <textarea matInput rows="3" [(ngModel)]="rescueActionNotes" placeholder="Describe the rescue intervention..."></textarea>
+          <textarea matInput rows="3" [(ngModel)]="rescueActionNotes"
+            placeholder="Describe the rescue intervention..."></textarea>
         </mat-form-field>
       </div>
 

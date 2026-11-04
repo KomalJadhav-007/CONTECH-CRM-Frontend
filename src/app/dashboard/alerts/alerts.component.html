@@ -100,34 +100,34 @@
   <div class="toolbar-section">
     <!-- Category Tabs -->
     <div class="tabs-group">
-      <button type="button" class="tab-pill" [class.active]="activeTab === 'all'" (click)="activeTab = 'all'">
+      <button type="button" class="tab-pill" [class.active]="activeTab === 'all'" (click)="setActiveTab('all')">
         <span>All Alerts</span>
         <span class="count-badge">{{ totalItemsCount }}</span>
       </button>
 
-      <button type="button" class="tab-pill" [class.active]="activeTab === 'overdue'" (click)="activeTab = 'overdue'">
+      <button type="button" class="tab-pill" [class.active]="activeTab === 'overdue'" (click)="setActiveTab('overdue')">
         <span>Missed Follow-ups</span>
         <span class="count-badge">{{ overdueTasks.length }}</span>
       </button>
 
       <button type="button" class="tab-pill" [class.active]="activeTab === 'missing_action'"
-        (click)="activeTab = 'missing_action'">
+        (click)="setActiveTab('missing_action')">
         <span>Missing Next Action</span>
         <span class="count-badge">{{ missingNextActions.length }}</span>
       </button>
 
       <button type="button" class="tab-pill" [class.active]="activeTab === 'neglected'"
-        (click)="activeTab = 'neglected'">
+        (click)="setActiveTab('neglected')">
         <span>Neglected (&gt;48h)</span>
         <span class="count-badge">{{ neglectedBuyers.length }}</span>
       </button>
 
-      <button type="button" class="tab-pill" [class.active]="activeTab === 'visits'" (click)="activeTab = 'visits'">
+      <button type="button" class="tab-pill" [class.active]="activeTab === 'visits'" (click)="setActiveTab('visits')">
         <span>Site Visits</span>
         <span class="count-badge">{{ atRiskVisits.length }}</span>
       </button>
 
-      <button type="button" class="tab-pill" [class.active]="activeTab === 'system'" (click)="activeTab = 'system'">
+      <button type="button" class="tab-pill" [class.active]="activeTab === 'system'" (click)="setActiveTab('system')">
         <span>System Logs</span>
         <span class="count-badge">{{ inAppAlerts.length }}</span>
       </button>
@@ -172,7 +172,7 @@
     </div>
 
     <div class="cards-list">
-      <div *ngFor="let task of filteredOverdueTasks" class="alert-card overdue-card">
+      <div *ngFor="let task of pagedOverdueTasks" class="alert-card overdue-card">
         <div class="card-body">
           <!-- Top Metadata Row: Status, Priority, SLA Deadline -->
           <div class="card-top-meta">
@@ -288,7 +288,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let buyer of filteredMissingActions">
+          <tr *ngFor="let buyer of pagedMissingActions">
             <td>
               <div class="buyer-cell">
                 <span class="buyer-name-link" (click)="viewBuyer(buyer)">
@@ -353,7 +353,7 @@
     </div>
 
     <div class="neglected-cards-grid">
-      <div *ngFor="let buyer of filteredNeglectedBuyers" class="neglected-card">
+      <div *ngFor="let buyer of pagedNeglectedBuyers" class="neglected-card">
         <div class="neglected-header">
           <div>
             <div class="neglected-name" (click)="viewBuyer(buyer)">{{ buyer.full_name }}</div>
@@ -419,7 +419,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let visit of filteredAtRiskVisits">
+          <tr *ngFor="let visit of pagedAtRiskVisits">
             <td>
               <div class="buyer-cell">
                 <span class="buyer-name-link" (click)="viewBuyer(visit.buyer)">
@@ -470,7 +470,7 @@
     </div>
 
     <div class="system-alerts-list">
-      <div *ngFor="let alert of filteredInAppAlerts" class="system-alert-item"
+      <div *ngFor="let alert of pagedInAppAlerts" class="system-alert-item"
         [class.unacknowledged]="!alert.is_acknowledged">
         <div class="system-alert-content">
           <div class="system-alert-header">
@@ -495,6 +495,43 @@
             Resolve
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination Controls for Alerts Hub -->
+  <div class="table-footer-bar" *ngIf="activeTabTotalCount > 0">
+    <div class="footer-summary">
+      <span>Showing active alerts for <strong>{{ activeTab === 'all' ? 'All Categories' : activeTab }}</strong> ({{ activeTabTotalCount }} total)</span>
+    </div>
+
+    <div class="footer-controls">
+      <div class="page-size-selector">
+        <label>Rows per page:</label>
+        <select [(ngModel)]="pageSize" (change)="currentPage = 1" class="page-size-dropdown">
+          <option [value]="5">5</option>
+          <option [value]="10">10</option>
+          <option [value]="25">25</option>
+          <option [value]="50">50</option>
+        </select>
+      </div>
+
+      <div class="page-navigator">
+        <button
+          type="button"
+          [disabled]="currentPage === 1"
+          (click)="currentPage = currentPage - 1"
+          class="page-nav-btn"
+          aria-label="Previous page"
+        >&lsaquo;</button>
+        <span class="page-current-info">Page {{ currentPage }} of {{ totalPages || 1 }}</span>
+        <button
+          type="button"
+          [disabled]="currentPage >= totalPages"
+          (click)="currentPage = currentPage + 1"
+          class="page-nav-btn"
+          aria-label="Next page"
+        >&rsaquo;</button>
       </div>
     </div>
   </div>

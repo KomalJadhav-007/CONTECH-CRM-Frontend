@@ -24,35 +24,52 @@
     {{ feedbackMessage }}
   </div>
 
-  <!-- Filter Bar -->
+  <!-- Filter & Search Toolbar - Space Optimized -->
   <div class="filters-bar">
-    <button
-      type="button"
-      class="filter-pill"
-      [class.active]="filterStatus === 'PENDING'"
-      (click)="setFilterStatus('PENDING')"
-    >
-      <span>Pending SLAs</span>
-      <span class="pill-count" *ngIf="pendingCount > 0">{{ pendingCount }}</span>
-    </button>
-    <button
-      type="button"
-      class="filter-pill"
-      [class.active]="filterStatus === 'COMPLETED'"
-      (click)="setFilterStatus('COMPLETED')"
-    >
-      <span>Completed</span>
-      <span class="pill-count" *ngIf="completedCount > 0">{{ completedCount }}</span>
-    </button>
-    <button
-      type="button"
-      class="filter-pill"
-      [class.active]="filterStatus === ''"
-      (click)="setFilterStatus('')"
-    >
-      <span>All Tasks</span>
-      <span class="pill-count">{{ totalCount }}</span>
-    </button>
+    <div class="filter-pills-group">
+      <button
+        type="button"
+        class="filter-pill"
+        [class.active]="filterStatus === 'PENDING'"
+        (click)="setFilterStatus('PENDING')"
+      >
+        <span>Pending SLAs</span>
+        <span class="pill-count" *ngIf="pendingCount > 0">{{ pendingCount }}</span>
+      </button>
+      <button
+        type="button"
+        class="filter-pill"
+        [class.active]="filterStatus === 'COMPLETED'"
+        (click)="setFilterStatus('COMPLETED')"
+      >
+        <span>Completed</span>
+        <span class="pill-count" *ngIf="completedCount > 0">{{ completedCount }}</span>
+      </button>
+      <button
+        type="button"
+        class="filter-pill"
+        [class.active]="filterStatus === ''"
+        (click)="setFilterStatus('')"
+      >
+        <span>All Tasks</span>
+        <span class="pill-count">{{ totalCount }}</span>
+      </button>
+    </div>
+
+    <!-- Search Input -->
+    <div class="search-input-box">
+      <mat-icon class="search-box-icon">search</mat-icon>
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="currentPage = 1"
+        placeholder="Search task, buyer, rep..."
+        class="search-text-input"
+      />
+      <button *ngIf="searchQuery" type="button" class="search-clear-btn" (click)="searchQuery = ''; currentPage = 1" title="Clear search">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
   </div>
 
   <!-- Table Card -->
@@ -72,7 +89,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let task of tasks">
+          <tr *ngFor="let task of pagedTasks">
             <td class="col-task">
               <div class="task-title">{{ task.title }}</div>
               <div class="task-desc" *ngIf="task.description">{{ task.description }}</div>
@@ -173,6 +190,43 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Table Footer with Pagination & Summary -->
+    <div class="table-footer-bar" *ngIf="filteredTasks.length > 0">
+      <div class="footer-summary">
+        <span>Showing <strong>{{ pagedTasks.length }}</strong> of <strong>{{ filteredTasks.length }}</strong> tasks</span>
+      </div>
+
+      <div class="footer-controls">
+        <div class="page-size-selector">
+          <label>Rows per page:</label>
+          <select [(ngModel)]="pageSize" (change)="currentPage = 1" class="page-size-dropdown">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+          </select>
+        </div>
+
+        <div class="page-navigator">
+          <button
+            type="button"
+            [disabled]="currentPage === 1"
+            (click)="currentPage = currentPage - 1"
+            class="page-nav-btn"
+            aria-label="Previous page"
+          >&lsaquo;</button>
+          <span class="page-current-info">Page {{ currentPage }} of {{ totalPages || 1 }}</span>
+          <button
+            type="button"
+            [disabled]="currentPage >= totalPages"
+            (click)="currentPage = currentPage + 1"
+            class="page-nav-btn"
+            aria-label="Next page"
+          >&rsaquo;</button>
+        </div>
+      </div>
     </div>
   </mat-card>
 

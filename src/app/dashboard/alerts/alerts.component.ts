@@ -54,6 +54,10 @@ export class AlertsComponent implements OnInit {
   searchQuery = '';
   severityFilter: 'ALL' | 'CRITICAL' | 'WARNING' | 'INFO' = 'ALL';
 
+  // Pagination State
+  currentPage = 1;
+  pageSize = 10;
+
   summary: any = {
     overdue_tasks_count: 0,
     missing_next_actions_count: 0,
@@ -465,5 +469,51 @@ export class AlertsComponent implements OnInit {
            this.neglectedBuyers.length + 
            this.atRiskVisits.length + 
            this.inAppAlerts.length;
+  }
+
+  // Paged Getters
+  get pagedOverdueTasks(): any[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredOverdueTasks.slice(start, start + this.pageSize);
+  }
+
+  get pagedMissingActions(): any[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredMissingActions.slice(start, start + this.pageSize);
+  }
+
+  get pagedNeglectedBuyers(): any[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredNeglectedBuyers.slice(start, start + this.pageSize);
+  }
+
+  get pagedAtRiskVisits(): any[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredAtRiskVisits.slice(start, start + this.pageSize);
+  }
+
+  get pagedInAppAlerts(): any[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredInAppAlerts.slice(start, start + this.pageSize);
+  }
+
+  get activeTabTotalCount(): number {
+    switch (this.activeTab) {
+      case 'overdue': return this.filteredOverdueTasks.length;
+      case 'missing_action': return this.filteredMissingActions.length;
+      case 'neglected': return this.filteredNeglectedBuyers.length;
+      case 'visits': return this.filteredAtRiskVisits.length;
+      case 'system': return this.filteredInAppAlerts.length;
+      default: return this.totalItemsCount;
+    }
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.activeTabTotalCount / this.pageSize) || 1;
+  }
+
+  setActiveTab(tab: AlertTab): void {
+    this.activeTab = tab;
+    this.currentPage = 1;
   }
 }

@@ -52,6 +52,35 @@ export class TaskListComponent implements OnInit {
   completedCount = 0;
   totalCount = 0;
 
+  // Pagination & Search State
+  currentPage = 1;
+  pageSize = 10;
+  searchQuery = '';
+
+  get filteredTasks(): any[] {
+    let list = this.tasks;
+    if (this.searchQuery && this.searchQuery.trim()) {
+      const q = this.searchQuery.toLowerCase().trim();
+      list = list.filter((t: any) => {
+        const title = (t.title || '').toLowerCase();
+        const desc = (t.description || '').toLowerCase();
+        const buyer = (t.buyer?.full_name || '').toLowerCase();
+        const rep = (t.assignedUser?.name || '').toLowerCase();
+        return title.includes(q) || desc.includes(q) || buyer.includes(q) || rep.includes(q);
+      });
+    }
+    return list;
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.filteredTasks.length / this.pageSize) || 1;
+  }
+
+  get pagedTasks(): any[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredTasks.slice(start, start + this.pageSize);
+  }
+
   prospectsList: any[] = [];
   salesRepsList: any[] = [];
 
@@ -231,6 +260,7 @@ export class TaskListComponent implements OnInit {
 
   setFilterStatus(status: string): void {
     this.filterStatus = status;
+    this.currentPage = 1;
     this.applyFilter();
   }
 
