@@ -51,6 +51,11 @@ export class HighIntentRadarComponent implements OnInit {
 
   selectedBand = 'all';
   selectedOwner = 'all';
+  searchQuery = '';
+
+  // Pagination State
+  currentPage = 1;
+  pageSize = 10;
 
   owners: string[] = ['Unassigned'];
   salesReps: any[] = [];
@@ -79,10 +84,10 @@ export class HighIntentRadarComponent implements OnInit {
         if (res && res.success && res.stats) {
           const s = res.stats;
           this.stats = {
-            very_high_intent: s.high_intent_buyers || 4,
-            unassigned_high_intent: s.unassigned_high_intent || 1,
-            sla_breached: s.sla_breaches || 1,
-            revenue_at_risk_cr: s.revenue_at_risk_cr || '4.24'
+            very_high_intent: s.high_intent_buyers !== undefined ? s.high_intent_buyers : 0,
+            unassigned_high_intent: s.unassigned_high_intent !== undefined ? s.unassigned_high_intent : 0,
+            sla_breached: s.sla_breaches !== undefined ? s.sla_breaches : 0,
+            revenue_at_risk_cr: s.revenue_at_risk_cr || '0.00'
           };
         }
       }
@@ -118,8 +123,8 @@ export class HighIntentRadarComponent implements OnInit {
               name: b.full_name,
               stage: b.lead_status || 'New',
               source: b.lead_source || 'Website',
-              score: b.intent_score || 50,
-              delta: delta,
+              score: b.intent_score !== undefined && b.intent_score !== null ? b.intent_score : 50,
+              delta: b.intent_delta !== undefined && b.intent_delta !== null ? b.intent_delta : (delta || 5),
               budget: `₹${minBudget} Cr – ₹${maxBudget} Cr`,
               next_action: nextAction,
               due: dueStr,
@@ -140,7 +145,7 @@ export class HighIntentRadarComponent implements OnInit {
   recalculateStats(): void {
     const veryHigh = this.buyers.filter(b => b.score >= 90).length;
     const unassigned = this.buyers.filter(b => b.owner === 'Unassigned' && b.score >= 71).length;
-    this.stats.very_high_intent = veryHigh || this.stats.very_high_intent;
+    this.stats.very_high_intent = veryHigh;
     this.stats.unassigned_high_intent = unassigned;
   }
 
@@ -168,8 +173,34 @@ export class HighIntentRadarComponent implements OnInit {
       if (this.selectedOwner !== 'all' && b.owner !== this.selectedOwner) {
         return false;
       }
+      if (this.searchQuery && this.searchQuery.trim()) {
+        const q = this.searchQuery.toLowerCase().trim();
+        const matchesName = (b.name || '').toLowerCase().includes(q);
+        const matchesStage = (b.stage || '').toLowerCase().includes(q);
+        const matchesSource = (b.source || '').toLowerCase().includes(q);
+        const matchesAction = (b.next_action || '').toLowerCase().includes(q);
+        if (!matchesName && !matchesStage && !matchesSource && !matchesAction) {
+          return false;
+        }
+      }
       return true;
     });
+  }
+
+  resetFilters(): void {
+    this.selectedBand = 'all';
+    this.selectedOwner = 'all';
+    this.searchQuery = '';
+    this.currentPage = 1;
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.filteredBuyers.length / this.pageSize) || 1;
+  }
+
+  get pagedBuyers(): any[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredBuyers.slice(start, start + this.pageSize);
   }
 
   openBuyer(buyerId: number): void {

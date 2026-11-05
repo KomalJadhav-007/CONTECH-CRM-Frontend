@@ -12,8 +12,12 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatRippleModule } from '@angular/material/core';
 import { BuyerService } from '../buyer.service';
 import { UserService } from '../../../users/user.service';
+import { TaskService } from '../../tasks/task.service';
+import { SettingsService } from '../../../settings/settings.service';
+import * as XLSX from 'xlsx';
 
 @Component({
   selector: 'app-buyer-list',
@@ -31,7 +35,8 @@ import { UserService } from '../../../users/user.service';
     MatSelectModule,
     MatTooltipModule,
     MatBadgeModule,
-    MatProgressBarModule
+    MatProgressBarModule,
+    MatRippleModule
   ],
   templateUrl: './buyer-list.component.html',
   styleUrl: './buyer-list.component.css'
@@ -39,6 +44,8 @@ import { UserService } from '../../../users/user.service';
 export class BuyerListComponent implements OnInit {
   private buyerService = inject(BuyerService);
   private userService = inject(UserService);
+  private taskService = inject(TaskService);
+  private settingsService = inject(SettingsService);
   private router = inject(Router);
 
   loading = false;
@@ -50,6 +57,70 @@ export class BuyerListComponent implements OnInit {
   selectedSource = 'all';
   selectedIntentBand = 'all';
   selectedOwner = 'all';
+  selectedProject: string | number = 'all';
+
+  // View Mode: 'project_grid' (Cards Grid - click card to view prospects), 'project_cards' (Accordions), 'table' (Flat)
+  viewMode: 'project_grid' | 'project_cards' | 'table' = 'project_grid';
+
+  // Active Project Card selected in 'project_grid' view
+  selectedProjectCardId: number | null = 1;
+
+  selectProjectCard(projectId: number): void {
+    this.selectedProjectCardId = projectId;
+    this.dossierPage = 1;
+  }
+
+  get selectedProjectGroup(): any {
+    if (!this.projectGroups || this.projectGroups.length === 0) return null;
+    if (this.selectedProjectCardId != null) {
+      const match = this.projectGroups.find(g => (g.project?.project_id || g.project?.id) == this.selectedProjectCardId);
+      if (match) return match;
+    }
+    return this.projectGroups[0] || null;
+  }
+
+  // Available Projects List
+  projectsList: any[] = [
+    { project_id: 1, id: 1, name: 'Contech Crown Heights', code: 'CCH-BLR', location: 'Whitefield, Bengaluru', project_type: 'Luxury Residential' },
+    { project_id: 2, id: 2, name: 'Contech Skyline Elegance', code: 'CSE-BLR', location: 'Indiranagar, Bengaluru', project_type: 'Premium High-Rise' },
+    { project_id: 3, id: 3, name: 'Contech Greenfield Sanctuary', code: 'CGS-BLR', location: 'Sarjapur Road, Bengaluru', project_type: 'Eco Luxury Villas' },
+    { project_id: 4, id: 4, name: 'Contech Emerald Meadows Plotted Layout', code: 'CONTEC-0409', location: 'Devenahalli, Bengaluru', project_type: 'Plotted Development' },
+    { project_id: 5, id: 5, name: 'Contech Business Square', code: 'CONTEC-0438', location: 'Koramangala, Bengaluru', project_type: 'Commercial & Retail' }
+  ];
+
+  // Follow-up modal state
+  showFollowUpModal = false;
+  selectedBuyerForFollowUp: any = null;
+  savingFollowUp = false;
+  followUpModalForm: any = {
+    title: '',
+    due_at: '',
+    priority: 'HIGH',
+    manual_intent_score: 95,
+    manual_intent_delta: 5,
+    notes: ''
+  };
+
+  // Quick Tab Filter
+  activeQuickTab: 'all' | 'high_intent' | 'visits' | 'negotiation' | 'sla' = 'all';
+
+  // Sorting State
+  sortField: string = 'score';
+  sortDirection: 'asc' | 'desc' = 'desc';
+
+  // Pagination State - All Prospects (Flat Table)
+  currentPage: number = 1;
+  pageSize: number = 10;
+
+  // Pagination State - Project Cards Dossier (Selected Project)
+  dossierPage: number = 1;
+  dossierPageSize: number = 10;
+
+  // Pagination State - Project Containers
+  containerPagination: { [key: string]: { page: number; pageSize: number } } = {};
+
+  // Row Selection State
+  selectedRows: Set<number> = new Set<number>();
 
   owners: string[] = ['Unassigned'];
   dbUsers: any[] = [];
@@ -61,7 +132,7 @@ export class BuyerListComponent implements OnInit {
       id: 1,
       name: 'Sneha Kulkarni',
       source: 'SimpliQualify',
-      phone: '+91 98765 43211',
+      phone: '7058533669',
       score: 92,
       delta: 6,
       stage: 'Qualified',
@@ -71,13 +142,16 @@ export class BuyerListComponent implements OnInit {
       next_action: 'Assign owner and call within 15 minutes',
       sla_breached: true,
       sla_time: '40 days ago',
-      at_risk: '₹1.43 Cr'
+      at_risk: '₹1.43 Cr',
+      project_id: 1,
+      project_name: 'Contech Crown Heights',
+      project_code: 'CCH-BLR'
     },
     {
       id: 2,
       name: 'Anand Bhagat',
       source: 'Google Ads',
-      phone: '+91 98765 43212',
+      phone: '7058533669',
       score: 91,
       delta: 6,
       stage: 'High Intent',
@@ -87,13 +161,16 @@ export class BuyerListComponent implements OnInit {
       next_action: 'Buyer Score 91 - assign owner immediately',
       sla_breached: true,
       sla_time: '40 days ago',
-      at_risk: '₹2.18 Cr'
+      at_risk: '₹2.18 Cr',
+      project_id: 1,
+      project_name: 'Contech Crown Heights',
+      project_code: 'CCH-BLR'
     },
     {
       id: 3,
       name: 'Deepa Sharma',
       source: 'Referral',
-      phone: '+91 98765 43218',
+      phone: '7058533669',
       score: 90,
       delta: 2,
       stage: 'Booking Intent',
@@ -103,13 +180,16 @@ export class BuyerListComponent implements OnInit {
       next_action: 'Initiate booking paperwork',
       sla_breached: true,
       sla_time: '39 days ago',
-      at_risk: '₹1.23 Cr'
+      at_risk: '₹1.23 Cr',
+      project_id: 1,
+      project_name: 'Contech Crown Heights',
+      project_code: 'CCH-BLR'
     },
     {
       id: 4,
       name: 'Rahul Deshmukh',
       source: 'SimpliQualify',
-      phone: '+91 98765 43210',
+      phone: '7058533669',
       score: 89,
       delta: 5,
       stage: 'Site Visit Scheduled',
@@ -119,13 +199,16 @@ export class BuyerListComponent implements OnInit {
       next_action: 'Confirm Saturday site visit',
       sla_breached: true,
       sla_time: '39 days ago',
-      at_risk: '₹1.51 Cr'
+      at_risk: '₹1.51 Cr',
+      project_id: 2,
+      project_name: 'Contech Skyline Elegance',
+      project_code: 'CSE-BLR'
     },
     {
       id: 5,
       name: 'Neha Agarwal',
       source: 'Instagram',
-      phone: '+91 98765 43215',
+      phone: '7058533669',
       score: 88,
       delta: 2,
       stage: 'Negotiation',
@@ -135,13 +218,16 @@ export class BuyerListComponent implements OnInit {
       next_action: 'Manager intervention on price objection',
       sla_breached: true,
       sla_time: '40 days ago',
-      at_risk: '₹1.65 Cr'
+      at_risk: '₹1.65 Cr',
+      project_id: 2,
+      project_name: 'Contech Skyline Elegance',
+      project_code: 'CSE-BLR'
     },
     {
       id: 6,
       name: 'Harish Menon',
       source: 'Referral',
-      phone: '+91 98765 43239',
+      phone: '7058533669',
       score: 87,
       delta: 2,
       stage: 'Visit Completed',
@@ -151,13 +237,16 @@ export class BuyerListComponent implements OnInit {
       next_action: 'Share proposal and initiate negotiation',
       sla_breached: true,
       sla_time: '40 days ago',
-      at_risk: '₹2.02 Cr'
+      at_risk: '₹2.02 Cr',
+      project_id: 2,
+      project_name: 'Contech Skyline Elegance',
+      project_code: 'CSE-BLR'
     },
     {
       id: 7,
       name: 'Sameer Kale',
       source: 'Website',
-      phone: '+91 98765 43214',
+      phone: '7058533669',
       score: 87,
       delta: 4,
       stage: 'Visit Completed',
@@ -167,13 +256,16 @@ export class BuyerListComponent implements OnInit {
       next_action: 'Share proposal for shortlisted unit',
       sla_breached: true,
       sla_time: '40 days ago',
-      at_risk: '₹1.22 Cr'
+      at_risk: '₹1.22 Cr',
+      project_id: 3,
+      project_name: 'Contech Greenfield Sanctuary',
+      project_code: 'CGS-BLR'
     },
     {
       id: 8,
       name: 'Girish Naik',
       source: 'Property Portal',
-      phone: '+91 98765 43225',
+      phone: '7058533669',
       score: 86,
       delta: 4,
       stage: 'Site Visit Scheduled',
@@ -183,13 +275,16 @@ export class BuyerListComponent implements OnInit {
       next_action: 'Confirm AE and vehicle for tomorrow visit',
       sla_breached: true,
       sla_time: '39 days ago',
-      at_risk: '₹1.86 Cr'
+      at_risk: '₹1.86 Cr',
+      project_id: 3,
+      project_name: 'Contech Greenfield Sanctuary',
+      project_code: 'CGS-BLR'
     },
     {
       id: 9,
       name: 'Suhas Kirloskar',
       source: 'Referral',
-      phone: '+91 98765 43227',
+      phone: '7058533669',
       score: 85,
       delta: 1,
       stage: 'Negotiation',
@@ -199,13 +294,16 @@ export class BuyerListComponent implements OnInit {
       next_action: 'Manager to close pricing gap',
       sla_breached: true,
       sla_time: '39 days ago',
-      at_risk: '₹2.03 Cr'
+      at_risk: '₹2.03 Cr',
+      project_id: 4,
+      project_name: 'Contech Emerald Meadows Plotted Layout',
+      project_code: 'CONTEC-0409'
     },
     {
       id: 10,
       name: 'Pooja Mehta',
       source: 'Meta Ads',
-      phone: '+91 98765 43213',
+      phone: '7058533669',
       score: 84,
       delta: 4,
       stage: 'Site Visit Scheduled',
@@ -215,13 +313,37 @@ export class BuyerListComponent implements OnInit {
       next_action: 'Confirm pickup and visit slot',
       sla_breached: true,
       sla_time: '39 days ago',
-      at_risk: '₹73.50 L'
+      at_risk: '₹73.50 L',
+      project_id: 5,
+      project_name: 'Contech Business Square',
+      project_code: 'CONTEC-0438'
     }
   ];
 
   ngOnInit(): void {
     this.loadOwners();
+    this.loadProjects();
     this.loadBuyers();
+  }
+
+  loadProjects(): void {
+    this.settingsService.getSettings().subscribe({
+      next: (res: any) => {
+        if (res && res.projects && res.projects.length > 0) {
+          this.projectsList = res.projects.map((p: any) => ({
+            project_id: p.project_id || p.id,
+            id: p.project_id || p.id,
+            name: p.name,
+            code: p.code || '',
+            location: p.location || '',
+            project_type: p.project_type || 'Residential'
+          }));
+        }
+      },
+      error: () => {
+        // Keep fallback projectsList
+      }
+    });
   }
 
   loadOwners(): void {
@@ -295,12 +417,12 @@ export class BuyerListComponent implements OnInit {
               slaBreached = true;
               slaTime = 'Unassigned > 24h';
             } else if (rawStatus === 'VISIT_SCHEDULED') {
-              if (b.full_name && b.full_name.includes('Ananya')) {
+              if (b.full_name && b.full_name.includes('Rohiet')) {
                 nextAction = 'Confirm cab KA-01-MJ-8822 & dispatch Unit 703 schedule';
                 slaBreached = true;
                 slaTime = 'Task overdue (3.5h)';
-              } else if (b.full_name && b.full_name.includes('Harish')) {
-                nextAction = 'Confirm sunset slot (4 PM) & driver KA-03-EX-9900';
+              } else if (b.full_name && b.full_name.includes('Jaywant')) {
+                nextAction = 'Confirm sunset slot (4 PM) & driver dispatch';
               } else {
                 nextAction = 'Verify site lounge readiness & buyer confirmations';
               }
@@ -317,14 +439,19 @@ export class BuyerListComponent implements OnInit {
             else if (b.intent_score >= 90) delta = 2;
             else if (b.intent_score >= 68) delta = 3;
 
+            // Project mapping
+            const prjId = b.project_id || (b.project ? b.project.project_id : 1);
+            const prjObj = b.project || this.projectsList.find(p => (p.project_id || p.id) == prjId);
+
             return {
               buyer_id: b.buyer_id || b.id,
               id: b.buyer_id || b.id,
               name: b.full_name,
               source: b.lead_source || (b.current_residence ? 'Direct Inquiry' : 'SimpliQualify'),
-              phone: b.phone || '',
-              score: b.intent_score || 85,
-              delta,
+              phone: (b.phone && b.phone.trim()) ? b.phone.trim() : '7058533669',
+              email: b.email || '',
+              score: b.intent_score !== undefined && b.intent_score !== null ? b.intent_score : 85,
+              delta: b.intent_delta !== undefined && b.intent_delta !== null ? b.intent_delta : delta,
               stage: displayStage,
               rawStage: rawStatus,
               bhk: b.preferred_bhk || '3 BHK',
@@ -333,7 +460,23 @@ export class BuyerListComponent implements OnInit {
               next_action: nextAction,
               sla_breached: slaBreached,
               sla_time: slaTime,
-              at_risk: atRiskText
+              at_risk: atRiskText,
+              project_id: prjId,
+              project_name: prjObj ? prjObj.name : (b.preferred_project || 'Contech Crown Heights'),
+              project_code: prjObj ? (prjObj.code || '') : '',
+              project_location: prjObj ? (prjObj.location || '') : '',
+              current_residence: b.current_residence || '',
+              workplace_location: b.workplace_location || '',
+              family_size: b.family_size !== undefined && b.family_size !== null ? b.family_size : 4,
+              budget_min_lacs: b.budget_min_lacs !== undefined && b.budget_min_lacs !== null ? Number(b.budget_min_lacs) : 100,
+              budget_max_lacs: b.budget_max_lacs !== undefined && b.budget_max_lacs !== null ? Number(b.budget_max_lacs) : 180,
+              buying_timeframe: b.buying_timeframe || '<30 days',
+              lead_source: b.lead_source || 'Instagram',
+              occupation: b.occupation || 'Salaried IT / Tech Corporate',
+              financing_readiness: b.financing_readiness || 'Pre-approved Loan',
+              assigned_rep_id: b.assigned_rep_id || (b.assignedRep ? b.assignedRep.user_id : null),
+              notes: b.notes || '',
+              rawBuyer: b
             };
           });
           this.rebuildOwnersList();
@@ -350,16 +493,296 @@ export class BuyerListComponent implements OnInit {
     });
   }
 
+  // --- Executive KPI Summary Computations ---
+  getVeryHighIntentCount(): number {
+    return this.prospects.filter(p => p.score >= 90).length;
+  }
+
+  getTotalExposureAtRisk(): string {
+    let totalLacs = 0;
+    for (const p of this.prospects) {
+      if (p.at_risk) {
+        const crMatch = p.at_risk.match(/₹([\d.]+)\s*Cr/);
+        const lMatch = p.at_risk.match(/₹([\d.]+)\s*L/);
+        if (crMatch) {
+          totalLacs += parseFloat(crMatch[1]) * 100;
+        } else if (lMatch) {
+          totalLacs += parseFloat(lMatch[1]);
+        }
+      }
+    }
+    if (totalLacs >= 100) {
+      return `₹${(totalLacs / 100).toFixed(2)} Cr`;
+    }
+    return `₹${totalLacs.toFixed(2)} L`;
+  }
+
+  getVisitsAndNegotiationCount(): number {
+    return this.prospects.filter(p =>
+      ['Site Visit Scheduled', 'Visit Completed', 'Negotiation', 'Booking Intent'].includes(p.stage)
+    ).length;
+  }
+
+  getSlaBreachedCount(): number {
+    return this.prospects.filter(p => p.sla_breached || p.owner === 'Unassigned').length;
+  }
+
+  // --- Quick Tab & Filters ---
+  setQuickTab(tab: 'all' | 'high_intent' | 'visits' | 'negotiation' | 'sla'): void {
+    if (this.activeQuickTab === tab && tab !== 'all') {
+      this.activeQuickTab = 'all';
+    } else {
+      this.activeQuickTab = tab;
+    }
+    this.currentPage = 1;
+    this.dossierPage = 1;
+    this.containerPagination = {};
+  }
+
+  resetFilters(): void {
+    this.searchQuery = '';
+    this.selectedStage = 'all';
+    this.selectedSource = 'all';
+    this.selectedIntentBand = 'all';
+    this.selectedOwner = 'all';
+    this.selectedProject = 'all';
+    this.activeQuickTab = 'all';
+    this.currentPage = 1;
+    this.dossierPage = 1;
+    this.containerPagination = {};
+  }
+
+  get hasActiveFilters(): boolean {
+    return !!(
+      this.searchQuery.trim() ||
+      this.selectedStage !== 'all' ||
+      this.selectedSource !== 'all' ||
+      this.selectedIntentBand !== 'all' ||
+      this.selectedOwner !== 'all' ||
+      this.selectedProject !== 'all' ||
+      this.activeQuickTab !== 'all'
+    );
+  }
+
+  // --- Sorting ---
+  toggleSort(field: string): void {
+    if (this.sortField === field) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortField = field;
+      this.sortDirection = 'desc';
+    }
+    this.currentPage = 1;
+    this.dossierPage = 1;
+  }
+
+  // --- Row Selection ---
+  toggleSelectAll(): void {
+    if (this.allRowsSelected()) {
+      this.selectedRows.clear();
+    } else {
+      this.pagedProspects.forEach(p => this.selectedRows.add(p.id));
+    }
+  }
+
+  toggleRowSelect(id: number): void {
+    if (this.selectedRows.has(id)) {
+      this.selectedRows.delete(id);
+    } else {
+      this.selectedRows.add(id);
+    }
+  }
+
+  isRowSelected(id: number): boolean {
+    return this.selectedRows.has(id);
+  }
+
+  allRowsSelected(): boolean {
+    if (this.pagedProspects.length === 0) return false;
+    return this.pagedProspects.every(p => this.selectedRows.has(p.id));
+  }
+
+  // --- Presentation Helpers ---
+  getInitials(name: string): string {
+    if (!name) return '??';
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+
+  getAvatarColor(name: string): string {
+    if (!name) return '#64748b';
+    const colors = [
+      '#2563eb', // blue
+      '#7c3aed', // violet
+      '#059669', // emerald
+      '#d97706', // amber
+      '#0891b2', // cyan
+      '#db2777', // pink
+      '#4f46e5'  // indigo
+    ];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash) % colors.length];
+  }
+
+  getOwnerName(ownerStr: string): string {
+    if (!ownerStr || ownerStr === 'Unassigned') return 'Unassigned';
+    const match = ownerStr.match(/^(.*?)\s*\(.*?\)$/);
+    return match ? match[1].trim() : ownerStr.trim();
+  }
+
+  getOwnerRole(ownerStr: string): string {
+    if (!ownerStr || ownerStr === 'Unassigned') return '';
+    const match = ownerStr.match(/\((.*?)\)/);
+    if (match) {
+      const role = match[1].trim();
+      return role.replace('Owner / ', '');
+    }
+    return 'Sales Rep';
+  }
+
+  formatBudgetDisplay(budgetStr: string): string {
+    if (!budgetStr) return 'Flexible';
+    if (budgetStr.includes('Cr')) return budgetStr;
+    const lacsMatch = budgetStr.match(/(\d+(?:\.\d+)?)\s*L[^\d]*(\d+(?:\.\d+)?)\s*L/i);
+    if (lacsMatch) {
+      const min = parseFloat(lacsMatch[1]);
+      const max = parseFloat(lacsMatch[2]);
+      if (min >= 100 && max >= 100) {
+        const minCr = (min / 100).toFixed(2).replace(/\.00$/, '');
+        const maxCr = (max / 100).toFixed(2).replace(/\.00$/, '');
+        return `₹${minCr} – ${maxCr} Cr`;
+      } else if (min >= 100) {
+        const minCr = (min / 100).toFixed(2).replace(/\.00$/, '');
+        return `₹${minCr} Cr – ${max} L`;
+      } else if (max >= 100) {
+        const maxCr = (max / 100).toFixed(2).replace(/\.00$/, '');
+        return `₹${min} L – ${maxCr} Cr`;
+      } else {
+        return `₹${min} – ${max} L`;
+      }
+    }
+    return budgetStr;
+  }
+
+  getScoreClass(score: number): string {
+    if (score >= 90) return 'score-very-high';
+    if (score >= 80) return 'score-high';
+    if (score >= 65) return 'score-qualified';
+    return 'score-warm';
+  }
+
+  getScoreBarClass(score: number): string {
+    if (score >= 90) return 'bar-very-high';
+    if (score >= 80) return 'bar-high';
+    if (score >= 65) return 'bar-qualified';
+    return 'bar-warm';
+  }
+
+  getStageClass(stage: string): string {
+    const s = (stage || '').toLowerCase();
+    if (s.includes('negotiation')) return 'stage-negotiation';
+    if (s.includes('booking') || s.includes('booked')) return 'stage-booking';
+    if (s.includes('completed')) return 'stage-completed';
+    if (s.includes('scheduled')) return 'stage-scheduled';
+    if (s.includes('high intent')) return 'stage-high-intent';
+    if (s.includes('qualified')) return 'stage-qualified';
+    if (s.includes('contacted')) return 'stage-contacted';
+    return 'stage-new';
+  }
+
+  // Project Collapse / Expand state in container view
+  collapsedProjects: Set<number> = new Set<number>();
+
+  toggleProjectCollapse(projectId: number): void {
+    if (this.collapsedProjects.has(projectId)) {
+      this.collapsedProjects.delete(projectId);
+    } else {
+      this.collapsedProjects.add(projectId);
+    }
+  }
+
+  isProjectCollapsed(projectId: number): boolean {
+    return this.collapsedProjects.has(projectId);
+  }
+
+  trackByProjectId(index: number, group: any): any {
+    return group.project?.project_id || group.project?.id || index;
+  }
+
+  trackByProspectId(index: number, p: any): any {
+    return p.buyer_id || p.id || index;
+  }
+
+  // Quick Inline Project Changer directly from prospect row dropdown
+  onProspectProjectChange(p: any, event: any): void {
+    const newProjectId = Number(event.target.value);
+    if (!newProjectId) return;
+    const targetId = p.buyer_id || p.id;
+    const matched = this.projectsList.find(pr => (pr.project_id || pr.id) == newProjectId);
+    p.project_id = newProjectId;
+    if (matched) {
+      p.project_name = matched.name;
+      p.project_code = matched.code;
+      p.project_location = matched.location;
+    }
+
+    this.buyerService.updateBuyer(targetId, {
+      project_id: newProjectId,
+      preferred_project: matched ? matched.name : null
+    }).subscribe({
+      next: () => {
+        this.showFeedback(`Prospect "${p.name}" moved to "${matched ? matched.name : 'Project'}"!`);
+      },
+      error: () => {
+        this.showFeedback(`Project updated for "${p.name}".`);
+      }
+    });
+  }
+
   startEdit(p: any): void {
-    this.editingBuyerId = p.id;
+    this.editingBuyerId = Number(p.buyer_id || p.id);
+    const defaultDue = new Date(Date.now() + 4 * 60 * 60 * 1000);
+    const tzOffset = defaultDue.getTimezoneOffset() * 60000;
+    const localISOTime = new Date(defaultDue.getTime() - tzOffset).toISOString().slice(0, 16);
+
     this.editForm = {
       name: p.name,
-      phone: p.phone,
-      bhk: p.bhk,
+      phone: (p.phone && p.phone.trim()) ? p.phone.trim() : '7058533669',
+      email: p.email || (p.rawBuyer ? p.rawBuyer.email : ''),
+      current_residence: p.current_residence || (p.rawBuyer ? p.rawBuyer.current_residence : ''),
+      workplace_location: p.workplace_location || (p.rawBuyer ? p.rawBuyer.workplace_location : ''),
+      family_size: p.family_size !== undefined && p.family_size !== null ? p.family_size : (p.rawBuyer && p.rawBuyer.family_size !== undefined ? p.rawBuyer.family_size : 4),
+      bhk: p.bhk || '3 BHK',
+      budget_min_lacs: p.budget_min_lacs !== undefined && p.budget_min_lacs !== null ? p.budget_min_lacs : (p.rawBuyer && p.rawBuyer.budget_min_lacs !== undefined ? p.rawBuyer.budget_min_lacs : 100),
+      budget_max_lacs: p.budget_max_lacs !== undefined && p.budget_max_lacs !== null ? p.budget_max_lacs : (p.rawBuyer && p.rawBuyer.budget_max_lacs !== undefined ? p.rawBuyer.budget_max_lacs : 180),
+      buying_timeframe: p.buying_timeframe || (p.rawBuyer ? p.rawBuyer.buying_timeframe : '<30 days'),
+      lead_source: p.source || p.lead_source || (p.rawBuyer ? p.rawBuyer.lead_source : 'Instagram'),
+      occupation: p.occupation || (p.rawBuyer ? p.rawBuyer.occupation : 'Salaried IT / Tech Corporate'),
+      financing_readiness: p.financing_readiness || (p.rawBuyer ? p.rawBuyer.financing_readiness : 'Pre-approved Loan'),
+      assigned_rep_id: p.assigned_rep_id || (p.rawBuyer ? p.rawBuyer.assigned_rep_id : null),
+      notes: p.notes || (p.rawBuyer ? p.rawBuyer.notes : ''),
       budget: p.budget,
       stage: p.stage,
-      owner: p.owner
+      owner: p.owner,
+      project_id: p.project_id || 1,
+      score: p.score !== undefined && p.score !== null ? p.score : 85,
+      delta: p.delta !== undefined && p.delta !== null ? p.delta : 5,
+      next_action: p.next_action || '',
+      add_follow_up: false,
+      follow_up_title: `Follow up with ${p.name}`,
+      follow_up_due: localISOTime,
+      follow_up_priority: 'HIGH',
+      follow_up_notes: ''
     };
+  }
+
+  openFullEdit(p: any): void {
+    const targetId = p.buyer_id || p.id;
+    this.router.navigate(['/buyers', targetId, 'edit']);
   }
 
   cancelEdit(): void {
@@ -368,29 +791,227 @@ export class BuyerListComponent implements OnInit {
   }
 
   saveEdit(p: any): void {
-    const payload = {
+    const newScore = this.editForm.score !== undefined && this.editForm.score !== null ? parseInt(this.editForm.score) : p.score;
+    const newDelta = this.editForm.delta !== undefined && this.editForm.delta !== null ? parseInt(this.editForm.delta) : (p.delta || 5);
+    const newBand = newScore >= 80 ? 'HIGH' : (newScore >= 50 ? 'MEDIUM' : 'LOW');
+    const newProjectId = this.editForm.project_id ? Number(this.editForm.project_id) : p.project_id;
+
+    const targetId = p.buyer_id || p.id;
+    const payload: any = {
       full_name: this.editForm.name,
-      phone: this.editForm.phone,
+      phone: (this.editForm.phone && this.editForm.phone.trim()) ? this.editForm.phone.trim() : '7058533669',
+      email: this.editForm.email || null,
+      current_residence: this.editForm.current_residence || null,
+      workplace_location: this.editForm.workplace_location || null,
+      family_size: this.editForm.family_size !== undefined ? Number(this.editForm.family_size) : 4,
+      budget_min_lacs: this.editForm.budget_min_lacs !== undefined ? Number(this.editForm.budget_min_lacs) : 100,
+      budget_max_lacs: this.editForm.budget_max_lacs !== undefined ? Number(this.editForm.budget_max_lacs) : 180,
       preferred_bhk: this.editForm.bhk,
-      lead_status: this.editForm.stage
+      buying_timeframe: this.editForm.buying_timeframe || '<30 days',
+      lead_source: this.editForm.lead_source || 'Instagram',
+      occupation: this.editForm.occupation || 'Salaried IT / Tech Corporate',
+      financing_readiness: this.editForm.financing_readiness || 'Pre-approved Loan',
+      assigned_rep_id: this.editForm.assigned_rep_id ? Number(this.editForm.assigned_rep_id) : null,
+      notes: this.editForm.notes || null,
+      lead_status: this.editForm.stage,
+      project_id: newProjectId,
+      intent_score: newScore,
+      intent_delta: newDelta,
+      intent_band: newBand,
+      add_follow_up: !!this.editForm.add_follow_up,
+      follow_up_title: this.editForm.follow_up_title,
+      follow_up_due: this.editForm.follow_up_due,
+      follow_up_priority: this.editForm.follow_up_priority,
+      follow_up_notes: this.editForm.follow_up_notes
     };
 
-    this.buyerService.updateBuyer(p.id, payload).subscribe({
+    this.buyerService.updateBuyer(targetId, payload).subscribe({
       next: () => {
         p.name = this.editForm.name;
         p.phone = this.editForm.phone;
+        p.email = this.editForm.email;
+        p.current_residence = this.editForm.current_residence;
+        p.workplace_location = this.editForm.workplace_location;
+        p.family_size = this.editForm.family_size;
+        p.budget_min_lacs = this.editForm.budget_min_lacs;
+        p.budget_max_lacs = this.editForm.budget_max_lacs;
+        p.buying_timeframe = this.editForm.buying_timeframe;
+        p.lead_source = this.editForm.lead_source;
+        p.source = this.editForm.lead_source;
+        p.occupation = this.editForm.occupation;
+        p.financing_readiness = this.editForm.financing_readiness;
+        p.assigned_rep_id = this.editForm.assigned_rep_id;
+        p.notes = this.editForm.notes;
         p.bhk = this.editForm.bhk;
         p.stage = this.editForm.stage;
-        this.editingBuyerId = null;
-        this.showFeedback(`Prospect "${p.name}" updated successfully in database.`);
+        p.score = newScore;
+        p.delta = newDelta;
+        if (this.editForm.next_action) {
+          p.next_action = this.editForm.next_action;
+        }
+        p.budget = `₹${this.editForm.budget_min_lacs || 100}L – ₹${this.editForm.budget_max_lacs || 180}L`;
+
+        if (this.editForm.assigned_rep_id) {
+          const repObj = this.dbUsers.find(u => (u.user_id || u.id) == this.editForm.assigned_rep_id);
+          if (repObj) p.owner = repObj.name;
+        } else if (this.editForm.assigned_rep_id === null) {
+          p.owner = 'Unassigned';
+        }
+
+        if (newProjectId) {
+          p.project_id = newProjectId;
+          const matched = this.projectsList.find(pr => (pr.project_id || pr.id) == newProjectId);
+          if (matched) {
+            p.project_name = matched.name;
+            p.project_code = matched.code;
+            p.project_location = matched.location;
+          }
+        }
+
+        if (this.editForm.add_follow_up && this.editForm.follow_up_title && this.editForm.follow_up_title.trim()) {
+          const taskPayload = {
+            buyer_id: targetId,
+            title: this.editForm.follow_up_title.trim(),
+            description: this.editForm.follow_up_notes || `Follow-up scheduled from prospect edit row for ${p.name}`,
+            due_at: this.editForm.follow_up_due,
+            priority: this.editForm.follow_up_priority || 'HIGH',
+            manual_intent_score: newScore,
+            manual_intent_delta: newDelta,
+            manual_intent_band: newBand
+          };
+
+          this.taskService.createTask(taskPayload).subscribe({
+            next: () => {
+              p.next_action = this.editForm.follow_up_title.trim();
+              p.sla_breached = false;
+              this.cancelEdit();
+              this.showFeedback(`Prospect "${p.name}" updated & follow-up task scheduled in SLA Engine!`);
+            },
+            error: () => {
+              p.next_action = this.editForm.follow_up_title.trim();
+              this.cancelEdit();
+              this.showFeedback(`Prospect "${p.name}" updated.`);
+            }
+          });
+        } else {
+          this.cancelEdit();
+          this.showFeedback(`Prospect "${p.name}" updated successfully.`);
+        }
       },
       error: () => {
-        p.name = this.editForm.name;
-        p.phone = this.editForm.phone;
-        p.bhk = this.editForm.bhk;
-        p.stage = this.editForm.stage;
-        this.editingBuyerId = null;
-        this.showFeedback(`Prospect "${p.name}" updated.`);
+        // Fallback: If updateBuyer fails, attempt direct createTask as safety net
+        if (this.editForm.add_follow_up && this.editForm.follow_up_title && this.editForm.follow_up_title.trim()) {
+          const taskPayload = {
+            buyer_id: targetId,
+            title: this.editForm.follow_up_title.trim(),
+            description: this.editForm.follow_up_notes || `Follow-up scheduled from prospect edit row for ${p.name}`,
+            due_at: this.editForm.follow_up_due,
+            priority: this.editForm.follow_up_priority || 'HIGH',
+            manual_intent_score: newScore,
+            manual_intent_delta: newDelta,
+            manual_intent_band: newBand
+          };
+
+          this.taskService.createTask(taskPayload).subscribe({
+            next: () => {
+              p.next_action = this.editForm.follow_up_title.trim();
+              p.sla_breached = false;
+              this.cancelEdit();
+              this.showFeedback(`Prospect "${p.name}" updated & follow-up task scheduled!`);
+            },
+            error: () => {
+              p.next_action = this.editForm.follow_up_title.trim();
+              this.cancelEdit();
+              this.showFeedback(`Prospect "${p.name}" updated.`);
+            }
+          });
+        } else {
+          p.name = this.editForm.name;
+          p.phone = this.editForm.phone;
+          p.bhk = this.editForm.bhk;
+          p.stage = this.editForm.stage;
+          p.score = newScore;
+          p.delta = newDelta;
+          if (newProjectId) {
+            p.project_id = newProjectId;
+            const matched = this.projectsList.find(pr => (pr.project_id || pr.id) == newProjectId);
+            if (matched) {
+              p.project_name = matched.name;
+              p.project_code = matched.code;
+              p.project_location = matched.location;
+            }
+          }
+          this.cancelEdit();
+          this.showFeedback(`Prospect "${p.name}" updated.`);
+        }
+      }
+    });
+  }
+
+  // --- Follow-Up Modal Actions ---
+  openFollowUpModal(p: any): void {
+    this.selectedBuyerForFollowUp = p;
+    const defaultDue = new Date(Date.now() + 4 * 60 * 60 * 1000);
+    const tzOffset = defaultDue.getTimezoneOffset() * 60000;
+    const localISOTime = new Date(defaultDue.getTime() - tzOffset).toISOString().slice(0, 16);
+
+    this.followUpModalForm = {
+      title: `Follow up with ${p.name}`,
+      due_at: localISOTime,
+      priority: 'HIGH',
+      manual_intent_score: p.score !== undefined && p.score !== null ? p.score : 90,
+      manual_intent_delta: p.delta !== undefined && p.delta !== null ? p.delta : 5,
+      notes: ''
+    };
+    this.showFollowUpModal = true;
+  }
+
+  closeFollowUpModal(): void {
+    this.showFollowUpModal = false;
+    this.selectedBuyerForFollowUp = null;
+  }
+
+  setModalIntentPreset(score: number, delta: number): void {
+    this.followUpModalForm.manual_intent_score = score;
+    this.followUpModalForm.manual_intent_delta = delta;
+  }
+
+  submitFollowUpModal(): void {
+    if (!this.selectedBuyerForFollowUp || !this.followUpModalForm.title || !this.followUpModalForm.title.trim()) return;
+    this.savingFollowUp = true;
+    const p = this.selectedBuyerForFollowUp;
+    const score = parseInt(this.followUpModalForm.manual_intent_score) || 85;
+    const delta = parseInt(this.followUpModalForm.manual_intent_delta) || 5;
+    const band = score >= 80 ? 'HIGH' : (score >= 50 ? 'MEDIUM' : 'LOW');
+
+    const taskPayload = {
+      buyer_id: p.id,
+      title: this.followUpModalForm.title.trim(),
+      description: this.followUpModalForm.notes || `Scheduled via Prospects list for ${p.name}`,
+      due_at: this.followUpModalForm.due_at ? new Date(this.followUpModalForm.due_at) : new Date(Date.now() + 4 * 3600 * 1000),
+      priority: this.followUpModalForm.priority || 'HIGH',
+      manual_intent_score: score,
+      manual_intent_delta: delta,
+      manual_intent_band: band
+    };
+
+    this.taskService.createTask(taskPayload).subscribe({
+      next: () => {
+        this.savingFollowUp = false;
+        p.score = score;
+        p.delta = delta;
+        p.next_action = this.followUpModalForm.title.trim();
+        p.sla_breached = false;
+        this.showFeedback(`Follow-up task scheduled for ${p.name} (Score: ${score} ▲ ${delta})!`);
+        this.closeFollowUpModal();
+      },
+      error: () => {
+        this.savingFollowUp = false;
+        p.score = score;
+        p.delta = delta;
+        p.next_action = this.followUpModalForm.title.trim();
+        this.showFeedback(`Follow-up task recorded for ${p.name}.`);
+        this.closeFollowUpModal();
       }
     });
   }
@@ -402,10 +1023,12 @@ export class BuyerListComponent implements OnInit {
     this.buyerService.deleteBuyer(p.id).subscribe({
       next: () => {
         this.prospects = this.prospects.filter(item => item.id !== p.id);
+        this.selectedRows.delete(p.id);
         this.showFeedback(`Prospect "${p.name}" deleted from database.`);
       },
       error: () => {
         this.prospects = this.prospects.filter(item => item.id !== p.id);
+        this.selectedRows.delete(p.id);
         this.showFeedback(`Prospect "${p.name}" removed.`);
       }
     });
@@ -417,19 +1040,35 @@ export class BuyerListComponent implements OnInit {
       if (this.feedbackMessage === msg) {
         this.feedbackMessage = '';
       }
-    }, 3000);
+    }, 3500);
   }
 
-  get filteredProspects() {
-    return this.prospects.filter(p => {
+  get filteredProspects(): any[] {
+    const filtered = this.prospects.filter(p => {
+      // 1. Quick Tabs
+      if (this.activeQuickTab === 'high_intent' && p.score < 85) return false;
+      if (this.activeQuickTab === 'visits' && !(p.stage || '').includes('Visit')) return false;
+      if (
+        this.activeQuickTab === 'negotiation' &&
+        p.stage !== 'Negotiation' &&
+        p.stage !== 'Booking Intent' &&
+        p.stage !== 'Booked'
+      )
+        return false;
+      if (this.activeQuickTab === 'sla' && !p.sla_breached && p.owner !== 'Unassigned') return false;
+
+      // 2. Search Query
       if (this.searchQuery.trim()) {
         const q = this.searchQuery.toLowerCase();
         const match =
-          p.name.toLowerCase().includes(q) ||
-          p.phone.includes(q) ||
-          p.source.toLowerCase().includes(q);
+          (p.name && p.name.toLowerCase().includes(q)) ||
+          (p.phone && p.phone.includes(q)) ||
+          (p.email && p.email.toLowerCase().includes(q)) ||
+          (p.source && p.source.toLowerCase().includes(q));
         if (!match) return false;
       }
+
+      // 3. Stage Filter
       if (this.selectedStage !== 'all') {
         const pStageNorm = (p.stage || '').toLowerCase().replace(/_/g, ' ');
         const sStageNorm = this.selectedStage.toLowerCase().replace(/_/g, ' ');
@@ -437,34 +1076,225 @@ export class BuyerListComponent implements OnInit {
           return false;
         }
       }
-      if (this.selectedSource !== 'all' && p.source.toLowerCase() !== this.selectedSource.toLowerCase()) {
+
+      // 4. Source Filter
+      if (this.selectedSource !== 'all' && (p.source || '').toLowerCase() !== this.selectedSource.toLowerCase()) {
         return false;
       }
+
+      // 5. Intent Band Filter
       if (this.selectedIntentBand !== 'all') {
         if (this.selectedIntentBand === 'very_high' && p.score < 90) return false;
-        if (this.selectedIntentBand === 'high' && (p.score < 85 || p.score >= 90)) return false;
-        if (this.selectedIntentBand === 'qualified' && p.score >= 85) return false;
+        if (this.selectedIntentBand === 'high' && (p.score < 80 || p.score >= 90)) return false;
+        if (this.selectedIntentBand === 'qualified' && p.score >= 80) return false;
       }
+
+      // 6. Owner Filter
       if (this.selectedOwner !== 'all') {
         if (this.selectedOwner === 'Unassigned') {
           if (p.owner !== 'Unassigned') return false;
         } else {
-          if (!p.owner.toLowerCase().includes(this.selectedOwner.toLowerCase()) && 
-              !this.selectedOwner.toLowerCase().includes(p.owner.toLowerCase())) {
+          if (
+            !p.owner.toLowerCase().includes(this.selectedOwner.toLowerCase()) &&
+            !this.selectedOwner.toLowerCase().includes(p.owner.toLowerCase())
+          ) {
             return false;
           }
         }
       }
+
+      // 7. Project Filter
+      if (this.selectedProject !== 'all') {
+        if (p.project_id != this.selectedProject) return false;
+      }
+
       return true;
     });
+
+    // Apply Sorting
+    if (this.sortField) {
+      filtered.sort((a, b) => {
+        let valA = a[this.sortField];
+        let valB = b[this.sortField];
+        if (this.sortField === 'score') {
+          valA = Number(valA) || 0;
+          valB = Number(valB) || 0;
+        } else if (this.sortField === 'at_risk') {
+          const getNum = (v: string) => {
+            if (!v) return 0;
+            const cr = v.match(/₹([\d.]+)\s*Cr/);
+            if (cr) return parseFloat(cr[1]) * 100;
+            const l = v.match(/₹([\d.]+)\s*L/);
+            if (l) return parseFloat(l[1]);
+            return 0;
+          };
+          valA = getNum(valA);
+          valB = getNum(valB);
+        } else if (typeof valA === 'string') {
+          valA = valA.toLowerCase();
+          valB = (valB || '').toLowerCase();
+        }
+        if (valA < valB) return this.sortDirection === 'asc' ? -1 : 1;
+        if (valA > valB) return this.sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return filtered;
   }
 
+  get projectGroups(): any[] {
+    const filtered = this.filteredProspects;
+    
+    // Determine which projects to include
+    let prjs = this.projectsList;
+    if (this.selectedProject !== 'all') {
+      prjs = this.projectsList.filter(prj => (prj.project_id || prj.id) == this.selectedProject);
+    }
+
+    const groups: any[] = [];
+    prjs.forEach(prj => {
+      const pId = prj.project_id || prj.id;
+      const projectProspects = filtered.filter(p => p.project_id == pId);
+
+      // Compute project-level stats
+      const totalCount = projectProspects.length;
+      const highIntentCount = projectProspects.filter(p => p.score >= 85).length;
+      
+      let totalLacs = 0;
+      projectProspects.forEach(p => {
+        if (p.at_risk) {
+          const crMatch = p.at_risk.match(/₹([\d.]+)\s*Cr/);
+          const lMatch = p.at_risk.match(/₹([\d.]+)\s*L/);
+          if (crMatch) totalLacs += parseFloat(crMatch[1]) * 100;
+          else if (lMatch) totalLacs += parseFloat(lMatch[1]);
+        }
+      });
+
+      const exposureDisplay = totalLacs >= 100
+        ? `₹${(totalLacs / 100).toFixed(2)} Cr`
+        : `₹${totalLacs.toFixed(2)} L`;
+
+      groups.push({
+        project: prj,
+        prospects: projectProspects,
+        totalCount,
+        highIntentCount,
+        exposureDisplay
+      });
+    });
+
+    // Handle any prospects with project_id not matching standard projects
+    const knownIds = new Set(this.projectsList.map(prj => prj.project_id || prj.id));
+    const unassignedProspects = filtered.filter(p => !p.project_id || !knownIds.has(p.project_id));
+    if (unassignedProspects.length > 0 && this.selectedProject === 'all') {
+      let totalLacs = 0;
+      unassignedProspects.forEach(p => {
+        if (p.at_risk) {
+          const crMatch = p.at_risk.match(/₹([\d.]+)\s*Cr/);
+          const lMatch = p.at_risk.match(/₹([\d.]+)\s*L/);
+          if (crMatch) totalLacs += parseFloat(crMatch[1]) * 100;
+          else if (lMatch) totalLacs += parseFloat(lMatch[1]);
+        }
+      });
+      const exposureDisplay = totalLacs >= 100
+        ? `₹${(totalLacs / 100).toFixed(2)} Cr`
+        : `₹${totalLacs.toFixed(2)} L`;
+
+      groups.push({
+        project: {
+          project_id: 0,
+          id: 0,
+          name: 'Other / Unassigned Project',
+          code: 'GEN-BLR',
+          location: 'Bengaluru Region',
+          project_type: 'Mixed'
+        },
+        prospects: unassignedProspects,
+        totalCount: unassignedProspects.length,
+        highIntentCount: unassignedProspects.filter(p => p.score >= 85).length,
+        exposureDisplay
+      });
+    }
+
+    return groups;
+  }
+
+  get pagedProspects(): any[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredProspects.slice(start, start + this.pageSize);
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.filteredProspects.length / this.pageSize) || 1;
+  }
+
+  // --- Project Cards Dossier Pagination ---
+  get pagedDossierProspects(): any[] {
+    if (!this.selectedProjectGroup || !this.selectedProjectGroup.prospects) return [];
+    const start = (this.dossierPage - 1) * this.dossierPageSize;
+    return this.selectedProjectGroup.prospects.slice(start, start + this.dossierPageSize);
+  }
+
+  get totalDossierPages(): number {
+    if (!this.selectedProjectGroup || !this.selectedProjectGroup.prospects) return 1;
+    return Math.ceil(this.selectedProjectGroup.prospects.length / this.dossierPageSize) || 1;
+  }
+
+  // --- Project Containers Pagination ---
+  getContainerPage(projectId: any): number {
+    const key = String(projectId ?? 0);
+    return this.containerPagination[key]?.page || 1;
+  }
+
+  getContainerPageSize(projectId: any): number {
+    const key = String(projectId ?? 0);
+    return this.containerPagination[key]?.pageSize || 10;
+  }
+
+  setContainerPage(projectId: any, page: number): void {
+    const key = String(projectId ?? 0);
+    if (!this.containerPagination[key]) {
+      this.containerPagination[key] = { page: 1, pageSize: 10 };
+    }
+    this.containerPagination[key].page = page;
+  }
+
+  setContainerPageSize(projectId: any, pageSize: any): void {
+    const key = String(projectId ?? 0);
+    const size = Number(pageSize) || 10;
+    if (!this.containerPagination[key]) {
+      this.containerPagination[key] = { page: 1, pageSize: size };
+    } else {
+      this.containerPagination[key].pageSize = size;
+      this.containerPagination[key].page = 1;
+    }
+  }
+
+  getPagedContainerProspects(group: any): any[] {
+    if (!group || !group.prospects) return [];
+    const pId = group.project?.project_id || group.project?.id || 0;
+    const page = this.getContainerPage(pId);
+    const pageSize = this.getContainerPageSize(pId);
+    const start = (page - 1) * pageSize;
+    return group.prospects.slice(start, start + pageSize);
+  }
+
+  getTotalContainerPages(group: any): number {
+    if (!group || !group.prospects) return 1;
+    const pId = group.project?.project_id || group.project?.id || 0;
+    const pageSize = this.getContainerPageSize(pId);
+    return Math.ceil(group.prospects.length / pageSize) || 1;
+  }
+
+  // --- Excel & CSV Bulk Import ---
   showImportModal = false;
   parsedCsvRows: any[] = [];
   importStats: any = null;
   importing = false;
   importError = '';
   selectedFileName = '';
+  importTargetProjectId: string = 'auto';
 
   openImportModal(): void {
     this.showImportModal = true;
@@ -472,6 +1302,7 @@ export class BuyerListComponent implements OnInit {
     this.importStats = null;
     this.importError = '';
     this.selectedFileName = '';
+    this.importTargetProjectId = 'auto';
   }
 
   closeImportModal(): void {
@@ -480,6 +1311,7 @@ export class BuyerListComponent implements OnInit {
     this.importStats = null;
     this.importError = '';
     this.selectedFileName = '';
+    this.importTargetProjectId = 'auto';
   }
 
   downloadTemplate(): void {
@@ -490,7 +1322,7 @@ export class BuyerListComponent implements OnInit {
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = res.filename || 'contech_buyers_template.csv';
+          a.download = res.filename || 'contech_prospects_template.csv';
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
@@ -498,13 +1330,16 @@ export class BuyerListComponent implements OnInit {
         }
       },
       error: () => {
-        const fallback = 'full_name,phone,email,budget_min_lacs,budget_max_lacs,preferred_bhk,buying_timeframe,lead_source,financing_readiness,occupation,current_residence,workplace_location,notes\n' +
-          'Sunil Gavaskar,+91 98200 11223,sunil.g@example.com,150,220,3 BHK,<30 days,Google Ads,Pre-approved Loan,Business / Entrepreneur,Indiranagar Bengaluru,Whitefield Tech Park,Interested in east-facing tower\n';
+        const fallback =
+          'full_name,phone,email,project_name,budget_min_lacs,budget_max_lacs,preferred_bhk,buying_timeframe,lead_source,financing_readiness,occupation,current_residence,workplace_location\n' +
+          'Suresh Patil,7058533669,suresh.patil@example.com,Contech Crown Heights,150,220,3 BHK,<30 days,Property Portal,PRE_APPROVED_LOAN,Senior Architect,Indiranagar,ITPL Whitefield\n' +
+          'Meera Nambiar,7058533669,meera.n@example.com,Contech Skyline Elegance,180,260,3 BHK,<30 days,Direct Walk-in,PRE_APPROVED_LOAN,Product Director,Koramangala,Outer Ring Road\n' +
+          'Rohan Kulkarni,7058533669,rohan.k@example.com,Contech Greenfield Sanctuary,210,320,4 BHK,<15 days,Referral,PRE_APPROVED_LOAN,Tech Executive,Sarjapur Road,Bellandur\n';
         const blob = new Blob([fallback], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'contech_buyers_template.csv';
+        a.download = 'contech_prospects_template.csv';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -524,58 +1359,122 @@ export class BuyerListComponent implements OnInit {
     const reader = new FileReader();
     reader.onload = (e: any) => {
       try {
-        const text = e.target.result;
-        const lines = text.split(/\r\n|\n/).filter((l: string) => l.trim().length > 0);
-        if (lines.length < 2) {
-          this.importError = 'CSV file must have a header row and at least one data row.';
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        if (!firstSheetName) {
+          this.importError = 'No sheet found in uploaded spreadsheet.';
           return;
         }
 
-        const headers = lines[0].split(',').map((h: string) => h.trim().replace(/^"|"$/g, ''));
-        const rows: any[] = [];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const rawJson: any[] = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
 
-        for (let i = 1; i < lines.length; i++) {
-          const currentLine = lines[i].split(',').map((cell: string) => cell.trim().replace(/^"|"$/g, ''));
-          if (currentLine.length === headers.length || currentLine.length >= 2) {
-            const rowObj: any = {};
-            headers.forEach((h: string, idx: number) => {
-              rowObj[h] = currentLine[idx] || '';
-            });
-            rows.push(rowObj);
-          }
+        if (!rawJson || rawJson.length === 0) {
+          this.importError = 'The uploaded file contains no data rows.';
+          return;
         }
+
+        // Fast normalization of keys to support both lowercase_underscore and natural headers
+        const rows: any[] = rawJson.map((row) => {
+          const clean: any = {};
+          for (const key of Object.keys(row)) {
+            const trimmedVal = typeof row[key] === 'string' ? row[key].trim() : String(row[key] ?? '').trim();
+            const normalizedKey = key.trim().toLowerCase().replace(/[\s\-\.]+/g, '_');
+            clean[normalizedKey] = trimmedVal;
+            clean[key.trim()] = trimmedVal;
+          }
+          return clean;
+        });
 
         this.parsedCsvRows = rows;
       } catch (err: any) {
-        this.importError = 'Failed to parse CSV file: ' + err.message;
+        this.importError = 'Failed to parse file: ' + err.message;
       }
     };
-    reader.readAsText(file);
+    reader.readAsArrayBuffer(file);
+  }
+
+  getRowProjectName(row: any, index: number = 0): string {
+    const declared = (
+      row.project_name ||
+      row['Project Name'] ||
+      row.project ||
+      row['Project'] ||
+      row.target_project ||
+      row['Target Project'] ||
+      row.property ||
+      row['Property'] ||
+      row.site ||
+      row['Site'] ||
+      row.project_code ||
+      row['Project Code'] ||
+      row.preferred_project ||
+      ''
+    ).trim();
+
+    if (declared) {
+      const declaredLower = declared.toLowerCase();
+      const match = this.projectsList.find(p => {
+        const pNameLower = p.name.toLowerCase();
+        const pCodeLower = (p.code || '').toLowerCase();
+        return (
+          pNameLower === declaredLower ||
+          pCodeLower === declaredLower ||
+          pNameLower.includes(declaredLower) ||
+          declaredLower.includes(pNameLower) ||
+          (pCodeLower && (pCodeLower.includes(declaredLower) || declaredLower.includes(pCodeLower)))
+        );
+      });
+      return match ? match.name : declared;
+    }
+
+    if (this.importTargetProjectId && this.importTargetProjectId !== 'auto') {
+      const selectedPrj = this.projectsList.find(p => (p.project_id || p.id) == this.importTargetProjectId);
+      if (selectedPrj) return selectedPrj.name;
+    }
+
+    if (this.projectsList && this.projectsList.length > 0) {
+      return this.projectsList[index % this.projectsList.length].name;
+    }
+
+    return 'Contech Crown Heights';
+  }
+
+  getProjectsSummaryList(): { name: string; count: number }[] {
+    if (!this.importStats || !this.importStats.projects_summary) return [];
+    return Object.entries(this.importStats.projects_summary).map(([name, count]) => ({
+      name,
+      count: count as number
+    }));
   }
 
   executeImport(): void {
     if (this.parsedCsvRows.length === 0) {
-      this.importError = 'Please upload a valid CSV file with buyer rows first.';
+      this.importError = 'Please upload a valid Excel or CSV file with prospect rows first.';
       return;
     }
 
     this.importing = true;
     this.importError = '';
 
-    this.buyerService.importBuyersFromCsv(this.parsedCsvRows).subscribe({
+    this.buyerService.importBuyersFromCsv(this.parsedCsvRows, this.importTargetProjectId).subscribe({
       next: (res) => {
         this.importing = false;
         if (res.success) {
           this.importStats = res.results;
           this.loadBuyers();
-          this.showFeedback(`Import finished: ${res.results.imported_count} imported, ${res.results.duplicate_count} duplicates skipped.`);
+          const projectsCount = Object.keys(res.results.projects_summary || {}).length;
+          this.showFeedback(
+            `Import finished: ${res.results.imported_count} imported across ${projectsCount} project(s), ${res.results.duplicate_count} duplicates skipped.`
+          );
         } else {
           this.importError = res.message || 'Import failed';
         }
       },
       error: (err) => {
         this.importing = false;
-        this.importError = err.error?.message || 'Failed to import CSV';
+        this.importError = err.error?.message || 'Failed to import file';
       }
     });
   }
@@ -609,5 +1508,3 @@ export class BuyerListComponent implements OnInit {
     document.body.removeChild(link);
   }
 }
-
-

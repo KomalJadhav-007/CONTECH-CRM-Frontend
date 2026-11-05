@@ -99,26 +99,49 @@
             <mat-select [ngModel]="selectedVehicleId" (ngModelChange)="onVehicleSelect($event)" name="selectedVehicleId">
               <mat-option [value]="null">-- Select Company Vehicle --</mat-option>
               <mat-option *ngFor="let v of vehicles" [value]="v.vehicle_id || v.id">
-                {{ v.model }} &middot; {{ v.registration_number }} ({{ v.seating_capacity }} seats, {{ v.assignedDriver?.name || 'Driver on Duty' }})
+                {{ v.make_model || v.model || 'Company Vehicle' }} &middot; {{ v.registration_number }} ({{ v.seating_capacity || 4 }} seats, {{ v.vehicle_type || 'SUV' }})
               </mat-option>
+              <mat-option [value]="'custom'">+ Assign Another / Dedicated Cab (Custom Reg No.)</mat-option>
             </mat-select>
           </mat-form-field>
         </div>
 
         <div class="form-grid-2" *ngIf="bookingData.cab_required" style="margin-top: 0.5rem;">
           <mat-form-field appearance="outline" class="w-100">
-            <mat-label>DISPATCHED CAB REGISTRATION NO.</mat-label>
-            <input matInput type="text" [(ngModel)]="bookingData.cab_number" name="cab_number" placeholder="KA-01-MJ-8822" />
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="w-100">
             <mat-label>ASSIGNED DRIVER</mat-label>
-            <mat-select [(ngModel)]="bookingData.driver_id" name="driver_id">
+            <mat-select [(ngModel)]="bookingData.driver_id" (selectionChange)="onDriverSelect($event.value)" name="driver_id">
               <mat-option *ngFor="let d of drivers" [value]="d.user_id || d.id">
                 {{ d.name }}
               </mat-option>
             </mat-select>
           </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>DISPATCHED CAB REGISTRATION NO.</mat-label>
+            <input
+              matInput
+              type="text"
+              [(ngModel)]="bookingData.cab_number"
+              (ngModelChange)="onCabNumberChange($event)"
+              name="cab_number"
+              placeholder="e.g. KA-01-MJ-8822"
+              class="font-mono text-uppercase"
+            />
+            <mat-hint>Assign any company fleet car or alternate vehicle to this driver</mat-hint>
+          </mat-form-field>
+        </div>
+
+        <div class="fleet-assignment-status" *ngIf="bookingData.cab_required">
+          <mat-icon class="fleet-status-icon">directions_car</mat-icon>
+          <div class="fleet-status-text">
+            <span>
+              Assigned Driver: <strong>{{ getSelectedDriverName() }}</strong> &bull;
+              Dispatched Cab: <strong class="font-mono">{{ bookingData.cab_number || 'No Vehicle Assigned' }}</strong>
+            </span>
+            <span class="fleet-reassign-hint">
+              You can pair any vehicle from the fleet or enter another vehicle registration number for this driver.
+            </span>
+          </div>
         </div>
 
         <div class="form-field full-width" *ngIf="bookingData.cab_required" style="margin-top: 0.5rem;">
@@ -132,6 +155,28 @@
               placeholder="Customer Residence / Office"
             />
           </mat-form-field>
+        </div>
+
+        <!-- Automated WhatsApp Notification to Driver Card -->
+        <div class="whatsapp-dispatch-card" *ngIf="bookingData.cab_required && bookingData.driver_id">
+          <div class="wa-header">
+            <div class="wa-icon-box">
+              <mat-icon>chat</mat-icon>
+            </div>
+            <div class="wa-title-block">
+              <div class="wa-title-row">
+                <span class="wa-title">Automated WhatsApp Notification to Driver</span>
+                <span class="wa-badge">FREE API</span>
+              </div>
+              <p class="wa-desc">
+                When booked, the assigned driver (<strong>{{ getSelectedDriverName() }}</strong>) automatically receives a WhatsApp dispatch message with client name, pickup location, client contact number, scheduled slot, and cab registration.
+              </p>
+            </div>
+          </div>
+          <div class="wa-preview-pill">
+            <mat-icon class="preview-icon">contact_phone</mat-icon>
+            <span>Passenger: <strong>{{ getSelectedBuyerName() }}</strong> ({{ getSelectedBuyerPhone() }}) &bull; Pickup: <strong>{{ bookingData.pickup_address || 'Customer Residence' }}</strong></span>
+          </div>
         </div>
 
         <div class="form-field full-width" style="margin-top: 0.5rem;">
@@ -152,8 +197,8 @@
       <div class="form-footer">
         <a mat-button routerLink="/visits">Cancel</a>
         <button mat-flat-button color="primary" type="submit" [disabled]="loading">
-          <span *ngIf="!loading">Confirm Booking &amp; Trigger 4-Way Verification &rarr;</span>
-          <span *ngIf="loading">Scheduling...</span>
+          <span *ngIf="!loading">Confirm Booking &amp; Dispatch Driver &rarr;</span>
+          <span *ngIf="loading">Scheduling &amp; Dispatching WhatsApp...</span>
         </button>
       </div>
     </form>

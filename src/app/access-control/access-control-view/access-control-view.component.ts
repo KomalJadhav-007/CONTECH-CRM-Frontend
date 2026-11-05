@@ -79,6 +79,19 @@ export class AccessControlViewComponent implements OnInit {
   selectedCategory = 'ALL';
   categories = ['ALL', 'Intelligence', 'Pipeline', 'Site Visit Ops', 'Administration'];
 
+  // Pagination for Permission Matrix Modules
+  currentPage = 1;
+  pageSize = 8;
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredModules.length / this.pageSize));
+  }
+
+  get pagedModules(): string[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredModules.slice(start, start + this.pageSize);
+  }
+
   notificationMessage = '';
   notificationType: 'info' | 'success' | 'warn' = 'info';
   isSaving = false;
@@ -192,6 +205,7 @@ export class AccessControlViewComponent implements OnInit {
 
   selectRole(role: string): void {
     this.selectedRole = role;
+    this.currentPage = 1;
     this.onRoleChange();
   }
 

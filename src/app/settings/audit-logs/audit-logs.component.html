@@ -11,7 +11,7 @@
     </div>
     <div class="header-actions">
       <button mat-stroked-button type="button" (click)="refreshCurrentTab()">
-        <mat-icon>refresh</mat-icon> Refresh
+        Refresh
       </button>
     </div>
   </div>
@@ -25,7 +25,7 @@
       [class.active]="activeTab === 'AUDIT_LOGS'"
       (click)="activeTab = 'AUDIT_LOGS'"
     >
-      💾 Security &amp; Activity Audit Trail ({{ logs.length }})
+      Security &amp; Activity Audit Trail ({{ logs.length }})
     </button>
     <button
       mat-button
@@ -34,7 +34,7 @@
       [class.active]="activeTab === 'IN_APP_ALERTS'"
       (click)="activeTab = 'IN_APP_ALERTS'; loadAlerts()"
     >
-      🔔 In-App Leakage Alerts ({{ alerts.length }})
+      In-App Leakage Alerts ({{ alerts.length }})
       <span *ngIf="unackAlertsCount > 0" class="badge-pill">{{ unackAlertsCount }}</span>
     </button>
   </div>
@@ -112,7 +112,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let log of filteredLogs">
+            <tr *ngFor="let log of pagedLogs">
               <td class="time-cell">
                 {{ log.created_at | date:'medium' }}
               </td>
@@ -134,6 +134,43 @@
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Table Footer with Pagination & Summary -->
+      <div class="table-footer-bar" *ngIf="filteredLogs.length > 0">
+        <div class="footer-summary">
+          <span>Showing <strong>{{ pagedLogs.length }}</strong> of <strong>{{ filteredLogs.length }}</strong> entries</span>
+        </div>
+
+        <div class="footer-controls">
+          <div class="page-size-selector">
+            <label>Rows per page:</label>
+            <select [(ngModel)]="pageSize" (change)="currentPage = 1" class="page-size-dropdown">
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="25">25</option>
+              <option [value]="50">50</option>
+            </select>
+          </div>
+
+          <div class="page-navigator">
+            <button
+              type="button"
+              [disabled]="currentPage === 1"
+              (click)="currentPage = currentPage - 1"
+              class="page-nav-btn"
+              aria-label="Previous page"
+            >&lsaquo;</button>
+            <span class="page-current-info">Page {{ currentPage }} of {{ totalPages || 1 }}</span>
+            <button
+              type="button"
+              [disabled]="currentPage >= totalPages"
+              (click)="currentPage = currentPage + 1"
+              class="page-nav-btn"
+              aria-label="Next page"
+            >&rsaquo;</button>
+          </div>
+        </div>
       </div>
     </mat-card>
 
@@ -188,7 +225,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let alert of alerts">
+            <tr *ngFor="let alert of pagedAlerts">
               <td class="time-cell">{{ alert.created_at | date:'short' }}</td>
               <td>
                 <span class="severity-tag" [ngClass]="alert.severity === 'CRITICAL' ? 'crit' : 'warn'">
@@ -213,7 +250,7 @@
                   (click)="ackAlert(alert)"
                   style="margin-right: 0.5rem;"
                 >
-                  ✓ Acknowledge
+                  Acknowledge
                 </button>
                 <button
                   mat-flat-button
@@ -227,6 +264,43 @@
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Table Footer with Pagination & Summary for Alerts -->
+      <div class="table-footer-bar" *ngIf="alerts.length > 0">
+        <div class="footer-summary">
+          <span>Showing <strong>{{ pagedAlerts.length }}</strong> of <strong>{{ alerts.length }}</strong> alerts</span>
+        </div>
+
+        <div class="footer-controls">
+          <div class="page-size-selector">
+            <label>Rows per page:</label>
+            <select [(ngModel)]="alertPageSize" (change)="alertCurrentPage = 1" class="page-size-dropdown">
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="25">25</option>
+              <option [value]="50">50</option>
+            </select>
+          </div>
+
+          <div class="page-navigator">
+            <button
+              type="button"
+              [disabled]="alertCurrentPage === 1"
+              (click)="alertCurrentPage = alertCurrentPage - 1"
+              class="page-nav-btn"
+              aria-label="Previous page"
+            >&lsaquo;</button>
+            <span class="page-current-info">Page {{ alertCurrentPage }} of {{ totalAlertPages || 1 }}</span>
+            <button
+              type="button"
+              [disabled]="alertCurrentPage >= totalAlertPages"
+              (click)="alertCurrentPage = alertCurrentPage + 1"
+              class="page-nav-btn"
+              aria-label="Next page"
+            >&rsaquo;</button>
+          </div>
+        </div>
       </div>
     </mat-card>
 

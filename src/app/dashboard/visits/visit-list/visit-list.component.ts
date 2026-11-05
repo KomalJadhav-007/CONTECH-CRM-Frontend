@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute } from '@angular/router';
 import { VisitService } from '../visit.service';
 
 import { MatCardModule } from '@angular/material/card';
@@ -38,13 +38,66 @@ import { MatInputModule } from '@angular/material/input';
 })
 export class VisitListComponent implements OnInit {
   private visitService = inject(VisitService);
+  private route = inject(ActivatedRoute);
 
   loading = true;
   visits: any[] = [];
   filterStatus = '';
+  feedbackMessage = '';
+  lastWaUrl = '';
+
+  // Pagination & Search State
+  currentPage = 1;
+  pageSize = 10;
+  searchQuery = '';
+
+  get filteredVisits(): any[] {
+    let list = this.visits;
+    if (this.filterStatus) {
+      if (this.filterStatus === 'CANCELLED') {
+        list = list.filter((v: any) => v.status === 'CANCELLED' || v.status === 'NO_SHOW');
+      } else {
+        list = list.filter((v: any) => v.status === this.filterStatus);
+      }
+    }
+    if (this.searchQuery && this.searchQuery.trim()) {
+      const q = this.searchQuery.toLowerCase().trim();
+      list = list.filter((v: any) => {
+        const name = (v.buyer?.full_name || '').toLowerCase();
+        const project = (v.project?.name || '').toLowerCase();
+        const rep = (v.salesRep?.name || '').toLowerCase();
+        const driver = (v.driver?.name || v.cab_number || '').toLowerCase();
+        return name.includes(q) || project.includes(q) || rep.includes(q) || driver.includes(q);
+      });
+    }
+    return list;
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.filteredVisits.length / this.pageSize) || 1;
+  }
+
+  get pagedVisits(): any[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredVisits.slice(start, start + this.pageSize);
+  }
+
+  setFilterStatus(status: string): void {
+    this.filterStatus = status;
+    this.currentPage = 1;
+    this.loadVisits();
+  }
 
   ngOnInit(): void {
     this.loadVisits();
+    const waSent = this.route.snapshot.queryParamMap.get('whatsapp_sent');
+    const driver = this.route.snapshot.queryParamMap.get('driver') || 'assigned driver';
+    const waUrlParam = this.route.snapshot.queryParamMap.get('wa_url');
+    if (waSent === 'true') {
+      this.lastWaUrl = waUrlParam ? decodeURIComponent(waUrlParam) : '';
+      this.feedbackMessage = `✓ Site visit confirmed! WhatsApp dispatch notification sent to driver ${driver} (7058533669).`;
+      setTimeout(() => this.feedbackMessage = '', 9000);
+    }
   }
 
   loadVisits(): void {
@@ -79,27 +132,84 @@ export class VisitListComponent implements OnInit {
     });
   }
 
-  // SOW Sec 12: Cancellation & No-Show Recovery Modal State
+  // Site Visit Management Modal: Reschedule vs Permanent Cancellation
   showCancelModal = false;
   selectedVisitForCancel: any = null;
-  cancelForm: any = {
-    status: 'CANCELLED',
-    reason: 'Buyer requested reschedule due to urgent work conflict',
-    notes: 'Attempt recovery call within 2 hours to offer priority Saturday slot.'
+  todayDateStr: string = new Date().toISOString().slice(0, 10);
+  manageForm: {
+    decision: 'RESCHEDULE' | 'CANCEL';
+    new_date: string;
+    new_time_slot: string;
+    cancel_type: 'CANCELLED' | 'NO_SHOW';
+    reschedule_reason: string;
+    cancel_reason: string;
+    notes: string;
+  } = {
+    decision: 'RESCHEDULE',
+    new_date: '',
+    new_time_slot: '02:00 PM - 03:30 PM (Afternoon Slot)',
+    cancel_type: 'CANCELLED',
+    reschedule_reason: 'Buyer requested reschedule due to work conflict',
+    cancel_reason: 'Buyer lost interest / dropped inquiry',
+    notes: ''
   };
   cancelling = false;
   cancelError = '';
-  feedbackMessage = '';
+  waSendingId: number | null = null;
 
-  openCancelModal(visit: any, isNoShow: boolean = false): void {
+  setDecision(decision: 'RESCHEDULE' | 'CANCEL'): void {
+    this.manageForm.decision = decision;
+    if (decision === 'RESCHEDULE' && !this.manageForm.reschedule_reason) {
+      this.manageForm.reschedule_reason = 'Buyer requested reschedule due to work conflict';
+    } else if (decision === 'CANCEL' && !this.manageForm.cancel_reason) {
+      this.manageForm.cancel_reason = 'Buyer lost interest / dropped inquiry';
+    }
+  }
+
+  sendDriverWhatsApp(visit: any): void {
+    const vId = visit.site_visit_id || visit.id;
+    this.waSendingId = vId;
+    this.visitService.notifyDriverWhatsApp(vId).subscribe({
+      next: (res) => {
+        this.waSendingId = null;
+        if (res.success && res.whatsapp_dispatch?.whatsapp_url) {
+          window.open(res.whatsapp_dispatch.whatsapp_url, '_blank');
+          this.feedbackMessage = `WhatsApp notification generated for driver ${visit.driver?.name || ''}!`;
+          setTimeout(() => this.feedbackMessage = '', 4000);
+        }
+      },
+      error: () => {
+        this.waSendingId = null;
+        const driverPhone = String(visit.driver?.phone || '7058533669').replace(/\D/g, '');
+        const clean = driverPhone.length === 10 ? '91' + driverPhone : driverPhone;
+        const msg = `🚗 CONTECH CRM - TRIP ASSIGNMENT\nPassenger: ${visit.buyer?.full_name || 'Client'}\nContact: ${visit.buyer?.phone || '7058533669'}\nPickup: ${visit.pickup_address || 'Customer Residence'}\nSite: ${visit.project?.name || 'Project Site'}\nDate: ${visit.scheduled_date} (${visit.time_slot})\nCab: ${visit.cab_number || 'KA-01-MJ-8822'}`;
+        window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`, '_blank');
+      }
+    });
+  }
+
+  openManageModal(visit: any, defaultDecision: 'RESCHEDULE' | 'CANCEL' = 'RESCHEDULE', isNoShow: boolean = false): void {
     this.selectedVisitForCancel = visit;
     this.showCancelModal = true;
     this.cancelError = '';
-    this.cancelForm = {
-      status: isNoShow ? 'NO_SHOW' : 'CANCELLED',
-      reason: isNoShow ? 'Buyer did not arrive at pickup point / unresponsive' : 'Buyer requested reschedule due to work conflict',
-      notes: isNoShow ? 'Trigger immediate 30-minute recovery SLA follow-up task.' : 'Trigger 2-hour recovery SLA follow-up task.'
+
+    const nextDate = new Date();
+    nextDate.setDate(nextDate.getDate() + 1);
+    const defaultDateStr = nextDate.toISOString().slice(0, 10);
+
+    this.manageForm = {
+      decision: isNoShow ? 'CANCEL' : defaultDecision,
+      new_date: visit.scheduled_date || defaultDateStr,
+      new_time_slot: visit.time_slot || '02:00 PM - 03:30 PM (Afternoon Slot)',
+      cancel_type: isNoShow ? 'NO_SHOW' : 'CANCELLED',
+      reschedule_reason: 'Buyer requested reschedule due to work conflict',
+      cancel_reason: isNoShow ? 'Buyer unresponsive at scheduled pickup time' : 'Buyer lost interest / dropped inquiry',
+      notes: ''
     };
+  }
+
+  openCancelModal(visit: any, isNoShow: boolean = false): void {
+    this.openManageModal(visit, 'CANCEL', isNoShow);
   }
 
   closeCancelModal(): void {
@@ -107,29 +217,51 @@ export class VisitListComponent implements OnInit {
     this.selectedVisitForCancel = null;
   }
 
-  submitCancellationRecovery(): void {
+  submitManageVisit(): void {
     if (!this.selectedVisitForCancel) return;
     this.cancelling = true;
     this.cancelError = '';
 
     const visitId = this.selectedVisitForCancel.site_visit_id || this.selectedVisitForCancel.id;
-    const payload = {
-      status: this.cancelForm.status,
-      reason: this.cancelForm.reason,
-      notes: this.cancelForm.notes
-    };
+
+    let payload: any = {};
+    if (this.manageForm.decision === 'RESCHEDULE') {
+      if (!this.manageForm.new_date || !this.manageForm.new_time_slot) {
+        this.cancelling = false;
+        this.cancelError = 'Please select both a new scheduled date and time slot for the reschedule.';
+        return;
+      }
+      payload = {
+        decision: 'RESCHEDULE',
+        status: 'SCHEDULED',
+        scheduled_date: this.manageForm.new_date,
+        time_slot: this.manageForm.new_time_slot,
+        reason: this.manageForm.reschedule_reason || 'Buyer requested reschedule due to work conflict',
+        notes: this.manageForm.notes
+      };
+    } else {
+      payload = {
+        decision: 'CANCEL',
+        status: this.manageForm.cancel_type,
+        reason: this.manageForm.cancel_reason || 'Buyer cancelled visit',
+        notes: this.manageForm.notes
+      };
+    }
 
     this.visitService.updateSiteVisit(visitId, payload).subscribe({
       next: (res) => {
         this.cancelling = false;
         if (res.success) {
-          this.selectedVisitForCancel.status = this.cancelForm.status;
-          this.feedbackMessage = `Visit #${visitId} marked as ${this.cancelForm.status}. Recovery SLA task initiated!`;
+          if (this.manageForm.decision === 'RESCHEDULE') {
+            this.feedbackMessage = `Visit #${visitId} successfully rescheduled to ${this.manageForm.new_date} (${this.manageForm.new_time_slot})! Driver updated via WhatsApp.`;
+          } else {
+            this.feedbackMessage = `Visit #${visitId} marked as ${this.manageForm.cancel_type}. Recovery SLA initiated!`;
+          }
           this.closeCancelModal();
           this.loadVisits();
-          setTimeout(() => this.feedbackMessage = '', 4000);
+          setTimeout(() => this.feedbackMessage = '', 4500);
         } else {
-          this.cancelError = res.message || 'Failed to update visit status';
+          this.cancelError = res.message || 'Failed to update visit';
         }
       },
       error: (err) => {
@@ -137,6 +269,10 @@ export class VisitListComponent implements OnInit {
         this.cancelError = err.error?.message || 'Failed to update visit';
       }
     });
+  }
+
+  submitCancellationRecovery(): void {
+    this.submitManageVisit();
   }
 }
 

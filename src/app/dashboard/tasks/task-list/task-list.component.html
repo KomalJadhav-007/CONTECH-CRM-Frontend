@@ -9,6 +9,9 @@
       </p>
     </div>
     <div class="top-actions">
+      <button mat-flat-button color="primary" type="button" class="btn-create-followup" (click)="openCreateModal()">
+        <mat-icon>add_alarm</mat-icon> Schedule Follow-up
+      </button>
       <button mat-stroked-button type="button" (click)="loadTasks()">
         <mat-icon>refresh</mat-icon> Refresh Tasks
       </button>
@@ -21,35 +24,52 @@
     {{ feedbackMessage }}
   </div>
 
-  <!-- Filter Bar -->
+  <!-- Filter & Search Toolbar - Space Optimized -->
   <div class="filters-bar">
-    <button
-      mat-stroked-button
-      type="button"
-      class="filter-tab"
-      [class.active]="filterStatus === 'PENDING'"
-      (click)="filterStatus = 'PENDING'; loadTasks()"
-    >
-      Pending SLAs
-    </button>
-    <button
-      mat-stroked-button
-      type="button"
-      class="filter-tab"
-      [class.active]="filterStatus === 'COMPLETED'"
-      (click)="filterStatus = 'COMPLETED'; loadTasks()"
-    >
-      Completed
-    </button>
-    <button
-      mat-stroked-button
-      type="button"
-      class="filter-tab"
-      [class.active]="filterStatus === ''"
-      (click)="filterStatus = ''; loadTasks()"
-    >
-      All Tasks
-    </button>
+    <div class="filter-pills-group">
+      <button
+        type="button"
+        class="filter-pill"
+        [class.active]="filterStatus === 'PENDING'"
+        (click)="setFilterStatus('PENDING')"
+      >
+        <span>Pending SLAs</span>
+        <span class="pill-count" *ngIf="pendingCount > 0">{{ pendingCount }}</span>
+      </button>
+      <button
+        type="button"
+        class="filter-pill"
+        [class.active]="filterStatus === 'COMPLETED'"
+        (click)="setFilterStatus('COMPLETED')"
+      >
+        <span>Completed</span>
+        <span class="pill-count" *ngIf="completedCount > 0">{{ completedCount }}</span>
+      </button>
+      <button
+        type="button"
+        class="filter-pill"
+        [class.active]="filterStatus === ''"
+        (click)="setFilterStatus('')"
+      >
+        <span>All Tasks</span>
+        <span class="pill-count">{{ totalCount }}</span>
+      </button>
+    </div>
+
+    <!-- Search Input -->
+    <div class="search-input-box">
+      <mat-icon class="search-box-icon">search</mat-icon>
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="currentPage = 1"
+        placeholder="Search task, buyer, rep..."
+        class="search-text-input"
+      />
+      <button *ngIf="searchQuery" type="button" class="search-clear-btn" (click)="searchQuery = ''; currentPage = 1" title="Clear search">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
   </div>
 
   <!-- Table Card -->
@@ -59,34 +79,49 @@
       <table class="prospects-table">
         <thead>
           <tr>
-            <th>TASK &amp; FOLLOW-UP REQUIREMENT</th>
-            <th>BUYER CONTEXT</th>
-            <th>COUNTDOWN SLA</th>
-            <th>PRIORITY</th>
-            <th>ASSIGNED REP</th>
-            <th>STATUS</th>
-            <th class="text-right">ACTIONS</th>
+            <th class="col-task">TASK &amp; FOLLOW-UP REQUIREMENT</th>
+            <th class="col-buyer">BUYER CONTEXT</th>
+            <th class="col-sla">COUNTDOWN SLA</th>
+            <th class="col-priority">PRIORITY</th>
+            <th class="col-rep">ASSIGNED REP</th>
+            <th class="col-status">STATUS</th>
+            <th class="col-actions text-right">ACTIONS</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let task of tasks">
-            <td>
+          <tr *ngFor="let task of pagedTasks">
+            <td class="col-task">
               <div class="task-title">{{ task.title }}</div>
-              <div class="task-desc">{{ task.description }}</div>
+              <div class="task-desc" *ngIf="task.description">{{ task.description }}</div>
             </td>
-            <td>
-              <div class="buyer-name" *ngIf="task.buyer">
-                <a [routerLink]="['/buyers', task.buyer_id]" class="buyer-link">{{ task.buyer.full_name }}</a>
+            <td class="col-buyer">
+              <div class="buyer-cell">
+                <div class="buyer-header-row">
+                  <a *ngIf="task.buyer" [routerLink]="['/buyers', task.buyer_id]" class="buyer-link">
+                    {{ task.buyer.full_name }}
+                  </a>
+                  <span *ngIf="!task.buyer" class="buyer-general">General Prospect</span>
+                  <span
+                    *ngIf="task.buyer && task.buyer.intent_score !== undefined && task.buyer.intent_score !== null"
+                    class="intent-micro-pill"
+                    [ngClass]="getIntentBadgeClass(task.buyer.intent_score)"
+                    matTooltip="Buyer Intent Score &amp; Delta"
+                  >
+                    {{ task.buyer.intent_score }} {{ (task.buyer.intent_delta !== undefined ? task.buyer.intent_delta : 5) >= 0 ? '▲' : '▼' }} {{ (task.buyer.intent_delta !== undefined ? task.buyer.intent_delta : 5) >= 0 ? (task.buyer.intent_delta !== undefined ? task.buyer.intent_delta : 5) : -(task.buyer.intent_delta) }}
+                  </span>
+                </div>
+                <div class="buyer-contact" *ngIf="task.buyer">
+                  {{ task.buyer.preferred_bhk || 'Flexible BHK' }} &middot; Max ₹{{ task.buyer.budget_max_lacs || '150' }}L
+                </div>
               </div>
-              <div class="buyer-contact">{{ task.buyer?.preferred_bhk }} &middot; Max ₹{{ task.buyer?.budget_max_lacs }}L</div>
             </td>
-            <td>
+            <td class="col-sla">
               <div *ngIf="task.status === 'PENDING'">
                 <div *ngIf="!task.is_overdue" class="countdown-tag countdown-active">
-                  ⏳ {{ task.hours_remaining }}h Remaining
+                  {{ task.hours_remaining }}h Remaining
                 </div>
                 <div *ngIf="task.is_overdue" class="countdown-tag countdown-overdue">
-                  🚨 OVERDUE
+                  OVERDUE
                 </div>
                 <div class="target-time">Target: {{ task.due_at | date:'shortTime' }}</div>
               </div>
@@ -94,48 +129,55 @@
                 <span class="countdown-tag countdown-completed">&#10003; Completed</span>
               </div>
             </td>
-            <td>
-              <mat-form-field appearance="outline" style="width: 120px; margin-bottom: -1.25em;">
-                <mat-select
-                  [ngModel]="task.priority"
+            <td class="col-priority">
+              <div class="priority-pill-wrapper" [ngClass]="getPriorityClass(task.priority)">
+                <select
+                  [ngModel]="task.priority || 'HIGH'"
                   (ngModelChange)="updateTaskPriority(task, $event)"
+                  class="priority-inline-select"
+                  title="Change Priority"
                 >
-                  <mat-option value="CRITICAL">CRITICAL</mat-option>
-                  <mat-option value="URGENT">URGENT</mat-option>
-                  <mat-option value="HIGH">HIGH</mat-option>
-                  <mat-option value="NORMAL">NORMAL</mat-option>
-                </mat-select>
-              </mat-form-field>
+                  <option value="CRITICAL">CRITICAL</option>
+                  <option value="URGENT">URGENT</option>
+                  <option value="HIGH">HIGH</option>
+                  <option value="NORMAL">NORMAL</option>
+                </select>
+                <mat-icon class="priority-arrow">arrow_drop_down</mat-icon>
+              </div>
             </td>
-            <td>
+            <td class="col-rep">
               <span class="rep-name" [class.unassigned]="!task.assignedUser?.name || task.assignedUser?.name === 'Unassigned'">
                 {{ task.assignedUser?.name || 'Unassigned' }}
               </span>
             </td>
-            <td>
+            <td class="col-status">
               <span class="stage-badge" [ngClass]="task.status === 'COMPLETED' ? 'stage-completed' : 'stage-pending'">
-                {{ task.status }}
+                {{ task.status || 'PENDING' }}
               </span>
             </td>
-            <td class="text-right actions-cell">
-              <div style="display: inline-flex; align-items: center; gap: 0.5rem;">
+            <td class="col-actions text-right">
+              <div class="actions-wrapper">
                 <button
                   *ngIf="task.status === 'PENDING'"
-                  mat-flat-button
-                  color="primary"
                   type="button"
+                  class="btn-take-action-pro"
                   (click)="completeTask(task)"
+                  matTooltip="Execute follow-up call/meeting &amp; record outcome"
                 >
-                  Done &#10003;
+                  <mat-icon class="btn-action-icon">bolt</mat-icon>
+                  <span>Take Action</span>
                 </button>
+                <div *ngIf="task.status === 'COMPLETED'" class="completed-action-info">
+                  <span class="outcome-badge" *ngIf="task.outcome_status">{{ task.outcome_status }}</span>
+                  <span class="outcome-badge-done" *ngIf="!task.outcome_status">Action Taken &#10003;</span>
+                </div>
                 <button
-                  mat-icon-button
-                  color="warn"
                   type="button"
+                  class="btn-delete-task-pro"
                   (click)="deleteTask(task)"
                   matTooltip="Delete task from database"
                 >
-                  <mat-icon>delete</mat-icon>
+                  <mat-icon class="btn-delete-icon">delete_outline</mat-icon>
                 </button>
               </div>
             </td>
@@ -149,5 +191,321 @@
         </tbody>
       </table>
     </div>
+
+    <!-- Table Footer with Pagination & Summary -->
+    <div class="table-footer-bar" *ngIf="filteredTasks.length > 0">
+      <div class="footer-summary">
+        <span>Showing <strong>{{ pagedTasks.length }}</strong> of <strong>{{ filteredTasks.length }}</strong> tasks</span>
+      </div>
+
+      <div class="footer-controls">
+        <div class="page-size-selector">
+          <label>Rows per page:</label>
+          <select [(ngModel)]="pageSize" (change)="currentPage = 1" class="page-size-dropdown">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+          </select>
+        </div>
+
+        <div class="page-navigator">
+          <button
+            type="button"
+            [disabled]="currentPage === 1"
+            (click)="currentPage = currentPage - 1"
+            class="page-nav-btn"
+            aria-label="Previous page"
+          >&lsaquo;</button>
+          <span class="page-current-info">Page {{ currentPage }} of {{ totalPages || 1 }}</span>
+          <button
+            type="button"
+            [disabled]="currentPage >= totalPages"
+            (click)="currentPage = currentPage + 1"
+            class="page-nav-btn"
+            aria-label="Next page"
+          >&rsaquo;</button>
+        </div>
+      </div>
+    </div>
   </mat-card>
+
+  <!-- Modal: Take Action & Record Follow-up Outcome -->
+  <div class="modal-backdrop" *ngIf="completeTaskModalOpen" (click)="closeCompleteModal()">
+    <div class="modal-dialog-material" (click)="$event.stopPropagation()">
+      <div class="modal-header-material">
+        <div>
+          <div class="modal-pretitle">EXECUTION &middot; OUTCOME LOG</div>
+          <h2 class="modal-title-material">Take Action &amp; Record Follow-up Outcome</h2>
+          <p class="modal-subtitle-material">
+            Record interaction outcome for <strong>{{ selectedTaskForCompletion?.buyer?.full_name || 'Prospect' }}</strong> and assess updated buyer intent score.
+          </p>
+        </div>
+        <button mat-icon-button type="button" class="close-x-material" (click)="closeCompleteModal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="modal-body-material">
+        <!-- Task context card -->
+        <div class="task-context-box">
+          <div class="context-label">SCHEDULED AGENDA &amp; CONTEXT</div>
+          <div class="context-title">{{ selectedTaskForCompletion?.title }}</div>
+          <div class="context-desc" *ngIf="selectedTaskForCompletion?.description">{{ selectedTaskForCompletion?.description }}</div>
+          <div class="context-meta-row">
+            <span>Assigned: <strong>{{ selectedTaskForCompletion?.assignedUser?.name || 'Assigned Rep' }}</strong></span>
+            <span>Target SLA: <strong>{{ selectedTaskForCompletion?.due_at | date:'short' }}</strong></span>
+          </div>
+        </div>
+
+        <!-- Row: Action Channel & Outcome Status -->
+        <div class="form-row-2">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Action Channel Executed *</mat-label>
+            <mat-select [(ngModel)]="action_channel">
+              <mat-option value="Phone Call Completed">Phone Strategy Call Completed</mat-option>
+              <mat-option value="WhatsApp Conversation">WhatsApp Conversation Completed</mat-option>
+              <mat-option value="Sales Gallery In-Person Meeting">Sales Gallery Meeting Completed</mat-option>
+              <mat-option value="Site Visit Walkthrough">Site Visit Walkthrough Completed</mat-option>
+              <mat-option value="Pricing / Agreement Discussion">Milestone Pricing / Waiver Discussion Completed</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Follow-up Outcome Status *</mat-label>
+            <mat-select [(ngModel)]="outcome_status">
+              <mat-option value="Call Connected - High Interest">Call Connected - High Interest</mat-option>
+              <mat-option value="Site Visit Re-scheduled">Site Visit Re-scheduled</mat-option>
+              <mat-option value="Price / Budget Objection">Price / Budget Objection</mat-option>
+              <mat-option value="Location / Vaastu Objection">Location / Vaastu Objection</mat-option>
+              <mat-option value="Considering Alternative Typology">Considering Alternative Typology</mat-option>
+              <mat-option value="Ready for Booking Negotiation">Ready for Booking Negotiation</mat-option>
+              <mat-option value="Call Not Answered / Callback Later">Call Not Answered / Callback Later</mat-option>
+              <mat-option value="Cold / Dropped Interest">Cold / Dropped Interest</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Outcome Discussion Notes -->
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Follow-up Discussion Notes</mat-label>
+          <textarea
+            matInput
+            rows="3"
+            [(ngModel)]="outcome_notes"
+            placeholder="Enter key conversation points, commitments, objections discussed..."
+          ></textarea>
+        </mat-form-field>
+
+        <!-- Live Manual Intent Score Section (Assessed upon taking action) -->
+        <div class="manual-intent-panel">
+          <div class="intent-panel-header">
+            <div>
+              <div class="intent-panel-title">Buyer Intent Score (Manual Assessment After Action)</div>
+              <div class="intent-panel-sub">
+                Evaluate buyer's interest and momentum based on this interaction.
+              </div>
+            </div>
+            <!-- Live Preview -->
+            <div class="intent-preview-wrapper">
+              <span class="preview-label">Live Intent Badge:</span>
+              <div class="score-badge-exact" [ngClass]="manual_intent_score >= 80 ? 'badge-high' : (manual_intent_score >= 50 ? 'badge-med' : 'badge-low')">
+                <span class="score-number">{{ manual_intent_score }}</span>
+                <span class="score-delta-symbol">{{ manual_intent_delta >= 0 ? '▲' : '▼' }}</span>
+                <span class="score-delta-val">{{ manual_intent_delta >= 0 ? manual_intent_delta : -manual_intent_delta }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Manual Intent Score (0 - 100)</mat-label>
+              <input matInput type="number" min="0" max="100" [(ngModel)]="manual_intent_score" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Intent Delta Score (±)</mat-label>
+              <input matInput type="number" [(ngModel)]="manual_intent_delta" placeholder="+5" />
+            </mat-form-field>
+          </div>
+
+          <!-- Quick Presets -->
+          <div class="intent-presets-row">
+            <span class="preset-label">Quick Presets:</span>
+            <button type="button" class="preset-btn" (click)="setManualIntentPreset(95, 5)">95 (Very High ▲ 5)</button>
+            <button type="button" class="preset-btn" (click)="setManualIntentPreset(90, 4)">90 (High ▲ 4)</button>
+            <button type="button" class="preset-btn" (click)="setManualIntentPreset(75, 2)">75 (Warm ▲ 2)</button>
+            <button type="button" class="preset-btn" (click)="setManualIntentPreset(60, 0)">60 (Neutral)</button>
+            <button type="button" class="preset-btn" (click)="setManualIntentPreset(40, -5)">40 (Cooling ▼ 5)</button>
+          </div>
+        </div>
+
+        <!-- Multiple Follow-ups: Chain Next Follow-up -->
+        <div class="next-followup-panel">
+          <mat-checkbox [(ngModel)]="schedule_next_follow_up" color="primary">
+            <strong>Schedule Next Follow-up</strong> for this prospect (Chain Multiple Follow-ups)
+          </mat-checkbox>
+
+          <div *ngIf="schedule_next_follow_up" class="next-followup-fields">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Next Follow-up Task Title</mat-label>
+              <input matInput type="text" [(ngModel)]="next_follow_up_title" placeholder="e.g. Follow-up proposal review call" />
+            </mat-form-field>
+
+            <div class="form-row-2">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Next Due Date &amp; Time</mat-label>
+                <input matInput type="datetime-local" [(ngModel)]="next_follow_up_date" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Priority</mat-label>
+                <mat-select [(ngModel)]="next_follow_up_priority">
+                  <mat-option value="CRITICAL">CRITICAL</mat-option>
+                  <mat-option value="URGENT">URGENT</mat-option>
+                  <mat-option value="HIGH">HIGH</mat-option>
+                  <mat-option value="NORMAL">NORMAL</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer-material">
+        <button mat-stroked-button type="button" (click)="closeCompleteModal()" [disabled]="completingTask">Cancel</button>
+        <button mat-flat-button color="primary" type="button" (click)="submitTaskCompletion()" [disabled]="completingTask">
+          <mat-icon>check_circle</mat-icon> {{ completingTask ? 'Saving...' : 'Save Outcome & Complete Follow-up' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Schedule Follow-up for Prospect -->
+  <div class="modal-backdrop" *ngIf="createTaskModalOpen" (click)="closeCreateModal()">
+    <div class="modal-dialog-material" (click)="$event.stopPropagation()">
+      <div class="modal-header-material">
+        <div>
+          <div class="modal-pretitle">PLANNING &middot; SLA TIMERS</div>
+          <h2 class="modal-title-material">+ Schedule Follow-up for Prospect</h2>
+          <p class="modal-subtitle-material">
+            Schedule an upcoming follow-up touchpoint with countdown SLA and assigned sales executive.
+          </p>
+        </div>
+        <button mat-icon-button type="button" class="close-x-material" (click)="closeCreateModal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="modal-body-material">
+        <!-- Workflow Concept Banner -->
+        <div class="workflow-info-notice">
+          <mat-icon style="font-size: 20px; width: 20px; height: 20px; color: #2563eb; flex-shrink: 0;">info</mat-icon>
+          <span><strong>Workflow Concept:</strong> First schedule the follow-up task with an SLA timer. Once action is taken (call/meeting), log the interaction outcome and update the buyer's intent score.</span>
+        </div>
+
+        <!-- Row: Prospect Selector & Follow-up Channel -->
+        <div class="form-row-2">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Select Prospect / Buyer *</mat-label>
+            <mat-select [(ngModel)]="createForm.buyer_id" (selectionChange)="onBuyerSelectChange()">
+              <mat-option [value]="null" disabled>-- Choose a prospect --</mat-option>
+              <mat-option *ngFor="let b of prospectsList" [value]="b.buyer_id || b.id">
+                {{ b.full_name }} &bull; {{ b.preferred_bhk }} (Max ₹{{ b.budget_max_lacs }}L) &bull; Intent: {{ b.intent_score || 95 }}/100
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Follow-up Type / Channel *</mat-label>
+            <mat-select [(ngModel)]="createForm.follow_up_type" (selectionChange)="onFollowUpTypeChange()">
+              <mat-option value="Phone Call">Phone Strategy Call</mat-option>
+              <mat-option value="WhatsApp">WhatsApp Interaction</mat-option>
+              <mat-option value="Site Visit Walkthrough">Site Visit Walkthrough Coordination</mat-option>
+              <mat-option value="In-Person Meeting">Sales Gallery In-Person Meeting</mat-option>
+              <mat-option value="Pricing & Negotiation">Milestone Pricing &amp; Payment Plan Waiver</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Selected Prospect Context Card -->
+        <div class="selected-prospect-banner" *ngIf="getSelectedBuyer() as buyer">
+          <div style="font-weight: 700; color: #0f172a; font-size: 0.92rem;">{{ buyer.full_name }}</div>
+          <div class="prospect-meta-chips">
+            <span class="meta-chip">Intent: <strong>{{ buyer.intent_score || 95 }}</strong> {{ (buyer.intent_delta !== undefined ? buyer.intent_delta : 5) >= 0 ? '▲' : '▼' }} {{ buyer.intent_delta || 5 }}</span>
+            <span class="meta-chip">Stage: <strong>{{ buyer.stage || 'New' }}</strong></span>
+            <span class="meta-chip">Requirement: <strong>{{ buyer.preferred_bhk || '3 BHK' }}</strong></span>
+            <span class="meta-chip">Budget: <strong>Max ₹{{ buyer.budget_max_lacs || '225' }}L</strong></span>
+          </div>
+        </div>
+
+        <!-- Task Title -->
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Follow-up Requirement / Task Title *</mat-label>
+          <input
+            matInput
+            type="text"
+            [(ngModel)]="createForm.title"
+            placeholder="e.g. Follow-up Strategy Call with Prospect"
+          />
+        </mat-form-field>
+
+        <!-- Task Description -->
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Interaction Goals &amp; Agenda</mat-label>
+          <textarea
+            matInput
+            rows="2"
+            [(ngModel)]="createForm.description"
+            placeholder="Enter discussion agenda, customer preferences, or unit pricing clarifications..."
+          ></textarea>
+        </mat-form-field>
+
+        <!-- Priority & Assigned Rep -->
+        <div class="form-row-2">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Priority Level</mat-label>
+            <mat-select [(ngModel)]="createForm.priority">
+              <mat-option value="CRITICAL">CRITICAL</mat-option>
+              <mat-option value="URGENT">URGENT</mat-option>
+              <mat-option value="HIGH">HIGH</mat-option>
+              <mat-option value="NORMAL">NORMAL</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Assigned Sales Executive</mat-label>
+            <mat-select [(ngModel)]="createForm.assigned_to_id">
+              <mat-option [value]="null">-- Select Representative --</mat-option>
+              <mat-option *ngFor="let rep of salesRepsList" [value]="rep.user_id">
+                {{ rep.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Countdown SLA Hours & Target Deadline -->
+        <div class="sla-container">
+          <div class="sla-header-label">Countdown SLA / Scheduled Due Date</div>
+          <div class="sla-presets-row">
+            <button mat-stroked-button type="button" class="preset-btn" [class.active-sla]="createForm.countdown_hours === 1" (click)="setCreateCountdown(1)">1 Hour (Immediate)</button>
+            <button mat-stroked-button type="button" class="preset-btn" [class.active-sla]="createForm.countdown_hours === 2" (click)="setCreateCountdown(2)">2 Hours (Urgent)</button>
+            <button mat-stroked-button type="button" class="preset-btn" [class.active-sla]="createForm.countdown_hours === 4" (click)="setCreateCountdown(4)">4 Hours (Standard)</button>
+            <button mat-stroked-button type="button" class="preset-btn" [class.active-sla]="createForm.countdown_hours === 24" (click)="setCreateCountdown(24)">24 Hours (Next Day)</button>
+          </div>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Exact Target Date &amp; Time</mat-label>
+            <input matInput type="datetime-local" [(ngModel)]="createForm.due_at" />
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="modal-footer-material">
+        <button mat-stroked-button type="button" (click)="closeCreateModal()" [disabled]="creatingTask">Cancel</button>
+        <button mat-flat-button color="primary" type="button" (click)="submitCreateTask()" [disabled]="creatingTask">
+          <mat-icon>add_alarm</mat-icon> {{ creatingTask ? 'Scheduling...' : 'Schedule Follow-up' }}
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

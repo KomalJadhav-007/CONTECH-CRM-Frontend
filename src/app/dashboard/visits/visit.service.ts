@@ -34,6 +34,10 @@ export class VisitService {
     return this.http.post<any>(`${this.apiUrl}/${id}/discovery`, data);
   }
 
+  notifyDriverWhatsApp(visitId: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${visitId}/notify-driver-whatsapp`, {});
+  }
+
   getVehicles(params?: any): Observable<any> {
     return this.http.get<any>(`${environment.apiUrl}/vehicles`, { params });
   }

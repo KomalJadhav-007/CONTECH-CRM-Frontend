@@ -50,6 +50,11 @@ export const routes: Routes = [
     loadChildren: () => import('./dashboard/tasks/task.routes').then(m => m.TASK_ROUTES)
   },
   {
+    path: 'alerts',
+    canActivate: [authGuard],
+    loadComponent: () => import('./dashboard/alerts/alerts.component').then(m => m.AlertsComponent)
+  },
+  {
     path: 'projects',
     canActivate: [authGuard, roleGuard],
     data: { roles: ['DIRECTOR', 'ADMIN', 'SUPER_ADMIN', 'ORG_ADMIN', 'SALES_HEAD', 'SALES_MANAGER'] },

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { BuyerService } from '../buyer.service';
+import { TaskService } from '../../tasks/task.service';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -41,10 +42,25 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 export class BuyerDetailsComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private buyerService = inject(BuyerService);
+  private taskService = inject(TaskService);
 
   buyerId!: number;
   buyer: any = null;
   loading = true;
+
+  // Follow-up Task Modal State
+  showFollowUpModal = false;
+  savingFollowUp = false;
+  followUpForm: any = {
+    title: '',
+    description: '',
+    priority: 'HIGH',
+    countdown_hours: 4,
+    due_at: '',
+    manual_intent_score: 95,
+    manual_intent_delta: 5,
+    manual_intent_band: 'HIGH'
+  };
 
   // Booking Modal State (SOW Sec 13)
   showBookingModal = false;
@@ -86,6 +102,68 @@ export class BuyerDetailsComponent implements OnInit {
       },
       error: () => {
         this.loading = false;
+      }
+    });
+  }
+
+  openAddFollowUpModal(): void {
+    const fourHoursLater = new Date(Date.now() + 4 * 60 * 60 * 1000);
+    const curScore = this.buyer?.intent_score !== undefined ? this.buyer.intent_score : 95;
+    const curDelta = this.buyer?.intent_delta !== undefined ? this.buyer.intent_delta : 5;
+    this.followUpForm = {
+      title: `Follow-up Strategy Call with ${this.buyer?.full_name || 'Buyer'}`,
+      description: 'Discuss requirement milestones, quote pricing revisions, and schedule next site visit.',
+      priority: 'HIGH',
+      countdown_hours: 4,
+      due_at: fourHoursLater.toISOString().slice(0, 16),
+      manual_intent_score: curScore,
+      manual_intent_delta: curDelta,
+      manual_intent_band: curScore >= 80 ? 'HIGH' : (curScore >= 50 ? 'MEDIUM' : 'LOW')
+    };
+    this.showFollowUpModal = true;
+  }
+
+  closeAddFollowUpModal(): void {
+    this.showFollowUpModal = false;
+  }
+
+  setFollowUpIntentPreset(score: number, delta: number): void {
+    this.followUpForm.manual_intent_score = score;
+    this.followUpForm.manual_intent_delta = delta;
+    this.followUpForm.manual_intent_band = score >= 80 ? 'HIGH' : (score >= 50 ? 'MEDIUM' : 'LOW');
+  }
+
+  submitAddFollowUp(): void {
+    if (!this.followUpForm.title) {
+      alert('Please enter a follow-up task title');
+      return;
+    }
+
+    this.savingFollowUp = true;
+    const payload = {
+      buyer_id: this.buyer.buyer_id || this.buyer.id,
+      assigned_to_id: this.buyer.assigned_rep_id || (this.buyer.assignedRep?.user_id || 1),
+      title: this.followUpForm.title,
+      description: this.followUpForm.description,
+      priority: this.followUpForm.priority,
+      countdown_hours: this.followUpForm.countdown_hours,
+      due_at: this.followUpForm.due_at,
+      manual_intent_score: this.followUpForm.manual_intent_score,
+      manual_intent_delta: this.followUpForm.manual_intent_delta,
+      manual_intent_band: this.followUpForm.manual_intent_band
+    };
+
+    this.taskService.createTask(payload).subscribe({
+      next: (res) => {
+        this.savingFollowUp = false;
+        if (res.success) {
+          this.closeAddFollowUpModal();
+          this.loadBuyerDossier();
+        }
+      },
+      error: (err) => {
+        this.savingFollowUp = false;
+        alert('Failed to create follow-up: ' + (err.error?.message || err.message));
       }
     });
   }

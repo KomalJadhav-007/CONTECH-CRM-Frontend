@@ -104,7 +104,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let item of stats.top_revenue_leakage" class="leakage-row" [routerLink]="item.buyer_id ? ['/buyers', item.buyer_id] : ['/control-tower']" title="Click to view details">
+            <tr *ngFor="let item of pagedLeakage" class="leakage-row" [routerLink]="item.buyer_id ? ['/buyers', item.buyer_id] : ['/control-tower']" title="Click to view details">
               <td>
                 <div class="buyer-name">{{ item.buyer_name }}</div>
                 <div class="buyer-stage">{{ item.stage }}</div>
@@ -123,6 +123,42 @@
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Table Footer with Pagination & Summary -->
+      <div class="table-footer-bar" *ngIf="stats.top_revenue_leakage && stats.top_revenue_leakage.length > 0">
+        <div class="footer-summary">
+          <span>Showing <strong>{{ pagedLeakage.length }}</strong> of <strong>{{ stats.top_revenue_leakage.length }}</strong> items</span>
+        </div>
+
+        <div class="footer-controls">
+          <div class="page-size-selector">
+            <label>Rows:</label>
+            <select [(ngModel)]="leakagePageSize" (change)="leakageCurrentPage = 1" class="page-size-dropdown">
+              <option [value]="3">3</option>
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+            </select>
+          </div>
+
+          <div class="page-navigator">
+            <button
+              type="button"
+              [disabled]="leakageCurrentPage === 1"
+              (click)="leakageCurrentPage = leakageCurrentPage - 1"
+              class="page-nav-btn"
+              aria-label="Previous page"
+            >&lsaquo;</button>
+            <span class="page-current-info">Page {{ leakageCurrentPage }} of {{ totalLeakagePages || 1 }}</span>
+            <button
+              type="button"
+              [disabled]="leakageCurrentPage >= totalLeakagePages"
+              (click)="leakageCurrentPage = leakageCurrentPage + 1"
+              class="page-nav-btn"
+              aria-label="Next page"
+            >&rsaquo;</button>
+          </div>
+        </div>
       </div>
     </div>
 

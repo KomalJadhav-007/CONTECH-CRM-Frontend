@@ -1,245 +1,1550 @@
 <div class="prospects-page-wrapper">
-  <!-- Header -->
+  <!-- Loading Progress Bar -->
+  <mat-progress-bar *ngIf="loading" mode="indeterminate" class="page-progress-bar"></mat-progress-bar>
+
+  <!-- Page Header -->
   <div class="page-title-row">
-    <div>
-      <div class="section-tag">PIPELINE &middot; LEAD QUALIFICATION</div>
-      <h1 class="page-title">Prospects</h1>
+    <div class="title-left">
+      <div class="section-tag">
+        PIPELINE &middot; LEAD QUALIFICATION &amp; SCORING
+      </div>
+      <div class="title-with-badge">
+        <h1 class="page-title">Prospects</h1>
+        <span class="count-pill">{{ filteredProspects.length }} of {{ prospects.length }} Active</span>
+      </div>
       <p class="page-subtitle">
         Buyer records enriched with the Contech CRM Buyer Score, next best action and estimated revenue at risk.
       </p>
     </div>
     <div class="top-actions">
-      <button mat-stroked-button type="button" class="btn-mat-action" (click)="openImportModal()">
-        <mat-icon>upload_file</mat-icon> Import CSV
+      <button mat-stroked-button type="button" class="btn-action-stroked" (click)="openImportModal()" matTooltip="Bulk upload prospects via CSV">
+        <mat-icon>upload_file</mat-icon>
+        <span>Import CSV</span>
       </button>
-      <button mat-stroked-button type="button" class="btn-mat-action" (click)="exportCSV()">
-        <mat-icon>download</mat-icon> Export CSV
+      <button mat-stroked-button type="button" class="btn-action-stroked" (click)="exportCSV()" matTooltip="Export filtered prospect records to CSV">
+        <mat-icon>download</mat-icon>
+        <span>Export CSV</span>
       </button>
-      <a mat-flat-button color="primary" routerLink="/buyers/new">
-        <mat-icon>person_add</mat-icon> New Prospect
+      <a mat-flat-button class="btn-action-primary" routerLink="/buyers/new">
+        <mat-icon>person_add</mat-icon>
+        <span>New Prospect</span>
       </a>
     </div>
   </div>
 
-  <!-- Feedback Message Banner -->
+  <!-- Feedback Toast Banner -->
   <div *ngIf="feedbackMessage" class="feedback-banner">
-    <mat-icon class="feedback-icon">check_circle</mat-icon> {{ feedbackMessage }}
+    <div class="feedback-content">
+      <mat-icon class="feedback-icon">check_circle</mat-icon>
+      <span>{{ feedbackMessage }}</span>
+    </div>
+    <button class="feedback-close" (click)="feedbackMessage = ''">
+      <mat-icon>close</mat-icon>
+    </button>
   </div>
 
-  <!-- Filter Bar with Angular Material Form Fields -->
-  <div class="filters-bar-mat">
-    <mat-form-field appearance="outline" class="search-field-mat">
-      <mat-label>Search prospects</mat-label>
-      <mat-icon matPrefix>search</mat-icon>
+  <!-- Top Executive Metric KPI Cards -->
+  <div class="kpi-grid-5">
+    <!-- Card 1: Total Prospects -->
+    <div class="kpi-card kpi-slate" [class.active-kpi]="activeQuickTab === 'all'" (click)="setQuickTab('all')" matRipple>
+      <div class="kpi-top">
+        <span class="kpi-label">TOTAL PROSPECTS</span>
+      </div>
+      <div class="kpi-value">{{ prospects.length }}</div>
+      <div class="kpi-subtext">All pipeline qualification leads</div>
+    </div>
+
+    <!-- Card 2: Very High Intent -->
+    <div class="kpi-card kpi-emerald" [class.active-kpi]="activeQuickTab === 'high_intent'" (click)="setQuickTab('high_intent')" matRipple>
+      <div class="kpi-top">
+        <span class="kpi-label">HIGH INTENT (SCORE &ge;85)</span>
+      </div>
+      <div class="kpi-value text-emerald">{{ getVeryHighIntentCount() }}</div>
+      <div class="kpi-subtext">Top purchase propensity buyers</div>
+    </div>
+
+    <!-- Card 3: Revenue Exposure At Risk -->
+    <div class="kpi-card kpi-amber" matRipple>
+      <div class="kpi-top">
+        <span class="kpi-label">REVENUE AT RISK</span>
+      </div>
+      <div class="kpi-value text-amber">{{ getTotalExposureAtRisk() }}</div>
+      <div class="kpi-subtext">Weighted pipeline risk exposure</div>
+    </div>
+
+    <!-- Card 4: Site Visits & Negotiations -->
+    <div class="kpi-card kpi-indigo" [class.active-kpi]="activeQuickTab === 'visits' || activeQuickTab === 'negotiation'" (click)="setQuickTab('visits')" matRipple>
+      <div class="kpi-top">
+        <span class="kpi-label">VISITS &amp; NEGOTIATIONS</span>
+      </div>
+      <div class="kpi-value text-indigo">{{ getVisitsAndNegotiationCount() }}</div>
+      <div class="kpi-subtext">Active site tours &amp; closing stages</div>
+    </div>
+
+    <!-- Card 5: SLA Breached / Urgent -->
+    <div class="kpi-card kpi-rose" [class.active-kpi]="activeQuickTab === 'sla'" (click)="setQuickTab('sla')" matRipple>
+      <div class="kpi-top">
+        <span class="kpi-label">URGENT / OVERDUE SLA</span>
+      </div>
+      <div class="kpi-value text-rose">{{ getSlaBreachedCount() }}</div>
+      <div class="kpi-subtext">Needs owner or overdue touchpoint</div>
+    </div>
+  </div>
+
+  <!-- Quick Filter Tabs Row -->
+  <div class="quick-tabs-bar">
+    <button
+      type="button"
+      class="quick-tab-pill"
+      [class.active]="activeQuickTab === 'all'"
+      (click)="setQuickTab('all')"
+    >
+      <span>All Prospects</span>
+      <span class="tab-badge">{{ prospects.length }}</span>
+    </button>
+    <button
+      type="button"
+      class="quick-tab-pill"
+      [class.active]="activeQuickTab === 'high_intent'"
+      (click)="setQuickTab('high_intent')"
+    >
+      <span>High Intent (&ge;85)</span>
+      <span class="tab-badge">{{ getVeryHighIntentCount() }}</span>
+    </button>
+    <button
+      type="button"
+      class="quick-tab-pill"
+      [class.active]="activeQuickTab === 'visits'"
+      (click)="setQuickTab('visits')"
+    >
+      <span>Site Visits</span>
+    </button>
+    <button
+      type="button"
+      class="quick-tab-pill"
+      [class.active]="activeQuickTab === 'negotiation'"
+      (click)="setQuickTab('negotiation')"
+    >
+      <span>Negotiations</span>
+    </button>
+    <button
+      type="button"
+      class="quick-tab-pill tab-danger"
+      [class.active]="activeQuickTab === 'sla'"
+      (click)="setQuickTab('sla')"
+    >
+      <span>SLA Breached</span>
+      <span class="tab-badge badge-danger" *ngIf="getSlaBreachedCount() > 0">{{ getSlaBreachedCount() }}</span>
+    </button>
+
+    <div class="quick-tabs-spacer"></div>
+
+    <button *ngIf="hasActiveFilters" type="button" class="btn-clear-filters" (click)="resetFilters()">
+      <mat-icon>filter_alt_off</mat-icon>
+      <span>Reset Filters</span>
+    </button>
+  </div>
+
+  <!-- Sleek Modern Filter Toolbar (No Truncation) -->
+  <div class="filters-toolbar">
+    <!-- Search Field -->
+    <div class="search-input-box">
+      <mat-icon class="search-box-icon">search</mat-icon>
       <input
-        matInput
         type="text"
         [(ngModel)]="searchQuery"
-        placeholder="Search name, mobile or email"
+        placeholder="Search name, phone, email, source..."
+        class="search-text-input"
       />
-    </mat-form-field>
+      <button *ngIf="searchQuery" type="button" class="search-clear-btn" (click)="searchQuery = ''" matTooltip="Clear search">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
 
-    <mat-form-field appearance="outline" class="select-field-mat">
-      <mat-label>Stage</mat-label>
-      <mat-icon matPrefix>timeline</mat-icon>
-      <mat-select [(ngModel)]="selectedStage">
-        <mat-option value="all">All stages</mat-option>
-        <mat-option value="New">New</mat-option>
-        <mat-option value="Contacted">Contacted</mat-option>
-        <mat-option value="Qualified">Qualified</mat-option>
-        <mat-option value="High Intent">High Intent</mat-option>
-        <mat-option value="Site Visit Scheduled">Site Visit Scheduled</mat-option>
-        <mat-option value="Visit Completed">Visit Completed</mat-option>
-        <mat-option value="Negotiation">Negotiation</mat-option>
-        <mat-option value="Booking Intent">Booking Intent</mat-option>
-        <mat-option value="Booked">Booked</mat-option>
-      </mat-select>
-    </mat-form-field>
+    <!-- Filter Dropdown 1: Stage -->
+    <div class="filter-dropdown-wrap">
+      <select [(ngModel)]="selectedStage" class="filter-native-select" (change)="currentPage = 1">
+        <option value="all">Stage: All stages</option>
+        <option value="New">New</option>
+        <option value="Contacted">Contacted</option>
+        <option value="Qualified">Qualified</option>
+        <option value="High Intent">High Intent</option>
+        <option value="Site Visit Scheduled">Site Visit Scheduled</option>
+        <option value="Visit Completed">Visit Completed</option>
+        <option value="Negotiation">Negotiation</option>
+        <option value="Booking Intent">Booking Intent</option>
+        <option value="Booked">Booked</option>
+      </select>
+      <mat-icon class="dropdown-arrow-icon">arrow_drop_down</mat-icon>
+    </div>
 
-    <mat-form-field appearance="outline" class="select-field-mat">
-      <mat-label>Lead Source</mat-label>
-      <mat-icon matPrefix>campaign</mat-icon>
-      <mat-select [(ngModel)]="selectedSource">
-        <mat-option value="all">All sources</mat-option>
-        <mat-option value="Google Ads">Google Ads</mat-option>
-        <mat-option value="Meta Ads">Meta Ads</mat-option>
-        <mat-option value="Referral">Referral</mat-option>
-        <mat-option value="SimpliQualify">SimpliQualify</mat-option>
-        <mat-option value="Website">Website</mat-option>
-        <mat-option value="Instagram">Instagram</mat-option>
-        <mat-option value="Property Portal">Property Portal</mat-option>
-      </mat-select>
-    </mat-form-field>
+    <!-- Filter Dropdown 2: Lead Source -->
+    <div class="filter-dropdown-wrap">
+      <select [(ngModel)]="selectedSource" class="filter-native-select" (change)="currentPage = 1">
+        <option value="all">Source: All sources</option>
+        <option value="Google Ads">Google Ads</option>
+        <option value="Meta Ads">Meta Ads</option>
+        <option value="Referral">Referral</option>
+        <option value="SimpliQualify">SimpliQualify</option>
+        <option value="Website">Website</option>
+        <option value="Instagram">Instagram</option>
+        <option value="Property Portal">Property Portal</option>
+      </select>
+      <mat-icon class="dropdown-arrow-icon">arrow_drop_down</mat-icon>
+    </div>
 
-    <mat-form-field appearance="outline" class="select-field-mat">
-      <mat-label>Intent Band</mat-label>
-      <mat-icon matPrefix>trending_up</mat-icon>
-      <mat-select [(ngModel)]="selectedIntentBand">
-        <mat-option value="all">All intent bands</mat-option>
-        <mat-option value="very_high">Very High Intent</mat-option>
-        <mat-option value="high">High Intent</mat-option>
-        <mat-option value="qualified">Qualified</mat-option>
-      </mat-select>
-    </mat-form-field>
+    <!-- Filter Dropdown 3: Intent Band (Guaranteed No Ellipsis / Truncation) -->
+    <div class="filter-dropdown-wrap intent-dropdown-wrap">
+      <select [(ngModel)]="selectedIntentBand" class="filter-native-select" (change)="currentPage = 1">
+        <option value="all">Intent: All intent bands</option>
+        <option value="very_high">Very High Intent (&ge;90)</option>
+        <option value="high">High Intent (80&ndash;89)</option>
+        <option value="qualified">Qualified (&lt;80)</option>
+      </select>
+      <mat-icon class="dropdown-arrow-icon">arrow_drop_down</mat-icon>
+    </div>
 
-    <mat-form-field appearance="outline" class="select-field-mat">
-      <mat-label>Assigned Owner</mat-label>
-      <mat-icon matPrefix>account_circle</mat-icon>
-      <mat-select [(ngModel)]="selectedOwner">
-        <mat-option value="all">All owners</mat-option>
-        <mat-option *ngFor="let o of owners" [value]="o">{{ o }}</mat-option>
-      </mat-select>
-    </mat-form-field>
+    <!-- Filter Dropdown 4: Assigned Owner -->
+    <div class="filter-dropdown-wrap owner-dropdown-wrap">
+      <select [(ngModel)]="selectedOwner" class="filter-native-select" (change)="currentPage = 1">
+        <option value="all">Owner: All owners</option>
+        <option value="Unassigned">Unassigned Only</option>
+        <option *ngFor="let o of owners" [value]="o" [hidden]="o === 'Unassigned'">{{ getOwnerName(o) }}</option>
+      </select>
+      <mat-icon class="dropdown-arrow-icon">arrow_drop_down</mat-icon>
+    </div>
+
+    <!-- Filter Dropdown 5: Project -->
+    <div class="filter-dropdown-wrap project-dropdown-wrap">
+      <select [(ngModel)]="selectedProject" class="filter-native-select" (change)="currentPage = 1">
+        <option value="all">Project: All Projects</option>
+        <option *ngFor="let prj of projectsList" [value]="prj.project_id || prj.id">{{ prj.name }}</option>
+      </select>
+      <mat-icon class="dropdown-arrow-icon">arrow_drop_down</mat-icon>
+    </div>
+
+    <!-- View Mode Switcher -->
+    <div class="view-mode-toggle-wrap">
+      <button 
+        type="button" 
+        class="view-toggle-btn" 
+        [class.active]="viewMode === 'project_grid'" 
+        (click)="viewMode = 'project_grid'"
+        matTooltip="View Interactive Project Cards: Click a card to view its prospects">
+        <mat-icon class="toggle-icon">grid_view</mat-icon>
+        <span>Project Cards</span>
+      </button>
+      <button 
+        type="button" 
+        class="view-toggle-btn" 
+        [class.active]="viewMode === 'project_cards'" 
+        (click)="viewMode = 'project_cards'"
+        matTooltip="View Prospects grouped in Project Containers">
+        <mat-icon class="toggle-icon">view_agenda</mat-icon>
+        <span>Project Containers</span>
+      </button>
+      <button 
+        type="button" 
+        class="view-toggle-btn" 
+        [class.active]="viewMode === 'table'" 
+        (click)="viewMode = 'table'"
+        matTooltip="View Flat Table of All Prospects">
+        <mat-icon class="toggle-icon">table_chart</mat-icon>
+        <span>All Prospects</span>
+      </button>
+    </div>
   </div>
 
-  <!-- Prospects Table Card -->
-  <mat-card class="table-card mat-elevation-z1">
-    <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
+  <!-- ========================================== -->
+  <!-- PROJECT CARDS GRID & PROSPECTS VIEW        -->
+  <!-- ========================================== -->
+  <div *ngIf="viewMode === 'project_grid'" class="project-grid-view-wrap">
+    <!-- Top Row Info / Instructions -->
+    <div class="project-grid-section-header">
+      <div class="grid-header-left">
+        <div class="grid-header-icon-box">
+          <mat-icon>domain</mat-icon>
+        </div>
+        <div>
+          <h3 class="grid-section-title">Projects Portfolio Directory</h3>
+          <p class="grid-section-desc">Select any project card below to inspect and manage all prospective buyers targeting that project.</p>
+        </div>
+      </div>
+      <div class="grid-header-meta" *ngIf="selectedProjectGroup">
+        <span class="selected-project-label">
+          Selected Project: <strong>{{ selectedProjectGroup.project.name }}</strong>
+        </span>
+      </div>
+    </div>
+
+    <!-- The Interactive Project Cards Grid -->
+    <div class="project-cards-grid">
+      <div 
+        *ngFor="let group of projectGroups; trackBy: trackByProjectId"
+        class="interactive-project-card"
+        [class.is-selected]="selectedProjectGroup && (selectedProjectGroup.project.project_id || selectedProjectGroup.project.id) == (group.project.project_id || group.project.id)"
+        (click)="selectProjectCard(group.project.project_id || group.project.id)">
+
+        <!-- Card Top: Icon & Badges -->
+        <div class="project-card-top">
+          <div class="project-card-icon-box" [class.icon-box-active]="selectedProjectGroup && (selectedProjectGroup.project.project_id || selectedProjectGroup.project.id) == (group.project.project_id || group.project.id)">
+            <mat-icon>business</mat-icon>
+          </div>
+          <div class="project-card-badges">
+            <span class="project-code-badge" *ngIf="group.project.code">{{ group.project.code }}</span>
+            <span class="project-type-badge">{{ group.project.project_type || 'Residential' }}</span>
+          </div>
+        </div>
+
+        <!-- Card Body: Name & Location -->
+        <div class="project-card-body">
+          <h4 class="card-project-name" [title]="group.project.name">{{ group.project.name }}</h4>
+          <div class="card-project-location" *ngIf="group.project.location">
+            <mat-icon class="card-loc-icon">location_on</mat-icon>
+            <span>{{ group.project.location }}</span>
+          </div>
+        </div>
+
+        <!-- Card Stats Strip -->
+        <div class="card-stats-row">
+          <div class="card-stat-box">
+            <span class="stat-box-val">{{ group.totalCount }}</span>
+            <span class="stat-box-lbl">Prospects</span>
+          </div>
+          <div class="card-stat-box stat-box-emerald">
+            <span class="stat-box-val">{{ group.highIntentCount }}</span>
+            <span class="stat-box-lbl">High Intent</span>
+          </div>
+          <div class="card-stat-box stat-box-amber">
+            <span class="stat-box-val">{{ group.exposureDisplay }}</span>
+            <span class="stat-box-lbl">At Risk</span>
+          </div>
+        </div>
+
+        <!-- Card Footer: Click prompt -->
+        <div class="card-footer-prompt">
+          <span *ngIf="selectedProjectGroup && (selectedProjectGroup.project.project_id || selectedProjectGroup.project.id) == (group.project.project_id || group.project.id)" class="prompt-text-active">
+            <span>Viewing {{ group.totalCount }} Prospects Below</span>
+            <mat-icon class="prompt-icon">arrow_downward</mat-icon>
+          </span>
+          <span *ngIf="!selectedProjectGroup || (selectedProjectGroup.project.project_id || selectedProjectGroup.project.id) != (group.project.project_id || group.project.id)" class="prompt-text">
+            <span>Click to view prospects</span>
+            <mat-icon class="prompt-icon">arrow_forward</mat-icon>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Selected Project Prospects Table Dossier -->
+    <div class="selected-project-dossier-wrap" *ngIf="selectedProjectGroup">
+      <!-- Dossier Header -->
+      <div class="dossier-header-bar">
+        <div class="dossier-left-meta">
+          <div class="dossier-avatar-badge">
+            <mat-icon>assignment_ind</mat-icon>
+          </div>
+          <div>
+            <div class="dossier-heading-row">
+              <h3 class="dossier-project-heading">{{ selectedProjectGroup.project.name }}</h3>
+              <span class="project-code-badge" *ngIf="selectedProjectGroup.project.code">{{ selectedProjectGroup.project.code }}</span>
+              <span class="project-type-badge">{{ selectedProjectGroup.project.project_type || 'Residential' }}</span>
+            </div>
+            <div class="dossier-location-text" *ngIf="selectedProjectGroup.project.location">
+              <mat-icon class="loc-mini-icon">location_on</mat-icon>
+              <span>{{ selectedProjectGroup.project.location }} &middot; Focused Pipeline View</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="dossier-right-stats">
+          <div class="project-stat-pill">
+            <mat-icon class="stat-icon">people</mat-icon>
+            <span class="stat-num">{{ selectedProjectGroup.totalCount }}</span>
+            <span class="stat-lbl">Prospects</span>
+          </div>
+          <div class="project-stat-pill stat-pill-emerald" *ngIf="selectedProjectGroup.highIntentCount > 0">
+            <mat-icon class="stat-icon">trending_up</mat-icon>
+            <span class="stat-num">{{ selectedProjectGroup.highIntentCount }}</span>
+            <span class="stat-lbl">High Intent</span>
+          </div>
+          <div class="project-stat-pill stat-pill-amber">
+            <mat-icon class="stat-icon">shield</mat-icon>
+            <span class="stat-num">{{ selectedProjectGroup.exposureDisplay }}</span>
+            <span class="stat-lbl">At Risk</span>
+          </div>
+          <a [routerLink]="['/buyers/new']" class="btn-dossier-add-prospect">
+            <mat-icon>add</mat-icon> Add Prospect
+          </a>
+        </div>
+      </div>
+
+      <!-- Dossier Table Body -->
+      <div class="dossier-table-body">
+        <div class="table-responsive" *ngIf="selectedProjectGroup.prospects.length > 0">
+          <table class="prospects-table">
+            <thead>
+              <tr>
+                <th class="col-buyer" (click)="toggleSort('name')">
+                  <div class="th-content">
+                    <span>BUYER</span>
+                    <mat-icon class="sort-icon" *ngIf="sortField === 'name'">{{ sortDirection === 'asc' ? 'north' : 'south' }}</mat-icon>
+                  </div>
+                </th>
+                <th class="col-score" (click)="toggleSort('score')">
+                  <div class="th-content">
+                    <span>SCORE</span>
+                    <mat-icon class="sort-icon" *ngIf="sortField === 'score'">{{ sortDirection === 'asc' ? 'north' : 'south' }}</mat-icon>
+                  </div>
+                </th>
+                <th class="col-stage" (click)="toggleSort('stage')">
+                  <div class="th-content">
+                    <span>STAGE</span>
+                    <mat-icon class="sort-icon" *ngIf="sortField === 'stage'">{{ sortDirection === 'asc' ? 'north' : 'south' }}</mat-icon>
+                  </div>
+                </th>
+                <th class="col-req">
+                  <div class="th-content">
+                    <span>REQUIREMENT</span>
+                  </div>
+                </th>
+                <th class="col-owner">
+                  <div class="th-content">
+                    <span>ASSIGNED OWNER</span>
+                  </div>
+                </th>
+                <th class="col-action">
+                  <div class="th-content">
+                    <span>NEXT BEST ACTION</span>
+                  </div>
+                </th>
+                <th class="col-risk text-right" (click)="toggleSort('at_risk')">
+                  <div class="th-content justify-end">
+                    <span>AT RISK</span>
+                    <mat-icon class="sort-icon" *ngIf="sortField === 'at_risk'">{{ sortDirection === 'asc' ? 'north' : 'south' }}</mat-icon>
+                  </div>
+                </th>
+                <th class="col-actions text-right">
+                  <div class="th-content justify-end">
+                    <span>ACTIONS</span>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of pagedDossierProspects; trackBy: trackByProspectId" [class.editing-row]="editingBuyerId == p.id" class="prospect-row">
+                <!-- Normal Mode -->
+                <ng-container *ngIf="editingBuyerId != p.id">
+                  <!-- Buyer Cell -->
+                  <td class="col-buyer">
+                    <div class="buyer-profile-cell">
+                      <div class="buyer-avatar" [style.background]="getAvatarColor(p.name)">
+                        {{ getInitials(p.name) }}
+                      </div>
+                      <div class="buyer-info">
+                        <a [routerLink]="['/buyers', p.id]" class="buyer-name-link" matTooltip="Open Buyer 360 Profile">
+                          {{ p.name }}
+                        </a>
+                        <div class="buyer-sub-meta">
+                          <span class="source-tag" [class.source-instagram]="p.source === 'Instagram'">{{ p.source }}</span>
+                          <!-- Project Dropdown Pill: Change Target Project On The Fly -->
+                          <div class="prospect-project-dropdown-pill" (click)="$event.stopPropagation()">
+                            <mat-icon class="pill-prj-icon">domain</mat-icon>
+                            <select [ngModel]="p.project_id" (change)="onProspectProjectChange(p, $event)" class="prospect-project-inline-select" title="Change target project prospect is looking for">
+                              <option *ngFor="let prj of projectsList" [value]="prj.project_id || prj.id">{{ prj.name }}</option>
+                            </select>
+                          </div>
+                          <a *ngIf="p.phone" [href]="'tel:' + p.phone" class="phone-link" (click)="$event.stopPropagation()">
+                            <mat-icon class="meta-icon">call</mat-icon>
+                            <span>{{ p.phone }}</span>
+                          </a>
+                          <a *ngIf="!p.phone && p.email" [href]="'mailto:' + p.email" class="email-link" (click)="$event.stopPropagation()">
+                            <mat-icon class="meta-icon">mail_outline</mat-icon>
+                            <span class="email-text">{{ p.email }}</span>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Score Cell -->
+                  <td class="col-score">
+                    <div class="score-cell-container" [matTooltip]="'Buyer Intent Score: ' + p.score + '/100 (Manually Assessed)'">
+                      <div class="score-badge" [ngClass]="getScoreClass(p.score)">
+                        <span class="score-number">{{ p.score }}</span>
+                        <span class="score-delta-text">{{ (p.delta !== undefined && p.delta !== null ? p.delta : 5) >= 0 ? '▲' : '▼' }} {{ (p.delta !== undefined && p.delta !== null ? p.delta : 5) >= 0 ? (p.delta !== undefined && p.delta !== null ? p.delta : 5) : -(p.delta) }}</span>
+                      </div>
+                      <div class="score-micro-bar">
+                        <div class="bar-fill" [style.width.%]="p.score" [ngClass]="getScoreBarClass(p.score)"></div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Stage Cell -->
+                  <td class="col-stage">
+                    <span class="stage-pill" [ngClass]="getStageClass(p.stage)">
+                      <span class="stage-dot"></span>
+                      <span class="stage-text">{{ p.stage }}</span>
+                    </span>
+                  </td>
+
+                  <!-- Requirement Cell -->
+                  <td class="col-req">
+                    <div class="requirement-box">
+                      <span class="bhk-chip">{{ p.bhk }}</span>
+                      <span class="budget-display">{{ formatBudgetDisplay(p.budget) }}</span>
+                    </div>
+                  </td>
+
+                  <!-- Owner Cell -->
+                  <td class="col-owner">
+                    <div class="owner-cell-wrap">
+                      <ng-container *ngIf="p.owner !== 'Unassigned'">
+                        <div class="owner-avatar-circle">
+                          {{ getInitials(getOwnerName(p.owner)) }}
+                        </div>
+                        <div class="owner-text-wrap">
+                          <span class="owner-name-text">{{ getOwnerName(p.owner) }}</span>
+                          <span class="owner-role-text">{{ getOwnerRole(p.owner) }}</span>
+                        </div>
+                      </ng-container>
+                      <ng-container *ngIf="p.owner === 'Unassigned'">
+                        <span class="unassigned-pill" matTooltip="High intent lead requires sales executive assignment">
+                          <span>Unassigned</span>
+                        </span>
+                      </ng-container>
+                    </div>
+                  </td>
+
+                  <!-- Next Best Action Cell -->
+                  <td class="col-action">
+                    <div class="next-action-wrap">
+                      <div class="action-title-row">
+                        <span class="action-title-text">{{ p.next_action }}</span>
+                      </div>
+                      <div class="sla-overdue-chip" *ngIf="p.sla_breached">
+                        <span>SLA breached &middot; {{ p.sla_time }}</span>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- At Risk Cell -->
+                  <td class="col-risk text-right">
+                    <div class="at-risk-wrap">
+                      <span class="risk-amount-text">{{ p.at_risk }}</span>
+                      <span class="risk-label-sub">est. exposure</span>
+                    </div>
+                  </td>
+
+                  <!-- Actions Cell -->
+                  <td class="col-actions text-right actions-column-cell">
+                    <div class="row-actions-group">
+                      <button
+                        mat-icon-button
+                        type="button"
+                        class="action-btn followup-btn"
+                        (click)="$event.stopPropagation(); openFollowUpModal(p)"
+                        matTooltip="Schedule Follow-up for this Prospect"
+                      >
+                        <mat-icon>add_task</mat-icon>
+                      </button>
+                      <button
+                        mat-icon-button
+                        type="button"
+                        class="action-btn edit-btn"
+                        (click)="$event.stopPropagation(); startEdit(p)"
+                        matTooltip="Quick Edit Prospect"
+                      >
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                      <a
+                        mat-icon-button
+                        class="action-btn full-edit-btn"
+                        [routerLink]="['/buyers', p.id, 'edit']"
+                        (click)="$event.stopPropagation()"
+                        matTooltip="Edit Full Prospect Details (Form)"
+                      >
+                        <mat-icon>assignment_ind</mat-icon>
+                      </a>
+                      <button
+                        mat-icon-button
+                        color="warn"
+                        type="button"
+                        class="action-btn delete-btn"
+                        (click)="$event.stopPropagation(); deleteBuyer(p)"
+                        matTooltip="Delete Prospect"
+                      >
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <!-- Edit Mode Inside Project Dossier -->
+                <ng-container *ngIf="editingBuyerId == p.id">
+                  <td class="col-buyer">
+                    <input type="text" [(ngModel)]="editForm.name" class="inline-edit-input" placeholder="Full name *" />
+                    <input type="text" [(ngModel)]="editForm.phone" class="inline-edit-input sub-input" placeholder="Phone *" />
+                    <div class="edit-project-row">
+                      <span class="edit-project-lbl">Project:</span>
+                      <select [(ngModel)]="editForm.project_id" class="inline-edit-select project-inline-select">
+                        <option *ngFor="let prj of projectsList" [value]="prj.project_id || prj.id">{{ prj.name }}</option>
+                      </select>
+                    </div>
+                  </td>
+                  <td class="col-score">
+                    <div class="inline-score-editor">
+                      <div class="score-input-group">
+                        <span class="score-edit-lbl">Score:</span>
+                        <input
+                          type="number"
+                          [(ngModel)]="editForm.score"
+                          min="0"
+                          max="100"
+                          class="inline-edit-input score-num-input"
+                          title="Intent Score (0-100)"
+                        />
+                      </div>
+                      <div class="score-input-group delta-group">
+                        <span class="delta-symbol">▲</span>
+                        <input
+                          type="number"
+                          [(ngModel)]="editForm.delta"
+                          class="inline-edit-input delta-num-input"
+                          title="Intent Delta Score (±)"
+                        />
+                      </div>
+                      <div class="score-badge-live" [ngClass]="getScoreClass(editForm.score || p.score)">
+                        <span class="live-score">{{ editForm.score || p.score }}</span>
+                        <span class="live-delta">▲ {{ editForm.delta !== undefined ? editForm.delta : p.delta }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="col-stage">
+                    <select [(ngModel)]="editForm.stage" class="inline-edit-select">
+                      <option value="New">New</option>
+                      <option value="Contacted">Contacted</option>
+                      <option value="Qualified">Qualified</option>
+                      <option value="High Intent">High Intent</option>
+                      <option value="Site Visit Scheduled">Site Visit Scheduled</option>
+                      <option value="Visit Completed">Visit Completed</option>
+                      <option value="Negotiation">Negotiation</option>
+                      <option value="Booking Intent">Booking Intent</option>
+                      <option value="Booked">Booked</option>
+                    </select>
+                  </td>
+                  <td class="col-req">
+                    <select [(ngModel)]="editForm.bhk" class="inline-edit-select" title="Preferred Unit Configuration">
+                      <option value="1 BHK">1 BHK</option>
+                      <option value="2 BHK">2 BHK</option>
+                      <option value="3 BHK">3 BHK</option>
+                      <option value="4 BHK">4 BHK</option>
+                      <option value="5 BHK">5 BHK</option>
+                      <option value="Penthouse">Penthouse</option>
+                      <option value="Villa">Villa</option>
+                      <option value="Duplex">Duplex</option>
+                      <option value="Plot">Plot</option>
+                      <option value="Residential Plot">Residential Plot</option>
+                      <option value="Commercial Plot">Commercial Plot</option>
+                      <option value="Farm House Plot">Farm House Plot</option>
+                      <option value="Villa Plot">Villa Plot</option>
+                    </select>
+                    <div class="inline-budget-sub">
+                      <span class="budget-range-text">{{ p.budget_min }} – {{ p.budget_max }}</span>
+                    </div>
+                  </td>
+                  <td class="col-owner">
+                    <div class="owner-cell-wrap">
+                      <div class="owner-avatar-mini">{{ getInitials(p.owner) }}</div>
+                      <div class="owner-meta-col">
+                        <span class="owner-name-text">{{ p.owner }}</span>
+                        <span class="owner-role-sub">Account Executive</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="col-action">
+                    <input
+                      type="text"
+                      [(ngModel)]="editForm.next_action"
+                      class="inline-edit-input"
+                      placeholder="Next best action..."
+                      title="Next Best Action"
+                    />
+                  </td>
+                  <td class="col-risk text-right">
+                    <span class="risk-amount-text">{{ p.at_risk }}</span>
+                  </td>
+                  <td class="col-actions text-right actions-column-cell">
+                    <div class="inline-actions-box">
+                      <button mat-flat-button type="button" class="btn-save-inline" (click)="$event.stopPropagation(); saveEdit(p)">Save</button>
+                      <button mat-stroked-button type="button" class="btn-cancel-inline" (click)="$event.stopPropagation(); cancelEdit()">Cancel</button>
+                    </div>
+                  </td>
+                </ng-container>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Dossier Table Footer with Pagination & Summary -->
+        <div class="table-footer-bar" *ngIf="selectedProjectGroup.prospects.length > 0">
+          <div class="footer-summary">
+            <span>Showing <strong>{{ pagedDossierProspects.length }}</strong> of <strong>{{ selectedProjectGroup.prospects.length }}</strong> prospects</span>
+            <span class="footer-pipe">&middot;</span>
+            <span class="footer-total-risk">Project Exposure: <strong>{{ selectedProjectGroup.exposureDisplay }}</strong></span>
+          </div>
+
+          <div class="footer-controls">
+            <div class="page-size-selector">
+              <label>Rows per page:</label>
+              <select [(ngModel)]="dossierPageSize" (change)="dossierPage = 1" class="page-size-dropdown">
+                <option [value]="5">5</option>
+                <option [value]="10">10</option>
+                <option [value]="25">25</option>
+                <option [value]="50">50</option>
+              </select>
+            </div>
+
+            <div class="page-navigator">
+              <button type="button" [disabled]="dossierPage === 1" (click)="dossierPage = dossierPage - 1" class="page-nav-btn" aria-label="Previous page">&lsaquo;</button>
+              <span class="page-current-info">Page {{ dossierPage }} of {{ totalDossierPages }}</span>
+              <button type="button" [disabled]="dossierPage >= totalDossierPages" (click)="dossierPage = dossierPage + 1" class="page-nav-btn" aria-label="Next page">&rsaquo;</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State in Dossier if no prospects -->
+        <div class="project-empty-state dossier-empty" *ngIf="selectedProjectGroup.prospects.length === 0">
+          <mat-icon class="empty-icon">person_outline</mat-icon>
+          <span>No prospects currently targeting {{ selectedProjectGroup.project.name }}.</span>
+          <a [routerLink]="['/buyers/new']" class="btn-add-prospect-link">
+            <mat-icon>add</mat-icon> Add Prospect to this Project
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- PROJECT CARDS / CONTAINERS VIEW            -->
+  <!-- ========================================== -->
+  <div *ngIf="viewMode === 'project_cards'" class="project-cards-view-wrap">
+    <!-- If all prospects filtered out -->
+    <div *ngIf="filteredProspects.length === 0" class="empty-state-wrap global-empty-card">
+      <div class="empty-icon-box">
+        <mat-icon>person_search</mat-icon>
+      </div>
+      <h3 class="empty-title">No prospects match your criteria</h3>
+      <p class="empty-desc">Try clearing your search query or reset filter dropdowns to view all active pipeline records.</p>
+      <button mat-stroked-button type="button" class="btn-action-stroked" (click)="resetFilters()">
+        <mat-icon>filter_alt_off</mat-icon> Reset All Filters
+      </button>
+    </div>
+
+    <!-- Project Container Cards -->
+    <div class="project-card-container" *ngFor="let group of projectGroups; trackBy: trackByProjectId">
+      <!-- Project Container Header -->
+      <div class="project-container-header" (click)="toggleProjectCollapse(group.project.project_id || group.project.id)">
+        <div class="project-header-left">
+          <button type="button" class="btn-collapse-toggle" (click)="$event.stopPropagation(); toggleProjectCollapse(group.project.project_id || group.project.id)" [matTooltip]="isProjectCollapsed(group.project.project_id || group.project.id) ? 'Expand container' : 'Collapse container'">
+            <mat-icon>{{ isProjectCollapsed(group.project.project_id || group.project.id) ? 'chevron_right' : 'expand_more' }}</mat-icon>
+          </button>
+          <div class="project-icon-box">
+            <mat-icon>business</mat-icon>
+          </div>
+          <div class="project-title-meta">
+            <div class="project-title-row">
+              <h2 class="project-title">{{ group.project.name }}</h2>
+              <span class="project-code-badge" *ngIf="group.project.code">{{ group.project.code }}</span>
+              <span class="project-type-badge">{{ group.project.project_type || 'Residential' }}</span>
+            </div>
+            <div class="project-location-row" *ngIf="group.project.location">
+              <mat-icon class="loc-icon">location_on</mat-icon>
+              <span>{{ group.project.location }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="project-header-stats">
+          <div class="project-stat-pill">
+            <mat-icon class="stat-icon">people</mat-icon>
+            <span class="stat-num">{{ group.totalCount }}</span>
+            <span class="stat-lbl">Prospects</span>
+          </div>
+          <div class="project-stat-pill stat-pill-emerald" *ngIf="group.highIntentCount > 0">
+            <mat-icon class="stat-icon">trending_up</mat-icon>
+            <span class="stat-num">{{ group.highIntentCount }}</span>
+            <span class="stat-lbl">High Intent</span>
+          </div>
+          <div class="project-stat-pill stat-pill-amber">
+            <mat-icon class="stat-icon">shield</mat-icon>
+            <span class="stat-num">{{ group.exposureDisplay }}</span>
+            <span class="stat-lbl">At Risk</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Project Container Body -->
+      <div class="project-container-body" *ngIf="!isProjectCollapsed(group.project.project_id || group.project.id)">
+        <div class="table-responsive" *ngIf="group.prospects.length > 0">
+          <table class="prospects-table">
+            <thead>
+              <tr>
+                <th class="col-buyer" (click)="toggleSort('name')">
+                  <div class="th-content">
+                    <span>BUYER</span>
+                    <mat-icon class="sort-icon" *ngIf="sortField === 'name'">{{ sortDirection === 'asc' ? 'north' : 'south' }}</mat-icon>
+                  </div>
+                </th>
+                <th class="col-score" (click)="toggleSort('score')">
+                  <div class="th-content">
+                    <span>SCORE</span>
+                    <mat-icon class="sort-icon" *ngIf="sortField === 'score'">{{ sortDirection === 'asc' ? 'north' : 'south' }}</mat-icon>
+                  </div>
+                </th>
+                <th class="col-stage" (click)="toggleSort('stage')">
+                  <div class="th-content">
+                    <span>STAGE</span>
+                    <mat-icon class="sort-icon" *ngIf="sortField === 'stage'">{{ sortDirection === 'asc' ? 'north' : 'south' }}</mat-icon>
+                  </div>
+                </th>
+                <th class="col-req">
+                  <div class="th-content">
+                    <span>REQUIREMENT</span>
+                  </div>
+                </th>
+                <th class="col-owner">
+                  <div class="th-content">
+                    <span>ASSIGNED OWNER</span>
+                  </div>
+                </th>
+                <th class="col-action">
+                  <div class="th-content">
+                    <span>NEXT BEST ACTION</span>
+                  </div>
+                </th>
+                <th class="col-risk text-right" (click)="toggleSort('at_risk')">
+                  <div class="th-content justify-end">
+                    <span>AT RISK</span>
+                    <mat-icon class="sort-icon" *ngIf="sortField === 'at_risk'">{{ sortDirection === 'asc' ? 'north' : 'south' }}</mat-icon>
+                  </div>
+                </th>
+                <th class="col-actions text-right">
+                  <div class="th-content justify-end">
+                    <span>ACTIONS</span>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of getPagedContainerProspects(group); trackBy: trackByProspectId" [class.editing-row]="editingBuyerId == p.id" class="prospect-row">
+                <!-- Normal Mode -->
+                <ng-container *ngIf="editingBuyerId != p.id">
+                  <!-- Buyer Cell -->
+                  <td class="col-buyer">
+                    <div class="buyer-profile-cell">
+                      <div class="buyer-avatar" [style.background]="getAvatarColor(p.name)">
+                        {{ getInitials(p.name) }}
+                      </div>
+                      <div class="buyer-info">
+                        <a [routerLink]="['/buyers', p.id]" class="buyer-name-link" matTooltip="Open Buyer 360 Profile">
+                          {{ p.name }}
+                        </a>
+                        <div class="buyer-sub-meta">
+                          <span class="source-tag" [class.source-instagram]="p.source === 'Instagram'">{{ p.source }}</span>
+                          <!-- Project Dropdown Pill: Change Target Project On The Fly -->
+                          <div class="prospect-project-dropdown-pill" (click)="$event.stopPropagation()">
+                            <mat-icon class="pill-prj-icon">domain</mat-icon>
+                            <select [ngModel]="p.project_id" (change)="onProspectProjectChange(p, $event)" class="prospect-project-inline-select" title="Change target project prospect is looking for">
+                              <option *ngFor="let prj of projectsList" [value]="prj.project_id || prj.id">{{ prj.name }}</option>
+                            </select>
+                          </div>
+                          <a *ngIf="p.phone" [href]="'tel:' + p.phone" class="phone-link" (click)="$event.stopPropagation()">
+                            <mat-icon class="meta-icon">call</mat-icon>
+                            <span>{{ p.phone }}</span>
+                          </a>
+                          <a *ngIf="!p.phone && p.email" [href]="'mailto:' + p.email" class="email-link" (click)="$event.stopPropagation()">
+                            <mat-icon class="meta-icon">mail_outline</mat-icon>
+                            <span class="email-text">{{ p.email }}</span>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Score Cell -->
+                  <td class="col-score">
+                    <div class="score-cell-container" [matTooltip]="'Buyer Intent Score: ' + p.score + '/100 (Manually Assessed)'">
+                      <div class="score-badge" [ngClass]="getScoreClass(p.score)">
+                        <span class="score-number">{{ p.score }}</span>
+                        <span class="score-delta-text">{{ (p.delta !== undefined && p.delta !== null ? p.delta : 5) >= 0 ? '▲' : '▼' }} {{ (p.delta !== undefined && p.delta !== null ? p.delta : 5) >= 0 ? (p.delta !== undefined && p.delta !== null ? p.delta : 5) : -(p.delta) }}</span>
+                      </div>
+                      <div class="score-micro-bar">
+                        <div class="bar-fill" [style.width.%]="p.score" [ngClass]="getScoreBarClass(p.score)"></div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Stage Cell -->
+                  <td class="col-stage">
+                    <span class="stage-pill" [ngClass]="getStageClass(p.stage)">
+                      <span class="stage-dot"></span>
+                      <span class="stage-text">{{ p.stage }}</span>
+                    </span>
+                  </td>
+
+                  <!-- Requirement Cell -->
+                  <td class="col-req">
+                    <div class="requirement-box">
+                      <span class="bhk-chip">{{ p.bhk }}</span>
+                      <span class="budget-display">{{ formatBudgetDisplay(p.budget) }}</span>
+                    </div>
+                  </td>
+
+                  <!-- Owner Cell -->
+                  <td class="col-owner">
+                    <div class="owner-cell-wrap">
+                      <ng-container *ngIf="p.owner !== 'Unassigned'">
+                        <div class="owner-avatar-circle">
+                          {{ getInitials(getOwnerName(p.owner)) }}
+                        </div>
+                        <div class="owner-text-wrap">
+                          <span class="owner-name-text">{{ getOwnerName(p.owner) }}</span>
+                          <span class="owner-role-text">{{ getOwnerRole(p.owner) }}</span>
+                        </div>
+                      </ng-container>
+                      <ng-container *ngIf="p.owner === 'Unassigned'">
+                        <span class="unassigned-pill" matTooltip="High intent lead requires sales executive assignment">
+                          <span>Unassigned</span>
+                        </span>
+                      </ng-container>
+                    </div>
+                  </td>
+
+                  <!-- Next Best Action Cell -->
+                  <td class="col-action">
+                    <div class="next-action-wrap">
+                      <div class="action-title-row">
+                        <span class="action-title-text">{{ p.next_action }}</span>
+                      </div>
+                      <div class="sla-overdue-chip" *ngIf="p.sla_breached">
+                        <span>SLA breached &middot; {{ p.sla_time }}</span>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- At Risk Cell -->
+                  <td class="col-risk text-right">
+                    <div class="at-risk-wrap">
+                      <span class="risk-amount-text">{{ p.at_risk }}</span>
+                      <span class="risk-label-sub">est. exposure</span>
+                    </div>
+                  </td>
+
+                  <!-- Actions Cell -->
+                  <td class="col-actions text-right actions-column-cell">
+                    <div class="row-actions-group">
+                      <button
+                        mat-icon-button
+                        type="button"
+                        class="action-btn followup-btn"
+                        (click)="$event.stopPropagation(); openFollowUpModal(p)"
+                        matTooltip="Schedule Follow-up for this Prospect"
+                      >
+                        <mat-icon>add_task</mat-icon>
+                      </button>
+                      <button
+                        mat-icon-button
+                        type="button"
+                        class="action-btn edit-btn"
+                        (click)="$event.stopPropagation(); startEdit(p)"
+                        matTooltip="Quick Edit Prospect"
+                      >
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                      <a
+                        mat-icon-button
+                        class="action-btn full-edit-btn"
+                        [routerLink]="['/buyers', p.id, 'edit']"
+                        (click)="$event.stopPropagation()"
+                        matTooltip="Edit Full Prospect Details (Form)"
+                      >
+                        <mat-icon>assignment_ind</mat-icon>
+                      </a>
+                      <button
+                        mat-icon-button
+                        color="warn"
+                        type="button"
+                        class="action-btn delete-btn"
+                        (click)="$event.stopPropagation(); deleteBuyer(p)"
+                        matTooltip="Delete Prospect"
+                      >
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <!-- Edit Mode Inside Project Container -->
+                <ng-container *ngIf="editingBuyerId == p.id">
+                  <td class="col-buyer">
+                    <input type="text" [(ngModel)]="editForm.name" class="inline-edit-input" placeholder="Full name *" />
+                    <input type="text" [(ngModel)]="editForm.phone" class="inline-edit-input sub-input" placeholder="Phone *" />
+                    <div class="edit-project-row">
+                      <span class="edit-project-lbl">Project:</span>
+                      <select [(ngModel)]="editForm.project_id" class="inline-edit-select project-inline-select">
+                        <option *ngFor="let prj of projectsList" [value]="prj.project_id || prj.id">{{ prj.name }}</option>
+                      </select>
+                    </div>
+                  </td>
+                  <td class="col-score">
+                    <div class="inline-score-editor">
+                      <div class="score-input-group">
+                        <span class="score-edit-lbl">Score:</span>
+                        <input
+                          type="number"
+                          [(ngModel)]="editForm.score"
+                          min="0"
+                          max="100"
+                          class="inline-edit-input score-num-input"
+                          title="Intent Score (0-100)"
+                        />
+                      </div>
+                      <div class="score-input-group delta-group">
+                        <span class="delta-symbol">▲</span>
+                        <input
+                          type="number"
+                          [(ngModel)]="editForm.delta"
+                          class="inline-edit-input delta-num-input"
+                          title="Intent Delta Score (±)"
+                        />
+                      </div>
+                      <div class="score-badge-live" [ngClass]="getScoreClass(editForm.score || p.score)">
+                        <span class="live-score">{{ editForm.score || p.score }}</span>
+                        <span class="live-delta">▲ {{ editForm.delta !== undefined ? editForm.delta : p.delta }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="col-stage">
+                    <select [(ngModel)]="editForm.stage" class="inline-edit-select">
+                      <option value="New">New</option>
+                      <option value="Contacted">Contacted</option>
+                      <option value="Qualified">Qualified</option>
+                      <option value="High Intent">High Intent</option>
+                      <option value="Site Visit Scheduled">Site Visit Scheduled</option>
+                      <option value="Visit Completed">Visit Completed</option>
+                      <option value="Negotiation">Negotiation</option>
+                      <option value="Booking Intent">Booking Intent</option>
+                      <option value="Booked">Booked</option>
+                    </select>
+                  </td>
+                  <td class="col-req">
+                    <select [(ngModel)]="editForm.bhk" class="inline-edit-select" title="Preferred Unit Configuration">
+                      <option value="1 BHK">1 BHK</option>
+                      <option value="2 BHK">2 BHK</option>
+                      <option value="3 BHK">3 BHK</option>
+                      <option value="4 BHK">4 BHK</option>
+                      <option value="5 BHK">5 BHK</option>
+                      <option value="Penthouse">Penthouse</option>
+                      <option value="Villa">Villa</option>
+                      <option value="Duplex">Duplex</option>
+                      <option value="Plot">Plot</option>
+                      <option value="Residential Plot">Residential Plot</option>
+                      <option value="Commercial Plot">Commercial Plot</option>
+                      <option value="Farm House Plot">Farm House Plot</option>
+                      <option value="Villa Plot">Villa Plot</option>
+                    </select>
+                    <div class="inline-budget-sub">
+                      <span class="budget-range-text">{{ p.budget_min }} – {{ p.budget_max }}</span>
+                    </div>
+                  </td>
+                  <td class="col-owner">
+                    <div class="owner-cell-wrap">
+                      <div class="owner-avatar-mini">{{ getInitials(p.owner) }}</div>
+                      <div class="owner-meta-col">
+                        <span class="owner-name-text">{{ p.owner }}</span>
+                        <span class="owner-role-sub">Account Executive</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="col-action">
+                    <input
+                      type="text"
+                      [(ngModel)]="editForm.next_action"
+                      class="inline-edit-input"
+                      placeholder="Next best action..."
+                      title="Next Best Action"
+                    />
+                  </td>
+                  <td class="col-risk text-right">
+                    <span class="risk-amount-text">{{ p.at_risk }}</span>
+                  </td>
+                  <td class="col-actions text-right actions-column-cell">
+                    <div class="inline-actions-box">
+                      <button mat-flat-button type="button" class="btn-save-inline" (click)="$event.stopPropagation(); saveEdit(p)">Save</button>
+                      <button mat-stroked-button type="button" class="btn-cancel-inline" (click)="$event.stopPropagation(); cancelEdit()">Cancel</button>
+                    </div>
+                  </td>
+                </ng-container>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Container Table Footer with Pagination & Summary -->
+        <div class="table-footer-bar" *ngIf="group.prospects.length > 0">
+          <div class="footer-summary">
+            <span>Showing <strong>{{ getPagedContainerProspects(group).length }}</strong> of <strong>{{ group.prospects.length }}</strong> prospects</span>
+            <span class="footer-pipe">&middot;</span>
+            <span class="footer-total-risk">Project Exposure: <strong>{{ group.exposureDisplay }}</strong></span>
+          </div>
+
+          <div class="footer-controls">
+            <div class="page-size-selector">
+              <label>Rows per page:</label>
+              <select
+                [ngModel]="getContainerPageSize(group.project.project_id || group.project.id)"
+                (ngModelChange)="setContainerPageSize(group.project.project_id || group.project.id, $event)"
+                class="page-size-dropdown"
+              >
+                <option [value]="5">5</option>
+                <option [value]="10">10</option>
+                <option [value]="25">25</option>
+                <option [value]="50">50</option>
+              </select>
+            </div>
+
+            <div class="page-navigator">
+              <button
+                type="button"
+                [disabled]="getContainerPage(group.project.project_id || group.project.id) === 1"
+                (click)="setContainerPage(group.project.project_id || group.project.id, getContainerPage(group.project.project_id || group.project.id) - 1)"
+                class="page-nav-btn"
+                aria-label="Previous page"
+              >&lsaquo;</button>
+              <span class="page-current-info">Page {{ getContainerPage(group.project.project_id || group.project.id) }} of {{ getTotalContainerPages(group) }}</span>
+              <button
+                type="button"
+                [disabled]="getContainerPage(group.project.project_id || group.project.id) >= getTotalContainerPages(group)"
+                (click)="setContainerPage(group.project.project_id || group.project.id, getContainerPage(group.project.project_id || group.project.id) + 1)"
+                class="page-nav-btn"
+                aria-label="Next page"
+              >&rsaquo;</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project Empty State -->
+        <div class="project-empty-state" *ngIf="group.prospects.length === 0">
+          <mat-icon class="empty-icon">person_outline</mat-icon>
+          <span>No prospects currently assigned to {{ group.project.name }}.</span>
+          <a [routerLink]="['/buyers/new']" class="btn-add-prospect-link">
+            <mat-icon>add</mat-icon> Add Prospect to this Project
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- FLAT TABLE VIEW (ALL PROSPECTS)            -->
+  <!-- ========================================== -->
+  <div *ngIf="viewMode === 'table'" class="table-card-container">
     <div class="table-responsive">
       <table class="prospects-table">
         <thead>
           <tr>
-            <th>BUYER</th>
-            <th>SCORE</th>
-            <th>STAGE</th>
-            <th>REQUIREMENT</th>
-            <th>OWNER</th>
-            <th>NEXT BEST ACTION</th>
-            <th class="text-right">AT RISK</th>
-            <th class="text-right">ACTIONS</th>
+            <th class="col-buyer" (click)="toggleSort('name')">
+              <div class="th-content">
+                <span>BUYER</span>
+                <mat-icon class="sort-icon" *ngIf="sortField === 'name'">{{ sortDirection === 'asc' ? 'north' : 'south' }}</mat-icon>
+              </div>
+            </th>
+            <th class="col-score" (click)="toggleSort('score')">
+              <div class="th-content">
+                <span>SCORE</span>
+                <mat-icon class="sort-icon" *ngIf="sortField === 'score'">{{ sortDirection === 'asc' ? 'north' : 'south' }}</mat-icon>
+              </div>
+            </th>
+            <th class="col-stage" (click)="toggleSort('stage')">
+              <div class="th-content">
+                <span>STAGE</span>
+                <mat-icon class="sort-icon" *ngIf="sortField === 'stage'">{{ sortDirection === 'asc' ? 'north' : 'south' }}</mat-icon>
+              </div>
+            </th>
+            <th class="col-req">
+              <div class="th-content">
+                <span>REQUIREMENT</span>
+              </div>
+            </th>
+            <th class="col-owner">
+              <div class="th-content">
+                <span>ASSIGNED OWNER</span>
+              </div>
+            </th>
+            <th class="col-action">
+              <div class="th-content">
+                <span>NEXT BEST ACTION</span>
+              </div>
+            </th>
+            <th class="col-risk text-right" (click)="toggleSort('at_risk')">
+              <div class="th-content justify-end">
+                <span>AT RISK</span>
+                <mat-icon class="sort-icon" *ngIf="sortField === 'at_risk'">{{ sortDirection === 'asc' ? 'north' : 'south' }}</mat-icon>
+              </div>
+            </th>
+            <th class="col-actions text-right">
+              <div class="th-content justify-end">
+                <span>ACTIONS</span>
+              </div>
+            </th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let p of filteredProspects" [class.editing-row]="editingBuyerId === p.id">
+          <!-- Empty State -->
+          <tr *ngIf="pagedProspects.length === 0">
+            <td colspan="8" class="empty-state-cell">
+              <div class="empty-state-wrap">
+                <div class="empty-icon-box">
+                  <mat-icon>person_search</mat-icon>
+                </div>
+                <h3 class="empty-title">No prospects match your criteria</h3>
+                <p class="empty-desc">Try clearing your search query or reset filter dropdowns to view all active pipeline records.</p>
+                <button mat-stroked-button type="button" class="btn-action-stroked" (click)="resetFilters()">
+                  <mat-icon>filter_alt_off</mat-icon> Reset All Filters
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Data Rows -->
+          <tr *ngFor="let p of pagedProspects" [class.editing-row]="editingBuyerId === p.id" class="prospect-row">
             <!-- Normal Mode -->
             <ng-container *ngIf="editingBuyerId !== p.id">
-              <td>
-                <div class="buyer-name">
-                  <a [routerLink]="['/buyers', p.id]" class="buyer-link">{{ p.name }}</a>
+              <!-- Buyer Cell -->
+              <td class="col-buyer">
+                <div class="buyer-profile-cell">
+                  <div class="buyer-avatar" [style.background]="getAvatarColor(p.name)">
+                    {{ getInitials(p.name) }}
+                  </div>
+                  <div class="buyer-info">
+                    <a [routerLink]="['/buyers', p.id]" class="buyer-name-link" matTooltip="Open Buyer 360 Profile">
+                      {{ p.name }}
+                    </a>
+                    <div class="buyer-sub-meta">
+                      <span class="source-tag" [class.source-instagram]="p.source === 'Instagram'">{{ p.source }}</span>
+                      <div class="prospect-project-dropdown-pill" (click)="$event.stopPropagation()">
+                        <mat-icon class="pill-prj-icon">domain</mat-icon>
+                        <select [ngModel]="p.project_id" (change)="onProspectProjectChange(p, $event)" class="prospect-project-inline-select" title="Change target project prospect is looking for">
+                          <option *ngFor="let prj of projectsList" [value]="prj.project_id || prj.id">{{ prj.name }}</option>
+                        </select>
+                      </div>
+                      <a *ngIf="p.phone" [href]="'tel:' + p.phone" class="phone-link" (click)="$event.stopPropagation()">
+                        <mat-icon class="meta-icon">call</mat-icon>
+                        <span>{{ p.phone }}</span>
+                      </a>
+                      <a *ngIf="!p.phone && p.email" [href]="'mailto:' + p.email" class="email-link" (click)="$event.stopPropagation()">
+                        <mat-icon class="meta-icon">mail_outline</mat-icon>
+                        <span class="email-text">{{ p.email }}</span>
+                      </a>
+                    </div>
+                  </div>
                 </div>
-                <div class="buyer-contact">{{ p.source }} &middot; {{ p.phone }}</div>
               </td>
-              <td>
-                <div class="score-pill">
-                  <span class="score-num">{{ p.score }}</span>
-                  <span class="score-delta">&#9650; {{ p.delta }}</span>
+
+              <!-- Score Cell -->
+              <td class="col-score">
+                <div class="score-cell-container" [matTooltip]="'Buyer Intent Score: ' + p.score + '/100 (Manually Assessed)'">
+                  <div class="score-badge" [ngClass]="getScoreClass(p.score)">
+                    <span class="score-number">{{ p.score }}</span>
+                    <span class="score-delta-text">{{ (p.delta !== undefined && p.delta !== null ? p.delta : 5) >= 0 ? '▲' : '▼' }} {{ (p.delta !== undefined && p.delta !== null ? p.delta : 5) >= 0 ? (p.delta !== undefined && p.delta !== null ? p.delta : 5) : -(p.delta) }}</span>
+                  </div>
+                  <div class="score-micro-bar">
+                    <div class="bar-fill" [style.width.%]="p.score" [ngClass]="getScoreBarClass(p.score)"></div>
+                  </div>
                 </div>
               </td>
-              <td>
-                <span class="stage-badge">{{ p.stage }}</span>
-              </td>
-              <td>
-                <div class="req-bhk">{{ p.bhk }}</div>
-                <div class="req-budget">{{ p.budget }}</div>
-              </td>
-              <td>
-                <span class="owner-pill" [class.unassigned]="p.owner === 'Unassigned'">
-                  {{ p.owner }}
+
+              <!-- Stage Cell -->
+              <td class="col-stage">
+                <span class="stage-pill" [ngClass]="getStageClass(p.stage)">
+                  <span class="stage-dot"></span>
+                  <span class="stage-text">{{ p.stage }}</span>
                 </span>
               </td>
-              <td>
-                <div class="action-text">{{ p.next_action }}</div>
-                <div class="sla-text" *ngIf="p.sla_breached">SLA breached &middot; {{ p.sla_time }}</div>
+
+              <!-- Requirement Cell -->
+              <td class="col-req">
+                <div class="requirement-box">
+                  <span class="bhk-chip">{{ p.bhk }}</span>
+                  <span class="budget-display">{{ formatBudgetDisplay(p.budget) }}</span>
+                </div>
               </td>
-              <td class="text-right risk-value">{{ p.at_risk }}</td>
-              <td class="text-right actions-cell">
-                <button
-                  mat-icon-button
-                  type="button"
-                  (click)="startEdit(p)"
-                  matTooltip="Quick Edit Prospect"
-                >
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button
-                  mat-icon-button
-                  color="warn"
-                  type="button"
-                  (click)="deleteBuyer(p)"
-                  matTooltip="Delete Prospect"
-                >
-                  <mat-icon>delete</mat-icon>
-                </button>
+
+              <!-- Owner Cell -->
+              <td class="col-owner">
+                <div class="owner-cell-wrap">
+                  <ng-container *ngIf="p.owner !== 'Unassigned'">
+                    <div class="owner-avatar-circle">
+                      {{ getInitials(getOwnerName(p.owner)) }}
+                    </div>
+                    <div class="owner-text-wrap">
+                      <span class="owner-name-text">{{ getOwnerName(p.owner) }}</span>
+                      <span class="owner-role-text">{{ getOwnerRole(p.owner) }}</span>
+                    </div>
+                  </ng-container>
+                  <ng-container *ngIf="p.owner === 'Unassigned'">
+                    <span class="unassigned-pill" matTooltip="High intent lead requires sales executive assignment">
+                      <span>Unassigned</span>
+                    </span>
+                  </ng-container>
+                </div>
+              </td>
+
+              <!-- Next Best Action Cell -->
+              <td class="col-action">
+                <div class="next-action-wrap">
+                  <div class="action-title-row">
+                    <span class="action-title-text">{{ p.next_action }}</span>
+                  </div>
+                  <div class="sla-overdue-chip" *ngIf="p.sla_breached">
+                    <span>SLA breached &middot; {{ p.sla_time }}</span>
+                  </div>
+                </div>
+              </td>
+
+              <!-- At Risk Cell -->
+              <td class="col-risk text-right">
+                <div class="at-risk-wrap">
+                  <span class="risk-amount-text">{{ p.at_risk }}</span>
+                  <span class="risk-label-sub">est. exposure</span>
+                </div>
+              </td>
+
+              <!-- Actions Cell -->
+              <td class="col-actions text-right actions-column-cell">
+                <div class="row-actions-group">
+                  <button
+                    mat-icon-button
+                    type="button"
+                    class="action-btn followup-btn"
+                    (click)="$event.stopPropagation(); openFollowUpModal(p)"
+                    matTooltip="Schedule Follow-up for this Prospect"
+                  >
+                    <mat-icon>add_task</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    class="action-btn edit-btn"
+                    (click)="$event.stopPropagation(); startEdit(p)"
+                    matTooltip="Quick Edit Prospect"
+                  >
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <a
+                    mat-icon-button
+                    class="action-btn full-edit-btn"
+                    [routerLink]="['/buyers', p.id, 'edit']"
+                    (click)="$event.stopPropagation()"
+                    matTooltip="Edit Full Prospect Details (Form)"
+                  >
+                    <mat-icon>assignment_ind</mat-icon>
+                  </a>
+                  <button
+                    mat-icon-button
+                    color="warn"
+                    type="button"
+                    class="action-btn delete-btn"
+                    (click)="$event.stopPropagation(); deleteBuyer(p)"
+                    matTooltip="Delete Prospect"
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
               </td>
             </ng-container>
 
             <!-- Edit Mode -->
-            <ng-container *ngIf="editingBuyerId === p.id">
-              <td>
-                <input type="text" [(ngModel)]="editForm.name" class="inline-input" placeholder="Full name" />
-                <input type="text" [(ngModel)]="editForm.phone" class="inline-input sub-input" placeholder="Phone" />
-              </td>
-              <td>
-                <div class="score-pill">
-                  <span class="score-num">{{ p.score }}</span>
+            <ng-container *ngIf="editingBuyerId == p.id">
+              <td class="col-buyer">
+                <input type="text" [(ngModel)]="editForm.name" class="inline-edit-input" placeholder="Full name *" />
+                <input type="text" [(ngModel)]="editForm.phone" class="inline-edit-input sub-input" placeholder="Phone *" />
+                <div class="edit-project-row">
+                  <span class="edit-project-lbl">Project:</span>
+                  <select [(ngModel)]="editForm.project_id" class="inline-edit-select project-inline-select">
+                    <option *ngFor="let prj of projectsList" [value]="prj.project_id || prj.id">{{ prj.name }}</option>
+                  </select>
                 </div>
               </td>
-              <td>
-                <select [(ngModel)]="editForm.stage" class="inline-select">
+              <td class="col-score">
+                <div class="inline-score-editor">
+                  <div class="score-input-group">
+                    <span class="score-edit-lbl">Score:</span>
+                    <input
+                      type="number"
+                      [(ngModel)]="editForm.score"
+                      min="0"
+                      max="100"
+                      class="inline-edit-input score-num-input"
+                      title="Intent Score (0-100)"
+                    />
+                  </div>
+                  <div class="score-input-group delta-group">
+                    <span class="delta-symbol">▲</span>
+                    <input
+                      type="number"
+                      [(ngModel)]="editForm.delta"
+                      class="inline-edit-input delta-num-input"
+                      title="Intent Delta Score (±)"
+                    />
+                  </div>
+                  <div class="score-badge-live" [ngClass]="getScoreClass(editForm.score || p.score)">
+                    <span class="live-score">{{ editForm.score || p.score }}</span>
+                    <span class="live-delta">▲ {{ editForm.delta !== undefined ? editForm.delta : p.delta }}</span>
+                  </div>
+                </div>
+              </td>
+              <td class="col-stage">
+                <select [(ngModel)]="editForm.stage" class="inline-edit-select">
+                  <option value="New">New</option>
+                  <option value="Contacted">Contacted</option>
                   <option value="Qualified">Qualified</option>
                   <option value="High Intent">High Intent</option>
-                  <option value="Booking Intent">Booking Intent</option>
                   <option value="Site Visit Scheduled">Site Visit Scheduled</option>
-                  <option value="Negotiation">Negotiation</option>
                   <option value="Visit Completed">Visit Completed</option>
+                  <option value="Negotiation">Negotiation</option>
+                  <option value="Booking Intent">Booking Intent</option>
+                  <option value="Booked">Booked</option>
                 </select>
               </td>
-              <td>
-                <select [(ngModel)]="editForm.bhk" class="inline-select">
+              <td class="col-req">
+                <select [(ngModel)]="editForm.bhk" class="inline-edit-select" title="Preferred Unit Configuration">
                   <option value="1 BHK">1 BHK</option>
                   <option value="2 BHK">2 BHK</option>
                   <option value="3 BHK">3 BHK</option>
                   <option value="4 BHK">4 BHK</option>
+                  <option value="5 BHK">5 BHK</option>
+                  <option value="Penthouse">Penthouse</option>
+                  <option value="Villa">Villa</option>
+                  <option value="Duplex">Duplex</option>
+                  <option value="Plot">Plot</option>
+                  <option value="Residential Plot">Residential Plot</option>
+                  <option value="Commercial Plot">Commercial Plot</option>
+                  <option value="Farm House Plot">Farm House Plot</option>
+                  <option value="Villa Plot">Villa Plot</option>
                 </select>
+                <div class="inline-budget-sub">
+                  <span class="budget-range-text">{{ p.budget_min }} – {{ p.budget_max }}</span>
+                </div>
               </td>
-              <td>
-                <span class="owner-pill">{{ p.owner }}</span>
+              <td class="col-owner">
+                <div class="owner-cell-wrap">
+                  <div class="owner-avatar-mini">{{ getInitials(p.owner) }}</div>
+                  <div class="owner-meta-col">
+                    <span class="owner-name-text">{{ p.owner }}</span>
+                    <span class="owner-role-sub">Account Executive</span>
+                  </div>
+                </div>
               </td>
-              <td>
-                <div class="action-text">{{ p.next_action }}</div>
+              <td class="col-action">
+                <input
+                  type="text"
+                  [(ngModel)]="editForm.next_action"
+                  class="inline-edit-input"
+                  placeholder="Next best action..."
+                  title="Next Best Action"
+                />
               </td>
-              <td class="text-right risk-value">{{ p.at_risk }}</td>
-              <td class="text-right actions-cell">
-                <button mat-flat-button color="primary" type="button" class="btn-save-inline" (click)="saveEdit(p)">Save</button>
-                <button mat-stroked-button type="button" class="btn-cancel-inline" (click)="cancelEdit()">Cancel</button>
+              <td class="col-risk text-right">
+                <span class="risk-amount-text">{{ p.at_risk }}</span>
+              </td>
+              <td class="col-actions text-right actions-column-cell">
+                <div class="inline-actions-box">
+                  <button mat-flat-button type="button" class="btn-save-inline" (click)="$event.stopPropagation(); saveEdit(p)">Save</button>
+                  <button mat-stroked-button type="button" class="btn-cancel-inline" (click)="$event.stopPropagation(); cancelEdit()">Cancel</button>
+                </div>
               </td>
             </ng-container>
           </tr>
         </tbody>
       </table>
     </div>
-  </mat-card>
 
-  <!-- CSV Bulk Import Modal (SOW Sec 6) -->
+    <!-- Table Footer with Pagination & Summary -->
+    <div class="table-footer-bar">
+      <div class="footer-summary">
+        <span>Showing <strong>{{ pagedProspects.length }}</strong> of <strong>{{ filteredProspects.length }}</strong> prospects</span>
+        <span class="footer-pipe">&middot;</span>
+        <span class="footer-total-risk">Total Exposure: <strong>{{ getTotalExposureAtRisk() }}</strong></span>
+      </div>
+
+      <div class="footer-controls">
+        <div class="page-size-selector">
+          <label>Rows per page:</label>
+          <select [(ngModel)]="pageSize" (change)="currentPage = 1" class="page-size-dropdown">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+          </select>
+        </div>
+
+        <div class="page-navigator">
+          <button type="button" [disabled]="currentPage === 1" (click)="currentPage = currentPage - 1" class="page-nav-btn" aria-label="Previous page">&lsaquo;</button>
+          <span class="page-current-info">Page {{ currentPage }} of {{ totalPages || 1 }}</span>
+          <button type="button" [disabled]="currentPage >= totalPages" (click)="currentPage = currentPage + 1" class="page-nav-btn" aria-label="Next page">&rsaquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Excel & CSV Bulk Import Modal with Project Auto-Distribution (SOW Sec 6) -->
   <div *ngIf="showImportModal" class="modal-backdrop">
-    <mat-card class="modal-card mat-elevation-z8">
+    <div class="modal-card">
       <div class="modal-header">
         <div>
-          <h2 class="modal-title">Bulk Prospect CSV Import</h2>
-          <p class="modal-subtitle">Upload CSV to bulk create prospect profiles with automated 4-dimension intent scoring</p>
+          <h2 class="modal-title">Bulk Prospect Import (Excel & CSV)</h2>
+          <p class="modal-subtitle">Upload Excel (.xlsx, .xls) or CSV to auto-distribute prospects across projects with 4-dimension scoring</p>
         </div>
-        <button mat-icon-button type="button" (click)="closeImportModal()">
+        <button class="close-modal-btn" type="button" (click)="closeImportModal()">
           <mat-icon>close</mat-icon>
         </button>
       </div>
 
-      <mat-card-content class="modal-body">
+      <div class="modal-body">
         <div class="template-download-box">
           <div>
-            <strong>Need the CSV Template?</strong>
-            <p class="sub-text">Download official template with headers matching SOW Section 6 specifications.</p>
+            <strong>Need the Import Template?</strong>
+            <p class="sub-text">Includes project_name header to automatically assign prospects to their specific project cards.</p>
           </div>
-          <button mat-stroked-button type="button" (click)="downloadTemplate()">
-            <mat-icon>file_download</mat-icon> Download Template
+          <button mat-stroked-button type="button" class="btn-action-stroked" (click)="downloadTemplate()">
+            <mat-icon>file_download</mat-icon>
+            <span>Download Template</span>
           </button>
         </div>
 
+        <!-- Project Distribution Fallback Selector -->
+        <div class="project-distribution-selector-box">
+          <div class="selector-info">
+            <span class="selector-title">Target Project Distribution:</span>
+            <span class="selector-hint">Prospects with declared project in file are auto-routed. For rows without a project column:</span>
+          </div>
+          <div class="selector-control">
+            <select class="form-select-native" [(ngModel)]="importTargetProjectId">
+              <option value="auto">Auto-distribute evenly across all projects</option>
+              <option *ngFor="let prj of projectsList" [value]="prj.project_id || prj.id">
+                Assign all to: {{ prj.name }} ({{ prj.code || prj.project_type || 'Project' }})
+              </option>
+            </select>
+          </div>
+        </div>
+
         <div class="upload-zone">
-          <input type="file" accept=".csv" (change)="onFileSelected($event)" id="csvFileInput" class="file-input" />
+          <input type="file" accept=".xlsx, .xls, .csv" (change)="onFileSelected($event)" id="csvFileInput" class="file-input" />
           <label for="csvFileInput" class="upload-label">
             <mat-icon class="upload-icon-mat">cloud_upload</mat-icon>
-            <span class="upload-title">{{ selectedFileName || 'Choose a .CSV file or drag & drop here' }}</span>
-            <span class="upload-hint">Supported columns: full_name, phone, email, budget_min_lacs, budget_max_lacs, preferred_bhk, buying_timeframe, lead_source, financing_readiness</span>
+            <span class="upload-title">{{ selectedFileName || 'Choose an Excel (.xlsx, .xls) or .CSV file or drag & drop here' }}</span>
+            <span class="upload-hint">Supported columns: full_name, phone, email, project_name, budget_min_lacs, budget_max_lacs, preferred_bhk, buying_timeframe, lead_source</span>
           </label>
         </div>
 
@@ -263,10 +1568,22 @@
           </div>
         </div>
 
+        <!-- Project Distribution Summary Pills -->
+        <div *ngIf="importStats && getProjectsSummaryList().length > 0" class="project-distribution-summary-box">
+          <div class="distribution-summary-title">Distribution Breakdown Across Projects:</div>
+          <div class="distribution-summary-pills">
+            <div class="dist-pill" *ngFor="let item of getProjectsSummaryList()">
+              <mat-icon class="dist-icon">apartment</mat-icon>
+              <span class="dist-name">{{ item.name }}</span>
+              <span class="dist-count">{{ item.count }} prospects</span>
+            </div>
+          </div>
+        </div>
+
         <!-- Preview Table -->
         <div *ngIf="parsedCsvRows.length > 0 && !importStats" class="preview-section">
           <div class="preview-title">
-            <span>Rows Preview ({{ parsedCsvRows.length }} prospects detected)</span>
+            <span>Prospects Preview ({{ parsedCsvRows.length }} rows parsed instantly)</span>
           </div>
           <div class="preview-table-wrapper">
             <table class="preview-table">
@@ -275,6 +1592,7 @@
                   <th>#</th>
                   <th>Full Name</th>
                   <th>Phone</th>
+                  <th>Target Project</th>
                   <th>Budget</th>
                   <th>BHK</th>
                   <th>Timeframe</th>
@@ -282,34 +1600,167 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let row of parsedCsvRows.slice(0, 5); let i = index">
+                <tr *ngFor="let row of parsedCsvRows.slice(0, 6); let i = index">
                   <td>{{ i + 1 }}</td>
                   <td><strong>{{ row.full_name || row['Full Name'] || row.name }}</strong></td>
                   <td>{{ row.phone || row['Phone Number'] || row.contact }}</td>
+                  <td><span class="preview-project-badge">{{ getRowProjectName(row, i) }}</span></td>
                   <td>₹{{ row.budget_min_lacs || '100' }} - {{ row.budget_max_lacs || '200' }}L</td>
                   <td>{{ row.preferred_bhk || '3 BHK' }}</td>
                   <td>{{ row.buying_timeframe || '<30 days' }}</td>
-                  <td>{{ row.lead_source || 'CSV Import' }}</td>
+                  <td>{{ row.lead_source || 'Bulk Import' }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
-      </mat-card-content>
+      </div>
 
-      <mat-card-actions class="modal-footer">
-        <button mat-button type="button" (click)="closeImportModal()">Close</button>
+      <div class="modal-footer">
+        <button mat-stroked-button type="button" class="btn-action-stroked" (click)="closeImportModal()">Close</button>
         <button
           mat-flat-button
-          color="primary"
+          class="btn-action-primary"
           type="button"
           [disabled]="importing || parsedCsvRows.length === 0"
           (click)="executeImport()"
         >
           <span *ngIf="!importing">Start Bulk Import ({{ parsedCsvRows.length }} rows) &rarr;</span>
-          <span *ngIf="importing">Importing Prospects...</span>
+          <span *ngIf="importing">Importing & Distributing Prospects...</span>
         </button>
-      </mat-card-actions>
-    </mat-card>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Schedule / Add Follow-up for Prospect -->
+  <div class="modal-backdrop-custom" *ngIf="showFollowUpModal" (click)="closeFollowUpModal()">
+    <div class="modal-card-custom followup-modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-header-icon bg-indigo">
+          <mat-icon>add_task</mat-icon>
+        </div>
+        <div class="modal-title-wrap">
+          <h2 class="modal-title">Schedule Follow-up for {{ selectedBuyerForFollowUp?.name }}</h2>
+          <p class="modal-subtitle">
+            Create an SLA countdown follow-up task and update the manual intent score for this prospect.
+          </p>
+        </div>
+        <button mat-icon-button type="button" class="btn-close-modal" (click)="closeFollowUpModal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="modal-body-scroll">
+        <!-- Prospect Info Banner -->
+        <div class="modal-buyer-banner" *ngIf="selectedBuyerForFollowUp">
+          <div class="banner-avatar" [style.background]="getAvatarColor(selectedBuyerForFollowUp.name)">
+            {{ getInitials(selectedBuyerForFollowUp.name) }}
+          </div>
+          <div class="banner-details">
+            <div class="banner-name">{{ selectedBuyerForFollowUp.name }} <span class="banner-sub">&middot; {{ selectedBuyerForFollowUp.bhk }} &middot; {{ selectedBuyerForFollowUp.stage }}</span></div>
+            <div class="banner-contact">{{ selectedBuyerForFollowUp.phone }} &middot; Owner: {{ selectedBuyerForFollowUp.owner }}</div>
+          </div>
+          <div class="banner-intent-badge" [ngClass]="getScoreClass(followUpModalForm.manual_intent_score)">
+            {{ followUpModalForm.manual_intent_score }} ▲ {{ followUpModalForm.manual_intent_delta }}
+          </div>
+        </div>
+
+        <!-- Task Title -->
+        <div class="form-group-custom">
+          <label class="form-label-custom">Follow-up Task Requirement <span class="required">*</span></label>
+          <input
+            type="text"
+            [(ngModel)]="followUpModalForm.title"
+            class="form-input-custom"
+            placeholder="e.g. Call buyer to confirm site visit & share quotation"
+          />
+        </div>
+
+        <!-- Due Date & Priority Grid -->
+        <div class="form-grid-2col">
+          <div class="form-group-custom">
+            <label class="form-label-custom">Due Date & Time (SLA Target)</label>
+            <input
+              type="datetime-local"
+              [(ngModel)]="followUpModalForm.due_at"
+              class="form-input-custom"
+            />
+          </div>
+          <div class="form-group-custom">
+            <label class="form-label-custom">Task Priority</label>
+            <select [(ngModel)]="followUpModalForm.priority" class="form-select-custom">
+              <option value="URGENT">Urgent (Immediate SLA)</option>
+              <option value="HIGH">High Priority</option>
+              <option value="MEDIUM">Medium Priority</option>
+              <option value="LOW">Low Priority</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Manual Intent Score & Delta Section -->
+        <div class="modal-intent-section">
+          <div class="intent-section-header">
+            <span class="intent-sec-title"><mat-icon class="icon-inline">psychology</mat-icon> Manual Buyer Intent Assessment</span>
+            <span class="intent-sec-sub">Sets the live intent score for this prospect</span>
+          </div>
+
+          <div class="form-grid-2col">
+            <div class="form-group-custom">
+              <label class="form-label-custom">Manual Intent Score (0 - 100)</label>
+              <input
+                type="number"
+                min="0"
+                max="100"
+                [(ngModel)]="followUpModalForm.manual_intent_score"
+                class="form-input-custom"
+              />
+            </div>
+            <div class="form-group-custom">
+              <label class="form-label-custom">Intent Delta Score (±)</label>
+              <input
+                type="number"
+                [(ngModel)]="followUpModalForm.manual_intent_delta"
+                class="form-input-custom"
+              />
+            </div>
+          </div>
+
+          <!-- Quick Presets -->
+          <div class="quick-presets-row">
+            <span class="preset-label">Quick Presets:</span>
+            <button type="button" class="preset-btn" (click)="setModalIntentPreset(95, 5)">95 (Very High ▲ 5)</button>
+            <button type="button" class="preset-btn" (click)="setModalIntentPreset(90, 4)">90 (High ▲ 4)</button>
+            <button type="button" class="preset-btn" (click)="setModalIntentPreset(75, 2)">75 (Warm ▲ 2)</button>
+            <button type="button" class="preset-btn" (click)="setModalIntentPreset(60, 0)">60 (Neutral)</button>
+            <button type="button" class="preset-btn" (click)="setModalIntentPreset(40, -5)">40 (Cooling ▼ 5)</button>
+          </div>
+        </div>
+
+        <!-- Follow-up Notes -->
+        <div class="form-group-custom">
+          <label class="form-label-custom">Discussion Notes / Objection Context</label>
+          <textarea
+            [(ngModel)]="followUpModalForm.notes"
+            class="form-textarea-custom"
+            rows="3"
+            placeholder="Record customer preferences, objections or key negotiation points..."
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button mat-stroked-button type="button" class="btn-action-stroked" (click)="closeFollowUpModal()">Cancel</button>
+        <button
+          mat-flat-button
+          class="btn-action-primary"
+          type="button"
+          [disabled]="savingFollowUp || !followUpModalForm.title?.trim()"
+          (click)="submitFollowUpModal()"
+        >
+          <span *ngIf="!savingFollowUp">Save & Schedule Follow-up</span>
+          <span *ngIf="savingFollowUp">Scheduling Follow-up...</span>
+        </button>
+      </div>
+    </div>
   </div>
 </div>

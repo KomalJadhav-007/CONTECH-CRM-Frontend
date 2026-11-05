@@ -53,7 +53,7 @@ export class SettingsViewComponent implements OnInit {
     id: 8,
     firstName: 'Vikram',
     lastName: 'Joshi',
-    mobile: '+91 98455 67890',
+    mobile: '7058533669',
     designation: 'Organization Admin'
   };
 
@@ -79,7 +79,7 @@ export class SettingsViewComponent implements OnInit {
         const nameParts = (user.name || '').trim().split(' ');
         this.profile.firstName = nameParts[0] || 'Vikram';
         this.profile.lastName = nameParts.slice(1).join(' ') || 'Joshi';
-        this.profile.mobile = user.phone || '+91 98455 67890';
+        this.profile.mobile = user.phone || '7058533669';
         this.profile.designation = user.role ? (user.role.name || user.role) : 'Organization Admin';
         this.org.email = user.email || 'admin@contechcrm.com';
       }

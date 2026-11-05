@@ -31,7 +31,7 @@
       type="button"
       class="filter-tab"
       [class.active]="filterStatus === ''"
-      (click)="filterStatus = ''"
+      (click)="setFilter('')"
     >
       All Trips ({{ trips.length }})
     </button>
@@ -40,7 +40,7 @@
       type="button"
       class="filter-tab"
       [class.active]="filterStatus === 'ACTIVE'"
-      (click)="filterStatus = 'ACTIVE'"
+      (click)="setFilter('ACTIVE')"
     >
       Active Journeys
     </button>
@@ -49,7 +49,7 @@
       type="button"
       class="filter-tab"
       [class.active]="filterStatus === 'COMPLETED'"
-      (click)="filterStatus = 'COMPLETED'"
+      (click)="setFilter('COMPLETED')"
     >
       Completed
     </button>
@@ -57,11 +57,11 @@
 
   <!-- Trips Cards Grid -->
   <div class="trips-grid" *ngIf="filteredTrips.length > 0">
-    <mat-card *ngFor="let trip of filteredTrips" class="trip-card">
+    <mat-card *ngFor="let trip of pagedTrips" class="trip-card">
       <div class="trip-top-bar">
         <div class="trip-time-info">
-          <span class="trip-time">⏰ {{ trip.siteVisit?.time_slot || 'Today' }}</span>
-          <span class="cab-tag">🚗 {{ trip.siteVisit?.cab_number || 'Company Fleet' }}</span>
+          <span class="trip-time">{{ trip.siteVisit?.time_slot || 'Today' }}</span>
+          <span class="cab-tag">{{ trip.siteVisit?.cab_number || 'Company Fleet' }}</span>
         </div>
         <span
           class="stage-badge"
@@ -71,17 +71,22 @@
             'stage-scheduled': trip.trip_status === 'ASSIGNED'
           }"
         >
-          {{ trip.trip_status }}
+          {{ trip.trip_status === 'STARTED' ? 'IN PROGRESS' : (trip.trip_status === 'COMPLETED' ? 'COMPLETED' : trip.trip_status) }}
         </span>
       </div>
 
       <!-- Passenger Details -->
       <div class="passenger-section">
         <div class="passenger-header">
-          <div class="passenger-name">👤 {{ trip.passenger_name }}</div>
-          <a mat-stroked-button [href]="'tel:' + trip.passenger_phone" class="btn-phone">
-            <mat-icon style="font-size: 16px; width: 16px; height: 16px;">phone</mat-icon> {{ trip.passenger_phone }}
-          </a>
+          <div class="passenger-name">{{ trip.passenger_name }}</div>
+          <div class="passenger-actions">
+            <a mat-stroked-button [href]="'tel:' + trip.passenger_phone" class="btn-phone">
+              <mat-icon style="font-size: 16px; width: 16px; height: 16px;">phone</mat-icon> {{ trip.passenger_phone }}
+            </a>
+            <a mat-stroked-button [href]="getPassengerWhatsAppUrl(trip)" target="_blank" class="btn-wa">
+              <mat-icon style="font-size: 16px; width: 16px; height: 16px; color: #16a34a;">chat</mat-icon> WhatsApp
+            </a>
+          </div>
         </div>
       </div>
 
@@ -106,85 +111,88 @@
         </div>
       </div>
 
-      <!-- Journey Action Button -->
+      <!-- Journey Action Button: Strictly Start Trip and End Trip -->
       <div class="journey-actions">
+        <!-- Action 1: Start Trip -->
         <button
           mat-flat-button
           color="primary"
-          style="width: 100%;"
+          class="btn-trip-action btn-start-trip"
           type="button"
           *ngIf="trip.trip_status === 'ASSIGNED'"
           [disabled]="updatingId === trip.id"
           (click)="updateStatus(trip, 'STARTED')"
         >
-          🚀 Start Trip to Buyer Location
+          <mat-icon style="margin-right: 6px;">play_arrow</mat-icon> Start Trip
         </button>
 
+        <!-- Action 2: End Trip -->
         <button
           mat-flat-button
-          color="primary"
-          style="width: 100%;"
+          class="btn-trip-action btn-end-trip"
           type="button"
-          *ngIf="trip.trip_status === 'STARTED'"
-          [disabled]="updatingId === trip.id"
-          (click)="updateStatus(trip, 'ARRIVED_PICKUP')"
-        >
-          📍 Arrived at Buyer House
-        </button>
-
-        <button
-          mat-flat-button
-          color="primary"
-          style="width: 100%;"
-          type="button"
-          *ngIf="trip.trip_status === 'ARRIVED_PICKUP'"
-          [disabled]="updatingId === trip.id"
-          (click)="updateStatus(trip, 'PASSENGER_ONBOARD')"
-        >
-          👥 Passenger Onboard &amp; Heading to Site
-        </button>
-
-        <button
-          mat-flat-button
-          color="primary"
-          style="width: 100%;"
-          type="button"
-          *ngIf="trip.trip_status === 'PASSENGER_ONBOARD'"
-          [disabled]="updatingId === trip.id"
-          (click)="updateStatus(trip, 'DROPPED_AT_SITE')"
-        >
-          🏁 Dropped Buyer at Sales Gallery
-        </button>
-
-        <button
-          mat-flat-button
-          color="accent"
-          style="width: 100%;"
-          type="button"
-          *ngIf="trip.trip_status === 'DROPPED_AT_SITE'"
+          *ngIf="trip.trip_status === 'STARTED' || trip.trip_status === 'ARRIVED_PICKUP' || trip.trip_status === 'PASSENGER_ONBOARD' || trip.trip_status === 'DROPPED_AT_SITE'"
           [disabled]="updatingId === trip.id"
           (click)="updateStatus(trip, 'COMPLETED')"
         >
-          ✅ Complete Return Journey
+          <mat-icon style="margin-right: 6px;">stop</mat-icon> End Trip
         </button>
 
+        <!-- Action 3: Trip Completed Status -->
         <button
           mat-stroked-button
-          style="width: 100%;"
+          class="btn-trip-action btn-completed-trip"
           type="button"
           *ngIf="trip.trip_status === 'COMPLETED'"
           disabled
         >
-          ✓ Trip Fully Completed
+          <mat-icon style="margin-right: 6px; color: #16a34a;">check_circle</mat-icon> Trip Completed
         </button>
       </div>
     </mat-card>
   </div>
 
+  <!-- Trips Pagination Footer -->
+  <div class="table-footer-bar trips-footer-bar" *ngIf="filteredTrips.length > 0">
+    <div class="footer-summary">
+      <span>Showing <strong>{{ pagedTrips.length }}</strong> of <strong>{{ filteredTrips.length }}</strong> trips</span>
+    </div>
+
+    <div class="footer-controls">
+      <div class="page-size-selector">
+        <label>Trips per page:</label>
+        <select [(ngModel)]="pageSize" (change)="currentPage = 1" class="page-size-dropdown">
+          <option [value]="3">3</option>
+          <option [value]="6">6</option>
+          <option [value]="9">9</option>
+          <option [value]="18">18</option>
+        </select>
+      </div>
+
+      <div class="page-navigator">
+        <button
+          type="button"
+          [disabled]="currentPage === 1"
+          (click)="currentPage = currentPage - 1"
+          class="page-nav-btn"
+          aria-label="Previous page"
+        >&lsaquo;</button>
+        <span class="page-current-info">Page {{ currentPage }} of {{ totalPages || 1 }}</span>
+        <button
+          type="button"
+          [disabled]="currentPage >= totalPages"
+          (click)="currentPage = currentPage + 1"
+          class="page-nav-btn"
+          aria-label="Next page"
+        >&rsaquo;</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Empty State Card -->
   <mat-card *ngIf="filteredTrips.length === 0 && !loading" class="table-card empty-card">
     <div class="empty-state">
-      <div class="empty-icon">🚗</div>
+      <div class="empty-icon"><mat-icon style="font-size: 44px; width: 44px; height: 44px; color: #94a3b8;">directions_car</mat-icon></div>
       <h2 class="empty-title">No Pending Trips Assigned</h2>
       <p class="empty-subtitle">You are all caught up for today. New dispatch notifications will appear here.</p>
     </div>

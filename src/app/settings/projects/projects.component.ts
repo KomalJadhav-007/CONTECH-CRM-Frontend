@@ -23,6 +23,10 @@ export interface PropertyTypeConfig {
   base_price_lacs: number;
   total_units: number;
   facing: string;
+  tower_wing?: string;
+  floor_range?: string;
+  front_road_width?: string;
+  plot_location?: string;
 }
 
 @Component({
@@ -71,20 +75,459 @@ export class ProjectsComponent implements OnInit {
     developer: 'Contech Developments Pvt Ltd',
     location: '',
     address: '',
+    project_purpose: 'Housing / Residential',
     configurations: '2 BHK, 3 BHK, 4 BHK Luxury',
     daily_capacity: 20,
     working_hours: '09:00 AM - 07:00 PM',
     status: 'active'
   };
 
+  // Purpose options for real estate developments
+  projectPurposeOptions: {
+    id: string;
+    label: string;
+    badge: string;
+    icon: string;
+    description: string;
+    presetSummary: string;
+    typologyPresetName: string;
+    recommendedTypes: PropertyTypeConfig[];
+  }[] = [
+    {
+      id: 'Housing / Residential',
+      label: 'Housing / Residential Purpose',
+      badge: 'Homes & Apartments',
+      icon: 'apartment',
+      description: 'Apartments, Gated High-Rise Towers, Row Houses, Luxury Duplexes & Penthouses',
+      presetSummary: '2 BHK Executive, 3 BHK Royal Grand, 4 BHK Penthouse',
+      typologyPresetName: 'Flats & Residential Configurations',
+      recommendedTypes: [
+        { 
+          name: '2 BHK Executive', 
+          bhk_type: '2 BHK', 
+          carpet_area_sqft: 1050, 
+          super_builtup_area_sqft: 1280, 
+          base_price_lacs: 125, 
+          total_units: 30, 
+          facing: 'East Facing',
+          tower_wing: 'Tower A / Wing 1',
+          floor_range: 'Floors 1-10',
+          front_road_width: '40 ft Road',
+          plot_location: 'Center / Intermediate Plot'
+        },
+        { 
+          name: '3 BHK Royal Grand', 
+          bhk_type: '3 BHK', 
+          carpet_area_sqft: 1450, 
+          super_builtup_area_sqft: 1780, 
+          base_price_lacs: 175, 
+          total_units: 40, 
+          facing: 'North-East Facing',
+          tower_wing: 'Tower B / Wing 2',
+          floor_range: 'Floors 5-18',
+          front_road_width: '60 ft Avenue',
+          plot_location: 'Corner Plot'
+        }
+      ]
+    },
+    {
+      id: 'Commercial',
+      label: 'Commercial Purpose',
+      badge: 'Offices & Retail',
+      icon: 'domain',
+      description: 'Grade-A Tech Parks, Bare-Shell Office Suites, High-Street Retail Showrooms & SCOs',
+      presetSummary: 'Grade-A Office Suite, Retail High-Street Store, Corporate Suite',
+      typologyPresetName: 'Commercial Units & Retail Configurations',
+      recommendedTypes: [
+        {
+          name: 'Grade-A Bare Shell Office',
+          bhk_type: 'Commercial Unit',
+          carpet_area_sqft: 1200,
+          super_builtup_area_sqft: 1650,
+          base_price_lacs: 160,
+          total_units: 25,
+          facing: 'Main Boulevard Facing',
+          tower_wing: 'Tower Alpha / Floors 3-12',
+          floor_range: 'Floors 3-12',
+          front_road_width: '80 ft Main Road',
+          plot_location: 'Main Road / Boulevard Facing'
+        },
+        {
+          name: 'High-Street Retail Store',
+          bhk_type: 'Commercial Unit',
+          carpet_area_sqft: 850,
+          super_builtup_area_sqft: 1100,
+          base_price_lacs: 195,
+          total_units: 12,
+          facing: 'Frontage Main Road',
+          tower_wing: 'Podium Ground Floor',
+          floor_range: 'Ground Level',
+          front_road_width: '60 ft Avenue',
+          plot_location: 'Corner Plot'
+        }
+      ]
+    },
+    {
+      id: 'Plot / Plotted Land',
+      label: 'Plot / Plotted Land Purpose',
+      badge: 'Layouts & Land Sites',
+      icon: 'terrain',
+      description: 'Plotted Townships, Gated Community Layouts, Villa Sites, Farm Plots & Land Parcels',
+      presetSummary: '30x40 Standard Plot, 30x50 Premium Plot, 40x60 Executive Plot',
+      typologyPresetName: 'Plots & Land Configurations',
+      recommendedTypes: [
+        {
+          name: '30x40 Standard Plot (1200 Sqft)',
+          bhk_type: 'Plot',
+          carpet_area_sqft: 1200,
+          super_builtup_area_sqft: 1200,
+          base_price_lacs: 48,
+          total_units: 35,
+          facing: 'East Facing',
+          tower_wing: 'Sector 1 / Green Avenue',
+          floor_range: 'Ground Plotted Site',
+          front_road_width: '30 ft Road',
+          plot_location: 'Center / Intermediate Plot'
+        },
+        {
+          name: '30x50 Premium Plot (1500 Sqft)',
+          bhk_type: 'Plot',
+          carpet_area_sqft: 1500,
+          super_builtup_area_sqft: 1500,
+          base_price_lacs: 65,
+          total_units: 25,
+          facing: 'North Facing',
+          tower_wing: 'Sector 2 / Boulevard',
+          floor_range: 'Ground Plotted Site',
+          front_road_width: '40 ft Road',
+          plot_location: 'Park / Garden Facing Plot'
+        },
+        {
+          name: '40x60 Executive Villa Plot (2400 Sqft)',
+          bhk_type: 'Plot',
+          carpet_area_sqft: 2400,
+          super_builtup_area_sqft: 2400,
+          base_price_lacs: 110,
+          total_units: 15,
+          facing: 'Corner / Park Facing',
+          tower_wing: 'Executive Enclave',
+          floor_range: 'Corner Site',
+          front_road_width: '60 ft Avenue',
+          plot_location: 'Corner + Park Facing (Dual Prime)'
+        }
+      ]
+    },
+    {
+      id: 'Mixed-Use Development',
+      label: 'Mixed-Use Development Purpose',
+      badge: 'Residential + Commercial',
+      icon: 'location_city',
+      description: 'Integrated Communities with Commercial Retail Podiums & Luxury Residences Above',
+      presetSummary: 'Retail High-Street Store + 2 BHK & 3 BHK Residential Units',
+      typologyPresetName: 'Mixed-Use Units Configuration',
+      recommendedTypes: [
+        {
+          name: 'Retail Commercial Storefront',
+          bhk_type: 'Commercial Unit',
+          carpet_area_sqft: 950,
+          super_builtup_area_sqft: 1200,
+          base_price_lacs: 175,
+          total_units: 14,
+          facing: 'Main Promenade',
+          tower_wing: 'Commercial Podium',
+          floor_range: 'Ground & 1st',
+          front_road_width: '80 ft Main Road',
+          plot_location: 'Corner Plot'
+        },
+        {
+          name: '3 BHK Sky Residence',
+          bhk_type: '3 BHK',
+          carpet_area_sqft: 1500,
+          super_builtup_area_sqft: 1850,
+          base_price_lacs: 180,
+          total_units: 36,
+          facing: 'North-East Facing',
+          tower_wing: 'Tower 1 / Residential',
+          floor_range: 'Floors 3-18',
+          front_road_width: '60 ft Avenue',
+          plot_location: 'Main Road / Boulevard Facing'
+        }
+      ]
+    }
+  ];
+
+  isCustomPurposeActive = false;
+  customPurposeValue = '';
+
   // Multiple property typologies to include when adding project
   newProjectPropertyTypes: PropertyTypeConfig[] = [
-    { name: '2 BHK Executive', bhk_type: '2 BHK', carpet_area_sqft: 1050, super_builtup_area_sqft: 1280, base_price_lacs: 125, total_units: 30, facing: 'East Facing' },
-    { name: '3 BHK Royal', bhk_type: '3 BHK', carpet_area_sqft: 1450, super_builtup_area_sqft: 1780, base_price_lacs: 175, total_units: 40, facing: 'North-East Facing' }
+    { 
+      name: '2 BHK Executive', 
+      bhk_type: '2 BHK', 
+      carpet_area_sqft: 1050, 
+      super_builtup_area_sqft: 1280, 
+      base_price_lacs: 125, 
+      total_units: 30, 
+      facing: 'East Facing',
+      tower_wing: 'Tower A / Wing 1',
+      floor_range: 'Floors 1-10',
+      front_road_width: '40 ft Road',
+      plot_location: 'Center / Intermediate Plot'
+    },
+    { 
+      name: '3 BHK Royal', 
+      bhk_type: '3 BHK', 
+      carpet_area_sqft: 1450, 
+      super_builtup_area_sqft: 1780, 
+      base_price_lacs: 175, 
+      total_units: 40, 
+      facing: 'North-East Facing',
+      tower_wing: 'Tower B / Wing 2',
+      floor_range: 'Floors 5-18',
+      front_road_width: '60 ft Avenue',
+      plot_location: 'Corner Plot'
+    }
   ];
 
   showPropertyTypesBuilder = true;
-  autoGenerateBatchFlats = true;
+
+  // Front Road Width & Plot Location Options
+  frontWidthOptions: string[] = [
+    '30 ft Road',
+    '40 ft Road',
+    '50 ft Road',
+    '60 ft Avenue',
+    '80 ft Main Road',
+    '100 ft Grand Boulevard',
+    '120+ ft Expressway',
+    '24 ft Internal Lane'
+  ];
+
+  plotLocationOptions: string[] = [
+    'Center / Intermediate Plot',
+    'Corner Plot',
+    'Park / Garden Facing Plot',
+    'Main Road / Boulevard Facing',
+    'Corner + Park Facing (Dual Prime)',
+    'Cul-de-sac / End Plot',
+    'Lake / Water Body Facing',
+    'North-East Corner (Vastu Prime)',
+    'Standard / Regular'
+  ];
+
+  // Predefined & Dynamic Typology Options
+  typologyOptions: string[] = [
+    '1 BHK',
+    '2 BHK',
+    '3 BHK',
+    '4 BHK',
+    '5 BHK',
+    'Penthouse',
+    'Villa',
+    'Duplex',
+    'Plot',
+    'Residential Plot',
+    'Commercial Plot',
+    'Farm House Plot',
+    'Villa Plot',
+    'Commercial Unit'
+  ];
+
+  showCustomTypeInput: { [key: string]: boolean } = {};
+  customTypeValues: { [key: string]: string } = {};
+
+  onTypologyChange(target: any, fieldKey: string, syncConfig = true): void {
+    if (target.bhk_type === '__CUSTOM__') {
+      this.showCustomTypeInput[fieldKey] = true;
+      this.customTypeValues[fieldKey] = '';
+    } else {
+      this.showCustomTypeInput[fieldKey] = false;
+      if (syncConfig) {
+        this.syncConfigurationsText();
+      }
+    }
+  }
+
+  applyCustomTypology(target: any, fieldKey: string, syncConfig = true): void {
+    const val = (this.customTypeValues[fieldKey] || '').trim();
+    if (val) {
+      if (!this.typologyOptions.includes(val)) {
+        this.typologyOptions.push(val);
+      }
+      target.bhk_type = val;
+      this.showCustomTypeInput[fieldKey] = false;
+      if (syncConfig) {
+        this.syncConfigurationsText();
+      }
+    }
+  }
+
+  cancelCustomTypology(target: any, fieldKey: string): void {
+    this.showCustomTypeInput[fieldKey] = false;
+    target.bhk_type = '2 BHK';
+    this.syncConfigurationsText();
+  }
+
+  // --- Front Road Width Custom Creator ---
+  showCustomWidthInput: { [key: string]: boolean } = {};
+  customWidthValues: { [key: string]: string } = {};
+
+  onFrontWidthChange(target: any, fieldKey: string): void {
+    if (target.front_road_width === '__CUSTOM__') {
+      this.showCustomWidthInput[fieldKey] = true;
+      this.customWidthValues[fieldKey] = '';
+    } else {
+      this.showCustomWidthInput[fieldKey] = false;
+    }
+  }
+
+  applyCustomFrontWidth(target: any, fieldKey: string): void {
+    const val = (this.customWidthValues[fieldKey] || '').trim();
+    if (val) {
+      if (!this.frontWidthOptions.includes(val)) {
+        this.frontWidthOptions.push(val);
+      }
+      target.front_road_width = val;
+      this.showCustomWidthInput[fieldKey] = false;
+    }
+  }
+
+  cancelCustomFrontWidth(target: any, fieldKey: string): void {
+    this.showCustomWidthInput[fieldKey] = false;
+    target.front_road_width = '40 ft Road';
+  }
+
+  // --- Plot / Unit Location Custom Creator ---
+  showCustomPlotLocInput: { [key: string]: boolean } = {};
+  customPlotLocValues: { [key: string]: string } = {};
+
+  onPlotLocChange(target: any, fieldKey: string): void {
+    if (target.plot_location === '__CUSTOM__') {
+      this.showCustomPlotLocInput[fieldKey] = true;
+      this.customPlotLocValues[fieldKey] = '';
+    } else {
+      this.showCustomPlotLocInput[fieldKey] = false;
+    }
+  }
+
+  applyCustomPlotLoc(target: any, fieldKey: string): void {
+    const val = (this.customPlotLocValues[fieldKey] || '').trim();
+    if (val) {
+      if (!this.plotLocationOptions.includes(val)) {
+        this.plotLocationOptions.push(val);
+      }
+      target.plot_location = val;
+      this.showCustomPlotLocInput[fieldKey] = false;
+    }
+  }
+
+  cancelCustomPlotLoc(target: any, fieldKey: string): void {
+    this.showCustomPlotLocInput[fieldKey] = false;
+    target.plot_location = 'Center / Intermediate Plot';
+  }
+
+  // --- Project Purpose & Category Methods ---
+  showCustomPurposeInput = false;
+  customPurposeInput = '';
+
+  onPurposeDropdownChange(): void {
+    if (this.newProject.project_purpose === '__CUSTOM__') {
+      this.showCustomPurposeInput = true;
+      this.customPurposeInput = '';
+    } else {
+      this.showCustomPurposeInput = false;
+      this.applyPurposePresets(this.newProject.project_purpose);
+    }
+  }
+
+  applyCustomPurposeInput(): void {
+    const val = (this.customPurposeInput || '').trim();
+    if (val) {
+      if (!this.projectPurposeOptions.some(o => o.id === val)) {
+        this.projectPurposeOptions.push({
+          id: val,
+          label: val,
+          badge: 'Custom Purpose',
+          icon: 'domain',
+          description: `Custom development type: ${val}`,
+          presetSummary: 'Custom typologies',
+          typologyPresetName: `${val} Configurations`,
+          recommendedTypes: []
+        });
+      }
+      this.newProject.project_purpose = val;
+      this.showCustomPurposeInput = false;
+      this.showFeedback(`Project purpose set to "${val}".`);
+    }
+  }
+
+  cancelCustomPurposeInput(): void {
+    this.showCustomPurposeInput = false;
+    this.newProject.project_purpose = 'Housing / Residential';
+    this.applyPurposePresets('Housing / Residential');
+  }
+
+  selectProjectPurpose(purposeId: string, applyPresets = false): void {
+    this.isCustomPurposeActive = false;
+    this.newProject.project_purpose = purposeId;
+    if (applyPresets) {
+      this.applyPurposePresets(purposeId);
+    }
+  }
+
+  applyPurposePresets(purposeId: string): void {
+    const opt = this.projectPurposeOptions.find(o => o.id === purposeId);
+    if (opt && opt.recommendedTypes && opt.recommendedTypes.length > 0) {
+      this.newProjectPropertyTypes = JSON.parse(JSON.stringify(opt.recommendedTypes));
+      this.syncConfigurationsText();
+      this.showFeedback(`Loaded recommended typologies for ${opt.label}.`);
+    }
+  }
+
+  toggleCustomPurpose(): void {
+    this.isCustomPurposeActive = !this.isCustomPurposeActive;
+    if (this.isCustomPurposeActive) {
+      this.customPurposeValue = '';
+    } else {
+      this.newProject.project_purpose = 'Housing / Residential';
+    }
+  }
+
+  applyCustomPurpose(): void {
+    const val = (this.customPurposeValue || '').trim();
+    if (val) {
+      this.newProject.project_purpose = val;
+      this.showFeedback(`Project purpose set to "${val}".`);
+    }
+  }
+
+  getPurposeTitle(): string {
+    const opt = this.projectPurposeOptions.find(o => o.id === this.newProject.project_purpose);
+    return opt ? opt.typologyPresetName : 'Flats & Properties Configuration for this Project';
+  }
+
+  getPurposeIcon(purpose: string): string {
+    const p = (purpose || '').toLowerCase();
+    if (p.includes('plot') || p.includes('land')) return 'terrain';
+    if (p.includes('commercial') || p.includes('office') || p.includes('retail')) return 'domain';
+    if (p.includes('mixed')) return 'location_city';
+    return 'apartment';
+  }
+
+  getPurposeBadgeClass(purpose: string): string {
+    const p = (purpose || '').toLowerCase();
+    if (p.includes('plot') || p.includes('land')) return 'badge-purpose-plot';
+    if (p.includes('commercial') || p.includes('office') || p.includes('retail')) return 'badge-purpose-commercial';
+    if (p.includes('mixed')) return 'badge-purpose-mixed';
+    return 'badge-purpose-housing';
+  }
+
+  getTypologyAddLabel(): string {
+    const p = (this.newProject.project_purpose || '').toLowerCase();
+    if (p.includes('plot') || p.includes('land')) return 'Plot Typology';
+    if (p.includes('commercial') || p.includes('office') || p.includes('retail')) return 'Commercial Typology';
+    return 'Flat Typology';
+  }
 
   projects: any[] = [];
 
@@ -136,6 +579,8 @@ export class ProjectsComponent implements OnInit {
     area_sqft: 1280,
     price_lacs: 125.00,
     facing: 'East Facing',
+    front_road_width: '40 ft Road',
+    plot_location: 'Center / Intermediate Plot',
     status: 'AVAILABLE',
     notes: ''
   };
@@ -159,6 +604,10 @@ export class ProjectsComponent implements OnInit {
     base_price_lacs: 120.00,
     total_units: 20,
     facing: 'East Facing',
+    tower_wing: 'Tower A / Wing 1',
+    floor_range: 'Floors 1-14',
+    front_road_width: '40 ft Road',
+    plot_location: 'Center / Intermediate Plot',
     description: ''
   };
 
@@ -182,6 +631,7 @@ export class ProjectsComponent implements OnInit {
               developer: p.developer || 'Contech Developments Pvt Ltd',
               location: p.location || 'Bengaluru',
               address: p.address || '',
+              project_purpose: p.project_purpose || (pId === 3 ? 'Plot / Plotted Land' : (pId === 2 ? 'Commercial' : 'Housing / Residential')),
               configurations: p.configurations || '2 BHK, 3 BHK, 4 BHK',
               capacity_per_day: p.daily_capacity || 20,
               working_hours: p.operating_hours || '09:00 AM - 07:00 PM',
@@ -223,6 +673,7 @@ export class ProjectsComponent implements OnInit {
         code: 'CCH-BLR',
         developer: 'Contech Developments Pvt Ltd',
         location: 'ITPL Main Road, Whitefield, Bengaluru',
+        project_purpose: 'Housing / Residential',
         configurations: '2 BHK Elegance, 3 BHK Royal Grand, 4 BHK Sky Penthouse',
         capacity_per_day: 25,
         total_units: 8,
@@ -244,11 +695,12 @@ export class ProjectsComponent implements OnInit {
       },
       {
         id: 2,
-        name: 'Contech Skyline Elegance',
-        code: 'CSE-BLR',
-        developer: 'Contech Developments Pvt Ltd',
+        name: 'Contech TechVista Commercial Hub',
+        code: 'CTC-BLR',
+        developer: 'Contech Commercial Infra Pvt Ltd',
         location: '100ft Road, Indiranagar, Bengaluru',
-        configurations: '3 BHK Signature Suite, 4 BHK Luxury Mansion',
+        project_purpose: 'Commercial',
+        configurations: 'Grade-A Bare Shell Office, High-Street Retail Showroom',
         capacity_per_day: 18,
         total_units: 4,
         available_units: 4,
@@ -259,20 +711,21 @@ export class ProjectsComponent implements OnInit {
         crm_bookings: 0,
         crm_booking_value_cr: '0.00',
         historical_sold_units: 66,
-        starting_price_lacs: 260,
+        starting_price_lacs: 160,
         status: 'active',
         property_types: [
-          { name: '3 BHK Signature Suite', bhk_type: '3 BHK', base_price_lacs: 260, total_units: 45 },
-          { name: '4 BHK Luxury Mansion', bhk_type: '4 BHK', base_price_lacs: 420, total_units: 35 }
+          { name: 'Grade-A Bare Shell Office', bhk_type: 'Commercial Unit', base_price_lacs: 160, total_units: 25 },
+          { name: 'High-Street Retail Store', bhk_type: 'Commercial Unit', base_price_lacs: 195, total_units: 12 }
         ]
       },
       {
         id: 3,
-        name: 'Contech Greenfield Sanctuary',
+        name: 'Contech Greenfield Plotted Sanctuary',
         code: 'CGS-BLR',
         developer: 'Contech Green Living LLP',
         location: 'Sarjapur-Outer Ring Road, Bengaluru',
-        configurations: '2 BHK Lakeview Retreat, 3 BHK Garden Oasis, 4 BHK Lakeview Villa',
+        project_purpose: 'Plot / Plotted Land',
+        configurations: '30x40 Standard Plot, 30x50 Premium Plot, 40x60 Executive Plot',
         capacity_per_day: 35,
         total_units: 5,
         available_units: 5,
@@ -283,12 +736,12 @@ export class ProjectsComponent implements OnInit {
         crm_bookings: 0,
         crm_booking_value_cr: '0.00',
         historical_sold_units: 118,
-        starting_price_lacs: 95,
+        starting_price_lacs: 48,
         status: 'active',
         property_types: [
-          { name: '2 BHK Lakeview Retreat', bhk_type: '2 BHK', base_price_lacs: 95, total_units: 80 },
-          { name: '3 BHK Garden Oasis', bhk_type: '3 BHK', base_price_lacs: 135, total_units: 80 },
-          { name: '4 BHK Lakeview Villa', bhk_type: '4 BHK', base_price_lacs: 240, total_units: 40 }
+          { name: '30x40 Standard Plot (1200 Sqft)', bhk_type: 'Plot', base_price_lacs: 48, total_units: 35 },
+          { name: '30x50 Premium Plot (1500 Sqft)', bhk_type: 'Plot', base_price_lacs: 65, total_units: 25 },
+          { name: '40x60 Executive Villa Plot (2400 Sqft)', bhk_type: 'Plot', base_price_lacs: 110, total_units: 15 }
         ]
       }
     ];
@@ -306,6 +759,7 @@ export class ProjectsComponent implements OnInit {
 
   // --- Add Project Form Actions ---
   addPropertyTypeRow(): void {
+    const nextWing = String.fromCharCode(65 + (this.newProjectPropertyTypes.length % 26));
     this.newProjectPropertyTypes.push({
       name: '4 BHK Luxury Penthouse',
       bhk_type: '4 BHK',
@@ -313,7 +767,11 @@ export class ProjectsComponent implements OnInit {
       super_builtup_area_sqft: 2750,
       base_price_lacs: 280,
       total_units: 15,
-      facing: 'Panoramic Park Facing'
+      facing: 'Panoramic Park Facing',
+      tower_wing: `Tower ${nextWing} / Wing ${this.newProjectPropertyTypes.length + 1}`,
+      floor_range: 'Floors 12-24',
+      front_road_width: '40 ft Road',
+      plot_location: 'Center / Intermediate Plot'
     });
     this.syncConfigurationsText();
   }
@@ -343,6 +801,7 @@ export class ProjectsComponent implements OnInit {
       developer: this.newProject.developer || 'Contech Developments Pvt Ltd',
       location: this.newProject.location || 'Bengaluru',
       address: this.newProject.address || '',
+      project_purpose: this.newProject.project_purpose || 'Housing / Residential',
       configurations: this.newProject.configurations,
       daily_capacity: Number(this.newProject.daily_capacity) || 20,
       working_hours: this.newProject.working_hours,
@@ -350,26 +809,6 @@ export class ProjectsComponent implements OnInit {
       property_types: this.newProjectPropertyTypes
     };
 
-    // Auto-generate sample flats for the new project if checked
-    if (this.autoGenerateBatchFlats && this.newProjectPropertyTypes.length > 0) {
-      const generatedUnits: any[] = [];
-      const primaryType = this.newProjectPropertyTypes[0];
-      for (let floor = 1; floor <= 3; floor++) {
-        for (let u = 1; u <= 2; u++) {
-          generatedUnits.push({
-            unit_number: `Tower A-${floor}0${u}`,
-            tower_block: 'Tower A',
-            floor_number: floor,
-            bhk_type: primaryType.bhk_type,
-            area_sqft: primaryType.super_builtup_area_sqft || 1350,
-            price_lacs: primaryType.base_price_lacs || 120,
-            facing: primaryType.facing || 'East Facing',
-            status: 'AVAILABLE'
-          });
-        }
-      }
-      payload.units = generatedUnits;
-    }
 
     this.settingsService.createProject(payload).subscribe({
       next: (res: any) => {
@@ -381,6 +820,7 @@ export class ProjectsComponent implements OnInit {
           developer: created.developer,
           location: created.location,
           address: created.address,
+          project_purpose: created.project_purpose || payload.project_purpose,
           configurations: created.configurations,
           capacity_per_day: created.daily_capacity,
           total_units: newTotal,
@@ -405,6 +845,7 @@ export class ProjectsComponent implements OnInit {
         this.projects.unshift({
           id: fallbackId,
           ...payload,
+          project_purpose: payload.project_purpose,
           capacity_per_day: payload.daily_capacity,
           total_units: payload.units ? payload.units.length : 20,
           available_units: payload.units ? payload.units.length : 20,
@@ -433,6 +874,7 @@ export class ProjectsComponent implements OnInit {
       name: project.name,
       developer: project.developer,
       location: project.location,
+      project_purpose: project.project_purpose || 'Housing / Residential',
       configurations: project.configurations,
       daily_capacity: project.capacity_per_day,
       status: project.status
@@ -449,6 +891,7 @@ export class ProjectsComponent implements OnInit {
       name: this.editForm.name,
       developer: this.editForm.developer,
       location: this.editForm.location,
+      project_purpose: this.editForm.project_purpose || 'Housing / Residential',
       configurations: this.editForm.configurations,
       daily_capacity: Number(this.editForm.daily_capacity) || 10,
       is_active: this.editForm.status === 'active'
@@ -459,6 +902,7 @@ export class ProjectsComponent implements OnInit {
         project.name = payload.name;
         project.developer = payload.developer;
         project.location = payload.location;
+        project.project_purpose = payload.project_purpose;
         project.configurations = payload.configurations;
         project.capacity_per_day = payload.daily_capacity;
         project.status = payload.is_active ? 'active' : 'inactive';
@@ -470,6 +914,7 @@ export class ProjectsComponent implements OnInit {
         project.name = payload.name;
         project.developer = payload.developer;
         project.location = payload.location;
+        project.project_purpose = payload.project_purpose;
         project.configurations = payload.configurations;
         project.capacity_per_day = payload.daily_capacity;
         project.status = payload.is_active ? 'active' : 'inactive';
@@ -565,7 +1010,7 @@ export class ProjectsComponent implements OnInit {
             { unit_id: 1, unit_number: 'Tower A - 101', tower_block: 'Tower A', floor_number: 1, bhk_type: '2 BHK', area_sqft: 1320, price_lacs: 145.00, facing: 'East Facing', status: 'AVAILABLE' },
             { unit_id: 2, unit_number: 'Tower A - 102', tower_block: 'Tower A', floor_number: 1, bhk_type: '2 BHK', area_sqft: 1320, price_lacs: 145.00, facing: 'West Facing', status: 'AVAILABLE' },
             { unit_id: 3, unit_number: 'Tower A - 201', tower_block: 'Tower A', floor_number: 2, bhk_type: '3 BHK', area_sqft: 1850, price_lacs: 195.00, facing: 'North-East Facing', status: 'AVAILABLE' },
-            { unit_id: 4, unit_number: 'Tower A - 402', tower_block: 'Tower A', floor_number: 4, bhk_type: '3 BHK', area_sqft: 1850, price_lacs: 195.00, facing: 'East Facing', status: 'BOOKED', notes: 'Booked by Ananya Deshmukh' },
+            { unit_id: 4, unit_number: 'Tower A - 402', tower_block: 'Tower A', floor_number: 4, bhk_type: '3 BHK', area_sqft: 1850, price_lacs: 195.00, facing: 'East Facing', status: 'BOOKED', notes: 'Booked by Rohiet Kumar' },
             { unit_id: 5, unit_number: 'Tower B - 501', tower_block: 'Tower B', floor_number: 5, bhk_type: '3 BHK', area_sqft: 1850, price_lacs: 202.00, facing: 'Park Facing', status: 'AVAILABLE' },
             { unit_id: 6, unit_number: 'Tower B - 703', tower_block: 'Tower B', floor_number: 7, bhk_type: '3 BHK', area_sqft: 1850, price_lacs: 210.00, facing: 'East Facing', status: 'RESERVED', notes: 'Shortlisted by Vikram Malhotra' },
             { unit_id: 7, unit_number: 'Tower B - 1201', tower_block: 'Tower B', floor_number: 12, bhk_type: '4 BHK', area_sqft: 2850, price_lacs: 310.00, facing: 'Panoramic Park Facing', status: 'AVAILABLE' },
@@ -620,6 +1065,8 @@ export class ProjectsComponent implements OnInit {
       area_sqft: primaryType ? primaryType.super_builtup_area_sqft : 1280,
       price_lacs: primaryType ? primaryType.base_price_lacs : 125.00,
       facing: primaryType ? primaryType.facing : 'East Facing',
+      front_road_width: primaryType && primaryType.front_road_width ? primaryType.front_road_width : '40 ft Road',
+      plot_location: primaryType && primaryType.plot_location ? primaryType.plot_location : 'Center / Intermediate Plot',
       status: 'AVAILABLE',
       notes: ''
     };
@@ -755,6 +1202,10 @@ export class ProjectsComponent implements OnInit {
       base_price_lacs: 185.00,
       total_units: 30,
       facing: 'East Facing',
+      tower_wing: 'Tower B / Wing 2',
+      floor_range: 'Floors 5-18',
+      front_road_width: '40 ft Road',
+      plot_location: 'Center / Intermediate Plot',
       description: ''
     };
     this.showTypeModal = true;
@@ -835,6 +1286,9 @@ export class ProjectsComponent implements OnInit {
     this.newProject.name = '';
     this.newProject.location = '';
     this.newProject.address = '';
+    this.newProject.project_purpose = 'Housing / Residential';
+    this.isCustomPurposeActive = false;
+    this.customPurposeValue = '';
   }
 
   private showFeedback(msg: string): void {

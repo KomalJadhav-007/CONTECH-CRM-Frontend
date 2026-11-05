@@ -34,66 +34,54 @@ export class RevenueAnalyticsComponent implements OnInit {
   loading = true;
 
   analytics: any = {
-    lead_to_visit_pct: 31,
-    visits_scheduled_count: 10,
-    visit_to_booking_pct: 0,
-    bookings_count: 0,
+    lead_to_visit_pct: 24,
+    visits_scheduled_count: 6,
+    total_visits: 6,
+    visit_to_booking_pct: 17,
+    bookings_count: 1,
     visits_completed_count: 2,
-    recovery_rate_pct: 0,
+    recovery_rate_pct: 100,
     cancelled_count: 1,
-    no_shows_count: 1,
-    sla_compliance_pct: 100,
-    sla_breaches_count: 0,
-    total_buyers: 32,
-    high_intent: 17,
-    open_follow_ups: 8,
-    overdue_follow_ups: 8,
-    revenue_at_risk_cr: '25.84',
+    no_shows_count: 0,
+    sla_compliance_pct: 86,
+    sla_breaches_count: 1,
+    total_buyers: 25,
+    high_intent: 20,
+    open_follow_ups: 6,
+    overdue_follow_ups: 3,
+    revenue_at_risk_cr: '45.20',
     pipeline_funnel: [
-      { stage: 'New', count: 29, max_count: 29, drop_off: '-21%' },
-      { stage: 'Contacted', count: 23, max_count: 29, drop_off: '-22%' },
-      { stage: 'Qualified', count: 18, max_count: 29, drop_off: '-33%' },
-      { stage: 'High Intent', count: 12, max_count: 29, drop_off: '-17%' },
-      { stage: 'Site Visit Scheduled', count: 10, max_count: 29, drop_off: '-40%' },
-      { stage: 'Visit Completed', count: 6, max_count: 29, drop_off: '-50%' },
-      { stage: 'Negotiation', count: 3, max_count: 29, drop_off: '-67%' },
-      { stage: 'Booking Intent', count: 1, max_count: 29, drop_off: '-100%' },
-      { stage: 'Booked', count: 0, max_count: 29, drop_off: '-0%' }
+      { stage: 'New', count: 25, max_count: 25, drop_off: '0%' },
+      { stage: 'Contacted', count: 21, max_count: 25, drop_off: '-16%' },
+      { stage: 'Qualified', count: 12, max_count: 25, drop_off: '-43%' },
+      { stage: 'High Intent', count: 20, max_count: 25, drop_off: '0%' },
+      { stage: 'Site Visit Scheduled', count: 6, max_count: 25, drop_off: '-70%' },
+      { stage: 'Visit Completed', count: 2, max_count: 25, drop_off: '-67%' },
+      { stage: 'Negotiation', count: 2, max_count: 25, drop_off: '0%' },
+      { stage: 'Booking Intent', count: 1, max_count: 25, drop_off: '-50%' },
+      { stage: 'Booked', count: 1, max_count: 25, drop_off: '0%' }
     ],
     intent_bands: [
-      { label: 'VERY HIGH INTENT', count: 8 },
-      { label: 'HIGH INTENT', count: 9 },
-      { label: 'QUALIFIED', count: 8 },
-      { label: 'EMERGING', count: 4 },
-      { label: 'LOW', count: 3 }
+      { label: 'VERY HIGH INTENT', count: 6 },
+      { label: 'HIGH INTENT', count: 14 },
+      { label: 'QUALIFIED', count: 4 },
+      { label: 'EMERGING', count: 1 },
+      { label: 'LOW', count: 0 }
     ],
     source_performance: [
-      { name: 'SimpliQualify', buyers: 4, high_intent: 3, booked: 0, revenue: '₹0' },
-      { name: 'Website', buyers: 4, high_intent: 2, booked: 0, revenue: '₹0' },
-      { name: 'Google Ads', buyers: 3, high_intent: 1, booked: 0, revenue: '₹0' },
-      { name: 'Referral', buyers: 3, high_intent: 3, booked: 0, revenue: '₹0' },
-      { name: 'Instagram', buyers: 3, high_intent: 2, booked: 0, revenue: '₹0' },
-      { name: 'Property Portal', buyers: 3, high_intent: 2, booked: 0, revenue: '₹0' },
-      { name: 'WhatsApp', buyers: 3, high_intent: 1, booked: 0, revenue: '₹0' },
-      { name: 'Walk-in', buyers: 3, high_intent: 0, booked: 0, revenue: '₹0' },
-      { name: 'Meta Ads', buyers: 2, high_intent: 2, booked: 0, revenue: '₹0' },
-      { name: 'Channel Partner', buyers: 2, high_intent: 1, booked: 0, revenue: '₹0' },
-      { name: 'Phone', buyers: 2, high_intent: 0, booked: 0, revenue: '₹0' }
+      { name: 'Instagram', buyers: 25, high_intent: 20, booked: 1, revenue: '₹1.95 Cr' }
     ],
     owner_performance: [
-      { name: 'Sneha Joshi', buyers: 6, high_intent: 4, booked: 0, revenue: '₹0' },
-      { name: 'Unassigned', buyers: 5, high_intent: 3, booked: 0, revenue: '₹0' },
-      { name: 'Amit Kulkarni', buyers: 5, high_intent: 3, booked: 0, revenue: '₹0' },
-      { name: 'Kavya Rao', buyers: 5, high_intent: 2, booked: 0, revenue: '₹0' },
-      { name: 'Rohit Patil', buyers: 5, high_intent: 3, booked: 0, revenue: '₹0' },
-      { name: 'Nikhil Shinde', buyers: 5, high_intent: 2, booked: 0, revenue: '₹0' },
-      { name: 'Meera Iyer', buyers: 1, high_intent: 0, booked: 0, revenue: '₹0' }
+      { name: 'Amit Verma (Account Executive)', buyers: 23, high_intent: 18, booked: 1, revenue: '₹1.95 Cr' },
+      { name: 'Priya Nair (Sales Manager)', buyers: 1, high_intent: 1, booked: 0, revenue: '₹0' },
+      { name: 'Unassigned Leads', buyers: 1, high_intent: 1, booked: 0, revenue: '₹0' }
     ],
     project_performance: [
-      { name: 'Skyline Heights', buyers: 7, high_intent: 5, booked: 0, revenue_at_risk: '₹8.28 Cr' },
-      { name: 'Riverfront Residences', buyers: 6, high_intent: 3, booked: 0, revenue_at_risk: '₹4.09 Cr' },
-      { name: 'Urban Crest', buyers: 6, high_intent: 3, booked: 0, revenue_at_risk: '₹3.29 Cr' },
-      { name: 'Parkside Enclave', buyers: 6, high_intent: 2, booked: 0, revenue_at_risk: '₹4.50 Cr' }
+      { name: 'Contech Crown Heights', buyers: 5, high_intent: 5, booked: 1, revenue_at_risk: '₹11.25 Cr' },
+      { name: 'Contech Skyline Elegance', buyers: 5, high_intent: 4, booked: 0, revenue_at_risk: '₹10.35 Cr' },
+      { name: 'Contech Greenfield Sanctuary', buyers: 5, high_intent: 4, booked: 0, revenue_at_risk: '₹9.20 Cr' },
+      { name: 'Contech Emerald Meadows Plotted Layout', buyers: 5, high_intent: 4, booked: 0, revenue_at_risk: '₹9.25 Cr' },
+      { name: 'Contech Business Square', buyers: 5, high_intent: 4, booked: 0, revenue_at_risk: '₹9.50 Cr' }
     ]
   };
 
@@ -119,5 +107,26 @@ export class RevenueAnalyticsComponent implements OnInit {
   getFunnelWidth(count: number, maxCount: number): number {
     if (!maxCount || maxCount === 0) return 0;
     return Math.round((count / maxCount) * 100);
+  }
+
+  getIntentBandPct(count: number): number {
+    const total = this.analytics.total_buyers || 1;
+    return Math.min(100, Math.round((count / total) * 100));
+  }
+
+  getBandColorClass(label: string): string {
+    const l = (label || '').toUpperCase();
+    if (l.includes('VERY HIGH')) return 'emerald';
+    if (l.includes('HIGH')) return 'blue';
+    if (l.includes('QUALIFIED')) return 'indigo';
+    if (l.includes('EMERGING')) return 'amber';
+    return 'slate';
+  }
+
+  getHighIntentSharePct(): number {
+    if (!this.analytics.intent_bands || this.analytics.intent_bands.length < 2) return 0;
+    const high = (this.analytics.intent_bands[0]?.count || 0) + (this.analytics.intent_bands[1]?.count || 0);
+    const total = this.analytics.total_buyers || 1;
+    return Math.min(100, Math.round((high / total) * 100));
   }
 }

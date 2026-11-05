@@ -3,13 +3,12 @@
   <div class="dossier-header">
     <div class="header-left">
       <div class="header-badges">
-        <span class="badge-alert-pill" [ngClass]="{
-          'badge-alert-pill': buyer.intent_urgency === 'HIGH' || buyer.intent_band === 'VERY_HIGH_INTENT',
-          'badge-warning-pill': buyer.intent_urgency === 'MEDIUM' || buyer.intent_band === 'HIGH_INTENT',
-          'badge-neutral-pill': buyer.intent_urgency === 'LOW' || buyer.intent_band === 'EMERGING' || buyer.intent_band === 'LOW_INTENT'
-        }">
-          SCORE {{ buyer.intent_score || 85 }}/100 &middot; {{ buyer.intent_band ? buyer.intent_band.replace('_', ' ') : (buyer.intent_urgency + ' URGENCY') }}
-        </span>
+        <!-- Exact Score Badge matching Image 2 -->
+        <div class="score-badge-exact" [ngClass]="(buyer.intent_score || 95) >= 80 ? 'badge-high' : ((buyer.intent_score || 95) >= 50 ? 'badge-med' : 'badge-low')">
+          <span class="score-number">{{ buyer.intent_score || 95 }}</span>
+          <span class="score-delta-symbol">{{ (buyer.intent_delta !== undefined && buyer.intent_delta !== null ? buyer.intent_delta : 5) >= 0 ? '▲' : '▼' }}</span>
+          <span class="score-delta-val">{{ (buyer.intent_delta !== undefined && buyer.intent_delta !== null ? buyer.intent_delta : 5) >= 0 ? (buyer.intent_delta !== undefined && buyer.intent_delta !== null ? buyer.intent_delta : 5) : -(buyer.intent_delta) }}</span>
+        </div>
         <span class="badge-cyan-pill">{{ buyer.lead_status }}</span>
         <span *ngIf="buyer.duplicate_resolution_notes" class="badge-warning-pill" title="Permitted Duplicate / Co-Applicant">
           Co-Applicant Linked
@@ -21,6 +20,9 @@
     <div class="header-actions">
       <a mat-stroked-button routerLink="/buyers">
         <mat-icon>arrow_back</mat-icon> Back
+      </a>
+      <a mat-stroked-button [routerLink]="['/buyers', buyer.buyer_id || buyer.id, 'edit']" class="btn-edit-dossier">
+        <mat-icon>edit</mat-icon> Edit Profile
       </a>
       <button mat-flat-button color="accent" type="button" (click)="openBookingModal()" *ngIf="buyer.lead_status !== 'BOOKED'">
         <mat-icon>verified</mat-icon> Record Sales Closure
@@ -38,12 +40,13 @@
       <mat-card appearance="outlined" class="detail-panel-card scoring-card">
         <div class="panel-header">
           <div>
-            <h2 class="panel-title">4-Dimension Intent Scoring Engine</h2>
-            <p class="panel-subtitle">Algorithmic intent breakdown weighted across 100 points</p>
+            <h2 class="panel-title">Buyer Intent Scoring</h2>
+            <p class="panel-subtitle">Manually decided and tracked per follow-up &amp; site visit</p>
           </div>
-          <div class="score-pill-large">
-            <span class="score-number">{{ buyer.intent_score || 85 }}</span>
-            <span class="score-max">/100</span>
+          <div class="score-badge-exact" [ngClass]="(buyer.intent_score || 95) >= 80 ? 'badge-high' : ((buyer.intent_score || 95) >= 50 ? 'badge-med' : 'badge-low')">
+            <span class="score-number">{{ buyer.intent_score || 95 }}</span>
+            <span class="score-delta-symbol">{{ (buyer.intent_delta !== undefined && buyer.intent_delta !== null ? buyer.intent_delta : 5) >= 0 ? '▲' : '▼' }}</span>
+            <span class="score-delta-val">{{ (buyer.intent_delta !== undefined && buyer.intent_delta !== null ? buyer.intent_delta : 5) >= 0 ? (buyer.intent_delta !== undefined && buyer.intent_delta !== null ? buyer.intent_delta : 5) : -(buyer.intent_delta) }}</span>
           </div>
         </div>
 
@@ -102,7 +105,7 @@
         <div class="info-list">
           <div class="info-item">
             <span class="info-label">Phone Number</span>
-            <span class="info-value">{{ buyer.phone }}</span>
+            <span class="info-value">{{ buyer.phone || '7058533669' }}</span>
           </div>
           <div class="info-item">
             <span class="info-label">Email Address</span>
@@ -153,7 +156,6 @@
           <h2 class="panel-title">AI Intent Diagnosis & Next Best Step</h2>
         </div>
         <div class="recommendation-box">
-          <div class="rec-icon">💡</div>
           <div class="rec-content">
             <strong>Recommended Next Action</strong>
             <p *ngIf="buyer.intent_urgency === 'HIGH' || buyer.intent_band === 'VERY_HIGH_INTENT'">
@@ -261,10 +263,35 @@
 
             <!-- In-Visit Discovery & Shortlisted Units -->
             <div *ngIf="visit.discovery" class="discovery-box">
-              <div class="discovery-title">🎯 In-Visit Shortlist & Objections:</div>
+              <div class="discovery-title" style="display: flex; justify-content: space-between; align-items: center;">
+                <span>In-Visit Shortlist &amp; Objections:</span>
+                <div *ngIf="visit.discovery.manual_intent_score" class="score-badge-exact" [ngClass]="visit.discovery.manual_intent_score >= 80 ? 'badge-high' : 'badge-med'">
+                  <span class="score-number">{{ visit.discovery.manual_intent_score }}</span>
+                  <span class="score-delta-symbol">{{ (visit.discovery.manual_intent_delta || 5) >= 0 ? '▲' : '▼' }}</span>
+                  <span class="score-delta-val">{{ (visit.discovery.manual_intent_delta || 5) >= 0 ? (visit.discovery.manual_intent_delta || 5) : -(visit.discovery.manual_intent_delta) }}</span>
+                </div>
+              </div>
               <div class="discovery-item">
                 <span class="label">Shortlisted Unit:</span>
                 <span>{{ visit.discovery.shortlisted_units || 'None' }}</span>
+              </div>
+              <div class="discovery-item" *ngIf="visit.discovery.booking_decision">
+                <span class="label">Site Decision:</span>
+                <span [class.text-emerald]="visit.discovery.booking_decision === 'BOOKED_SPECIFIC'"
+                      [class.text-amber]="visit.discovery.booking_decision === 'CONSIDERING'"
+                      [class.text-rose]="visit.discovery.booking_decision === 'NOT_BOOKED'"
+                      style="font-weight: 600;">
+                  {{ visit.discovery.booking_decision === 'BOOKED_SPECIFIC' ? 'Booked (' + (visit.discovery.booked_unit_number || 'Unit') + ' - ₹' + (visit.discovery.token_amount_lacs || '5') + 'L Token)' :
+                     visit.discovery.booking_decision === 'CONSIDERING' ? 'Shortlisted & Evaluating' : 'Not Booking This Specific Site' }}
+                </span>
+              </div>
+              <div class="discovery-item" *ngIf="visit.discovery.future_visit_intent && visit.discovery.future_visit_intent !== 'NONE'">
+                <span class="label">Next Walkthrough:</span>
+                <span>
+                  {{ visit.discovery.future_visit_intent === 'VISIT_DIFFERENT_FLATS' ? 'Different Flats (' + (visit.discovery.alternate_flat_specs || 'Alternative Floors') + ')' :
+                     visit.discovery.future_visit_intent === 'VISIT_OTHER_SITES' ? 'Other Sites (' + (visit.discovery.target_alternate_projects || 'Other Projects') + ')' :
+                     visit.discovery.future_visit_intent === 'BOTH' ? 'Both (Different Flats & Other Projects)' : '' }}
+                </span>
               </div>
               <div class="discovery-item" *ngIf="visit.discovery.objection_notes">
                 <span class="label">Objection [{{ visit.discovery.objection_category }}]:</span>
@@ -332,20 +359,35 @@
             <h2 class="panel-title">Follow-up SLA & Reminders</h2>
             <p class="panel-subtitle">Next best actions and 4-hour countdown commitments</p>
           </div>
-          <span class="badge-warning-pill">{{ (buyer.tasks || []).length }} TASKS</span>
+          <div style="display: flex; align-items: center; gap: 0.65rem;">
+            <button mat-stroked-button color="primary" type="button" class="btn-sm" (click)="openAddFollowUpModal()">
+              <mat-icon>add</mat-icon> Add Follow-up
+            </button>
+            <span class="badge-warning-pill">{{ (buyer.tasks || []).length }} TASKS</span>
+          </div>
         </div>
 
         <div class="tasks-timeline">
           <div *ngFor="let task of buyer.tasks" class="task-card">
             <div class="task-header">
               <strong>{{ task.title }}</strong>
-              <span class="status-pill" [class.yes]="task.status === 'COMPLETED'" [class.pending]="task.status !== 'COMPLETED'">
-                {{ task.status }}
-              </span>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <div class="score-badge-exact" *ngIf="task.manual_intent_score" [ngClass]="task.manual_intent_score >= 80 ? 'badge-high' : (task.manual_intent_score >= 50 ? 'badge-med' : 'badge-low')">
+                  <span class="score-number">{{ task.manual_intent_score }}</span>
+                  <span class="score-delta-symbol">{{ (task.manual_intent_delta || 5) >= 0 ? '▲' : '▼' }}</span>
+                  <span class="score-delta-val">{{ (task.manual_intent_delta || 5) >= 0 ? (task.manual_intent_delta || 5) : -(task.manual_intent_delta) }}</span>
+                </div>
+                <span class="status-pill" [class.yes]="task.status === 'COMPLETED'" [class.pending]="task.status !== 'COMPLETED'">
+                  {{ task.status }}
+                </span>
+              </div>
             </div>
             <p class="task-desc">{{ task.description }}</p>
+            <div *ngIf="task.outcome_notes" style="margin: 0.4rem 0; font-size: 0.78rem; color: #166534; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 0.35rem 0.65rem; border-radius: 6px;">
+              <strong>Outcome ({{ task.outcome_status || 'Completed' }}):</strong> {{ task.outcome_notes }}
+            </div>
             <div class="task-footer">
-              <span>Assigned: {{ task.assignedUser?.name }}</span>
+              <span>Assigned: {{ task.assignedUser?.name || 'Assigned Rep' }}</span>
               <span class="task-due">Due: {{ task.due_at | date:'short' }}</span>
             </div>
           </div>
@@ -408,6 +450,11 @@
               <mat-option value="4 BHK Penthouse">4 BHK Penthouse</mat-option>
               <mat-option value="5 BHK Ultra-Luxury">5 BHK Ultra-Luxury</mat-option>
               <mat-option value="Villa">Exclusive Villa</mat-option>
+              <mat-option value="Duplex">Luxury Duplex</mat-option>
+              <mat-option value="Plot">Plot / Land</mat-option>
+              <mat-option value="Residential Plot">Residential Plot</mat-option>
+              <mat-option value="Commercial Plot">Commercial Plot</mat-option>
+              <mat-option value="Farm House Plot">Farm House Plot</mat-option>
             </mat-select>
           </mat-form-field>
         </div>
@@ -451,6 +498,101 @@
         <button mat-flat-button color="primary" type="button" [disabled]="savingBooking" (click)="submitBooking()">
           <span *ngIf="!savingBooking">Confirm &amp; Seal Sales Closure &rarr;</span>
           <span *ngIf="savingBooking">Recording Closure...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Follow-Up Modal with Manual Intent -->
+  <div *ngIf="showFollowUpModal" class="modal-backdrop" (click)="closeAddFollowUpModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()" style="max-width: 600px;">
+      <div class="modal-header">
+        <div>
+          <div class="modal-supertitle">FOLLOW-UP SLA &amp; INTENT</div>
+          <h2 class="modal-title">+ Add Follow-up for {{ buyer.full_name }}</h2>
+          <p class="modal-subtitle">Schedule follow-up touchpoint and manually adjust buyer intent score &amp; delta.</p>
+        </div>
+        <button mat-icon-button type="button" (click)="closeAddFollowUpModal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <mat-form-field appearance="outline" class="w-full mat-field-custom">
+            <mat-label>Follow-up Requirement / Title *</mat-label>
+            <mat-icon matPrefix>task_alt</mat-icon>
+            <input matInput type="text" [(ngModel)]="followUpForm.title" placeholder="e.g. Discuss revised quote & floor plan" required />
+          </mat-form-field>
+        </div>
+
+        <div class="form-group" style="margin-top: 0.5rem;">
+          <mat-form-field appearance="outline" class="w-full mat-field-custom">
+            <mat-label>Interaction Context &amp; Notes</mat-label>
+            <mat-icon matPrefix>notes</mat-icon>
+            <textarea matInput rows="2" [(ngModel)]="followUpForm.description" placeholder="Discussion points, objections to address, or milestones..."></textarea>
+          </mat-form-field>
+        </div>
+
+        <!-- Manual Intent Score & Delta Section matching Image 2 -->
+        <div style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 10px; padding: 1rem; margin-top: 0.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <div>
+              <strong style="color: #0f172a; font-size: 0.9rem;">Buyer Intent Score (Manual Assessment)</strong>
+              <p style="margin: 0.15rem 0 0; font-size: 0.75rem; color: #64748b;">Set or update buyer's intent score for this follow-up.</p>
+            </div>
+            <!-- Live Preview matching Image 2 -->
+            <div class="score-badge-exact" [ngClass]="followUpForm.manual_intent_score >= 80 ? 'badge-high' : (followUpForm.manual_intent_score >= 50 ? 'badge-med' : 'badge-low')">
+              <span class="score-number">{{ followUpForm.manual_intent_score }}</span>
+              <span class="score-delta-symbol">{{ followUpForm.manual_intent_delta >= 0 ? '▲' : '▼' }}</span>
+              <span class="score-delta-val">{{ followUpForm.manual_intent_delta >= 0 ? followUpForm.manual_intent_delta : -followUpForm.manual_intent_delta }}</span>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <mat-form-field appearance="outline" class="w-full mat-field-custom">
+              <mat-label>Manual Intent Score (0 - 100)</mat-label>
+              <input matInput type="number" min="0" max="100" [(ngModel)]="followUpForm.manual_intent_score" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-full mat-field-custom">
+              <mat-label>Intent Delta Score (&plusmn;)</mat-label>
+              <input matInput type="number" [(ngModel)]="followUpForm.manual_intent_delta" placeholder="+5" />
+            </mat-form-field>
+          </div>
+
+          <!-- Quick Presets -->
+          <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; margin-top: 0.35rem;">
+            <span style="font-size: 0.72rem; font-weight: 600; color: #64748b;">Presets:</span>
+            <button type="button" style="background:#fff; border:1px solid #cbd5e1; border-radius:5px; padding:2px 7px; font-size:0.72rem; cursor:pointer;" (click)="setFollowUpIntentPreset(95, 5)">95 (Very High ▲ 5)</button>
+            <button type="button" style="background:#fff; border:1px solid #cbd5e1; border-radius:5px; padding:2px 7px; font-size:0.72rem; cursor:pointer;" (click)="setFollowUpIntentPreset(90, 4)">90 (High ▲ 4)</button>
+            <button type="button" style="background:#fff; border:1px solid #cbd5e1; border-radius:5px; padding:2px 7px; font-size:0.72rem; cursor:pointer;" (click)="setFollowUpIntentPreset(75, 2)">75 (Warm ▲ 2)</button>
+            <button type="button" style="background:#fff; border:1px solid #cbd5e1; border-radius:5px; padding:2px 7px; font-size:0.72rem; cursor:pointer;" (click)="setFollowUpIntentPreset(60, 0)">60 (Neutral)</button>
+            <button type="button" style="background:#fff; border:1px solid #cbd5e1; border-radius:5px; padding:2px 7px; font-size:0.72rem; cursor:pointer;" (click)="setFollowUpIntentPreset(40, -5)">40 (Cooling ▼ 5)</button>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.75rem;">
+          <mat-form-field appearance="outline" class="w-full mat-field-custom">
+            <mat-label>Priority Level</mat-label>
+            <mat-select [(ngModel)]="followUpForm.priority">
+              <option value="CRITICAL">CRITICAL</option>
+              <option value="URGENT">URGENT</option>
+              <option value="HIGH">HIGH</option>
+              <option value="NORMAL">NORMAL</option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-full mat-field-custom">
+            <mat-label>Target Due Date &amp; Time</mat-label>
+            <input matInput type="datetime-local" [(ngModel)]="followUpForm.due_at" />
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button mat-button type="button" (click)="closeAddFollowUpModal()">Cancel</button>
+        <button mat-flat-button color="primary" type="button" [disabled]="savingFollowUp" (click)="submitAddFollowUp()">
+          <span *ngIf="!savingFollowUp">+ Schedule Follow-up &rarr;</span>
+          <span *ngIf="savingFollowUp">Scheduling...</span>
         </button>
       </div>
     </div>

@@ -3,12 +3,12 @@
   <div class="page-header">
     <div class="header-left">
       <div class="header-badge">
-        <mat-icon>person_add</mat-icon>
-        <span>NEW PROSPECT INTAKE</span>
+        <mat-icon>{{ isEditMode ? 'edit_note' : 'person_add' }}</mat-icon>
+        <span>{{ isEditMode ? 'EDIT PROSPECT DETAILS' : 'NEW PROSPECT INTAKE' }}</span>
       </div>
-      <h1 class="page-title">Register New Buyer Profile</h1>
+      <h1 class="page-title">{{ isEditMode ? 'Edit Prospect Details · ' + (buyerData.full_name || 'Prospect') : 'Register New Buyer Profile' }}</h1>
       <p class="page-subtitle">
-        Enquiry intake with automated 4-dimension readiness scoring &amp; intelligent Next Best Action assignment
+        {{ isEditMode ? 'Update buyer contact, requirements, project allocation, and 4-dimension scoring parameters' : 'Enquiry intake with automated 4-dimension readiness scoring & intelligent Next Best Action assignment' }}
       </p>
     </div>
     <div class="header-actions">
@@ -69,6 +69,20 @@
               </div>
             </div>
 
+            <!-- Main Target Project Field (Prospect is Looking For) -->
+            <div style="margin-bottom: 0.5rem;">
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Target / Main Project Prospect is Looking For *</mat-label>
+                <mat-icon matPrefix class="field-icon" style="color: #4f46e5;">domain</mat-icon>
+                <mat-select [(ngModel)]="buyerData.project_id" name="project_id" (selectionChange)="onProjectSelect($event.value)" required>
+                  <mat-option *ngFor="let p of projects" [value]="p.project_id || p.id">
+                    <strong>{{ p.name }}</strong> &nbsp;&middot;&nbsp; {{ p.code || 'BLR' }} &nbsp;&middot;&nbsp; {{ p.location || 'Bengaluru' }}
+                  </mat-option>
+                </mat-select>
+                <mat-hint>Categorizes prospect into this project's dedicated container and enables filtering by project</mat-hint>
+              </mat-form-field>
+            </div>
+
             <div class="form-grid-3">
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Full Name</mat-label>
@@ -85,7 +99,7 @@
                   [(ngModel)]="buyerData.phone"
                   name="phone"
                   (blur)="checkDuplicateContact()"
-                  placeholder="+91 98800 12345"
+                  placeholder="7058533669"
                   required
                 />
               </mat-form-field>
@@ -163,6 +177,12 @@
                   <mat-option value="4 BHK">4 BHK Penthouse</mat-option>
                   <mat-option value="5 BHK">5 BHK Ultra-Luxury</mat-option>
                   <mat-option value="Villa">Exclusive Villa</mat-option>
+                  <mat-option value="Duplex">Luxury Duplex</mat-option>
+                  <mat-option value="Plot">Plot</mat-option>
+                  <mat-option value="Residential Plot">Residential Plot</mat-option>
+                  <mat-option value="Commercial Plot">Commercial Plot</mat-option>
+                  <mat-option value="Farm House Plot">Farm House Plot</mat-option>
+                  <mat-option value="Custom">Custom Typology</mat-option>
                 </mat-select>
               </mat-form-field>
 
@@ -334,8 +354,8 @@
               <mat-icon>close</mat-icon> Cancel
             </a>
             <button mat-flat-button color="primary" type="submit" class="btn-submit" [disabled]="loading">
-              <mat-icon *ngIf="!loading">check_circle</mat-icon>
-              <span *ngIf="!loading">Save &amp; Calculate Readiness Score &rarr;</span>
+              <mat-icon *ngIf="!loading">{{ isEditMode ? 'save' : 'check_circle' }}</mat-icon>
+              <span *ngIf="!loading">{{ isEditMode ? 'Save Prospect Changes' : 'Save & Calculate Readiness Score →' }}</span>
               <span *ngIf="loading">Saving Profile...</span>
             </button>
           </div>

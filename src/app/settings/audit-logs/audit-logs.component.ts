@@ -47,6 +47,32 @@ export class AuditLogsComponent implements OnInit {
   unackAlertsCount = 0;
   criticalAlertsCount = 0;
 
+  // Pagination for Audit Logs
+  currentPage = 1;
+  pageSize = 10;
+
+  // Pagination for In-App Alerts
+  alertCurrentPage = 1;
+  alertPageSize = 10;
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredLogs.length / this.pageSize));
+  }
+
+  get pagedLogs(): any[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredLogs.slice(start, start + this.pageSize);
+  }
+
+  get totalAlertPages(): number {
+    return Math.max(1, Math.ceil(this.alerts.length / this.alertPageSize));
+  }
+
+  get pagedAlerts(): any[] {
+    const start = (this.alertCurrentPage - 1) * this.alertPageSize;
+    return this.alerts.slice(start, start + this.alertPageSize);
+  }
+
   ngOnInit(): void {
     this.loadAuditLogs();
     this.loadAlerts();
@@ -118,7 +144,7 @@ export class AuditLogsComponent implements OnInit {
   }
 
   onFilterChange(): void {
-    // Client-side filtering is instant with filteredLogs getter
+    this.currentPage = 1;
   }
 
   get filteredLogs(): any[] {

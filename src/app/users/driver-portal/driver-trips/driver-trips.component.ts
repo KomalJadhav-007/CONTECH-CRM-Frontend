@@ -26,13 +26,31 @@ export class DriverTripsComponent implements OnInit {
   updatingId: number | null = null;
   statusMessage = '';
 
+  // Pagination for Daily Trips
+  currentPage = 1;
+  pageSize = 6;
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredTrips.length / this.pageSize));
+  }
+
+  get pagedTrips(): any[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredTrips.slice(start, start + this.pageSize);
+  }
+
+  setFilter(status: string): void {
+    this.filterStatus = status;
+    this.currentPage = 1;
+  }
+
   get filteredTrips(): any[] {
     if (!this.filterStatus) return this.trips;
     if (this.filterStatus === 'ACTIVE') {
       return this.trips.filter(t => t.trip_status !== 'COMPLETED');
     }
     if (this.filterStatus === 'COMPLETED') {
-      return this.trips.filter(t => t.trip_status === 'COMPLETED' || t.trip_status === 'DROPPED_AT_SITE');
+      return this.trips.filter(t => t.trip_status === 'COMPLETED');
     }
     return this.trips;
   }
@@ -56,6 +74,13 @@ export class DriverTripsComponent implements OnInit {
     });
   }
 
+  getPassengerWhatsAppUrl(trip: any): string {
+    const raw = String(trip.passenger_phone || '7058533669').replace(/\D/g, '');
+    const clean = raw.length === 10 ? '91' + raw : raw;
+    const msg = `Hello ${trip.passenger_name || 'Sir/Madam'}, this is your Contech CRM executive driver. I am assigned for your scheduled site visit pickup at ${trip.pickup_address || 'your location'}.`;
+    return `https://wa.me/${clean}?text=${encodeURIComponent(msg)}`;
+  }
+
   updateStatus(trip: any, nextStatus: string): void {
     const id = trip.id || trip.driver_trip_id;
     this.updatingId = id;
@@ -64,8 +89,8 @@ export class DriverTripsComponent implements OnInit {
         this.updatingId = null;
         if (res.success) {
           trip.trip_status = nextStatus;
-          this.statusMessage = `Journey status updated to: ${nextStatus}`;
-          setTimeout(() => this.statusMessage = '', 3000);
+          this.statusMessage = `Journey status updated: ${nextStatus === 'STARTED' ? 'Trip Started' : 'Trip Completed'}`;
+          setTimeout(() => this.statusMessage = '', 3500);
         }
       },
       error: () => {

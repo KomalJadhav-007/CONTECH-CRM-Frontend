@@ -15,7 +15,6 @@
 
   <!-- Project Scope Alert Banner for Restricted Users -->
   <div *ngIf="accessScope?.is_restricted" class="scoped-access-alert-banner">
-    <div class="scoped-alert-icon">🔒</div>
     <div class="scoped-alert-content">
       <div class="scoped-alert-title">
         Project Access Control Active &mdash; Scoped to {{ projects.length }} Assigned {{ projects.length === 1 ? 'Project' : 'Projects' }}
@@ -25,7 +24,7 @@
       </div>
     </div>
     <div class="scoped-alert-badge">
-      👤 Restricted Scope
+      Restricted Scope
     </div>
   </div>
 
@@ -89,15 +88,22 @@
         </div>
       </div>
 
-      <!-- Row 2: Operational Specs -->
-      <div class="form-row-4">
+      <!-- Row 2: Operational Specs & Project Purpose (Dropdown format matching Operational Status) -->
+      <div class="form-row-5">
         <div class="form-field">
-          <label class="field-label">Daily Visit Capacity</label>
-          <input type="number" [(ngModel)]="newProject.daily_capacity" name="daily_capacity" class="input-field" />
-        </div>
-        <div class="form-field">
-          <label class="field-label">Working Hours</label>
-          <input type="text" [(ngModel)]="newProject.working_hours" name="working_hours" class="input-field" placeholder="09:00 AM - 07:00 PM" />
+          <label class="field-label">Project Purpose / Type *</label>
+          <select [(ngModel)]="newProject.project_purpose" name="project_purpose" (change)="onPurposeDropdownChange()" class="input-field select-field">
+            <option value="Housing / Residential">Housing / Residential Purpose</option>
+            <option value="Commercial">Commercial Purpose</option>
+            <option value="Plot / Plotted Land">Plot / Plotted Land Purpose</option>
+            <option value="Mixed-Use Development">Mixed-Use Development</option>
+            <option value="__CUSTOM__">+ Other / Custom Purpose...</option>
+          </select>
+          <div *ngIf="showCustomPurposeInput" class="custom-purpose-inline-input">
+            <input type="text" [(ngModel)]="customPurposeInput" placeholder="e.g. Industrial Logistics Park" class="input-field input-field-sm" />
+            <button type="button" class="btn-apply-sm" (click)="applyCustomPurposeInput()">Apply</button>
+            <button type="button" class="btn-cancel-sm" (click)="cancelCustomPurposeInput()">&times;</button>
+          </div>
         </div>
         <div class="form-field">
           <label class="field-label">Operational Status</label>
@@ -107,8 +113,16 @@
           </select>
         </div>
         <div class="form-field">
+          <label class="field-label">Daily Visit Capacity</label>
+          <input type="number" [(ngModel)]="newProject.daily_capacity" name="daily_capacity" class="input-field" />
+        </div>
+        <div class="form-field">
+          <label class="field-label">Working Hours</label>
+          <input type="text" [(ngModel)]="newProject.working_hours" name="working_hours" class="input-field" placeholder="09:00 AM - 07:00 PM" />
+        </div>
+        <div class="form-field">
           <label class="field-label">Configurations Summary</label>
-          <input type="text" [(ngModel)]="newProject.configurations" name="configurations" class="input-field" placeholder="Auto-populated from flat types below" />
+          <input type="text" [(ngModel)]="newProject.configurations" name="configurations" class="input-field" placeholder="Auto-populated from property types below" />
         </div>
       </div>
 
@@ -116,11 +130,14 @@
       <div *ngIf="showPropertyTypesBuilder" class="flat-configurations-builder">
         <div class="builder-header">
           <div>
-            <div class="builder-title">🏢 Flats &amp; Properties Configuration for this Project</div>
-            <div class="builder-subtitle">Define the multiple flat types (BHKs, sizes, prices) and inventory available in this project.</div>
+            <div class="builder-title">
+              <mat-icon class="builder-purpose-icon">{{ getPurposeIcon(newProject.project_purpose) }}</mat-icon>
+              <span>{{ getPurposeTitle() }}</span>
+            </div>
+            <div class="builder-subtitle">Define the multiple configurations (BHKs, office suites, plot dimensions, prices) and inventory available in this project.</div>
           </div>
           <button mat-stroked-button type="button" class="btn-add-type" (click)="addPropertyTypeRow()">
-            <mat-icon>add</mat-icon> Add Another Flat Typology
+            <mat-icon>add</mat-icon> Add Another {{ getTypologyAddLabel() }}
           </button>
         </div>
 
@@ -132,15 +149,80 @@
             </div>
             <div class="type-row-col col-bhk">
               <label class="sub-label">Typology</label>
-              <select [(ngModel)]="pt.bhk_type" [name]="'pt_bhk_' + i" (change)="syncConfigurationsText()" class="input-field-sm select-field">
-                <option value="1 BHK">1 BHK</option>
-                <option value="2 BHK">2 BHK</option>
-                <option value="3 BHK">3 BHK</option>
-                <option value="4 BHK">4 BHK</option>
-                <option value="5 BHK">5 BHK</option>
-                <option value="Penthouse">Penthouse</option>
-                <option value="Villa">Villa / Duplex</option>
+              <select [(ngModel)]="pt.bhk_type" [name]="'pt_bhk_' + i" (change)="onTypologyChange(pt, 'pt_' + i)" class="input-field-sm select-field">
+                <option *ngFor="let opt of typologyOptions" [value]="opt">{{ opt }}</option>
+                <option value="__CUSTOM__">+ Create Custom Typology...</option>
               </select>
+              <div *ngIf="showCustomTypeInput['pt_' + i]" class="custom-type-entry-row">
+                <input
+                  type="text"
+                  [(ngModel)]="customTypeValues['pt_' + i]"
+                  placeholder="Type new typology..."
+                  class="custom-type-input"
+                  (keydown.enter)="applyCustomTypology(pt, 'pt_' + i)"
+                  autofocus
+                />
+                <button type="button" class="btn-apply-type" (click)="applyCustomTypology(pt, 'pt_' + i)" title="Save Typology">
+                  <mat-icon class="sm-icon">check</mat-icon>
+                </button>
+                <button type="button" class="btn-cancel-type" (click)="cancelCustomTypology(pt, 'pt_' + i)" title="Cancel">
+                  <mat-icon class="sm-icon">close</mat-icon>
+                </button>
+              </div>
+            </div>
+            <div class="type-row-col col-wing">
+              <label class="sub-label">Building / Wing</label>
+              <input type="text" [(ngModel)]="pt.tower_wing" [name]="'pt_wing_' + i" class="input-field-sm" placeholder="e.g. Tower A / Wing 1" />
+            </div>
+            <div class="type-row-col col-floors">
+              <label class="sub-label">Floor(s) / Range</label>
+              <input type="text" [(ngModel)]="pt.floor_range" [name]="'pt_floor_' + i" class="input-field-sm" placeholder="e.g. Floors 1-14" />
+            </div>
+            <div class="type-row-col col-road-width">
+              <label class="sub-label">Front Side Width</label>
+              <select [(ngModel)]="pt.front_road_width" [name]="'pt_width_' + i" (change)="onFrontWidthChange(pt, 'pt_width_' + i)" class="input-field-sm select-field">
+                <option *ngFor="let w of frontWidthOptions" [value]="w">{{ w }}</option>
+                <option value="__CUSTOM__">+ Create Custom Width...</option>
+              </select>
+              <div *ngIf="showCustomWidthInput['pt_width_' + i]" class="custom-type-entry-row">
+                <input
+                  type="text"
+                  [(ngModel)]="customWidthValues['pt_width_' + i]"
+                  placeholder="e.g. 45 ft Road"
+                  class="custom-type-input"
+                  (keydown.enter)="applyCustomFrontWidth(pt, 'pt_width_' + i)"
+                  autofocus
+                />
+                <button type="button" class="btn-apply-type" (click)="applyCustomFrontWidth(pt, 'pt_width_' + i)" title="Save Width">
+                  <mat-icon class="sm-icon">check</mat-icon>
+                </button>
+                <button type="button" class="btn-cancel-type" (click)="cancelCustomFrontWidth(pt, 'pt_width_' + i)" title="Cancel">
+                  <mat-icon class="sm-icon">close</mat-icon>
+                </button>
+              </div>
+            </div>
+            <div class="type-row-col col-plot-loc">
+              <label class="sub-label">Plot / Unit Location</label>
+              <select [(ngModel)]="pt.plot_location" [name]="'pt_loc_' + i" (change)="onPlotLocChange(pt, 'pt_loc_' + i)" class="input-field-sm select-field">
+                <option *ngFor="let loc of plotLocationOptions" [value]="loc">{{ loc }}</option>
+                <option value="__CUSTOM__">+ Create Custom Location...</option>
+              </select>
+              <div *ngIf="showCustomPlotLocInput['pt_loc_' + i]" class="custom-type-entry-row">
+                <input
+                  type="text"
+                  [(ngModel)]="customPlotLocValues['pt_loc_' + i]"
+                  placeholder="e.g. Highway Corner"
+                  class="custom-type-input"
+                  (keydown.enter)="applyCustomPlotLoc(pt, 'pt_loc_' + i)"
+                  autofocus
+                />
+                <button type="button" class="btn-apply-type" (click)="applyCustomPlotLoc(pt, 'pt_loc_' + i)" title="Save Location">
+                  <mat-icon class="sm-icon">check</mat-icon>
+                </button>
+                <button type="button" class="btn-cancel-type" (click)="cancelCustomPlotLoc(pt, 'pt_loc_' + i)" title="Cancel">
+                  <mat-icon class="sm-icon">close</mat-icon>
+                </button>
+              </div>
             </div>
             <div class="type-row-col col-sqft">
               <label class="sub-label">Super Built-up (sqft)</label>
@@ -166,13 +248,6 @@
             </div>
           </div>
         </div>
-
-        <div class="builder-footer-options">
-          <label class="checkbox-container">
-            <input type="checkbox" [(ngModel)]="autoGenerateBatchFlats" name="autoGenerateBatchFlats" />
-            <span class="checkbox-label">⚡ Auto-generate initial flat inventory numbers (Floors 1-3) so sales reps can shortlist units immediately</span>
-          </label>
-        </div>
       </div>
 
       <div class="form-actions">
@@ -193,55 +268,72 @@
 
     <div class="table-responsive">
       <table class="admin-table">
+        <colgroup>
+          <col class="col-proj-details" />
+          <col class="col-proj-loc" />
+          <col class="col-proj-configs" />
+          <col class="col-proj-status-flats" />
+          <col class="col-proj-capacity" />
+          <col class="col-proj-pipeline" />
+          <col class="col-proj-visits" />
+          <col class="col-proj-bookings" />
+          <col class="col-proj-status" />
+          <col class="col-proj-actions" />
+        </colgroup>
         <thead>
           <tr>
-            <th>PROJECT DETAILS</th>
-            <th>LOCATION</th>
-            <th>FLAT TYPES &amp; INVENTORY</th>
-            <th class="text-center">FLATS STATUS</th>
-            <th class="text-right">DAILY CAPACITY</th>
-            <th class="text-right">ACTIVE PIPELINE</th>
-            <th class="text-right">UPCOMING VISITS</th>
-            <th class="text-right">BOOKINGS</th>
-            <th>STATUS</th>
-            <th class="text-right">ACTIONS</th>
+            <th class="col-proj-details">Project Details</th>
+            <th class="col-proj-loc">Location</th>
+            <th class="col-proj-configs">Flat Types &amp; Inventory</th>
+            <th class="col-proj-status-flats text-center">Flats Status</th>
+            <th class="col-proj-capacity text-center">Daily Capacity</th>
+            <th class="col-proj-pipeline text-center">Active Pipeline</th>
+            <th class="col-proj-visits text-center">Upcoming Visits</th>
+            <th class="col-proj-bookings text-right">Bookings</th>
+            <th class="col-proj-status text-center">Status</th>
+            <th class="col-proj-actions text-right">Actions</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let p of projects" [class.editing-row]="editingProjectId === p.id">
             <!-- Normal Mode -->
             <ng-container *ngIf="editingProjectId !== p.id">
-              <td>
-                <div class="proj-name">{{ p.name }}</div>
+              <td class="col-proj-details">
+                <div class="proj-name-header">
+                  <div class="proj-name">{{ p.name }}</div>
+                  <span *ngIf="p.project_purpose" class="badge-purpose" [ngClass]="getPurposeBadgeClass(p.project_purpose)" [title]="'Project Purpose: ' + p.project_purpose">
+                    {{ p.project_purpose }}
+                  </span>
+                </div>
                 <div class="proj-dev">{{ p.developer }}</div>
                 <div class="proj-meta-chips">
                   <span *ngIf="p.code" class="proj-code-badge">{{ p.code }}</span>
                   <span *ngIf="p.user_access_scoped" class="badge-user-assigned-scope" matTooltip="This project is assigned to your account">
-                    👤 Assigned to You
+                    Assigned to You
                   </span>
                 </div>
                 <div *ngIf="p.assigned_users && p.assigned_users.length > 0" class="assigned-users-inline-box">
-                  <span class="assigned-users-label">Assigned Team:</span>
+                  <span class="assigned-users-label">Team:</span>
                   <span *ngFor="let u of p.assigned_users" class="assigned-user-tag" [title]="u.email">
-                    👤 {{ u.name }}
+                    {{ u.name }}
                   </span>
                 </div>
               </td>
-              <td>
+              <td class="col-proj-loc">
                 <div class="proj-loc">{{ p.location }}</div>
                 <div *ngIf="p.address" class="proj-addr-sub">{{ p.address }}</div>
               </td>
-              <td>
+              <td class="col-proj-configs">
                 <div class="config-tags">
                   <span *ngFor="let conf of (p.configurations ? p.configurations.split(',') : [])" class="config-tag">
                     {{ conf.trim() }}
                   </span>
                 </div>
-                <button mat-stroked-button type="button" class="btn-manage-inventory" (click)="openInventoryDrawer(p)">
-                  <mat-icon style="font-size: 16px; width: 16px; height: 16px; vertical-align: middle;">domain</mat-icon> View &amp; Manage Flats ({{ p.total_units || 0 }})
+                <button type="button" class="btn-manage-inventory" (click)="openInventoryDrawer(p)">
+                  Manage Flats ({{ p.total_units || 0 }})
                 </button>
               </td>
-              <td class="text-center">
+              <td class="col-proj-status-flats text-center">
                 <div class="units-breakdown">
                   <span class="avail-badge" matTooltip="Available for site visit &amp; booking">
                     {{ p.available_units }} Avail
@@ -255,17 +347,21 @@
                 </div>
                 <div class="total-units-sub">of {{ p.total_units }} total flats</div>
               </td>
-              <td class="text-right font-semibold">{{ p.capacity_per_day }}</td>
-              <td class="text-right">
+              <td class="col-proj-capacity text-center">
+                <div class="capacity-val font-semibold">{{ p.capacity_per_day }}</div>
+                <div class="metric-unit-sub">per day</div>
+              </td>
+              <td class="col-proj-pipeline text-center">
                 <div class="metric-main">{{ p.active_pipeline }} buyers</div>
                 <div class="booking-val-sub">{{ p.available_units }}/{{ p.total_units }} flats avail</div>
               </td>
-              <td class="text-right">
+              <td class="col-proj-visits text-center">
                 <span class="visit-count" [class.has-visits]="p.upcoming_visits > 0">
                   {{ p.upcoming_visits }}
                 </span>
+                <div class="metric-unit-sub">{{ p.upcoming_visits === 1 ? 'visit' : 'visits' }}</div>
               </td>
-              <td class="text-right">
+              <td class="col-proj-bookings text-right">
                 <div *ngIf="p.crm_bookings > 0" class="deal-highlight">
                   {{ p.crm_bookings }} booked (₹{{ p.crm_booking_value_cr }} Cr)
                 </div>
@@ -276,18 +372,18 @@
                   From ₹{{ p.starting_price_lacs }}L
                 </div>
               </td>
-              <td>
+              <td class="col-proj-status text-center">
                 <span class="status-pill" [class.active]="p.status === 'active'" [class.inactive]="p.status === 'inactive'">
                   {{ p.status }}
                 </span>
               </td>
-              <td class="text-right action-cell">
-                <div style="display: inline-flex; align-items: center; gap: 0.35rem;">
-                  <button mat-stroked-button type="button" (click)="openInventoryDrawer(p)" matTooltip="Open Flats &amp; Units Management">
+              <td class="col-proj-actions text-right action-cell">
+                <div class="actions-btn-group">
+                  <button mat-stroked-button type="button" class="btn-table-action" (click)="openInventoryDrawer(p)" matTooltip="Open Flats &amp; Units Management">
                     Flats
                   </button>
-                  <button mat-stroked-button type="button" (click)="startEdit(p)">Edit</button>
-                  <button mat-button color="warn" type="button" (click)="deleteProject(p)" matTooltip="Delete project and all units">Delete</button>
+                  <button mat-stroked-button type="button" class="btn-table-action" (click)="startEdit(p)">Edit</button>
+                  <button mat-stroked-button color="warn" type="button" class="btn-table-action btn-table-delete" (click)="deleteProject(p)" matTooltip="Delete project and all units">Delete</button>
                 </div>
               </td>
             </ng-container>
@@ -297,6 +393,12 @@
               <td>
                 <input type="text" [(ngModel)]="editForm.name" class="inline-input" placeholder="Project name" />
                 <input type="text" [(ngModel)]="editForm.developer" class="inline-input sub-input" placeholder="Developer" />
+                <select [(ngModel)]="editForm.project_purpose" class="inline-select" style="margin-top: 4px; font-size: 11px;">
+                  <option value="Housing / Residential">Housing / Residential</option>
+                  <option value="Commercial">Commercial</option>
+                  <option value="Plot / Plotted Land">Plot / Plotted Land</option>
+                  <option value="Mixed-Use Development">Mixed-Use Development</option>
+                </select>
               </td>
               <td>
                 <input type="text" [(ngModel)]="editForm.location" class="inline-input" placeholder="Location" />
@@ -341,10 +443,14 @@
         <div class="drawer-tag">PROJECT FLATS & INVENTORY MASTER</div>
         <h2 class="drawer-title">{{ activeProject?.name }}</h2>
         <div class="drawer-meta-row">
-          <span class="meta-item">📍 {{ activeProject?.location }}</span>
+          <span class="meta-item">{{ activeProject?.location }}</span>
           <span class="meta-dot">&middot;</span>
-          <span class="meta-item">🏢 {{ activeProject?.developer }}</span>
+          <span class="meta-item">{{ activeProject?.developer }}</span>
           <span *ngIf="activeProject?.code" class="meta-tag">{{ activeProject?.code }}</span>
+          <span *ngIf="activeProject?.project_purpose" class="badge-purpose" [ngClass]="getPurposeBadgeClass(activeProject?.project_purpose)">
+            <mat-icon>{{ getPurposeIcon(activeProject?.project_purpose) }}</mat-icon>
+            {{ activeProject?.project_purpose }}
+          </span>
         </div>
       </div>
       <button mat-icon-button type="button" (click)="closeInventoryDrawer()" matTooltip="Close Drawer">
@@ -384,10 +490,10 @@
     <!-- Drawer Navigation Tabs -->
     <div class="drawer-tabs-bar">
       <button mat-button type="button" class="drawer-tab-btn" [class.active]="inventoryTab === 'units'" (click)="setInventoryTab('units')">
-        🏢 Flats &amp; Units Inventory ({{ activeInventory.units.length }})
+        Flats &amp; Units Inventory ({{ activeInventory.units.length }})
       </button>
       <button mat-button type="button" class="drawer-tab-btn" [class.active]="inventoryTab === 'types'" (click)="setInventoryTab('types')">
-        📐 Property Configurations &amp; Typologies ({{ activeInventory.propertyTypes.length }})
+        Property Configurations &amp; Typologies ({{ activeInventory.propertyTypes.length }})
       </button>
     </div>
 
@@ -406,7 +512,6 @@
         <div class="toolbar-filters">
           <!-- Search input -->
           <div class="search-box">
-            <span class="search-icon">🔍</span>
             <input type="text" [(ngModel)]="inventorySearch" placeholder="Search flat #, BHK, notes..." class="search-input" />
           </div>
 
@@ -428,7 +533,7 @@
 
         <div class="toolbar-actions" style="display: flex; gap: 0.5rem;">
           <button mat-stroked-button type="button" class="btn-batch-gen" (click)="openBatchModal()">
-            ⚡ Batch Generate Flats
+            Batch Generate Flats
           </button>
           <button mat-flat-button color="primary" type="button" class="btn-add-unit" (click)="openSingleFlatModal()">
             <mat-icon>add</mat-icon> Add Single Flat
@@ -459,15 +564,71 @@
           </div>
           <div class="form-field">
             <label class="field-label">Typology</label>
-            <select [(ngModel)]="newFlatForm.bhk_type" class="input-field select-field">
-              <option value="1 BHK">1 BHK</option>
-              <option value="2 BHK">2 BHK</option>
-              <option value="3 BHK">3 BHK</option>
-              <option value="4 BHK">4 BHK</option>
-              <option value="5 BHK">5 BHK</option>
-              <option value="Penthouse">Penthouse</option>
-              <option value="Villa">Villa / Duplex</option>
+            <select [(ngModel)]="newFlatForm.bhk_type" (change)="onTypologyChange(newFlatForm, 'newFlat', false)" class="input-field select-field">
+              <option *ngFor="let opt of typologyOptions" [value]="opt">{{ opt }}</option>
+              <option value="__CUSTOM__">+ Create Custom Typology...</option>
             </select>
+            <div *ngIf="showCustomTypeInput['newFlat']" class="custom-type-entry-row">
+              <input
+                type="text"
+                [(ngModel)]="customTypeValues['newFlat']"
+                placeholder="Type custom typology..."
+                class="custom-type-input"
+                (keydown.enter)="applyCustomTypology(newFlatForm, 'newFlat', false)"
+              />
+              <button type="button" class="btn-apply-type" (click)="applyCustomTypology(newFlatForm, 'newFlat', false)" title="Save Typology">
+                <mat-icon class="sm-icon">check</mat-icon>
+              </button>
+              <button type="button" class="btn-cancel-type" (click)="cancelCustomTypology(newFlatForm, 'newFlat')">
+                <mat-icon class="sm-icon">close</mat-icon>
+              </button>
+            </div>
+          </div>
+          <div class="form-field">
+            <label class="field-label">Front Side Width</label>
+            <select [(ngModel)]="newFlatForm.front_road_width" (change)="onFrontWidthChange(newFlatForm, 'newFlatWidth')" class="input-field select-field">
+              <option *ngFor="let w of frontWidthOptions" [value]="w">{{ w }}</option>
+              <option value="__CUSTOM__">+ Create Custom Width...</option>
+            </select>
+            <div *ngIf="showCustomWidthInput['newFlatWidth']" class="custom-type-entry-row">
+              <input
+                type="text"
+                [(ngModel)]="customWidthValues['newFlatWidth']"
+                placeholder="e.g. 45 ft Road"
+                class="custom-type-input"
+                (keydown.enter)="applyCustomFrontWidth(newFlatForm, 'newFlatWidth')"
+                autofocus
+              />
+              <button type="button" class="btn-apply-type" (click)="applyCustomFrontWidth(newFlatForm, 'newFlatWidth')" title="Save Width">
+                <mat-icon class="sm-icon">check</mat-icon>
+              </button>
+              <button type="button" class="btn-cancel-type" (click)="cancelCustomFrontWidth(newFlatForm, 'newFlatWidth')" title="Cancel">
+                <mat-icon class="sm-icon">close</mat-icon>
+              </button>
+            </div>
+          </div>
+          <div class="form-field">
+            <label class="field-label">Plot / Unit Location</label>
+            <select [(ngModel)]="newFlatForm.plot_location" (change)="onPlotLocChange(newFlatForm, 'newFlatLoc')" class="input-field select-field">
+              <option *ngFor="let loc of plotLocationOptions" [value]="loc">{{ loc }}</option>
+              <option value="__CUSTOM__">+ Create Custom Location...</option>
+            </select>
+            <div *ngIf="showCustomPlotLocInput['newFlatLoc']" class="custom-type-entry-row">
+              <input
+                type="text"
+                [(ngModel)]="customPlotLocValues['newFlatLoc']"
+                placeholder="e.g. Highway Corner"
+                class="custom-type-input"
+                (keydown.enter)="applyCustomPlotLoc(newFlatForm, 'newFlatLoc')"
+                autofocus
+              />
+              <button type="button" class="btn-apply-type" (click)="applyCustomPlotLoc(newFlatForm, 'newFlatLoc')" title="Save Location">
+                <mat-icon class="sm-icon">check</mat-icon>
+              </button>
+              <button type="button" class="btn-cancel-type" (click)="cancelCustomPlotLoc(newFlatForm, 'newFlatLoc')" title="Cancel">
+                <mat-icon class="sm-icon">close</mat-icon>
+              </button>
+            </div>
           </div>
           <div class="form-field">
             <label class="field-label">Super Built-up Area (sqft)</label>
@@ -501,7 +662,7 @@
       <mat-card *ngIf="showBatchModal" class="inline-modal-panel batch-panel">
         <div class="inline-modal-header">
           <div>
-            <span class="inline-modal-title">⚡ Quick Batch Generator — Multiple Flats</span>
+            <span class="inline-modal-title">Quick Batch Generator — Multiple Flats</span>
             <div class="inline-modal-sub">Generate 10 to 100 flats in 1 click across floors and towers.</div>
           </div>
           <button mat-icon-button type="button" (click)="showBatchModal = false">
@@ -527,13 +688,25 @@
           </div>
           <div class="form-field">
             <label class="field-label">BHK Typology</label>
-            <select [(ngModel)]="batchFlatForm.bhk_type" class="input-field select-field">
-              <option value="1 BHK">1 BHK</option>
-              <option value="2 BHK">2 BHK</option>
-              <option value="3 BHK">3 BHK</option>
-              <option value="4 BHK">4 BHK</option>
-              <option value="Penthouse">Penthouse</option>
+            <select [(ngModel)]="batchFlatForm.bhk_type" (change)="onTypologyChange(batchFlatForm, 'batchFlat', false)" class="input-field select-field">
+              <option *ngFor="let opt of typologyOptions" [value]="opt">{{ opt }}</option>
+              <option value="__CUSTOM__">+ Create Custom Typology...</option>
             </select>
+            <div *ngIf="showCustomTypeInput['batchFlat']" class="custom-type-entry-row">
+              <input
+                type="text"
+                [(ngModel)]="customTypeValues['batchFlat']"
+                placeholder="Type custom typology..."
+                class="custom-type-input"
+                (keydown.enter)="applyCustomTypology(batchFlatForm, 'batchFlat', false)"
+              />
+              <button type="button" class="btn-apply-type" (click)="applyCustomTypology(batchFlatForm, 'batchFlat', false)" title="Save Typology">
+                <mat-icon class="sm-icon">check</mat-icon>
+              </button>
+              <button type="button" class="btn-cancel-type" (click)="cancelCustomTypology(batchFlatForm, 'batchFlat')">
+                <mat-icon class="sm-icon">close</mat-icon>
+              </button>
+            </div>
           </div>
           <div class="form-field">
             <label class="field-label">Average Area (sqft)</label>
@@ -557,7 +730,7 @@
 
         <div class="inline-modal-actions" style="display: flex; gap: 0.5rem; justify-content: flex-end;">
           <button mat-button type="button" (click)="showBatchModal = false">Cancel</button>
-          <button mat-flat-button color="primary" type="button" (click)="submitBatchFlats()">⚡ Generate All Flats</button>
+          <button mat-flat-button color="primary" type="button" (click)="submitBatchFlats()">Generate All Flats</button>
         </div>
       </mat-card>
 
@@ -598,7 +771,7 @@
               </td>
               <td>
                 <div *ngIf="u.bookedByBuyer" class="buyer-tag">
-                  👤 {{ u.bookedByBuyer.full_name }}
+                  {{ u.bookedByBuyer.full_name }}
                 </div>
                 <div *ngIf="!u.bookedByBuyer && u.notes" class="notes-tag">
                   {{ u.notes }}
@@ -618,11 +791,10 @@
 
         <!-- Empty State -->
         <div *ngIf="filteredUnits.length === 0" class="drawer-empty-state">
-          <div class="empty-icon">🏢</div>
           <div class="empty-title">No flats match your filter</div>
           <div class="empty-desc">Use the buttons above to add a flat or batch-generate the entire floor layout for {{ activeProject?.name }}.</div>
           <div class="empty-actions" style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 1rem;">
-            <button mat-stroked-button type="button" (click)="openBatchModal()">⚡ Batch Generate Flats</button>
+            <button mat-stroked-button type="button" (click)="openBatchModal()">Batch Generate Flats</button>
             <button mat-flat-button color="primary" type="button" (click)="openSingleFlatModal()">+ Add Single Flat</button>
           </div>
         </div>
@@ -658,15 +830,79 @@
           </div>
           <div class="form-field">
             <label class="field-label">BHK Type</label>
-            <select [(ngModel)]="newTypeForm.bhk_type" class="input-field select-field">
-              <option value="1 BHK">1 BHK</option>
-              <option value="2 BHK">2 BHK</option>
-              <option value="3 BHK">3 BHK</option>
-              <option value="4 BHK">4 BHK</option>
-              <option value="5 BHK">5 BHK</option>
-              <option value="Penthouse">Penthouse</option>
-              <option value="Villa">Villa</option>
+            <select [(ngModel)]="newTypeForm.bhk_type" (change)="onTypologyChange(newTypeForm, 'newType', false)" class="input-field select-field">
+              <option *ngFor="let opt of typologyOptions" [value]="opt">{{ opt }}</option>
+              <option value="__CUSTOM__">+ Create Custom Typology...</option>
             </select>
+            <div *ngIf="showCustomTypeInput['newType']" class="custom-type-entry-row">
+              <input
+                type="text"
+                [(ngModel)]="customTypeValues['newType']"
+                placeholder="Type custom typology..."
+                class="custom-type-input"
+                (keydown.enter)="applyCustomTypology(newTypeForm, 'newType', false)"
+              />
+              <button type="button" class="btn-apply-type" (click)="applyCustomTypology(newTypeForm, 'newType', false)" title="Save Typology">
+                <mat-icon class="sm-icon">check</mat-icon>
+              </button>
+              <button type="button" class="btn-cancel-type" (click)="cancelCustomTypology(newTypeForm, 'newType')">
+                <mat-icon class="sm-icon">close</mat-icon>
+              </button>
+            </div>
+          </div>
+          <div class="form-field">
+            <label class="field-label">Building / Wing</label>
+            <input type="text" [(ngModel)]="newTypeForm.tower_wing" class="input-field" placeholder="e.g. Tower B / Wing 2" />
+          </div>
+          <div class="form-field">
+            <label class="field-label">Floor(s) / Range</label>
+            <input type="text" [(ngModel)]="newTypeForm.floor_range" class="input-field" placeholder="e.g. Floors 1-14" />
+          </div>
+          <div class="form-field">
+            <label class="field-label">Front Side Width</label>
+            <select [(ngModel)]="newTypeForm.front_road_width" (change)="onFrontWidthChange(newTypeForm, 'newTypeWidth')" class="input-field select-field">
+              <option *ngFor="let w of frontWidthOptions" [value]="w">{{ w }}</option>
+              <option value="__CUSTOM__">+ Create Custom Width...</option>
+            </select>
+            <div *ngIf="showCustomWidthInput['newTypeWidth']" class="custom-type-entry-row">
+              <input
+                type="text"
+                [(ngModel)]="customWidthValues['newTypeWidth']"
+                placeholder="e.g. 45 ft Road"
+                class="custom-type-input"
+                (keydown.enter)="applyCustomFrontWidth(newTypeForm, 'newTypeWidth')"
+                autofocus
+              />
+              <button type="button" class="btn-apply-type" (click)="applyCustomFrontWidth(newTypeForm, 'newTypeWidth')" title="Save Width">
+                <mat-icon class="sm-icon">check</mat-icon>
+              </button>
+              <button type="button" class="btn-cancel-type" (click)="cancelCustomFrontWidth(newTypeForm, 'newTypeWidth')" title="Cancel">
+                <mat-icon class="sm-icon">close</mat-icon>
+              </button>
+            </div>
+          </div>
+          <div class="form-field">
+            <label class="field-label">Plot / Unit Location</label>
+            <select [(ngModel)]="newTypeForm.plot_location" (change)="onPlotLocChange(newTypeForm, 'newTypeLoc')" class="input-field select-field">
+              <option *ngFor="let loc of plotLocationOptions" [value]="loc">{{ loc }}</option>
+              <option value="__CUSTOM__">+ Create Custom Location...</option>
+            </select>
+            <div *ngIf="showCustomPlotLocInput['newTypeLoc']" class="custom-type-entry-row">
+              <input
+                type="text"
+                [(ngModel)]="customPlotLocValues['newTypeLoc']"
+                placeholder="e.g. Corner + Boulevard"
+                class="custom-type-input"
+                (keydown.enter)="applyCustomPlotLoc(newTypeForm, 'newTypeLoc')"
+                autofocus
+              />
+              <button type="button" class="btn-apply-type" (click)="applyCustomPlotLoc(newTypeForm, 'newTypeLoc')" title="Save Location">
+                <mat-icon class="sm-icon">check</mat-icon>
+              </button>
+              <button type="button" class="btn-cancel-type" (click)="cancelCustomPlotLoc(newTypeForm, 'newTypeLoc')" title="Cancel">
+                <mat-icon class="sm-icon">close</mat-icon>
+              </button>
+            </div>
           </div>
           <div class="form-field">
             <label class="field-label">Carpet Area (sqft)</label>
@@ -701,6 +937,10 @@
           <tr>
             <th>CONFIGURATION NAME</th>
             <th>TYPOLOGY</th>
+            <th>BUILDING / WING</th>
+            <th>FLOOR(S)</th>
+            <th>ROAD WIDTH</th>
+            <th>LOCATION / POSITION</th>
             <th class="text-right">CARPET AREA</th>
             <th class="text-right">SUPER BUILT-UP</th>
             <th class="text-right">BASE PRICE</th>
@@ -713,6 +953,10 @@
           <tr *ngFor="let pt of activeInventory.propertyTypes">
             <td class="font-bold">{{ pt.name }}</td>
             <td><span class="bhk-badge">{{ pt.bhk_type }}</span></td>
+            <td><span class="wing-tag">{{ pt.tower_wing || 'Tower A / Wing 1' }}</span></td>
+            <td><span class="floor-tag">{{ pt.floor_range || 'All Floors' }}</span></td>
+            <td><span class="wing-tag" style="background: #f8fafc; color: #475569; border-color: #cbd5e1;">{{ pt.front_road_width || '40 ft Road' }}</span></td>
+            <td><span class="wing-tag" style="background: #ecfdf5; color: #065f46; border-color: #a7f3d0;">{{ pt.plot_location || 'Center / Intermediate' }}</span></td>
             <td class="text-right">{{ pt.carpet_area_sqft ? pt.carpet_area_sqft + ' sqft' : '-' }}</td>
             <td class="text-right font-semibold">{{ pt.super_builtup_area_sqft ? pt.super_builtup_area_sqft + ' sqft' : '-' }}</td>
             <td class="text-right font-bold text-green">₹{{ pt.base_price_lacs }} L</td>
@@ -729,7 +973,6 @@
 
       <!-- Empty State -->
       <div *ngIf="activeInventory.propertyTypes.length === 0" class="drawer-empty-state">
-        <div class="empty-icon">📐</div>
         <div class="empty-title">No property configurations defined</div>
         <div class="empty-desc">Add property typologies like 2 BHK, 3 BHK, and Penthouses for this project.</div>
         <div class="empty-actions" style="margin-top: 1rem;">

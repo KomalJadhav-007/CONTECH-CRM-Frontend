@@ -49,6 +49,10 @@ export class UserListComponent implements OnInit {
   feedbackMessage = '';
   feedbackType: 'success' | 'warn' | 'info' = 'success';
 
+  // Pagination State
+  currentPage = 1;
+  pageSize = 10;
+
   stats = {
     users: 0,
     active: 0,
@@ -63,12 +67,16 @@ export class UserListComponent implements OnInit {
   isSubmitting = false;
   addUserError = '';
   showNewPassword = false;
+  vehicleTypes: string[] = ['SUV', 'Sedan', 'Luxury', 'Van'];
   newUser = {
     name: '',
     email: '',
-    phone: '',
+    phone: '7058533669',
     designation: '',
     role: 'Account Executive',
+    vehicle_type: 'SUV',
+    vehicle_number: '',
+    vehicle_model: '',
     password: 'Contech@2026',
     is_active: true,
     all_projects: true,
@@ -81,6 +89,12 @@ export class UserListComponent implements OnInit {
   editUserError = '';
   editingUser: any = null;
   showEditPassword = false;
+
+  isDriverRole(role: string): boolean {
+    if (!role) return false;
+    const r = role.toLowerCase();
+    return r.includes('driver') || r.includes('fleet') || r.includes('chauffeur');
+  }
 
   get roles(): string[] {
     return this.accessControlService.roles;
@@ -151,6 +165,9 @@ export class UserListComponent implements OnInit {
               phone: u.phone || '',
               designation: u.role ? u.role.name : 'Team Member',
               role: this.accessControlService.normalizeRoleName(u.role ? (u.role.name || u.role.code) : ''),
+              vehicle_type: u.vehicle_type || (u.assignedVehicle ? u.assignedVehicle.vehicle_type : ''),
+              vehicle_number: u.vehicle_number || (u.assignedVehicle ? u.assignedVehicle.registration_number : ''),
+              vehicle_model: u.vehicle_model || (u.assignedVehicle ? u.assignedVehicle.make_model : ''),
               manager_id: u.manager_id,
               manager_name: u.manager ? u.manager.name : (u.manager_name || 'None'),
               status: u.is_active ? 'active' : 'inactive',
@@ -175,12 +192,12 @@ export class UserListComponent implements OnInit {
 
   private loadFallbackUsers(): void {
     this.users = [
-      { id: 1, name: 'Rajesh Sharma (Director)', email: 'director@contechcrm.com', phone: '+91 98450 12345', designation: 'Managing Director / CXO', role: 'Sales Head', status: 'active', last_login: 'Today' },
-      { id: 2, name: 'Priya Nair (Sales Manager)', email: 'manager@contechcrm.com', phone: '+91 98451 23456', designation: 'Sales Manager', role: 'Sales Manager', status: 'active', last_login: 'Yesterday' },
-      { id: 3, name: 'Amit Verma (Senior Sales Rep)', email: 'rep@contechcrm.com', phone: '+91 98452 34567', designation: 'Sales Representative', role: 'Account Executive', status: 'active', last_login: '2 days ago' },
-      { id: 4, name: 'Suresh Kumar (Logistics Coordinator)', email: 'coordinator@contechcrm.com', phone: '+91 98453 45678', designation: 'Logistics Coordinator', role: 'Site Visit Coordinator', status: 'active', last_login: 'Never' },
-      { id: 5, name: 'Ramesh Gowda (Company Driver)', email: 'driver@contechcrm.com', phone: '+91 98454 56789', designation: 'Company Driver', role: 'Driver', status: 'active', last_login: 'Today' },
-      { id: 6, name: 'System Admin', email: 'admin@contechcrm.com', phone: '+91 98455 67890', designation: 'System Administrator', role: 'Org Admin', status: 'active', last_login: 'Today' }
+      { id: 1, name: 'Rajesh Sharma (Director)', email: 'director@contechcrm.com', phone: '7058533669', designation: 'Managing Director / CXO', role: 'Sales Head', status: 'active', last_login: 'Today' },
+      { id: 2, name: 'Priya Nair (Sales Manager)', email: 'manager@contechcrm.com', phone: '7058533669', designation: 'Sales Manager', role: 'Sales Manager', status: 'active', last_login: 'Yesterday' },
+      { id: 3, name: 'Amit Verma (Senior Sales Rep)', email: 'rep@contechcrm.com', phone: '7058533669', designation: 'Sales Representative', role: 'Account Executive', status: 'active', last_login: '2 days ago' },
+      { id: 4, name: 'Suresh Kumar (Logistics Coordinator)', email: 'coordinator@contechcrm.com', phone: '7058533669', designation: 'Logistics Coordinator', role: 'Site Visit Coordinator', status: 'active', last_login: 'Never' },
+      { id: 5, name: 'Ramesh Gowda (Company Driver)', email: 'driver@contechcrm.com', phone: '7058533669', designation: 'Company Driver', role: 'Driver', vehicle_type: 'SUV', vehicle_number: 'KA-01-MJ-8822', vehicle_model: 'Toyota Innova Crysta (Luxury Edition)', status: 'active', last_login: 'Today' },
+      { id: 6, name: 'System Admin', email: 'admin@contechcrm.com', phone: '7058533669', designation: 'System Administrator', role: 'Org Admin', status: 'active', last_login: 'Today' }
     ];
   }
 
@@ -213,6 +230,15 @@ export class UserListComponent implements OnInit {
     });
   }
 
+  get totalPages(): number {
+    return Math.ceil(this.filteredUsers.length / this.pageSize) || 1;
+  }
+
+  get pagedUsers(): any[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredUsers.slice(start, start + this.pageSize);
+  }
+
   // --- ADD USER MODAL ACTIONS ---
   openAddUserModal(): void {
     this.addUserError = '';
@@ -220,9 +246,12 @@ export class UserListComponent implements OnInit {
     this.newUser = {
       name: '',
       email: '',
-      phone: '',
+      phone: '7058533669',
       designation: '',
       role: this.roles[3] || 'Account Executive',
+      vehicle_type: 'SUV',
+      vehicle_number: '',
+      vehicle_model: '',
       password: 'Contech@2026',
       is_active: true,
       all_projects: true,
@@ -263,11 +292,17 @@ export class UserListComponent implements OnInit {
       return;
     }
 
+    const isDriver = this.isDriverRole(this.newUser.role);
+    if (isDriver && !this.newUser.vehicle_number?.trim()) {
+      this.addUserError = 'Please enter the vehicle registration number for this driver.';
+      return;
+    }
+
     this.isSubmitting = true;
     this.addUserError = '';
 
     const assignedIds = this.newUser.all_projects ? [] : this.newUser.assigned_project_ids;
-    const payload = {
+    const payload: any = {
       name: this.newUser.name.trim(),
       email: this.newUser.email.trim().toLowerCase(),
       phone: this.newUser.phone.trim() || null,
@@ -276,6 +311,12 @@ export class UserListComponent implements OnInit {
       is_active: this.newUser.is_active,
       assigned_project_ids: assignedIds
     };
+
+    if (isDriver) {
+      payload.vehicle_type = this.newUser.vehicle_type || 'SUV';
+      payload.vehicle_number = this.newUser.vehicle_number ? this.newUser.vehicle_number.trim().toUpperCase() : null;
+      payload.vehicle_model = this.newUser.vehicle_model ? this.newUser.vehicle_model.trim() : null;
+    }
 
     this.userService.createUser(payload).subscribe({
       next: (res: any) => {
@@ -292,6 +333,9 @@ export class UserListComponent implements OnInit {
           phone: payload.phone || '',
           designation: this.newUser.designation.trim() || (created?.role?.name || payload.role),
           role: payload.role,
+          vehicle_type: payload.vehicle_type || '',
+          vehicle_number: payload.vehicle_number || '',
+          vehicle_model: payload.vehicle_model || '',
           status: payload.is_active ? 'active' : 'inactive',
           last_login: 'Never',
           assigned_projects: assignedObjs,
@@ -333,6 +377,9 @@ export class UserListComponent implements OnInit {
     const currentAssignedIds = user.assigned_project_ids || (user.assigned_projects ? user.assigned_projects.map((p: any) => p.project_id || p.id) : []);
     this.editingUser = {
       ...user,
+      vehicle_type: user.vehicle_type || 'SUV',
+      vehicle_number: user.vehicle_number || '',
+      vehicle_model: user.vehicle_model || '',
       password: '', // blank by default: keeps existing password intact unless set
       all_projects: user.has_all_projects_access || currentAssignedIds.length === 0,
       assigned_project_ids: [...currentAssignedIds]
@@ -394,6 +441,12 @@ export class UserListComponent implements OnInit {
       return;
     }
 
+    const isDriver = this.isDriverRole(this.editingUser.role);
+    if (isDriver && !this.editingUser.vehicle_number?.trim()) {
+      this.editUserError = 'Please enter the vehicle registration number for this driver.';
+      return;
+    }
+
     this.isEditing = true;
     this.editUserError = '';
 
@@ -406,6 +459,12 @@ export class UserListComponent implements OnInit {
       is_active: this.editingUser.status === 'active',
       assigned_project_ids: assignedIds
     };
+
+    if (isDriver) {
+      payload.vehicle_type = this.editingUser.vehicle_type || 'SUV';
+      payload.vehicle_number = this.editingUser.vehicle_number ? this.editingUser.vehicle_number.trim().toUpperCase() : null;
+      payload.vehicle_model = this.editingUser.vehicle_model ? this.editingUser.vehicle_model.trim() : null;
+    }
 
     let hasPasswordUpdate = false;
     if (this.editingUser.password && this.editingUser.password.trim()) {
@@ -434,6 +493,9 @@ export class UserListComponent implements OnInit {
             email: payload.email,
             phone: payload.phone,
             role: payload.role,
+            vehicle_type: payload.vehicle_type || '',
+            vehicle_number: payload.vehicle_number || '',
+            vehicle_model: payload.vehicle_model || '',
             designation: this.editingUser.designation || payload.role,
             status: payload.is_active ? 'active' : 'inactive',
             assigned_projects: assignedObjs,
@@ -602,6 +664,23 @@ export class UserListComponent implements OnInit {
       return (parts[0][0] + parts[1][0]).toUpperCase();
     }
     return parts[0].slice(0, 2).toUpperCase();
+  }
+
+  getCleanName(name: string): string {
+    if (!name) return '';
+    return name.replace(/\s*\([^)]*\)/g, '').trim();
+  }
+
+  getManagerName(mgr: string): string {
+    if (!mgr || mgr.toLowerCase() === 'none') return '';
+    const match = mgr.match(/^([^(]+)/);
+    return match ? match[1].trim() : mgr.trim();
+  }
+
+  getManagerRole(mgr: string): string {
+    if (!mgr || mgr.toLowerCase() === 'none') return '';
+    const match = mgr.match(/\(([^)]+)\)/);
+    return match ? match[1].trim() : '';
   }
 
   getRoleBadge(role: string): string {

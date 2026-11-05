@@ -44,12 +44,12 @@ export class VisitBookingComponent implements OnInit {
   private router = inject(Router);
 
   buyers: any[] = [
-    { id: 1, full_name: 'Sneha Kulkarni', phone: '+91 98765 43211', preferred_bhk: '3 BHK' },
-    { id: 2, full_name: 'Anand Bhagat', phone: '+91 98765 43212', preferred_bhk: '4 BHK' },
-    { id: 3, full_name: 'Deepa Sharma', phone: '+91 98765 43218', preferred_bhk: '3 BHK' },
-    { id: 4, full_name: 'Rahul Deshmukh', phone: '+91 98765 43210', preferred_bhk: '3 BHK' },
-    { id: 5, full_name: 'Neha Agarwal', phone: '+91 98765 43215', preferred_bhk: '4 BHK' },
-    { id: 6, full_name: 'Harish Menon', phone: '+91 98765 43239', preferred_bhk: '4 BHK' }
+    { id: 1, full_name: 'Jaywant Patil', phone: '+919960688432', preferred_bhk: '3 BHK' },
+    { id: 2, full_name: 'Kaustubh Nazirkar', phone: '+919890389995', preferred_bhk: '2 BHK' },
+    { id: 3, full_name: 'sachin Jadhav', phone: '+919130753119', preferred_bhk: '3 BHK' },
+    { id: 4, full_name: 'Suntosh Kamthay', phone: '+918888468001', preferred_bhk: '2 BHK' },
+    { id: 5, full_name: 'Rohiet Kumar', phone: '+919595181850', preferred_bhk: '3 BHK' },
+    { id: 21, full_name: 'Debashish', phone: '+919270308384', preferred_bhk: '3 BHK' }
   ];
 
   salesExecutives: any[] = [
@@ -145,28 +145,40 @@ export class VisitBookingComponent implements OnInit {
         if (res.success && res.vehicles && res.vehicles.length > 0) {
           this.vehicles = res.vehicles;
           if (!this.selectedVehicleId && this.vehicles.length > 0) {
-            this.onVehicleSelect(this.vehicles[0].vehicle_id || this.vehicles[0].id);
+            this.selectedVehicleId = this.vehicles[0].vehicle_id || this.vehicles[0].id;
+            this.bookingData.vehicle_id = this.selectedVehicleId;
+            this.bookingData.cab_number = this.vehicles[0].registration_number;
           }
         }
       },
       error: () => {
         // Fallback default fleet
         this.vehicles = [
-          { id: 1, vehicle_id: 1, registration_number: 'KA-01-MJ-8822', model: 'Innova Crysta Luxury', seating_capacity: 6, fuel_type: 'Diesel', assigned_driver_id: 5, assignedDriver: { name: 'Ramesh Gowda' } },
-          { id: 2, vehicle_id: 2, registration_number: 'KA-03-EA-1090', model: 'Honda City ZX', seating_capacity: 4, fuel_type: 'Petrol', assigned_driver_id: null, assignedDriver: null }
+          { id: 1, vehicle_id: 1, registration_number: 'KA-01-MJ-8822', make_model: 'Toyota Innova Crysta Luxury', seating_capacity: 6, vehicle_type: 'SUV', fuel_type: 'Diesel' },
+          { id: 2, vehicle_id: 2, registration_number: 'KA-05-NB-4411', make_model: 'Honda City ZX', seating_capacity: 4, vehicle_type: 'SEDAN', fuel_type: 'Petrol' },
+          { id: 3, vehicle_id: 3, registration_number: 'KA-03-EX-9900', make_model: 'Mercedes-Benz E-Class VIP', seating_capacity: 4, vehicle_type: 'LUXURY', fuel_type: 'Diesel' }
         ];
       }
     });
   }
 
   onVehicleSelect(vId: any): void {
+    if (vId === 'custom') {
+      this.selectedVehicleId = 'custom' as any;
+      this.bookingData.vehicle_id = null;
+      this.bookingData.cab_number = '';
+      return;
+    }
+
     this.selectedVehicleId = vId ? parseInt(vId, 10) : null;
     if (this.selectedVehicleId) {
       const found = this.vehicles.find(v => (v.vehicle_id || v.id) === this.selectedVehicleId);
       if (found) {
         this.bookingData.vehicle_id = found.vehicle_id || found.id;
         this.bookingData.cab_number = found.registration_number;
-        if (found.assigned_driver_id) {
+        // Keep currently assigned driver! Do NOT overwrite or clear the driver:
+        // Only if no driver has been selected yet, assign default driver if available:
+        if (!this.bookingData.driver_id && found.assigned_driver_id) {
           this.bookingData.driver_id = found.assigned_driver_id;
         }
         this.bookingData.cab_required = true;
@@ -176,6 +188,85 @@ export class VisitBookingComponent implements OnInit {
     }
   }
 
+  onDriverSelect(driverId: any): void {
+    this.bookingData.driver_id = driverId ? parseInt(driverId, 10) : null;
+    if (this.bookingData.driver_id) {
+      const selectedDriver = this.drivers.find(d => (d.user_id || d.id) === this.bookingData.driver_id);
+      // If driver has a default vehicle in profile and no cab number is set yet:
+      if (!this.bookingData.cab_number && selectedDriver?.vehicle_number) {
+        this.bookingData.cab_number = selectedDriver.vehicle_number;
+        const matchingVeh = this.vehicles.find(v => v.registration_number === selectedDriver.vehicle_number);
+        if (matchingVeh) {
+          this.selectedVehicleId = matchingVeh.vehicle_id || matchingVeh.id;
+          this.bookingData.vehicle_id = matchingVeh.vehicle_id || matchingVeh.id;
+        }
+      }
+    }
+  }
+
+  onCabNumberChange(cabNum: string): void {
+    if (!cabNum) {
+      this.selectedVehicleId = null;
+      this.bookingData.vehicle_id = null;
+      return;
+    }
+    const cleanNum = cabNum.trim().toUpperCase();
+    const matchingVeh = this.vehicles.find(v => v.registration_number?.toUpperCase() === cleanNum);
+    if (matchingVeh) {
+      this.selectedVehicleId = matchingVeh.vehicle_id || matchingVeh.id;
+      this.bookingData.vehicle_id = matchingVeh.vehicle_id || matchingVeh.id;
+    } else {
+      this.selectedVehicleId = 'custom' as any;
+      this.bookingData.vehicle_id = null;
+    }
+  }
+
+  whatsappSuccessDispatch: any = null;
+
+  getSelectedDriverName(): string {
+    if (!this.bookingData.driver_id) return 'Unassigned';
+    const found = this.drivers.find(d => (d.user_id || d.id) === this.bookingData.driver_id);
+    return found ? found.name : 'Driver #' + this.bookingData.driver_id;
+  }
+
+  getSelectedBuyerName(): string {
+    const found = this.buyers.find(b => (b.buyer_id || b.id) == this.bookingData.buyer_id);
+    return found ? found.full_name : 'Selected Buyer';
+  }
+
+  getSelectedBuyerPhone(): string {
+    const found = this.buyers.find(b => (b.buyer_id || b.id) == this.bookingData.buyer_id);
+    return found ? (found.phone || '7058533669') : '7058533669';
+  }
+
+  buildDriverWhatsAppUrl(): string {
+    const driverPhone = '917058533669';
+    const driverName = this.getSelectedDriverName();
+    const buyerName = this.getSelectedBuyerName();
+    const buyerPhone = this.getSelectedBuyerPhone();
+    const pickup = this.bookingData.pickup_address || 'Customer Residence / Office';
+    const timeSlot = this.bookingData.time_slot || '04:00 PM - 05:30 PM';
+    const date = this.bookingData.scheduled_date || 'Today';
+    const cab = this.bookingData.cab_number || 'KA-05-NB-4411';
+
+    const lines = [
+      '🚗 *CONTECH CRM - DRIVER TRIP ASSIGNMENT* 🚗',
+      '',
+      `Hello *${driverName}*,`,
+      'You have been assigned for a client site visit pickup with the following details:',
+      '',
+      `👤 *Passenger / Client:* ${buyerName}`,
+      `📞 *Client Contact:* ${buyerPhone}`,
+      `📍 *Pickup Location:* ${pickup}`,
+      `🏢 *Destination:* Contech Sales Gallery, ITPL Main Road, Whitefield`,
+      `📅 *Date:* ${date}`,
+      `⏰ *Time Slot:* ${timeSlot}`,
+      `🚘 *Vehicle:* ${cab}`,
+      '',
+      '⚡ _Please call the passenger 30 minutes in advance to confirm pickup coordination._'
+    ];
+    return `https://api.whatsapp.com/send?phone=${driverPhone}&text=${encodeURIComponent(lines.join('\n'))}`;
+  }
 
   onSubmit(): void {
     this.loading = true;
@@ -185,7 +276,29 @@ export class VisitBookingComponent implements OnInit {
       next: (res) => {
         this.loading = false;
         if (res.success) {
-          this.router.navigate(['/visits']);
+          const driverName = this.getSelectedDriverName();
+          const dispatch = res.whatsapp_dispatch;
+          const waUrl = dispatch?.web_whatsapp_url ||
+                        dispatch?.whatsapp_url ||
+                        this.buildDriverWhatsAppUrl();
+
+          // Automatically send WhatsApp message to driver in background/browser
+          if (this.bookingData.cab_required && this.bookingData.driver_id && waUrl) {
+            try {
+              window.open(waUrl, '_blank');
+            } catch (e) {
+              console.warn('Auto window.open intercepted:', e);
+            }
+          }
+
+          // Navigate to visits with dispatch details
+          this.router.navigate(['/visits'], {
+            queryParams: {
+              whatsapp_sent: 'true',
+              driver: driverName,
+              wa_url: encodeURIComponent(waUrl || '')
+            }
+          });
         }
       },
       error: (err) => {
