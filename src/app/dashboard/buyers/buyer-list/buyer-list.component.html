@@ -579,179 +579,303 @@
                   </td>
                 </ng-container>
 
-                <!-- Edit Mode Inside Project Dossier -->
+                <!-- Edit Mode Inside Project Dossier: Unified In-Place Prospect Drawer -->
                 <ng-container *ngIf="editingBuyerId == p.id">
-                  <td class="col-buyer">
-                    <input type="text" [(ngModel)]="editForm.name" class="inline-edit-input" placeholder="Full name *" />
-                    <input type="text" [(ngModel)]="editForm.phone" class="inline-edit-input sub-input" placeholder="Phone *" />
-                    <input type="email" [(ngModel)]="editForm.email" class="inline-edit-input sub-input" placeholder="Email address" />
-                    <div class="edit-project-row">
-                      <span class="edit-project-lbl">Project:</span>
-                      <select [(ngModel)]="editForm.project_id" class="inline-edit-select project-inline-select">
-                        <option *ngFor="let prj of projectsList" [value]="prj.project_id || prj.id">{{ prj.name }}</option>
-                      </select>
-                    </div>
-                  </td>
-                  <td class="col-score">
-                    <div class="inline-score-editor">
-                      <div class="score-input-group">
-                        <span class="score-edit-lbl">Score:</span>
-                        <input
-                          type="number"
-                          [(ngModel)]="editForm.score"
-                          min="0"
-                          max="100"
-                          class="inline-edit-input score-num-input"
-                          title="Intent Score (0-100)"
-                        />
-                      </div>
-                      <div class="score-input-group delta-group">
-                        <span class="delta-symbol">▲</span>
-                        <input
-                          type="number"
-                          [(ngModel)]="editForm.delta"
-                          class="inline-edit-input delta-num-input"
-                          title="Intent Delta Score (±)"
-                        />
-                      </div>
-                      <div class="score-badge-live" [ngClass]="getScoreClass(editForm.score || p.score)">
-                        <span class="live-score">{{ editForm.score || p.score }}</span>
-                        <span class="live-delta">▲ {{ editForm.delta !== undefined ? editForm.delta : p.delta }}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="col-stage">
-                    <select [(ngModel)]="editForm.stage" class="inline-edit-select">
-                      <option value="New">New</option>
-                      <option value="Contacted">Contacted</option>
-                      <option value="Qualified">Qualified</option>
-                      <option value="High Intent">High Intent</option>
-                      <option value="Site Visit Scheduled">Site Visit Scheduled</option>
-                      <option value="Visit Completed">Visit Completed</option>
-                      <option value="Negotiation">Negotiation</option>
-                      <option value="Booking Intent">Booking Intent</option>
-                      <option value="Booked">Booked</option>
-                    </select>
-                  </td>
-                  <td class="col-req">
-                    <select [(ngModel)]="editForm.bhk" class="inline-edit-select" title="Preferred Unit Configuration">
-                      <option value="1 BHK">1 BHK</option>
-                      <option value="2 BHK">2 BHK</option>
-                      <option value="3 BHK">3 BHK</option>
-                      <option value="4 BHK">4 BHK</option>
-                      <option value="5 BHK">5 BHK</option>
-                      <option value="Penthouse">Penthouse</option>
-                      <option value="Villa">Villa</option>
-                      <option value="Duplex">Duplex</option>
-                      <option value="Plot">Plot</option>
-                      <option value="Residential Plot">Residential Plot</option>
-                      <option value="Commercial Plot">Commercial Plot</option>
-                      <option value="Farm House Plot">Farm House Plot</option>
-                      <option value="Villa Plot">Villa Plot</option>
-                    </select>
-                    <div class="inline-budget-edit-row">
-                      <span class="curr-sign">₹</span>
-                      <input type="number" [(ngModel)]="editForm.budget_min_lacs" class="inline-edit-input budget-num" placeholder="Min" title="Min Budget (₹ Lacs)" />
-                      <span class="dash">–</span>
-                      <input type="number" [(ngModel)]="editForm.budget_max_lacs" class="inline-edit-input budget-num" placeholder="Max" title="Max Budget (₹ Lacs)" />
-                      <span class="unit-lbl">L</span>
-                    </div>
-                    <select [(ngModel)]="editForm.buying_timeframe" class="inline-edit-select timeframe-select" title="Buying Timeframe">
-                      <option value="<30 days">&lt; 30 Days (Immediate)</option>
-                      <option value="30-60 days">30–60 Days (Near Term)</option>
-                      <option value="60-90 days">60–90 Days (Active)</option>
-                      <option value=">90 days">&gt; 90 Days (Exploring)</option>
-                    </select>
-                  </td>
-                  <td class="col-owner">
-                    <select [(ngModel)]="editForm.assigned_rep_id" class="inline-edit-select owner-inline-select" title="Assigned Sales Owner">
-                      <option [ngValue]="null">Unassigned</option>
-                      <option *ngFor="let rep of dbUsers" [value]="rep.user_id || rep.id">{{ rep.name }}</option>
-                    </select>
-                    <select [(ngModel)]="editForm.lead_source" class="inline-edit-select source-inline-select" title="Lead Acquisition Source">
-                      <option value="Instagram">Instagram</option>
-                      <option value="SimpliQualify">SimpliQualify</option>
-                      <option value="Google Ads">Google Ads</option>
-                      <option value="Meta Ads">Meta Ads</option>
-                      <option value="Website">Website</option>
-                      <option value="Referral">Referral</option>
-                      <option value="Property Portal">Property Portal</option>
-                    </select>
-                    <select [(ngModel)]="editForm.financing_readiness" class="inline-edit-select finance-inline-select" title="Financing Readiness">
-                      <option value="Pre-approved Loan">Bank Pre-approved Loan</option>
-                      <option value="Self-funded / Cash">Self-funded / Cash</option>
-                      <option value="Loan Required">Loan Required</option>
-                      <option value="Disposal of Existing Property">Disposal of Property</option>
-                    </select>
-                  </td>
-                  <td class="col-action col-action-edit">
-                    <div class="demographics-edit-box">
-                      <input type="text" [(ngModel)]="editForm.current_residence" class="inline-edit-input sub-input" placeholder="Current Residence / Locality" title="Current Residence / Locality" />
-                      <input type="text" [(ngModel)]="editForm.workplace_location" class="inline-edit-input sub-input" placeholder="Workplace / Tech Park" title="Workplace Location / Tech Park" />
-                      <div class="edit-family-occ-row">
-                        <input type="number" [(ngModel)]="editForm.family_size" class="inline-edit-input family-input" placeholder="Fam" title="Family Size" min="1" max="20" />
-                        <select [(ngModel)]="editForm.occupation" class="inline-edit-select occ-select" title="Occupation / Profile Fit">
-                          <option value="Salaried IT / Tech Corporate">Salaried IT / Tech</option>
-                          <option value="Business Owner / Entrepreneur">Business Owner</option>
-                          <option value="Doctor / Healthcare Specialist">Doctor / Healthcare</option>
-                          <option value="Chartered Accountant / Finance">CA / Finance</option>
-                          <option value="NRI / Overseas Investor">NRI / Investor</option>
-                          <option value="Government / PSU Officer">Govt / PSU</option>
-                          <option value="Other">Other</option>
-                        </select>
-                      </div>
-                      <input type="text" [(ngModel)]="editForm.notes" class="inline-edit-input notes-input" placeholder="Discovery / Requirements notes" title="Initial Requirements & Discovery Notes" />
-                    </div>
+                  <td colspan="8" class="inline-edit-drawer-cell">
+                    <div class="edit-drawer-container">
+                      <!-- Drawer Header -->
+                      <div class="edit-drawer-header">
+                        <div class="drawer-header-left">
+                          <div class="drawer-avatar" [style.background]="getAvatarColor(p.name)">
+                            {{ getInitials(p.name) }}
+                          </div>
+                          <div class="drawer-header-meta">
+                            <div class="drawer-title-row">
+                              <span class="drawer-title">Edit Prospect Details &middot; {{ p.name }}</span>
+                              <span class="drawer-id-badge">ID: #{{ p.id }}</span>
+                              <span class="drawer-source-badge" [class.source-instagram]="editForm.lead_source === 'Instagram'">
+                                {{ editForm.lead_source || 'Instagram' }}
+                              </span>
+                            </div>
+                            <div class="drawer-subtitle">
+                              Update intake demographics, budget qualification, unit preferences, next actions &amp; automated SLAs
+                            </div>
+                          </div>
+                        </div>
 
-                    <div class="edit-followup-box">
-                      <div class="edit-followup-header">
-                        <label class="edit-followup-toggle">
-                          <input type="checkbox" [(ngModel)]="editForm.add_follow_up" />
-                          <span class="edit-toggle-title">
-                            <mat-icon class="icon-inline">add_task</mat-icon> + Add Follow-up
-                          </span>
-                        </label>
-                      </div>
-
-                      <div class="edit-followup-body" *ngIf="editForm.add_follow_up">
-                        <input
-                          type="text"
-                          [(ngModel)]="editForm.follow_up_title"
-                          class="inline-edit-input followup-title-field"
-                          placeholder="Follow-up requirement / task"
-                        />
-                        <div class="edit-followup-subrow">
-                          <input
-                            type="datetime-local"
-                            [(ngModel)]="editForm.follow_up_due"
-                            class="inline-edit-input followup-datetime-field"
-                            title="Scheduled Due Date & Time"
-                          />
-                          <select [(ngModel)]="editForm.follow_up_priority" class="inline-edit-select followup-prio-field">
-                            <option value="HIGH">High Priority</option>
-                            <option value="URGENT">Urgent SLA</option>
-                            <option value="MEDIUM">Medium</option>
-                            <option value="LOW">Low</option>
-                          </select>
+                        <div class="drawer-header-actions">
+                          <a mat-stroked-button [routerLink]="['/buyers', p.id, 'edit']" class="btn-full-form-link" (click)="$event.stopPropagation()" title="Open Dedicated Full Page Intake Form">
+                            <mat-icon>open_in_new</mat-icon> Dedicated Form
+                          </a>
+                          <button mat-stroked-button type="button" class="btn-drawer-cancel" (click)="$event.stopPropagation(); cancelEdit()">
+                            <mat-icon>close</mat-icon> Cancel
+                          </button>
+                          <button mat-flat-button color="primary" type="button" class="btn-drawer-save" (click)="$event.stopPropagation(); saveEdit(p)">
+                            <mat-icon>check</mat-icon> Save Changes
+                          </button>
                         </div>
                       </div>
 
-                      <div class="edit-followup-current" *ngIf="!editForm.add_follow_up">
-                        <span class="current-label">Current:</span>
-                        <span class="current-val">{{ p.next_action }}</span>
+                      <!-- 3 Enterprise Sections Grid -->
+                      <div class="edit-drawer-grid">
+                        <!-- Section 1: Contact & Demographics Details -->
+                        <div class="drawer-section-card">
+                          <div class="drawer-section-header">
+                            <mat-icon class="section-icon">contact_phone</mat-icon>
+                            <span class="section-title">1. Contact &amp; Demographics</span>
+                          </div>
+                          <div class="drawer-section-body">
+                            <div class="form-group-field">
+                              <label class="form-field-lbl">Target / Main Project *</label>
+                              <select [(ngModel)]="editForm.project_id" class="drawer-select">
+                                <option *ngFor="let prj of projectsList" [value]="prj.project_id || prj.id">{{ prj.name }}</option>
+                              </select>
+                            </div>
+
+                            <div class="form-group-field">
+                              <label class="form-field-lbl">Full Name *</label>
+                              <input type="text" [(ngModel)]="editForm.name" class="drawer-input" placeholder="Prospect full name" />
+                            </div>
+
+                            <div class="form-row-2col">
+                              <div class="form-group-field">
+                                <label class="form-field-lbl">Phone Number *</label>
+                                <input type="text" [(ngModel)]="editForm.phone" class="drawer-input" placeholder="+91..." />
+                              </div>
+                              <div class="form-group-field">
+                                <label class="form-field-lbl">Email Address</label>
+                                <input type="email" [(ngModel)]="editForm.email" class="drawer-input" placeholder="email@domain.com" />
+                              </div>
+                            </div>
+
+                            <div class="form-row-2col">
+                              <div class="form-group-field">
+                                <label class="form-field-lbl">Current Residence / Locality</label>
+                                <input type="text" [(ngModel)]="editForm.current_residence" class="drawer-input" placeholder="e.g. Whitefield Palm Meadows" />
+                              </div>
+                              <div class="form-group-field">
+                                <label class="form-field-lbl">Workplace Location / Tech Park</label>
+                                <input type="text" [(ngModel)]="editForm.workplace_location" class="drawer-input" placeholder="e.g. ITPL Bengaluru" />
+                              </div>
+                            </div>
+
+                            <div class="form-row-2col">
+                              <div class="form-group-field">
+                                <label class="form-field-lbl">Family Size</label>
+                                <input type="number" [(ngModel)]="editForm.family_size" class="drawer-input" min="1" max="20" placeholder="e.g. 4" />
+                              </div>
+                              <div class="form-group-field">
+                                <label class="form-field-lbl">Occupation / Profile Fit</label>
+                                <select [(ngModel)]="editForm.occupation" class="drawer-select">
+                                  <option value="Salaried IT / Tech Corporate">Salaried IT / Tech Corporate</option>
+                                  <option value="Business Owner / Entrepreneur">Business Owner / Entrepreneur</option>
+                                  <option value="Doctor / Healthcare Specialist">Doctor / Healthcare Specialist</option>
+                                  <option value="Chartered Accountant / Finance">Chartered Accountant / Finance</option>
+                                  <option value="NRI / Overseas Investor">NRI / Overseas Investor</option>
+                                  <option value="Government / PSU Officer">Government / PSU Officer</option>
+                                  <option value="Other">Other</option>
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Section 2: Buying Intent & 4-Dimension Attributes -->
+                        <div class="drawer-section-card">
+                          <div class="drawer-section-header">
+                            <mat-icon class="section-icon">tune</mat-icon>
+                            <span class="section-title">2. Buying Intent &amp; Budget</span>
+                          </div>
+                          <div class="drawer-section-body">
+                            <div class="form-row-2col">
+                              <div class="form-group-field">
+                                <label class="form-field-lbl">Pipeline Stage</label>
+                                <select [(ngModel)]="editForm.stage" class="drawer-select">
+                                  <option value="New">New</option>
+                                  <option value="Contacted">Contacted</option>
+                                  <option value="Qualified">Qualified</option>
+                                  <option value="High Intent">High Intent</option>
+                                  <option value="Site Visit Scheduled">Site Visit Scheduled</option>
+                                  <option value="Visit Completed">Visit Completed</option>
+                                  <option value="Negotiation">Negotiation</option>
+                                  <option value="Booking Intent">Booking Intent</option>
+                                  <option value="Booked">Booked</option>
+                                </select>
+                              </div>
+                              <div class="form-group-field">
+                                <label class="form-field-lbl">Preferred Unit Configuration</label>
+                                <select [(ngModel)]="editForm.bhk" class="drawer-select">
+                                  <option value="1 BHK">1 BHK</option>
+                                  <option value="2 BHK">2 BHK</option>
+                                  <option value="3 BHK">3 BHK</option>
+                                  <option value="4 BHK">4 BHK</option>
+                                  <option value="5 BHK">5 BHK</option>
+                                  <option value="Penthouse">Penthouse</option>
+                                  <option value="Villa">Villa</option>
+                                  <option value="Duplex">Duplex</option>
+                                  <option value="Plot">Plot</option>
+                                  <option value="Residential Plot">Residential Plot</option>
+                                  <option value="Commercial Plot">Commercial Plot</option>
+                                  <option value="Commercial Office">Commercial Office</option>
+                                  <option value="Office Suite">Office Suite</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            <div class="form-group-field">
+                              <label class="form-field-lbl">Budget Range (₹ Lacs)</label>
+                              <div class="drawer-budget-input-group">
+                                <span class="curr-prefix">₹</span>
+                                <input type="number" [(ngModel)]="editForm.budget_min_lacs" class="drawer-input budget-in" placeholder="Min" />
+                                <span class="range-dash">to</span>
+                                <input type="number" [(ngModel)]="editForm.budget_max_lacs" class="drawer-input budget-in" placeholder="Max" />
+                                <span class="curr-suffix">Lacs</span>
+                              </div>
+                            </div>
+
+                            <div class="form-row-2col">
+                              <div class="form-group-field">
+                                <label class="form-field-lbl">Buying Timeframe</label>
+                                <select [(ngModel)]="editForm.buying_timeframe" class="drawer-select">
+                                  <option value="<30 days">&lt; 30 Days (Immediate)</option>
+                                  <option value="30-60 days">30–60 Days (Near Term)</option>
+                                  <option value="60-90 days">60–90 Days (Active)</option>
+                                  <option value=">90 days">&gt; 90 Days (Exploring)</option>
+                                </select>
+                              </div>
+                              <div class="form-group-field">
+                                <label class="form-field-lbl">Assigned Sales Owner</label>
+                                <select [(ngModel)]="editForm.assigned_rep_id" class="drawer-select">
+                                  <option [ngValue]="null">Unassigned</option>
+                                  <option *ngFor="let rep of dbUsers" [value]="rep.user_id || rep.id">{{ rep.name }}</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            <div class="form-row-2col">
+                              <div class="form-group-field">
+                                <label class="form-field-lbl">Lead Acquisition Source</label>
+                                <select [(ngModel)]="editForm.lead_source" class="drawer-select">
+                                  <option value="Instagram">Instagram</option>
+                                  <option value="Google Ads">Google Ads</option>
+                                  <option value="Meta Ads">Meta Ads</option>
+                                  <option value="Website">Website</option>
+                                  <option value="Referral">Referral</option>
+                                  <option value="Property Portal">Property Portal</option>
+                                  <option value="SimpliQualify">SimpliQualify</option>
+                                </select>
+                              </div>
+                              <div class="form-group-field">
+                                <label class="form-field-lbl">Financing Readiness</label>
+                                <select [(ngModel)]="editForm.financing_readiness" class="drawer-select">
+                                  <option value="Pre-approved Loan">Bank Pre-approved Loan</option>
+                                  <option value="Self-funded / Cash">Self-funded / Cash</option>
+                                  <option value="Loan Required">Loan Required</option>
+                                  <option value="Disposal of Existing Property">Disposal of Property</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            <div class="form-group-field score-control-group">
+                              <label class="form-field-lbl">AI Buyer Intent Score &amp; Delta</label>
+                              <div class="score-slider-row">
+                                <span class="score-indicator-tag">Score:</span>
+                                <input type="number" [(ngModel)]="editForm.score" min="0" max="100" class="drawer-input score-num" />
+                                <span class="delta-indicator-tag">▲</span>
+                                <input type="number" [(ngModel)]="editForm.delta" class="drawer-input delta-num" />
+                                <div class="drawer-live-score-pill" [ngClass]="getScoreClass(editForm.score || p.score)">
+                                  <span>{{ editForm.score || p.score }}</span>
+                                  <span>▲ {{ editForm.delta !== undefined ? editForm.delta : p.delta }}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Section 3: Initial Requirements, Discovery & Automated Follow-up -->
+                        <div class="drawer-section-card">
+                          <div class="drawer-section-header">
+                            <mat-icon class="section-icon">notes</mat-icon>
+                            <span class="section-title">3. Requirements &amp; Follow-up SLA</span>
+                          </div>
+                          <div class="drawer-section-body">
+                            <div class="form-group-field">
+                              <label class="form-field-lbl">Initial Requirements &amp; Discovery Notes</label>
+                              <textarea
+                                [(ngModel)]="editForm.notes"
+                                class="drawer-textarea"
+                                rows="3"
+                                placeholder="Specific buyer floor preferences, Vaastu requirements, balcony orientations, payment milestones..."
+                              ></textarea>
+                            </div>
+
+                            <div class="drawer-followup-container">
+                              <div class="followup-toggle-bar">
+                                <label class="drawer-checkbox-lbl">
+                                  <input type="checkbox" [(ngModel)]="editForm.add_follow_up" />
+                                  <span class="toggle-text">
+                                    <mat-icon class="toggle-icon">add_task</mat-icon>
+                                    Schedule / Reschedule Automated Follow-up Task
+                                  </span>
+                                </label>
+                              </div>
+
+                              <div class="followup-form-panel" *ngIf="editForm.add_follow_up">
+                                <div class="form-group-field">
+                                  <label class="form-field-lbl">Task Title &amp; Requirement</label>
+                                  <input
+                                    type="text"
+                                    [(ngModel)]="editForm.follow_up_title"
+                                    class="drawer-input"
+                                    placeholder="e.g. Dispatch milestone pricing draft for Unit 703"
+                                  />
+                                </div>
+
+                                <div class="form-row-2col">
+                                  <div class="form-group-field">
+                                    <label class="form-field-lbl">Scheduled Due Date &amp; Time</label>
+                                    <input
+                                      type="datetime-local"
+                                      [(ngModel)]="editForm.follow_up_due"
+                                      class="drawer-input"
+                                    />
+                                  </div>
+                                  <div class="form-group-field">
+                                    <label class="form-field-lbl">Countdown SLA Priority</label>
+                                    <select [(ngModel)]="editForm.follow_up_priority" class="drawer-select">
+                                      <option value="HIGH">High Priority (4h Countdown)</option>
+                                      <option value="URGENT">Urgent SLA (2h Countdown)</option>
+                                      <option value="MEDIUM">Medium</option>
+                                      <option value="LOW">Low</option>
+                                    </select>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div class="current-action-display" *ngIf="!editForm.add_follow_up">
+                                <span class="action-caption">Current Next Best Action:</span>
+                                <span class="action-body">{{ p.next_action || 'Assign owner and initiate phone qualification' }}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td class="col-risk text-right">
-                    <span class="risk-amount-text">{{ p.at_risk }}</span>
-                  </td>
-                  <td class="col-actions text-right actions-column-cell">
-                    <div class="inline-actions-box">
-                      <button mat-flat-button type="button" class="btn-save-inline" (click)="$event.stopPropagation(); saveEdit(p)">Save</button>
-                      <button mat-stroked-button type="button" class="btn-cancel-inline" (click)="$event.stopPropagation(); cancelEdit()">Cancel</button>
-                      <a mat-stroked-button [routerLink]="['/buyers', p.id, 'edit']" class="btn-full-form-link" (click)="$event.stopPropagation()" title="Open Full Screen Intake &amp; Edit Form (Image 2)">
-                        <mat-icon>open_in_new</mat-icon> Full Form
-                      </a>
+
+                      <!-- Bottom Footer Bar -->
+                      <div class="edit-drawer-footer">
+                        <div class="footer-hint">
+                          <mat-icon class="hint-icon">sync</mat-icon>
+                          <span>Saving changes will immediately update the buyer profile, project dashboard, SLA engine, and intelligence radars.</span>
+                        </div>
+                        <div class="footer-actions">
+                          <button mat-stroked-button type="button" class="btn-drawer-cancel" (click)="$event.stopPropagation(); cancelEdit()">
+                            Cancel
+                          </button>
+                          <button mat-flat-button color="primary" type="button" class="btn-drawer-save" (click)="$event.stopPropagation(); saveEdit(p)">
+                            <mat-icon>check</mat-icon> Save Prospect Changes
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </td>
                 </ng-container>
@@ -1059,179 +1183,303 @@
                   </td>
                 </ng-container>
 
-                <!-- Edit Mode Inside Project Container -->
+                <!-- Edit Mode Inside Project Container: Unified In-Place Prospect Drawer -->
                 <ng-container *ngIf="editingBuyerId == p.id">
-                  <td class="col-buyer">
-                    <input type="text" [(ngModel)]="editForm.name" class="inline-edit-input" placeholder="Full name *" />
-                    <input type="text" [(ngModel)]="editForm.phone" class="inline-edit-input sub-input" placeholder="Phone *" />
-                    <input type="email" [(ngModel)]="editForm.email" class="inline-edit-input sub-input" placeholder="Email address" />
-                    <div class="edit-project-row">
-                      <span class="edit-project-lbl">Project:</span>
-                      <select [(ngModel)]="editForm.project_id" class="inline-edit-select project-inline-select">
-                        <option *ngFor="let prj of projectsList" [value]="prj.project_id || prj.id">{{ prj.name }}</option>
-                      </select>
-                    </div>
-                  </td>
-                  <td class="col-score">
-                    <div class="inline-score-editor">
-                      <div class="score-input-group">
-                        <span class="score-edit-lbl">Score:</span>
-                        <input
-                          type="number"
-                          [(ngModel)]="editForm.score"
-                          min="0"
-                          max="100"
-                          class="inline-edit-input score-num-input"
-                          title="Intent Score (0-100)"
-                        />
-                      </div>
-                      <div class="score-input-group delta-group">
-                        <span class="delta-symbol">▲</span>
-                        <input
-                          type="number"
-                          [(ngModel)]="editForm.delta"
-                          class="inline-edit-input delta-num-input"
-                          title="Intent Delta Score (±)"
-                        />
-                      </div>
-                      <div class="score-badge-live" [ngClass]="getScoreClass(editForm.score || p.score)">
-                        <span class="live-score">{{ editForm.score || p.score }}</span>
-                        <span class="live-delta">▲ {{ editForm.delta !== undefined ? editForm.delta : p.delta }}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="col-stage">
-                    <select [(ngModel)]="editForm.stage" class="inline-edit-select">
-                      <option value="New">New</option>
-                      <option value="Contacted">Contacted</option>
-                      <option value="Qualified">Qualified</option>
-                      <option value="High Intent">High Intent</option>
-                      <option value="Site Visit Scheduled">Site Visit Scheduled</option>
-                      <option value="Visit Completed">Visit Completed</option>
-                      <option value="Negotiation">Negotiation</option>
-                      <option value="Booking Intent">Booking Intent</option>
-                      <option value="Booked">Booked</option>
-                    </select>
-                  </td>
-                  <td class="col-req">
-                    <select [(ngModel)]="editForm.bhk" class="inline-edit-select" title="Preferred Unit Configuration">
-                      <option value="1 BHK">1 BHK</option>
-                      <option value="2 BHK">2 BHK</option>
-                      <option value="3 BHK">3 BHK</option>
-                      <option value="4 BHK">4 BHK</option>
-                      <option value="5 BHK">5 BHK</option>
-                      <option value="Penthouse">Penthouse</option>
-                      <option value="Villa">Villa</option>
-                      <option value="Duplex">Duplex</option>
-                      <option value="Plot">Plot</option>
-                      <option value="Residential Plot">Residential Plot</option>
-                      <option value="Commercial Plot">Commercial Plot</option>
-                      <option value="Farm House Plot">Farm House Plot</option>
-                      <option value="Villa Plot">Villa Plot</option>
-                    </select>
-                    <div class="inline-budget-edit-row">
-                      <span class="curr-sign">₹</span>
-                      <input type="number" [(ngModel)]="editForm.budget_min_lacs" class="inline-edit-input budget-num" placeholder="Min" title="Min Budget (₹ Lacs)" />
-                      <span class="dash">–</span>
-                      <input type="number" [(ngModel)]="editForm.budget_max_lacs" class="inline-edit-input budget-num" placeholder="Max" title="Max Budget (₹ Lacs)" />
-                      <span class="unit-lbl">L</span>
-                    </div>
-                    <select [(ngModel)]="editForm.buying_timeframe" class="inline-edit-select timeframe-select" title="Buying Timeframe">
-                      <option value="<30 days">&lt; 30 Days (Immediate)</option>
-                      <option value="30-60 days">30–60 Days (Near Term)</option>
-                      <option value="60-90 days">60–90 Days (Active)</option>
-                      <option value=">90 days">&gt; 90 Days (Exploring)</option>
-                    </select>
-                  </td>
-                  <td class="col-owner">
-                    <select [(ngModel)]="editForm.assigned_rep_id" class="inline-edit-select owner-inline-select" title="Assigned Sales Owner">
-                      <option [ngValue]="null">Unassigned</option>
-                      <option *ngFor="let rep of dbUsers" [value]="rep.user_id || rep.id">{{ rep.name }}</option>
-                    </select>
-                    <select [(ngModel)]="editForm.lead_source" class="inline-edit-select source-inline-select" title="Lead Acquisition Source">
-                      <option value="Instagram">Instagram</option>
-                      <option value="SimpliQualify">SimpliQualify</option>
-                      <option value="Google Ads">Google Ads</option>
-                      <option value="Meta Ads">Meta Ads</option>
-                      <option value="Website">Website</option>
-                      <option value="Referral">Referral</option>
-                      <option value="Property Portal">Property Portal</option>
-                    </select>
-                    <select [(ngModel)]="editForm.financing_readiness" class="inline-edit-select finance-inline-select" title="Financing Readiness">
-                      <option value="Pre-approved Loan">Bank Pre-approved Loan</option>
-                      <option value="Self-funded / Cash">Self-funded / Cash</option>
-                      <option value="Loan Required">Loan Required</option>
-                      <option value="Disposal of Existing Property">Disposal of Property</option>
-                    </select>
-                  </td>
-                  <td class="col-action col-action-edit">
-                    <div class="demographics-edit-box">
-                      <input type="text" [(ngModel)]="editForm.current_residence" class="inline-edit-input sub-input" placeholder="Current Residence / Locality" title="Current Residence / Locality" />
-                      <input type="text" [(ngModel)]="editForm.workplace_location" class="inline-edit-input sub-input" placeholder="Workplace / Tech Park" title="Workplace Location / Tech Park" />
-                      <div class="edit-family-occ-row">
-                        <input type="number" [(ngModel)]="editForm.family_size" class="inline-edit-input family-input" placeholder="Fam" title="Family Size" min="1" max="20" />
-                        <select [(ngModel)]="editForm.occupation" class="inline-edit-select occ-select" title="Occupation / Profile Fit">
-                          <option value="Salaried IT / Tech Corporate">Salaried IT / Tech</option>
-                          <option value="Business Owner / Entrepreneur">Business Owner</option>
-                          <option value="Doctor / Healthcare Specialist">Doctor / Healthcare</option>
-                          <option value="Chartered Accountant / Finance">CA / Finance</option>
-                          <option value="NRI / Overseas Investor">NRI / Investor</option>
-                          <option value="Government / PSU Officer">Govt / PSU</option>
-                          <option value="Other">Other</option>
-                        </select>
-                      </div>
-                      <input type="text" [(ngModel)]="editForm.notes" class="inline-edit-input notes-input" placeholder="Discovery / Requirements notes" title="Initial Requirements & Discovery Notes" />
-                    </div>
+                  <td colspan="8" class="inline-edit-drawer-cell">
+                    <div class="edit-drawer-container">
+                      <!-- Drawer Header -->
+                      <div class="edit-drawer-header">
+                        <div class="drawer-header-left">
+                          <div class="drawer-avatar" [style.background]="getAvatarColor(p.name)">
+                            {{ getInitials(p.name) }}
+                          </div>
+                          <div class="drawer-header-meta">
+                            <div class="drawer-title-row">
+                              <span class="drawer-title">Edit Prospect Details &middot; {{ p.name }}</span>
+                              <span class="drawer-id-badge">ID: #{{ p.id }}</span>
+                              <span class="drawer-source-badge" [class.source-instagram]="editForm.lead_source === 'Instagram'">
+                                {{ editForm.lead_source || 'Instagram' }}
+                              </span>
+                            </div>
+                            <div class="drawer-subtitle">
+                              Update intake demographics, budget qualification, unit preferences, next actions &amp; automated SLAs
+                            </div>
+                          </div>
+                        </div>
 
-                    <div class="edit-followup-box">
-                      <div class="edit-followup-header">
-                        <label class="edit-followup-toggle">
-                          <input type="checkbox" [(ngModel)]="editForm.add_follow_up" />
-                          <span class="edit-toggle-title">
-                            <mat-icon class="icon-inline">add_task</mat-icon> + Add Follow-up
-                          </span>
-                        </label>
-                      </div>
-
-                      <div class="edit-followup-body" *ngIf="editForm.add_follow_up">
-                        <input
-                          type="text"
-                          [(ngModel)]="editForm.follow_up_title"
-                          class="inline-edit-input followup-title-field"
-                          placeholder="Follow-up requirement / task"
-                        />
-                        <div class="edit-followup-subrow">
-                          <input
-                            type="datetime-local"
-                            [(ngModel)]="editForm.follow_up_due"
-                            class="inline-edit-input followup-datetime-field"
-                            title="Scheduled Due Date & Time"
-                          />
-                          <select [(ngModel)]="editForm.follow_up_priority" class="inline-edit-select followup-prio-field">
-                            <option value="HIGH">High Priority</option>
-                            <option value="URGENT">Urgent SLA</option>
-                            <option value="MEDIUM">Medium</option>
-                            <option value="LOW">Low</option>
-                          </select>
+                        <div class="drawer-header-actions">
+                          <a mat-stroked-button [routerLink]="['/buyers', p.id, 'edit']" class="btn-full-form-link" (click)="$event.stopPropagation()" title="Open Dedicated Full Page Intake Form">
+                            <mat-icon>open_in_new</mat-icon> Dedicated Form
+                          </a>
+                          <button mat-stroked-button type="button" class="btn-drawer-cancel" (click)="$event.stopPropagation(); cancelEdit()">
+                            <mat-icon>close</mat-icon> Cancel
+                          </button>
+                          <button mat-flat-button color="primary" type="button" class="btn-drawer-save" (click)="$event.stopPropagation(); saveEdit(p)">
+                            <mat-icon>check</mat-icon> Save Changes
+                          </button>
                         </div>
                       </div>
 
-                      <div class="edit-followup-current" *ngIf="!editForm.add_follow_up">
-                        <span class="current-label">Current:</span>
-                        <span class="current-val">{{ p.next_action }}</span>
+                      <!-- 3 Enterprise Sections Grid -->
+                      <div class="edit-drawer-grid">
+                        <!-- Section 1: Contact & Demographics Details -->
+                        <div class="drawer-section-card">
+                          <div class="drawer-section-header">
+                            <mat-icon class="section-icon">contact_phone</mat-icon>
+                            <span class="section-title">1. Contact &amp; Demographics</span>
+                          </div>
+                          <div class="drawer-section-body">
+                            <div class="form-group-field">
+                              <label class="form-field-lbl">Target / Main Project *</label>
+                              <select [(ngModel)]="editForm.project_id" class="drawer-select">
+                                <option *ngFor="let prj of projectsList" [value]="prj.project_id || prj.id">{{ prj.name }}</option>
+                              </select>
+                            </div>
+
+                            <div class="form-group-field">
+                              <label class="form-field-lbl">Full Name *</label>
+                              <input type="text" [(ngModel)]="editForm.name" class="drawer-input" placeholder="Prospect full name" />
+                            </div>
+
+                            <div class="form-row-2col">
+                              <div class="form-group-field">
+                                <label class="form-field-lbl">Phone Number *</label>
+                                <input type="text" [(ngModel)]="editForm.phone" class="drawer-input" placeholder="+91..." />
+                              </div>
+                              <div class="form-group-field">
+                                <label class="form-field-lbl">Email Address</label>
+                                <input type="email" [(ngModel)]="editForm.email" class="drawer-input" placeholder="email@domain.com" />
+                              </div>
+                            </div>
+
+                            <div class="form-row-2col">
+                              <div class="form-group-field">
+                                <label class="form-field-lbl">Current Residence / Locality</label>
+                                <input type="text" [(ngModel)]="editForm.current_residence" class="drawer-input" placeholder="e.g. Whitefield Palm Meadows" />
+                              </div>
+                              <div class="form-group-field">
+                                <label class="form-field-lbl">Workplace Location / Tech Park</label>
+                                <input type="text" [(ngModel)]="editForm.workplace_location" class="drawer-input" placeholder="e.g. ITPL Bengaluru" />
+                              </div>
+                            </div>
+
+                            <div class="form-row-2col">
+                              <div class="form-group-field">
+                                <label class="form-field-lbl">Family Size</label>
+                                <input type="number" [(ngModel)]="editForm.family_size" class="drawer-input" min="1" max="20" placeholder="e.g. 4" />
+                              </div>
+                              <div class="form-group-field">
+                                <label class="form-field-lbl">Occupation / Profile Fit</label>
+                                <select [(ngModel)]="editForm.occupation" class="drawer-select">
+                                  <option value="Salaried IT / Tech Corporate">Salaried IT / Tech Corporate</option>
+                                  <option value="Business Owner / Entrepreneur">Business Owner / Entrepreneur</option>
+                                  <option value="Doctor / Healthcare Specialist">Doctor / Healthcare Specialist</option>
+                                  <option value="Chartered Accountant / Finance">Chartered Accountant / Finance</option>
+                                  <option value="NRI / Overseas Investor">NRI / Overseas Investor</option>
+                                  <option value="Government / PSU Officer">Government / PSU Officer</option>
+                                  <option value="Other">Other</option>
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Section 2: Buying Intent & 4-Dimension Attributes -->
+                        <div class="drawer-section-card">
+                          <div class="drawer-section-header">
+                            <mat-icon class="section-icon">tune</mat-icon>
+                            <span class="section-title">2. Buying Intent &amp; Budget</span>
+                          </div>
+                          <div class="drawer-section-body">
+                            <div class="form-row-2col">
+                              <div class="form-group-field">
+                                <label class="form-field-lbl">Pipeline Stage</label>
+                                <select [(ngModel)]="editForm.stage" class="drawer-select">
+                                  <option value="New">New</option>
+                                  <option value="Contacted">Contacted</option>
+                                  <option value="Qualified">Qualified</option>
+                                  <option value="High Intent">High Intent</option>
+                                  <option value="Site Visit Scheduled">Site Visit Scheduled</option>
+                                  <option value="Visit Completed">Visit Completed</option>
+                                  <option value="Negotiation">Negotiation</option>
+                                  <option value="Booking Intent">Booking Intent</option>
+                                  <option value="Booked">Booked</option>
+                                </select>
+                              </div>
+                              <div class="form-group-field">
+                                <label class="form-field-lbl">Preferred Unit Configuration</label>
+                                <select [(ngModel)]="editForm.bhk" class="drawer-select">
+                                  <option value="1 BHK">1 BHK</option>
+                                  <option value="2 BHK">2 BHK</option>
+                                  <option value="3 BHK">3 BHK</option>
+                                  <option value="4 BHK">4 BHK</option>
+                                  <option value="5 BHK">5 BHK</option>
+                                  <option value="Penthouse">Penthouse</option>
+                                  <option value="Villa">Villa</option>
+                                  <option value="Duplex">Duplex</option>
+                                  <option value="Plot">Plot</option>
+                                  <option value="Residential Plot">Residential Plot</option>
+                                  <option value="Commercial Plot">Commercial Plot</option>
+                                  <option value="Commercial Office">Commercial Office</option>
+                                  <option value="Office Suite">Office Suite</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            <div class="form-group-field">
+                              <label class="form-field-lbl">Budget Range (₹ Lacs)</label>
+                              <div class="drawer-budget-input-group">
+                                <span class="curr-prefix">₹</span>
+                                <input type="number" [(ngModel)]="editForm.budget_min_lacs" class="drawer-input budget-in" placeholder="Min" />
+                                <span class="range-dash">to</span>
+                                <input type="number" [(ngModel)]="editForm.budget_max_lacs" class="drawer-input budget-in" placeholder="Max" />
+                                <span class="curr-suffix">Lacs</span>
+                              </div>
+                            </div>
+
+                            <div class="form-row-2col">
+                              <div class="form-group-field">
+                                <label class="form-field-lbl">Buying Timeframe</label>
+                                <select [(ngModel)]="editForm.buying_timeframe" class="drawer-select">
+                                  <option value="<30 days">&lt; 30 Days (Immediate)</option>
+                                  <option value="30-60 days">30–60 Days (Near Term)</option>
+                                  <option value="60-90 days">60–90 Days (Active)</option>
+                                  <option value=">90 days">&gt; 90 Days (Exploring)</option>
+                                </select>
+                              </div>
+                              <div class="form-group-field">
+                                <label class="form-field-lbl">Assigned Sales Owner</label>
+                                <select [(ngModel)]="editForm.assigned_rep_id" class="drawer-select">
+                                  <option [ngValue]="null">Unassigned</option>
+                                  <option *ngFor="let rep of dbUsers" [value]="rep.user_id || rep.id">{{ rep.name }}</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            <div class="form-row-2col">
+                              <div class="form-group-field">
+                                <label class="form-field-lbl">Lead Acquisition Source</label>
+                                <select [(ngModel)]="editForm.lead_source" class="drawer-select">
+                                  <option value="Instagram">Instagram</option>
+                                  <option value="Google Ads">Google Ads</option>
+                                  <option value="Meta Ads">Meta Ads</option>
+                                  <option value="Website">Website</option>
+                                  <option value="Referral">Referral</option>
+                                  <option value="Property Portal">Property Portal</option>
+                                  <option value="SimpliQualify">SimpliQualify</option>
+                                </select>
+                              </div>
+                              <div class="form-group-field">
+                                <label class="form-field-lbl">Financing Readiness</label>
+                                <select [(ngModel)]="editForm.financing_readiness" class="drawer-select">
+                                  <option value="Pre-approved Loan">Bank Pre-approved Loan</option>
+                                  <option value="Self-funded / Cash">Self-funded / Cash</option>
+                                  <option value="Loan Required">Loan Required</option>
+                                  <option value="Disposal of Existing Property">Disposal of Property</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            <div class="form-group-field score-control-group">
+                              <label class="form-field-lbl">AI Buyer Intent Score &amp; Delta</label>
+                              <div class="score-slider-row">
+                                <span class="score-indicator-tag">Score:</span>
+                                <input type="number" [(ngModel)]="editForm.score" min="0" max="100" class="drawer-input score-num" />
+                                <span class="delta-indicator-tag">▲</span>
+                                <input type="number" [(ngModel)]="editForm.delta" class="drawer-input delta-num" />
+                                <div class="drawer-live-score-pill" [ngClass]="getScoreClass(editForm.score || p.score)">
+                                  <span>{{ editForm.score || p.score }}</span>
+                                  <span>▲ {{ editForm.delta !== undefined ? editForm.delta : p.delta }}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Section 3: Initial Requirements, Discovery & Automated Follow-up -->
+                        <div class="drawer-section-card">
+                          <div class="drawer-section-header">
+                            <mat-icon class="section-icon">notes</mat-icon>
+                            <span class="section-title">3. Requirements &amp; Follow-up SLA</span>
+                          </div>
+                          <div class="drawer-section-body">
+                            <div class="form-group-field">
+                              <label class="form-field-lbl">Initial Requirements &amp; Discovery Notes</label>
+                              <textarea
+                                [(ngModel)]="editForm.notes"
+                                class="drawer-textarea"
+                                rows="3"
+                                placeholder="Specific buyer floor preferences, Vaastu requirements, balcony orientations, payment milestones..."
+                              ></textarea>
+                            </div>
+
+                            <div class="drawer-followup-container">
+                              <div class="followup-toggle-bar">
+                                <label class="drawer-checkbox-lbl">
+                                  <input type="checkbox" [(ngModel)]="editForm.add_follow_up" />
+                                  <span class="toggle-text">
+                                    <mat-icon class="toggle-icon">add_task</mat-icon>
+                                    Schedule / Reschedule Automated Follow-up Task
+                                  </span>
+                                </label>
+                              </div>
+
+                              <div class="followup-form-panel" *ngIf="editForm.add_follow_up">
+                                <div class="form-group-field">
+                                  <label class="form-field-lbl">Task Title &amp; Requirement</label>
+                                  <input
+                                    type="text"
+                                    [(ngModel)]="editForm.follow_up_title"
+                                    class="drawer-input"
+                                    placeholder="e.g. Dispatch milestone pricing draft for Unit 703"
+                                  />
+                                </div>
+
+                                <div class="form-row-2col">
+                                  <div class="form-group-field">
+                                    <label class="form-field-lbl">Scheduled Due Date &amp; Time</label>
+                                    <input
+                                      type="datetime-local"
+                                      [(ngModel)]="editForm.follow_up_due"
+                                      class="drawer-input"
+                                    />
+                                  </div>
+                                  <div class="form-group-field">
+                                    <label class="form-field-lbl">Countdown SLA Priority</label>
+                                    <select [(ngModel)]="editForm.follow_up_priority" class="drawer-select">
+                                      <option value="HIGH">High Priority (4h Countdown)</option>
+                                      <option value="URGENT">Urgent SLA (2h Countdown)</option>
+                                      <option value="MEDIUM">Medium</option>
+                                      <option value="LOW">Low</option>
+                                    </select>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div class="current-action-display" *ngIf="!editForm.add_follow_up">
+                                <span class="action-caption">Current Next Best Action:</span>
+                                <span class="action-body">{{ p.next_action || 'Assign owner and initiate phone qualification' }}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td class="col-risk text-right">
-                    <span class="risk-amount-text">{{ p.at_risk }}</span>
-                  </td>
-                  <td class="col-actions text-right actions-column-cell">
-                    <div class="inline-actions-box">
-                      <button mat-flat-button type="button" class="btn-save-inline" (click)="$event.stopPropagation(); saveEdit(p)">Save</button>
-                      <button mat-stroked-button type="button" class="btn-cancel-inline" (click)="$event.stopPropagation(); cancelEdit()">Cancel</button>
-                      <a mat-stroked-button [routerLink]="['/buyers', p.id, 'edit']" class="btn-full-form-link" (click)="$event.stopPropagation()" title="Open Full Screen Intake &amp; Edit Form (Image 2)">
-                        <mat-icon>open_in_new</mat-icon> Full Form
-                      </a>
+
+                      <!-- Bottom Footer Bar -->
+                      <div class="edit-drawer-footer">
+                        <div class="footer-hint">
+                          <mat-icon class="hint-icon">sync</mat-icon>
+                          <span>Saving changes will immediately update the buyer profile, project dashboard, SLA engine, and intelligence radars.</span>
+                        </div>
+                        <div class="footer-actions">
+                          <button mat-stroked-button type="button" class="btn-drawer-cancel" (click)="$event.stopPropagation(); cancelEdit()">
+                            Cancel
+                          </button>
+                          <button mat-flat-button color="primary" type="button" class="btn-drawer-save" (click)="$event.stopPropagation(); saveEdit(p)">
+                            <mat-icon>check</mat-icon> Save Prospect Changes
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </td>
                 </ng-container>
@@ -1514,179 +1762,303 @@
               </td>
             </ng-container>
 
-            <!-- Edit Mode -->
+            <!-- Edit Mode: Unified In-Place Prospect Drawer -->
             <ng-container *ngIf="editingBuyerId == p.id">
-              <td class="col-buyer">
-                <input type="text" [(ngModel)]="editForm.name" class="inline-edit-input" placeholder="Full name *" />
-                <input type="text" [(ngModel)]="editForm.phone" class="inline-edit-input sub-input" placeholder="Phone *" />
-                <input type="email" [(ngModel)]="editForm.email" class="inline-edit-input sub-input" placeholder="Email address" />
-                <div class="edit-project-row">
-                  <span class="edit-project-lbl">Project:</span>
-                  <select [(ngModel)]="editForm.project_id" class="inline-edit-select project-inline-select">
-                    <option *ngFor="let prj of projectsList" [value]="prj.project_id || prj.id">{{ prj.name }}</option>
-                  </select>
-                </div>
-              </td>
-              <td class="col-score">
-                <div class="inline-score-editor">
-                  <div class="score-input-group">
-                    <span class="score-edit-lbl">Score:</span>
-                    <input
-                      type="number"
-                      [(ngModel)]="editForm.score"
-                      min="0"
-                      max="100"
-                      class="inline-edit-input score-num-input"
-                      title="Intent Score (0-100)"
-                    />
-                  </div>
-                  <div class="score-input-group delta-group">
-                    <span class="delta-symbol">▲</span>
-                    <input
-                      type="number"
-                      [(ngModel)]="editForm.delta"
-                      class="inline-edit-input delta-num-input"
-                      title="Intent Delta Score (±)"
-                    />
-                  </div>
-                  <div class="score-badge-live" [ngClass]="getScoreClass(editForm.score || p.score)">
-                    <span class="live-score">{{ editForm.score || p.score }}</span>
-                    <span class="live-delta">▲ {{ editForm.delta !== undefined ? editForm.delta : p.delta }}</span>
-                  </div>
-                </div>
-              </td>
-              <td class="col-stage">
-                <select [(ngModel)]="editForm.stage" class="inline-edit-select">
-                  <option value="New">New</option>
-                  <option value="Contacted">Contacted</option>
-                  <option value="Qualified">Qualified</option>
-                  <option value="High Intent">High Intent</option>
-                  <option value="Site Visit Scheduled">Site Visit Scheduled</option>
-                  <option value="Visit Completed">Visit Completed</option>
-                  <option value="Negotiation">Negotiation</option>
-                  <option value="Booking Intent">Booking Intent</option>
-                  <option value="Booked">Booked</option>
-                </select>
-              </td>
-              <td class="col-req">
-                <select [(ngModel)]="editForm.bhk" class="inline-edit-select" title="Preferred Unit Configuration">
-                  <option value="1 BHK">1 BHK</option>
-                  <option value="2 BHK">2 BHK</option>
-                  <option value="3 BHK">3 BHK</option>
-                  <option value="4 BHK">4 BHK</option>
-                  <option value="5 BHK">5 BHK</option>
-                  <option value="Penthouse">Penthouse</option>
-                  <option value="Villa">Villa</option>
-                  <option value="Duplex">Duplex</option>
-                  <option value="Plot">Plot</option>
-                  <option value="Residential Plot">Residential Plot</option>
-                  <option value="Commercial Plot">Commercial Plot</option>
-                  <option value="Farm House Plot">Farm House Plot</option>
-                  <option value="Villa Plot">Villa Plot</option>
-                </select>
-                <div class="inline-budget-edit-row">
-                  <span class="curr-sign">₹</span>
-                  <input type="number" [(ngModel)]="editForm.budget_min_lacs" class="inline-edit-input budget-num" placeholder="Min" title="Min Budget (₹ Lacs)" />
-                  <span class="dash">–</span>
-                  <input type="number" [(ngModel)]="editForm.budget_max_lacs" class="inline-edit-input budget-num" placeholder="Max" title="Max Budget (₹ Lacs)" />
-                  <span class="unit-lbl">L</span>
-                </div>
-                <select [(ngModel)]="editForm.buying_timeframe" class="inline-edit-select timeframe-select" title="Buying Timeframe">
-                  <option value="<30 days">&lt; 30 Days (Immediate)</option>
-                  <option value="30-60 days">30–60 Days (Near Term)</option>
-                  <option value="60-90 days">60–90 Days (Active)</option>
-                  <option value=">90 days">&gt; 90 Days (Exploring)</option>
-                </select>
-              </td>
-              <td class="col-owner">
-                <select [(ngModel)]="editForm.assigned_rep_id" class="inline-edit-select owner-inline-select" title="Assigned Sales Owner">
-                  <option [ngValue]="null">Unassigned</option>
-                  <option *ngFor="let rep of dbUsers" [value]="rep.user_id || rep.id">{{ rep.name }}</option>
-                </select>
-                <select [(ngModel)]="editForm.lead_source" class="inline-edit-select source-inline-select" title="Lead Acquisition Source">
-                  <option value="Instagram">Instagram</option>
-                  <option value="SimpliQualify">SimpliQualify</option>
-                  <option value="Google Ads">Google Ads</option>
-                  <option value="Meta Ads">Meta Ads</option>
-                  <option value="Website">Website</option>
-                  <option value="Referral">Referral</option>
-                  <option value="Property Portal">Property Portal</option>
-                </select>
-                <select [(ngModel)]="editForm.financing_readiness" class="inline-edit-select finance-inline-select" title="Financing Readiness">
-                  <option value="Pre-approved Loan">Bank Pre-approved Loan</option>
-                  <option value="Self-funded / Cash">Self-funded / Cash</option>
-                  <option value="Loan Required">Loan Required</option>
-                  <option value="Disposal of Existing Property">Disposal of Property</option>
-                </select>
-              </td>
-              <td class="col-action col-action-edit">
-                <div class="demographics-edit-box">
-                  <input type="text" [(ngModel)]="editForm.current_residence" class="inline-edit-input sub-input" placeholder="Current Residence / Locality" title="Current Residence / Locality" />
-                  <input type="text" [(ngModel)]="editForm.workplace_location" class="inline-edit-input sub-input" placeholder="Workplace / Tech Park" title="Workplace Location / Tech Park" />
-                  <div class="edit-family-occ-row">
-                    <input type="number" [(ngModel)]="editForm.family_size" class="inline-edit-input family-input" placeholder="Fam" title="Family Size" min="1" max="20" />
-                    <select [(ngModel)]="editForm.occupation" class="inline-edit-select occ-select" title="Occupation / Profile Fit">
-                      <option value="Salaried IT / Tech Corporate">Salaried IT / Tech</option>
-                      <option value="Business Owner / Entrepreneur">Business Owner</option>
-                      <option value="Doctor / Healthcare Specialist">Doctor / Healthcare</option>
-                      <option value="Chartered Accountant / Finance">CA / Finance</option>
-                      <option value="NRI / Overseas Investor">NRI / Investor</option>
-                      <option value="Government / PSU Officer">Govt / PSU</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-                  <input type="text" [(ngModel)]="editForm.notes" class="inline-edit-input notes-input" placeholder="Discovery / Requirements notes" title="Initial Requirements & Discovery Notes" />
-                </div>
+              <td colspan="8" class="inline-edit-drawer-cell">
+                <div class="edit-drawer-container">
+                  <!-- Drawer Header -->
+                  <div class="edit-drawer-header">
+                    <div class="drawer-header-left">
+                      <div class="drawer-avatar" [style.background]="getAvatarColor(p.name)">
+                        {{ getInitials(p.name) }}
+                      </div>
+                      <div class="drawer-header-meta">
+                        <div class="drawer-title-row">
+                          <span class="drawer-title">Edit Prospect Details &middot; {{ p.name }}</span>
+                          <span class="drawer-id-badge">ID: #{{ p.id }}</span>
+                          <span class="drawer-source-badge" [class.source-instagram]="editForm.lead_source === 'Instagram'">
+                            {{ editForm.lead_source || 'Instagram' }}
+                          </span>
+                        </div>
+                        <div class="drawer-subtitle">
+                          Update intake demographics, budget qualification, unit preferences, next actions &amp; automated SLAs
+                        </div>
+                      </div>
+                    </div>
 
-                <div class="edit-followup-box">
-                  <div class="edit-followup-header">
-                    <label class="edit-followup-toggle">
-                      <input type="checkbox" [(ngModel)]="editForm.add_follow_up" />
-                      <span class="edit-toggle-title">
-                        <mat-icon class="icon-inline">add_task</mat-icon> + Add Follow-up
-                      </span>
-                    </label>
-                  </div>
-
-                  <div class="edit-followup-body" *ngIf="editForm.add_follow_up">
-                    <input
-                      type="text"
-                      [(ngModel)]="editForm.follow_up_title"
-                      class="inline-edit-input followup-title-field"
-                      placeholder="Follow-up requirement / task"
-                    />
-                    <div class="edit-followup-subrow">
-                      <input
-                        type="datetime-local"
-                        [(ngModel)]="editForm.follow_up_due"
-                        class="inline-edit-input followup-datetime-field"
-                        title="Scheduled Due Date & Time"
-                      />
-                      <select [(ngModel)]="editForm.follow_up_priority" class="inline-edit-select followup-prio-field">
-                        <option value="HIGH">High Priority</option>
-                        <option value="URGENT">Urgent SLA</option>
-                        <option value="MEDIUM">Medium</option>
-                        <option value="LOW">Low</option>
-                      </select>
+                    <div class="drawer-header-actions">
+                      <a mat-stroked-button [routerLink]="['/buyers', p.id, 'edit']" class="btn-full-form-link" (click)="$event.stopPropagation()" title="Open Dedicated Full Page Intake Form">
+                        <mat-icon>open_in_new</mat-icon> Dedicated Form
+                      </a>
+                      <button mat-stroked-button type="button" class="btn-drawer-cancel" (click)="$event.stopPropagation(); cancelEdit()">
+                        <mat-icon>close</mat-icon> Cancel
+                      </button>
+                      <button mat-flat-button color="primary" type="button" class="btn-drawer-save" (click)="$event.stopPropagation(); saveEdit(p)">
+                        <mat-icon>check</mat-icon> Save Changes
+                      </button>
                     </div>
                   </div>
 
-                  <div class="edit-followup-current" *ngIf="!editForm.add_follow_up">
-                    <span class="current-label">Current:</span>
-                    <span class="current-val">{{ p.next_action }}</span>
+                  <!-- 3 Enterprise Sections Grid -->
+                  <div class="edit-drawer-grid">
+                    <!-- Section 1: Contact & Demographics Details -->
+                    <div class="drawer-section-card">
+                      <div class="drawer-section-header">
+                        <mat-icon class="section-icon">contact_phone</mat-icon>
+                        <span class="section-title">1. Contact &amp; Demographics</span>
+                      </div>
+                      <div class="drawer-section-body">
+                        <div class="form-group-field">
+                          <label class="form-field-lbl">Target / Main Project *</label>
+                          <select [(ngModel)]="editForm.project_id" class="drawer-select">
+                            <option *ngFor="let prj of projectsList" [value]="prj.project_id || prj.id">{{ prj.name }}</option>
+                          </select>
+                        </div>
+
+                        <div class="form-group-field">
+                          <label class="form-field-lbl">Full Name *</label>
+                          <input type="text" [(ngModel)]="editForm.name" class="drawer-input" placeholder="Prospect full name" />
+                        </div>
+
+                        <div class="form-row-2col">
+                          <div class="form-group-field">
+                            <label class="form-field-lbl">Phone Number *</label>
+                            <input type="text" [(ngModel)]="editForm.phone" class="drawer-input" placeholder="+91..." />
+                          </div>
+                          <div class="form-group-field">
+                            <label class="form-field-lbl">Email Address</label>
+                            <input type="email" [(ngModel)]="editForm.email" class="drawer-input" placeholder="email@domain.com" />
+                          </div>
+                        </div>
+
+                        <div class="form-row-2col">
+                          <div class="form-group-field">
+                            <label class="form-field-lbl">Current Residence / Locality</label>
+                            <input type="text" [(ngModel)]="editForm.current_residence" class="drawer-input" placeholder="e.g. Whitefield Palm Meadows" />
+                          </div>
+                          <div class="form-group-field">
+                            <label class="form-field-lbl">Workplace Location / Tech Park</label>
+                            <input type="text" [(ngModel)]="editForm.workplace_location" class="drawer-input" placeholder="e.g. ITPL Bengaluru" />
+                          </div>
+                        </div>
+
+                        <div class="form-row-2col">
+                          <div class="form-group-field">
+                            <label class="form-field-lbl">Family Size</label>
+                            <input type="number" [(ngModel)]="editForm.family_size" class="drawer-input" min="1" max="20" placeholder="e.g. 4" />
+                          </div>
+                          <div class="form-group-field">
+                            <label class="form-field-lbl">Occupation / Profile Fit</label>
+                            <select [(ngModel)]="editForm.occupation" class="drawer-select">
+                              <option value="Salaried IT / Tech Corporate">Salaried IT / Tech Corporate</option>
+                              <option value="Business Owner / Entrepreneur">Business Owner / Entrepreneur</option>
+                              <option value="Doctor / Healthcare Specialist">Doctor / Healthcare Specialist</option>
+                              <option value="Chartered Accountant / Finance">Chartered Accountant / Finance</option>
+                              <option value="NRI / Overseas Investor">NRI / Overseas Investor</option>
+                              <option value="Government / PSU Officer">Government / PSU Officer</option>
+                              <option value="Other">Other</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Section 2: Buying Intent & 4-Dimension Attributes -->
+                    <div class="drawer-section-card">
+                      <div class="drawer-section-header">
+                        <mat-icon class="section-icon">tune</mat-icon>
+                        <span class="section-title">2. Buying Intent &amp; Budget</span>
+                      </div>
+                      <div class="drawer-section-body">
+                        <div class="form-row-2col">
+                          <div class="form-group-field">
+                            <label class="form-field-lbl">Pipeline Stage</label>
+                            <select [(ngModel)]="editForm.stage" class="drawer-select">
+                              <option value="New">New</option>
+                              <option value="Contacted">Contacted</option>
+                              <option value="Qualified">Qualified</option>
+                              <option value="High Intent">High Intent</option>
+                              <option value="Site Visit Scheduled">Site Visit Scheduled</option>
+                              <option value="Visit Completed">Visit Completed</option>
+                              <option value="Negotiation">Negotiation</option>
+                              <option value="Booking Intent">Booking Intent</option>
+                              <option value="Booked">Booked</option>
+                            </select>
+                          </div>
+                          <div class="form-group-field">
+                            <label class="form-field-lbl">Preferred Unit Configuration</label>
+                            <select [(ngModel)]="editForm.bhk" class="drawer-select">
+                              <option value="1 BHK">1 BHK</option>
+                              <option value="2 BHK">2 BHK</option>
+                              <option value="3 BHK">3 BHK</option>
+                              <option value="4 BHK">4 BHK</option>
+                              <option value="5 BHK">5 BHK</option>
+                              <option value="Penthouse">Penthouse</option>
+                              <option value="Villa">Villa</option>
+                              <option value="Duplex">Duplex</option>
+                              <option value="Plot">Plot</option>
+                              <option value="Residential Plot">Residential Plot</option>
+                              <option value="Commercial Plot">Commercial Plot</option>
+                              <option value="Commercial Office">Commercial Office</option>
+                              <option value="Office Suite">Office Suite</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div class="form-group-field">
+                          <label class="form-field-lbl">Budget Range (₹ Lacs)</label>
+                          <div class="drawer-budget-input-group">
+                            <span class="curr-prefix">₹</span>
+                            <input type="number" [(ngModel)]="editForm.budget_min_lacs" class="drawer-input budget-in" placeholder="Min" />
+                            <span class="range-dash">to</span>
+                            <input type="number" [(ngModel)]="editForm.budget_max_lacs" class="drawer-input budget-in" placeholder="Max" />
+                            <span class="curr-suffix">Lacs</span>
+                          </div>
+                        </div>
+
+                        <div class="form-row-2col">
+                          <div class="form-group-field">
+                            <label class="form-field-lbl">Buying Timeframe</label>
+                            <select [(ngModel)]="editForm.buying_timeframe" class="drawer-select">
+                              <option value="<30 days">&lt; 30 Days (Immediate)</option>
+                              <option value="30-60 days">30–60 Days (Near Term)</option>
+                              <option value="60-90 days">60–90 Days (Active)</option>
+                              <option value=">90 days">&gt; 90 Days (Exploring)</option>
+                            </select>
+                          </div>
+                          <div class="form-group-field">
+                            <label class="form-field-lbl">Assigned Sales Owner</label>
+                            <select [(ngModel)]="editForm.assigned_rep_id" class="drawer-select">
+                              <option [ngValue]="null">Unassigned</option>
+                              <option *ngFor="let rep of dbUsers" [value]="rep.user_id || rep.id">{{ rep.name }}</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div class="form-row-2col">
+                          <div class="form-group-field">
+                            <label class="form-field-lbl">Lead Acquisition Source</label>
+                            <select [(ngModel)]="editForm.lead_source" class="drawer-select">
+                              <option value="Instagram">Instagram</option>
+                              <option value="Google Ads">Google Ads</option>
+                              <option value="Meta Ads">Meta Ads</option>
+                              <option value="Website">Website</option>
+                              <option value="Referral">Referral</option>
+                              <option value="Property Portal">Property Portal</option>
+                              <option value="SimpliQualify">SimpliQualify</option>
+                            </select>
+                          </div>
+                          <div class="form-group-field">
+                            <label class="form-field-lbl">Financing Readiness</label>
+                            <select [(ngModel)]="editForm.financing_readiness" class="drawer-select">
+                              <option value="Pre-approved Loan">Bank Pre-approved Loan</option>
+                              <option value="Self-funded / Cash">Self-funded / Cash</option>
+                              <option value="Loan Required">Loan Required</option>
+                              <option value="Disposal of Existing Property">Disposal of Property</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div class="form-group-field score-control-group">
+                          <label class="form-field-lbl">AI Buyer Intent Score &amp; Delta</label>
+                          <div class="score-slider-row">
+                            <span class="score-indicator-tag">Score:</span>
+                            <input type="number" [(ngModel)]="editForm.score" min="0" max="100" class="drawer-input score-num" />
+                            <span class="delta-indicator-tag">▲</span>
+                            <input type="number" [(ngModel)]="editForm.delta" class="drawer-input delta-num" />
+                            <div class="drawer-live-score-pill" [ngClass]="getScoreClass(editForm.score || p.score)">
+                              <span>{{ editForm.score || p.score }}</span>
+                              <span>▲ {{ editForm.delta !== undefined ? editForm.delta : p.delta }}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Section 3: Initial Requirements, Discovery & Automated Follow-up -->
+                    <div class="drawer-section-card">
+                      <div class="drawer-section-header">
+                        <mat-icon class="section-icon">notes</mat-icon>
+                        <span class="section-title">3. Requirements &amp; Follow-up SLA</span>
+                      </div>
+                      <div class="drawer-section-body">
+                        <div class="form-group-field">
+                          <label class="form-field-lbl">Initial Requirements &amp; Discovery Notes</label>
+                          <textarea
+                            [(ngModel)]="editForm.notes"
+                            class="drawer-textarea"
+                            rows="3"
+                            placeholder="Specific buyer floor preferences, Vaastu requirements, balcony orientations, payment milestones..."
+                          ></textarea>
+                        </div>
+
+                        <div class="drawer-followup-container">
+                          <div class="followup-toggle-bar">
+                            <label class="drawer-checkbox-lbl">
+                              <input type="checkbox" [(ngModel)]="editForm.add_follow_up" />
+                              <span class="toggle-text">
+                                <mat-icon class="toggle-icon">add_task</mat-icon>
+                                Schedule / Reschedule Automated Follow-up Task
+                              </span>
+                            </label>
+                          </div>
+
+                          <div class="followup-form-panel" *ngIf="editForm.add_follow_up">
+                            <div class="form-group-field">
+                              <label class="form-field-lbl">Task Title &amp; Requirement</label>
+                              <input
+                                type="text"
+                                [(ngModel)]="editForm.follow_up_title"
+                                class="drawer-input"
+                                placeholder="e.g. Dispatch milestone pricing draft for Unit 703"
+                              />
+                            </div>
+
+                            <div class="form-row-2col">
+                              <div class="form-group-field">
+                                <label class="form-field-lbl">Scheduled Due Date &amp; Time</label>
+                                <input
+                                  type="datetime-local"
+                                  [(ngModel)]="editForm.follow_up_due"
+                                  class="drawer-input"
+                                />
+                              </div>
+                              <div class="form-group-field">
+                                <label class="form-field-lbl">Countdown SLA Priority</label>
+                                <select [(ngModel)]="editForm.follow_up_priority" class="drawer-select">
+                                  <option value="HIGH">High Priority (4h Countdown)</option>
+                                  <option value="URGENT">Urgent SLA (2h Countdown)</option>
+                                  <option value="MEDIUM">Medium</option>
+                                  <option value="LOW">Low</option>
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="current-action-display" *ngIf="!editForm.add_follow_up">
+                            <span class="action-caption">Current Next Best Action:</span>
+                            <span class="action-body">{{ p.next_action || 'Assign owner and initiate phone qualification' }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </td>
-              <td class="col-risk text-right">
-                <span class="risk-amount-text">{{ p.at_risk }}</span>
-              </td>
-              <td class="col-actions text-right actions-column-cell">
-                <div class="inline-actions-box">
-                  <button mat-flat-button type="button" class="btn-save-inline" (click)="$event.stopPropagation(); saveEdit(p)">Save</button>
-                  <button mat-stroked-button type="button" class="btn-cancel-inline" (click)="$event.stopPropagation(); cancelEdit()">Cancel</button>
-                  <a mat-stroked-button [routerLink]="['/buyers', p.id, 'edit']" class="btn-full-form-link" (click)="$event.stopPropagation()" title="Open Full Screen Intake &amp; Edit Form (Image 2)">
-                    <mat-icon>open_in_new</mat-icon> Full Form
-                  </a>
+
+                  <!-- Bottom Footer Bar -->
+                  <div class="edit-drawer-footer">
+                    <div class="footer-hint">
+                      <mat-icon class="hint-icon">sync</mat-icon>
+                      <span>Saving changes will immediately update the buyer profile, project dashboard, SLA engine, and intelligence radars.</span>
+                    </div>
+                    <div class="footer-actions">
+                      <button mat-stroked-button type="button" class="btn-drawer-cancel" (click)="$event.stopPropagation(); cancelEdit()">
+                        Cancel
+                      </button>
+                      <button mat-flat-button color="primary" type="button" class="btn-drawer-save" (click)="$event.stopPropagation(); saveEdit(p)">
+                        <mat-icon>check</mat-icon> Save Prospect Changes
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </td>
             </ng-container>
