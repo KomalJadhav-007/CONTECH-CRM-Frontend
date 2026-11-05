@@ -34,55 +34,27 @@ export class RevenueAnalyticsComponent implements OnInit {
   loading = true;
 
   analytics: any = {
-    lead_to_visit_pct: 24,
-    visits_scheduled_count: 6,
-    total_visits: 6,
-    visit_to_booking_pct: 17,
-    bookings_count: 1,
-    visits_completed_count: 2,
-    recovery_rate_pct: 100,
-    cancelled_count: 1,
+    lead_to_visit_pct: 0,
+    visits_scheduled_count: 0,
+    total_visits: 0,
+    visit_to_booking_pct: 0,
+    bookings_count: 0,
+    visits_completed_count: 0,
+    recovery_rate_pct: 0,
+    cancelled_count: 0,
     no_shows_count: 0,
-    sla_compliance_pct: 86,
-    sla_breaches_count: 1,
-    total_buyers: 25,
-    high_intent: 20,
-    open_follow_ups: 6,
-    overdue_follow_ups: 3,
-    revenue_at_risk_cr: '45.20',
-    pipeline_funnel: [
-      { stage: 'New', count: 25, max_count: 25, drop_off: '0%' },
-      { stage: 'Contacted', count: 21, max_count: 25, drop_off: '-16%' },
-      { stage: 'Qualified', count: 12, max_count: 25, drop_off: '-43%' },
-      { stage: 'High Intent', count: 20, max_count: 25, drop_off: '0%' },
-      { stage: 'Site Visit Scheduled', count: 6, max_count: 25, drop_off: '-70%' },
-      { stage: 'Visit Completed', count: 2, max_count: 25, drop_off: '-67%' },
-      { stage: 'Negotiation', count: 2, max_count: 25, drop_off: '0%' },
-      { stage: 'Booking Intent', count: 1, max_count: 25, drop_off: '-50%' },
-      { stage: 'Booked', count: 1, max_count: 25, drop_off: '0%' }
-    ],
-    intent_bands: [
-      { label: 'VERY HIGH INTENT', count: 6 },
-      { label: 'HIGH INTENT', count: 14 },
-      { label: 'QUALIFIED', count: 4 },
-      { label: 'EMERGING', count: 1 },
-      { label: 'LOW', count: 0 }
-    ],
-    source_performance: [
-      { name: 'Instagram', buyers: 25, high_intent: 20, booked: 1, revenue: '₹1.95 Cr' }
-    ],
-    owner_performance: [
-      { name: 'Amit Verma (Account Executive)', buyers: 23, high_intent: 18, booked: 1, revenue: '₹1.95 Cr' },
-      { name: 'Priya Nair (Sales Manager)', buyers: 1, high_intent: 1, booked: 0, revenue: '₹0' },
-      { name: 'Unassigned Leads', buyers: 1, high_intent: 1, booked: 0, revenue: '₹0' }
-    ],
-    project_performance: [
-      { name: 'Contech Crown Heights', buyers: 5, high_intent: 5, booked: 1, revenue_at_risk: '₹11.25 Cr' },
-      { name: 'Contech Skyline Elegance', buyers: 5, high_intent: 4, booked: 0, revenue_at_risk: '₹10.35 Cr' },
-      { name: 'Contech Greenfield Sanctuary', buyers: 5, high_intent: 4, booked: 0, revenue_at_risk: '₹9.20 Cr' },
-      { name: 'Contech Emerald Meadows Plotted Layout', buyers: 5, high_intent: 4, booked: 0, revenue_at_risk: '₹9.25 Cr' },
-      { name: 'Contech Business Square', buyers: 5, high_intent: 4, booked: 0, revenue_at_risk: '₹9.50 Cr' }
-    ]
+    sla_compliance_pct: 100,
+    sla_breaches_count: 0,
+    total_buyers: 0,
+    high_intent: 0,
+    open_follow_ups: 0,
+    overdue_follow_ups: 0,
+    revenue_at_risk_cr: '0.00',
+    pipeline_funnel: [],
+    intent_bands: [],
+    source_performance: [],
+    owner_performance: [],
+    project_performance: []
   };
 
   ngOnInit(): void {

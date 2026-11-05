@@ -45,13 +45,7 @@ export class BuyerFormComponent implements OnInit {
 
   salesReps: any[] = [];
 
-  projects: any[] = [
-    { project_id: 1, id: 1, name: 'Contech Crown Heights', code: 'CCH-BLR', location: 'Whitefield, Bengaluru' },
-    { project_id: 2, id: 2, name: 'Contech Skyline Elegance', code: 'CSE-BLR', location: 'Indiranagar, Bengaluru' },
-    { project_id: 3, id: 3, name: 'Contech Greenfield Sanctuary', code: 'CGS-BLR', location: 'Sarjapur Road, Bengaluru' },
-    { project_id: 4, id: 4, name: 'Contech Emerald Meadows Plotted Layout', code: 'CONTEC-0409', location: 'Devenahalli, Bengaluru' },
-    { project_id: 5, id: 5, name: 'Contech Business Square', code: 'CONTEC-0438', location: 'Koramangala, Bengaluru' }
-  ];
+  projects: any[] = [];
 
   defaultOccupations: string[] = [
     'Salaried IT / Tech Corporate',
@@ -71,10 +65,10 @@ export class BuyerFormComponent implements OnInit {
 
   buyerData: any = {
     full_name: '',
-    phone: '7058533669',
+    phone: '',
     email: '',
-    project_id: 1,
-    preferred_project: 'Contech Crown Heights',
+    project_id: null,
+    preferred_project: '',
     current_residence: '',
     workplace_location: '',
     budget_min_lacs: 120,
@@ -82,7 +76,7 @@ export class BuyerFormComponent implements OnInit {
     preferred_bhk: '3 BHK',
     family_size: 4,
     buying_timeframe: '<30 days',
-    lead_source: 'SimpliQualify',
+    lead_source: 'Instagram',
     financing_readiness: 'Pre-approved Loan',
     occupation: 'Salaried IT / Tech Corporate',
     assigned_rep_id: null,
@@ -125,8 +119,8 @@ export class BuyerFormComponent implements OnInit {
             full_name: b.full_name || '',
             phone: (b.phone && b.phone.trim()) ? b.phone.trim() : '7058533669',
             email: b.email || '',
-            project_id: b.project_id || (b.project ? b.project.project_id : 1),
-            preferred_project: b.preferred_project || (b.project ? b.project.name : 'Contech Crown Heights'),
+            project_id: b.project_id || (b.project ? b.project.project_id : null),
+            preferred_project: b.preferred_project || (b.project ? b.project.name : ''),
             current_residence: b.current_residence || '',
             workplace_location: b.workplace_location || '',
             budget_min_lacs: b.budget_min_lacs !== undefined && b.budget_min_lacs !== null ? Number(b.budget_min_lacs) : 120,
