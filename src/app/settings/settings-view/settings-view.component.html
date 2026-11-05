@@ -135,7 +135,7 @@
           DATABASE MAINTENANCE &amp; DUMMY DATA PURGE
         </div>
         <div class="purge-sub">
-          Permanently remove all dummy prospects, test site visits, mock bookings, and follow-up tasks from the entire system.
+          Permanently remove all dummy prospects AND demo projects, property configurations, mock bookings, and follow-up tasks from the entire system.
         </div>
       </div>
       <div class="purge-badge">
@@ -151,11 +151,13 @@
           <strong>Will Be Completely Removed:</strong>
         </div>
         <ul class="purge-list">
-          <li>All dummy prospects &amp; buyers (including imported sample leads)</li>
+          <li>All prospects &amp; buyers (including imported sample leads)</li>
+          <li>All demo projects (Crown Heights, Skyline Elegance, Greenfield, etc.)</li>
+          <li>All flat configurations, property types, &amp; unit inventory catalogs</li>
           <li>All site visits &amp; walkthrough records</li>
           <li>All follow-up tasks, SLAs, &amp; in-visit discoveries</li>
           <li>All test bookings, cancellations, &amp; driver trips</li>
-          <li>All prospect-level audit &amp; activity logs</li>
+          <li>All prospect &amp; project activity logs</li>
         </ul>
       </div>
 
@@ -166,11 +168,10 @@
         </div>
         <ul class="purge-list">
           <li>All 12 Universal Platform Roles &amp; Security Permissions</li>
-          <li>System Settings &amp; Access Control Matrix</li>
-          <li>All Projects (Contech Crown Heights, Skyline Elegance, Greenfield Sanctuary)</li>
-          <li>All Property Types &amp; Flat/Unit Inventory (reset to Available)</li>
+          <li>System Settings &amp; Granular Access Control Matrix</li>
           <li>Super Admin Accounts (Girish Kesarkar &amp; Director) &amp; Team Staff</li>
           <li>Company Fleet Vehicles</li>
+          <li>Clean UI master ready for your real projects and live prospects</li>
         </ul>
       </div>
     </div>
@@ -187,17 +188,17 @@
           (click)="confirmPurgeDummyData()"
         >
           <mat-icon>delete_forever</mat-icon>
-          Purge All Dummy Data Everywhere
+          Purge All Prospects &amp; Demo Projects
         </button>
         <span class="purge-note">
-          Once executed, this action resets operational data while maintaining complete project catalogs and admin configurations.
+          Once executed, this action resets projects and prospects while maintaining platform security roles and admin configurations.
         </span>
       </div>
 
       <div *ngIf="showPurgeConfirm" class="purge-confirm-dialog-inline">
         <div class="confirm-warning-text">
           <mat-icon class="warn-blink">warning</mat-icon>
-          <span>Are you sure? This will permanently delete all dummy prospects and reset the database to a clean production state.</span>
+          <span>Are you sure? This will permanently delete all dummy prospects and demo projects, leaving the system clean for your live developments.</span>
         </div>
         <div class="confirm-btn-group">
           <button
@@ -209,8 +210,8 @@
             (click)="executePurgeDummyData()"
           >
             <mat-icon *ngIf="!purging">check</mat-icon>
-            <span *ngIf="!purging">Yes, Permanently Purge All Dummy Data</span>
-            <span *ngIf="purging">Purging dummy data...</span>
+            <span *ngIf="!purging">Yes, Permanently Purge Prospects &amp; Demo Projects</span>
+            <span *ngIf="purging">Purging data...</span>
           </button>
           <button
             mat-stroked-button

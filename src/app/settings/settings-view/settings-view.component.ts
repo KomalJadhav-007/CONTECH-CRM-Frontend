@@ -172,7 +172,7 @@ export class SettingsViewComponent implements OnInit {
       next: (res: any) => {
         this.purging = false;
         this.loading = false;
-        this.savedMessage = res.message || 'All dummy data (prospects, visits, bookings, tasks) has been permanently removed.';
+        this.savedMessage = res.message || 'All prospects, demo projects, and operational records have been permanently removed.';
         setTimeout(() => (this.savedMessage = ''), 6000);
       },
       error: (err: any) => {
