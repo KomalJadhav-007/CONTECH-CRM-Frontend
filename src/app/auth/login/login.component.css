@@ -152,6 +152,82 @@
   background: #b45309 !important;
 }
 
+/* Super Admin Quick Access Bar */
+.quick-admin-login-bar {
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.quick-login-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.85rem;
+}
+
+.quick-login-divider span {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #94a3b8;
+  background: #f8fafc;
+  padding: 0.2rem 0.65rem;
+  border-radius: 9999px;
+  border: 1px solid #e2e8f0;
+}
+
+.quick-admin-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.quick-admin-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0.5rem 0.85rem;
+  font-family: inherit;
+  font-size: 0.78rem;
+  color: #1e293b;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  text-align: left;
+  width: 100%;
+}
+
+.quick-admin-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  transform: translateY(-1px);
+}
+
+.quick-admin-btn .quick-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #4f46e5;
+}
+
+.quick-admin-btn .quick-email {
+  font-weight: 600;
+  color: #0f172a;
+  flex: 1;
+}
+
+.quick-admin-btn .quick-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: #ede9fe;
+  color: #6d28d9;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
 .error-banner {
   background: #fee2e2;
   color: #b91c1c;

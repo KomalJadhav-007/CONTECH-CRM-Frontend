@@ -45,17 +45,20 @@ export class SettingsViewComponent implements OnInit {
   org = {
     name: 'Contech Developments Pvt Ltd',
     slug: 'contech-crm',
-    email: 'admin@contechcrm.com',
+    email: 'kesarkargirish2@gmail.com',
     status: 'active'
   };
 
   profile = {
-    id: 8,
-    firstName: 'Vikram',
-    lastName: 'Joshi',
+    id: 9,
+    firstName: 'Girish',
+    lastName: 'Kesarkar',
     mobile: '7058533669',
-    designation: 'Organization Admin'
+    designation: 'SUPER_ADMIN'
   };
+
+  purging = false;
+  showPurgeConfirm = false;
 
   scoring = {
     profileFit: 20,
@@ -152,6 +155,31 @@ export class SettingsViewComponent implements OnInit {
       error: () => {
         this.savedMessage = 'Scoring configuration saved locally.';
         setTimeout(() => (this.savedMessage = ''), 3500);
+      }
+    });
+  }
+
+  confirmPurgeDummyData(): void {
+    this.showPurgeConfirm = true;
+  }
+
+  executePurgeDummyData(): void {
+    this.showPurgeConfirm = false;
+    this.purging = true;
+    this.loading = true;
+
+    this.settingsService.purgeDummyData().subscribe({
+      next: (res: any) => {
+        this.purging = false;
+        this.loading = false;
+        this.savedMessage = res.message || 'All dummy data (prospects, visits, bookings, tasks) has been permanently removed.';
+        setTimeout(() => (this.savedMessage = ''), 6000);
+      },
+      error: (err: any) => {
+        this.purging = false;
+        this.loading = false;
+        this.errorMessage = err.error?.message || 'Failed to purge dummy data. Please try again.';
+        setTimeout(() => (this.errorMessage = ''), 5000);
       }
     });
   }

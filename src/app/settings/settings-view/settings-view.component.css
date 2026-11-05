@@ -292,3 +292,201 @@
     align-items: flex-start;
   }
 }
+
+/* ================= PURGE DUMMY DATA CARD ================= */
+.purge-card {
+  border-left: 4px solid #ef4444 !important;
+  background: #ffffff;
+  transition: box-shadow 0.2s ease;
+}
+
+.purge-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+}
+
+.purge-danger-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #b91c1c !important;
+  font-size: 0.85rem !important;
+}
+
+.purge-header-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: #dc2626;
+}
+
+.purge-sub {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 0.25rem;
+  line-height: 1.45;
+}
+
+.purge-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  border: 1px solid #fecaca;
+  white-space: nowrap;
+}
+
+.purge-badge .badge-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+}
+
+.purge-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .purge-info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.purge-info-box {
+  padding: 1rem 1.15rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.purge-info-box.remove-box {
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+}
+
+.purge-info-box.keep-box {
+  background: #f0fdf4;
+  border: 1px solid #dcfce7;
+}
+
+.info-box-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+}
+
+.info-box-header mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.text-danger {
+  color: #b91c1c;
+}
+
+.text-success {
+  color: #15803d;
+}
+
+.purge-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: #334155;
+}
+
+.purge-list li {
+  margin-bottom: 0.25rem;
+}
+
+.purge-action-footer {
+  border-top: 1px solid #f1f5f9;
+  padding-top: 1.25rem;
+}
+
+.purge-btn-wrap {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.btn-purge-danger {
+  background-color: #dc2626 !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  font-size: 0.82rem !important;
+  padding: 0.5rem 1.25rem !important;
+  border-radius: 4px !important;
+  box-shadow: 0 1px 2px rgba(220, 38, 38, 0.2) !important;
+}
+
+.btn-purge-danger:hover {
+  background-color: #b91c1c !important;
+}
+
+.purge-note {
+  font-size: 0.75rem;
+  color: #64748b;
+  flex: 1;
+}
+
+.purge-confirm-dialog-inline {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  animation: fadeIn 0.2s ease-in;
+}
+
+.confirm-warning-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #9f1239;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.warn-blink {
+  color: #e11d48;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+.confirm-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.btn-confirm-execute {
+  background-color: #be123c !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+.btn-confirm-cancel {
+  border-color: #fda4af !important;
+  color: #881337 !important;
+}

@@ -113,6 +113,35 @@
           <span *ngIf="!loading">Sign in to Console</span>
           <span *ngIf="loading">Signing in...</span>
         </button>
+
+        <!-- Super Admin Quick Access -->
+        <div class="quick-admin-login-bar">
+          <div class="quick-login-divider">
+            <span>SUPER ADMIN ACCESS</span>
+          </div>
+          <div class="quick-admin-chips">
+            <button
+              type="button"
+              class="quick-admin-btn"
+              (click)="fillCredentials('director@contechcrm.com', 'password123')"
+              title="Sign in as Director / Super Admin"
+            >
+              <mat-icon class="quick-icon">admin_panel_settings</mat-icon>
+              <span class="quick-email">director&#64;contechcrm.com</span>
+              <span class="quick-badge">Super Admin</span>
+            </button>
+            <button
+              type="button"
+              class="quick-admin-btn"
+              (click)="fillCredentials('kesarkargirish2@gmail.com', 'password123')"
+              title="Sign in as Girish Kesarkar / Super Admin"
+            >
+              <mat-icon class="quick-icon">account_circle</mat-icon>
+              <span class="quick-email">kesarkargirish2&#64;gmail.com</span>
+              <span class="quick-badge">Super Admin</span>
+            </button>
+          </div>
+        </div>
       </form>
 
       <!-- Create Account Form with Angular Material -->
