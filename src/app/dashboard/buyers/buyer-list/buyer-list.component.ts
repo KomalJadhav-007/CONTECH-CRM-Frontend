@@ -771,6 +771,7 @@ export class BuyerListComponent implements OnInit {
       project_id: p.project_id || 1,
       score: p.score !== undefined && p.score !== null ? p.score : 85,
       delta: p.delta !== undefined && p.delta !== null ? p.delta : 5,
+      next_action: p.next_action || '',
       add_follow_up: false,
       follow_up_title: `Follow up with ${p.name}`,
       follow_up_due: localISOTime,
@@ -845,6 +846,9 @@ export class BuyerListComponent implements OnInit {
         p.stage = this.editForm.stage;
         p.score = newScore;
         p.delta = newDelta;
+        if (this.editForm.next_action) {
+          p.next_action = this.editForm.next_action;
+        }
         p.budget = `₹${this.editForm.budget_min_lacs || 100}L – ₹${this.editForm.budget_max_lacs || 180}L`;
 
         if (this.editForm.assigned_rep_id) {
