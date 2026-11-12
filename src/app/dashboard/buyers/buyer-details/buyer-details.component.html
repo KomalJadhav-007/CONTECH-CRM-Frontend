@@ -147,6 +147,10 @@
             <span class="info-label">Family Size</span>
             <span class="info-value">{{ buyer.family_size }} Members</span>
           </div>
+          <div class="info-item" *ngIf="buyer.additional_info">
+            <span class="info-label">Additional Info</span>
+            <span class="info-value">{{ buyer.additional_info }}</span>
+          </div>
         </div>
       </mat-card>
 

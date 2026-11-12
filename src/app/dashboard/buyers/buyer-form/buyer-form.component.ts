@@ -81,6 +81,7 @@ export class BuyerFormComponent implements OnInit {
     occupation: 'Salaried IT / Tech Corporate',
     assigned_rep_id: null,
     notes: '',
+    additional_info: '',
     allow_duplicate: false,
     duplicate_resolution_notes: ''
   };
@@ -133,6 +134,7 @@ export class BuyerFormComponent implements OnInit {
             occupation: b.occupation || 'Salaried IT / Tech Corporate',
             assigned_rep_id: b.assigned_rep_id || (b.assignedRep ? b.assignedRep.user_id : null),
             notes: b.notes || '',
+            additional_info: b.additional_info || '',
             allow_duplicate: false,
             duplicate_resolution_notes: b.duplicate_resolution_notes || ''
           };
