@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { VisitService } from '../visit.service';
 import { BuyerService } from '../../buyers/buyer.service';
 import { UserService } from '../../../users/user.service';
+import { SettingsService } from '../../../settings/settings.service';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -40,42 +41,27 @@ export class VisitBookingComponent implements OnInit {
   private visitService = inject(VisitService);
   private buyerService = inject(BuyerService);
   private userService = inject(UserService);
+  private settingsService = inject(SettingsService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
-  buyers: any[] = [
-    { id: 1, full_name: 'Jaywant Patil', phone: '+919960688432', preferred_bhk: '3 BHK' },
-    { id: 2, full_name: 'Kaustubh Nazirkar', phone: '+919890389995', preferred_bhk: '2 BHK' },
-    { id: 3, full_name: 'sachin Jadhav', phone: '+919130753119', preferred_bhk: '3 BHK' },
-    { id: 4, full_name: 'Suntosh Kamthay', phone: '+918888468001', preferred_bhk: '2 BHK' },
-    { id: 5, full_name: 'Rohiet Kumar', phone: '+919595181850', preferred_bhk: '3 BHK' },
-    { id: 21, full_name: 'Debashish', phone: '+919270308384', preferred_bhk: '3 BHK' }
-  ];
-
-  salesExecutives: any[] = [
-    { id: 4, name: 'Amit Verma (Account Executive)' },
-    { id: 2, name: 'Arun Bhatia (Sales Head / VP)' },
-    { id: 3, name: 'Priya Nair (Sales Manager)' }
-  ];
-
-  drivers: any[] = [
-    { id: 7, name: 'Ramesh Gowda (Company Driver)' },
-    { id: 6, name: 'Suresh Kumar (Site Visit Coordinator)' }
-  ];
-
+  buyers: any[] = [];
+  projects: any[] = [];
+  salesExecutives: any[] = [];
+  drivers: any[] = [];
   vehicles: any[] = [];
-  selectedVehicleId: number | null = 1;
+  selectedVehicleId: number | null = null;
 
   bookingData: any = {
-    buyer_id: 1,
-    project_id: 1,
-    sales_rep_id: 4,
-    driver_id: 7,
-    vehicle_id: 1,
+    buyer_id: null,
+    project_id: null,
+    sales_rep_id: null,
+    driver_id: null,
+    vehicle_id: null,
     scheduled_date: new Date().toISOString().split('T')[0],
     time_slot: '11:00 AM - 12:30 PM (Peak Slot)',
     cab_required: true,
-    cab_number: 'KA-01-MJ-8822',
+    cab_number: '',
     pickup_address: 'Customer Residence / Office',
     notes: 'Confirm buyer preferred floor plan copies ready in sales lounge.'
   };
@@ -84,9 +70,28 @@ export class VisitBookingComponent implements OnInit {
   errorMessage = '';
 
   ngOnInit(): void {
+    this.loadProjects();
     this.loadUsers();
     this.loadBuyers();
     this.loadVehicles();
+  }
+
+  loadProjects(): void {
+    this.settingsService.getSettings().subscribe({
+      next: (res: any) => {
+        if (res && res.success && res.projects && res.projects.length > 0) {
+          this.projects = res.projects;
+          if (!this.bookingData.project_id || !this.projects.some(p => (p.project_id || p.id) == this.bookingData.project_id)) {
+            this.bookingData.project_id = this.projects[0].project_id || this.projects[0].id;
+          }
+        } else {
+          this.projects = [];
+        }
+      },
+      error: () => {
+        this.projects = [];
+      }
+    });
   }
 
   loadUsers(): void {
@@ -102,8 +107,15 @@ export class VisitBookingComponent implements OnInit {
             const r = (u.role?.name || u.role_name || u.role || '').toLowerCase();
             return r.includes('driver');
           });
-          if (execs.length > 0) this.salesExecutives = execs;
-          if (drvs.length > 0) this.drivers = drvs;
+          this.salesExecutives = execs;
+          this.drivers = drvs;
+
+          if (this.salesExecutives.length > 0 && !this.bookingData.sales_rep_id) {
+            this.bookingData.sales_rep_id = this.salesExecutives[0].user_id || this.salesExecutives[0].id;
+          }
+          if (this.drivers.length > 0 && !this.bookingData.driver_id) {
+            this.bookingData.driver_id = this.drivers[0].user_id || this.drivers[0].id;
+          }
         }
       }
     });
@@ -117,24 +129,24 @@ export class VisitBookingComponent implements OnInit {
   loadBuyers(): void {
     this.buyerService.getBuyers().subscribe({
       next: (res) => {
-        if (res.success && res.buyers && res.buyers.length > 0) {
+        if (res && res.success && res.buyers && res.buyers.length > 0) {
           this.buyers = res.buyers.map((b: any) => ({
             ...b,
+            id: b.buyer_id || b.id,
             preferred_bhk: this.formatBhk(b.preferred_bhk)
           }));
-        }
-        const qBuyerId = this.route.snapshot.queryParamMap.get('buyer_id');
-        if (qBuyerId) {
-          this.bookingData.buyer_id = parseInt(qBuyerId, 10);
-        } else if (this.buyers.length > 0) {
-          this.bookingData.buyer_id = this.buyers[0].buyer_id || this.buyers[0].id;
+          const qBuyerId = this.route.snapshot.queryParamMap.get('buyer_id');
+          if (qBuyerId) {
+            this.bookingData.buyer_id = parseInt(qBuyerId, 10);
+          } else if (this.buyers.length > 0) {
+            this.bookingData.buyer_id = this.buyers[0].buyer_id || this.buyers[0].id;
+          }
+        } else {
+          this.buyers = [];
         }
       },
       error: () => {
-        const qBuyerId = this.route.snapshot.queryParamMap.get('buyer_id');
-        if (qBuyerId) {
-          this.bookingData.buyer_id = parseInt(qBuyerId, 10);
-        }
+        this.buyers = [];
       }
     });
   }
@@ -269,6 +281,15 @@ export class VisitBookingComponent implements OnInit {
   }
 
   onSubmit(): void {
+    if (!this.bookingData.buyer_id) {
+      this.errorMessage = 'Please select a registered prospect/buyer first.';
+      return;
+    }
+    if (!this.bookingData.project_id) {
+      this.errorMessage = 'Please select a destination project first.';
+      return;
+    }
+
     this.loading = true;
     this.errorMessage = '';
 
