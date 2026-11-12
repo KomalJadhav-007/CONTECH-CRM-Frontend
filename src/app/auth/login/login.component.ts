@@ -50,12 +50,6 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  fillCredentials(email: string, pass: string): void {
-    this.email = email;
-    this.password = pass;
-    this.onSubmit();
-  }
-
   onSubmit() {
     if (!this.email || !this.password) {
       this.errorMessage = 'Please enter your work email and password.';
