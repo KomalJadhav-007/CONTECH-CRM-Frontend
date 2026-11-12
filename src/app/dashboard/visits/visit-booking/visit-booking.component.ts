@@ -324,7 +324,8 @@ export class VisitBookingComponent implements OnInit {
       },
       error: (err) => {
         this.loading = false;
-        this.errorMessage = err.error?.message || 'Failed to book site visit. Capacity limit or conflict.';
+        const detail = err.error?.error || err.error?.message;
+        this.errorMessage = detail ? `Failed to book site visit: ${detail}` : 'Failed to book site visit. Please verify selection.';
       }
     });
   }
