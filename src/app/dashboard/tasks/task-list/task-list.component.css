@@ -232,11 +232,13 @@
 
 .table-responsive {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   width: 100%;
 }
 
 .prospects-table {
   width: 100%;
+  min-width: 1050px;
   border-collapse: collapse;
   font-size: 0.8rem;
 }

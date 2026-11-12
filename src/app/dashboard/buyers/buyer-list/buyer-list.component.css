@@ -517,26 +517,28 @@
 }
 
 .table-responsive {
-  overflow-x: hidden;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
   width: 100%;
 }
 
 .prospects-table {
   width: 100%;
+  min-width: 1140px;
   border-collapse: collapse;
   font-size: 0.82rem;
   text-align: left;
-  table-layout: fixed;
+  table-layout: auto;
 }
 
-.col-buyer   { width: 18%; }
-.col-score   { width: 8%; }
-.col-stage   { width: 13%; }
-.col-req     { width: 10%; }
-.col-owner   { width: 14%; }
-.col-action  { width: 19%; }
-.col-risk    { width: 7.5%; text-align: right; }
-.col-actions { width: 10.5%; min-width: 115px; text-align: right; }
+.col-buyer   { min-width: 190px; width: 18%; }
+.col-score   { min-width: 80px; width: 8%; }
+.col-stage   { min-width: 130px; width: 13%; }
+.col-req     { min-width: 110px; width: 10%; }
+.col-owner   { min-width: 130px; width: 13%; }
+.col-action  { min-width: 190px; width: 19%; }
+.col-risk    { min-width: 90px; width: 8%; text-align: right; }
+.col-actions { min-width: 130px; width: 11%; text-align: right; white-space: nowrap; }
 
 .prospects-table thead {
   background: #f8fafc;
