@@ -125,4 +125,105 @@
       </span>
     </div>
   </mat-card>
+
+  <!-- DATABASE CLEANUP & DUMMY DATA PURGE (SUPER ADMIN ONLY) -->
+  <mat-card *ngIf="isSuperAdmin" class="card-box purge-card" style="margin-top: 1.5rem;">
+    <div class="purge-card-header">
+      <div>
+        <div class="card-box-title purge-danger-title">
+          <mat-icon class="purge-header-icon">delete_sweep</mat-icon>
+          DATABASE MAINTENANCE &amp; DUMMY DATA PURGE
+        </div>
+        <div class="purge-sub">
+          Permanently remove all dummy prospects AND demo projects, property configurations, mock bookings, and follow-up tasks from the entire system.
+        </div>
+      </div>
+      <div class="purge-badge">
+        <mat-icon class="badge-icon">verified_user</mat-icon>
+        Super Admin Action
+      </div>
+    </div>
+
+    <div class="purge-info-grid">
+      <div class="purge-info-box remove-box">
+        <div class="info-box-header text-danger">
+          <mat-icon>remove_circle_outline</mat-icon>
+          <strong>Will Be Completely Removed:</strong>
+        </div>
+        <ul class="purge-list">
+          <li>All prospects &amp; buyers (including imported sample leads)</li>
+          <li>All demo projects (Crown Heights, Skyline Elegance, Greenfield, etc.)</li>
+          <li>All flat configurations, property types, &amp; unit inventory catalogs</li>
+          <li>All site visits &amp; walkthrough records</li>
+          <li>All follow-up tasks, SLAs, &amp; in-visit discoveries</li>
+          <li>All test bookings, cancellations, &amp; driver trips</li>
+          <li>All prospect &amp; project activity logs</li>
+        </ul>
+      </div>
+
+      <div class="purge-info-box keep-box">
+        <div class="info-box-header text-success">
+          <mat-icon>check_circle_outline</mat-icon>
+          <strong>System-Dependent Data Preserved:</strong>
+        </div>
+        <ul class="purge-list">
+          <li>All 12 Universal Platform Roles &amp; Security Permissions</li>
+          <li>System Settings &amp; Granular Access Control Matrix</li>
+          <li>Super Admin Accounts (Girish Kesarkar &amp; Director) &amp; Team Staff</li>
+          <li>Company Fleet Vehicles</li>
+          <li>Clean UI master ready for your real projects and live prospects</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Confirmation Area -->
+    <div class="purge-action-footer">
+      <div *ngIf="!showPurgeConfirm" class="purge-btn-wrap">
+        <button
+          mat-flat-button
+          color="warn"
+          type="button"
+          class="btn-purge-danger"
+          [disabled]="loading || purging"
+          (click)="confirmPurgeDummyData()"
+        >
+          <mat-icon>delete_forever</mat-icon>
+          Purge All Prospects &amp; Demo Projects
+        </button>
+        <span class="purge-note">
+          Once executed, this action resets projects and prospects while maintaining platform security roles and admin configurations.
+        </span>
+      </div>
+
+      <div *ngIf="showPurgeConfirm" class="purge-confirm-dialog-inline">
+        <div class="confirm-warning-text">
+          <mat-icon class="warn-blink">warning</mat-icon>
+          <span>Are you sure? This will permanently delete all dummy prospects and demo projects, leaving the system clean for your live developments.</span>
+        </div>
+        <div class="confirm-btn-group">
+          <button
+            mat-flat-button
+            color="warn"
+            type="button"
+            class="btn-confirm-execute"
+            [disabled]="purging"
+            (click)="executePurgeDummyData()"
+          >
+            <mat-icon *ngIf="!purging">check</mat-icon>
+            <span *ngIf="!purging">Yes, Permanently Purge Prospects &amp; Demo Projects</span>
+            <span *ngIf="purging">Purging data...</span>
+          </button>
+          <button
+            mat-stroked-button
+            type="button"
+            class="btn-confirm-cancel"
+            [disabled]="purging"
+            (click)="showPurgeConfirm = false"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </mat-card>
 </div>

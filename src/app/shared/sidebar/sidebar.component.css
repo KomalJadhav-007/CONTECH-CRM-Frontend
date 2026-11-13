@@ -239,3 +239,15 @@
   white-space: nowrap !important;
 }
 
+@media (max-width: 1200px) {
+  .sidebar-nav {
+    width: 250px;
+  }
+  .brand-box {
+    padding: 1.25rem 1rem 1rem;
+  }
+  .sidebar-scroll {
+    padding: 1rem 0.75rem;
+  }
+}
+

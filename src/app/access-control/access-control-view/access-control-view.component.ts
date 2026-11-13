@@ -777,19 +777,11 @@ export class AccessControlViewComponent implements OnInit {
         } else if (res && res.settings && res.settings.projects) {
           this.availableProjects = res.settings.projects;
         } else {
-          this.availableProjects = [
-            { project_id: 1, id: 1, name: 'Contech Crown Heights', code: 'CCH-BLR', location: 'Whitefield, Bengaluru' },
-            { project_id: 2, id: 2, name: 'Contech Skyline Elegance', code: 'CSE-BLR', location: 'Indiranagar, Bengaluru' },
-            { project_id: 3, id: 3, name: 'Contech Greenfield Sanctuary', code: 'CGS-BLR', location: 'Sarjapur Road, Bengaluru' }
-          ];
+          this.availableProjects = [];
         }
       },
       error: () => {
-        this.availableProjects = [
-          { project_id: 1, id: 1, name: 'Contech Crown Heights', code: 'CCH-BLR', location: 'Whitefield, Bengaluru' },
-          { project_id: 2, id: 2, name: 'Contech Skyline Elegance', code: 'CSE-BLR', location: 'Indiranagar, Bengaluru' },
-          { project_id: 3, id: 3, name: 'Contech Greenfield Sanctuary', code: 'CGS-BLR', location: 'Sarjapur Road, Bengaluru' }
-        ];
+        this.availableProjects = [];
       }
     });
   }

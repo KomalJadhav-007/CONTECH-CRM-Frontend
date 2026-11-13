@@ -80,8 +80,49 @@ export class ControlTowerViewComponent implements OnInit {
       const phone = (b.phone || '').toLowerCase();
       const rep = (b.assignedRep?.name || '').toLowerCase();
       const timeframe = (b.buying_timeframe || '').toLowerCase();
-      return name.includes(q) || phone.includes(q) || rep.includes(q) || timeframe.includes(q);
+      const proj = (b.project_name || b.project?.name || b.preferred_project || '').toLowerCase();
+      return name.includes(q) || phone.includes(q) || rep.includes(q) || timeframe.includes(q) || proj.includes(q);
     });
+  }
+
+  getTaskProjectName(task: any): string {
+    if (task.project_name) return task.project_name;
+    if (task.project?.name) return task.project.name;
+    if (task.buyer?.project?.name) return task.buyer.project.name;
+    if (task.buyer?.preferred_project) return task.buyer.preferred_project;
+    if (task.siteVisit?.project?.name) return task.siteVisit.project.name;
+    return 'General Project';
+  }
+
+  getTaskProjectLocation(task: any): string {
+    if (task.project_location) return task.project_location;
+    if (task.project?.location) return task.project.location;
+    if (task.buyer?.project?.location) return task.buyer.project.location;
+    if (task.siteVisit?.project?.location) return task.siteVisit.project.location;
+    return '';
+  }
+
+  getTaskProjectCode(task: any): string {
+    if (task.project_code) return task.project_code;
+    if (task.project?.code) return task.project.code;
+    if (task.buyer?.project?.code) return task.buyer.project.code;
+    if (task.siteVisit?.project?.code) return task.siteVisit.project.code;
+    return '';
+  }
+
+  getBuyerProjectName(buyer: any): string {
+    if (buyer.project_name) return buyer.project_name;
+    if (buyer.project?.name) return buyer.project.name;
+    if (buyer.preferred_project) return buyer.preferred_project;
+    return 'General Project';
+  }
+
+  getVisitProjectName(visit: any): string {
+    if (visit.project_name) return visit.project_name;
+    if (visit.project?.name) return visit.project.name;
+    if (visit.buyer?.project?.name) return visit.buyer.project.name;
+    if (visit.buyer?.preferred_project) return visit.buyer.preferred_project;
+    return 'General Project';
   }
 
   get totalBuyerPages(): number {

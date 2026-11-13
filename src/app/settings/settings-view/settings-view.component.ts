@@ -45,17 +45,21 @@ export class SettingsViewComponent implements OnInit {
   org = {
     name: 'Contech Developments Pvt Ltd',
     slug: 'contech-crm',
-    email: 'admin@contechcrm.com',
+    email: 'kesarkargirish2@gmail.com',
     status: 'active'
   };
 
   profile = {
-    id: 8,
-    firstName: 'Vikram',
-    lastName: 'Joshi',
+    id: 9,
+    firstName: 'Girish',
+    lastName: 'Kesarkar',
     mobile: '7058533669',
-    designation: 'Organization Admin'
+    designation: 'SUPER_ADMIN'
   };
+
+  purging = false;
+  showPurgeConfirm = false;
+  isSuperAdmin = false;
 
   scoring = {
     profileFit: 20,
@@ -71,10 +75,27 @@ export class SettingsViewComponent implements OnInit {
            (Number(this.scoring.readinessMomentum) || 0);
   }
 
+  checkSuperAdmin(user: any): boolean {
+    if (!user) return false;
+    const email = (user.email || '').toLowerCase().trim();
+    if (email === 'director@contechcrm.com' || email === 'kesarkargirish2@gmail.com') {
+      return true;
+    }
+    const rawRole = (typeof user.role === 'object' ? user.role?.code || user.role?.name : user.role) || user.role_code || user.role_name || '';
+    const norm = String(rawRole).toUpperCase().replace(/[\s\/-]+/g, '_').trim();
+    return norm === 'SUPER_ADMIN' || norm.includes('SUPER_ADMIN');
+  }
+
   ngOnInit(): void {
-    // 1. Prefill logged-in user details
+    // 1. Prefill logged-in user details & evaluate Super Admin permission
+    const initialUser = this.authService.getCurrentUser();
+    if (initialUser) {
+      this.isSuperAdmin = this.checkSuperAdmin(initialUser);
+    }
+
     this.authService.currentUser$.subscribe(user => {
       if (user) {
+        this.isSuperAdmin = this.checkSuperAdmin(user);
         this.profile.id = user.id || user.user_id || 8;
         const nameParts = (user.name || '').trim().split(' ');
         this.profile.firstName = nameParts[0] || 'Vikram';
@@ -152,6 +173,37 @@ export class SettingsViewComponent implements OnInit {
       error: () => {
         this.savedMessage = 'Scoring configuration saved locally.';
         setTimeout(() => (this.savedMessage = ''), 3500);
+      }
+    });
+  }
+
+  confirmPurgeDummyData(): void {
+    this.showPurgeConfirm = true;
+  }
+
+  executePurgeDummyData(): void {
+    if (!this.isSuperAdmin) {
+      this.errorMessage = 'Unauthorized: Only Super Admin can perform database maintenance and dummy data purge.';
+      setTimeout(() => (this.errorMessage = ''), 4000);
+      return;
+    }
+
+    this.showPurgeConfirm = false;
+    this.purging = true;
+    this.loading = true;
+
+    this.settingsService.purgeDummyData().subscribe({
+      next: (res: any) => {
+        this.purging = false;
+        this.loading = false;
+        this.savedMessage = res.message || 'All prospects, demo projects, and operational records have been permanently removed.';
+        setTimeout(() => (this.savedMessage = ''), 6000);
+      },
+      error: (err: any) => {
+        this.purging = false;
+        this.loading = false;
+        this.errorMessage = err.error?.message || 'Failed to purge dummy data. Please try again.';
+        setTimeout(() => (this.errorMessage = ''), 5000);
       }
     });
   }

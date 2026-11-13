@@ -137,6 +137,22 @@
                 <input matInput type="number" [(ngModel)]="buyerData.family_size" name="family_size" min="1" max="15" placeholder="4" />
               </mat-form-field>
             </div>
+
+            <!-- Additional Prospect Information Field -->
+            <div style="margin-top: 0.25rem;">
+              <mat-form-field appearance="outline" class="w-full textarea-field">
+                <mat-label>Additional Prospect Information</mat-label>
+                <mat-icon matPrefix class="field-icon">notes</mat-icon>
+                <textarea
+                  matInput
+                  rows="3"
+                  [(ngModel)]="buyerData.additional_info"
+                  name="additional_info"
+                  placeholder="e.g. Key decision makers, designation, referral context, specific background, or special preferences..."
+                ></textarea>
+                <mat-hint>Extra context, background or special notes related to this prospect</mat-hint>
+              </mat-form-field>
+            </div>
           </div>
 
           <!-- SECTION 2: Buying Intent & 4-Dimension Attributes -->

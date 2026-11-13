@@ -158,11 +158,14 @@
 }
 
 .table-responsive {
+  width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .audit-table {
   width: 100%;
+  min-width: 960px;
   border-collapse: collapse;
   font-size: 0.8rem;
 }

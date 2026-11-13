@@ -57,4 +57,8 @@ export class SettingsService {
   deleteProjectUnit(projectId: number, unitId: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/projects/${projectId}/units/${unitId}`);
   }
+
+  purgeDummyData(): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/purge-dummy-data`, {});
+  }
 }

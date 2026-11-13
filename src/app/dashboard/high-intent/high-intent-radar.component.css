@@ -289,11 +289,14 @@
 }
 
 .table-responsive {
+  width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .radar-table {
   width: 100%;
+  min-width: 980px;
   border-collapse: collapse;
   font-size: 0.78rem;
 }

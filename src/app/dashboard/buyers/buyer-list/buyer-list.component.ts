@@ -80,13 +80,7 @@ export class BuyerListComponent implements OnInit {
   }
 
   // Available Projects List
-  projectsList: any[] = [
-    { project_id: 1, id: 1, name: 'Contech Crown Heights', code: 'CCH-BLR', location: 'Whitefield, Bengaluru', project_type: 'Luxury Residential' },
-    { project_id: 2, id: 2, name: 'Contech Skyline Elegance', code: 'CSE-BLR', location: 'Indiranagar, Bengaluru', project_type: 'Premium High-Rise' },
-    { project_id: 3, id: 3, name: 'Contech Greenfield Sanctuary', code: 'CGS-BLR', location: 'Sarjapur Road, Bengaluru', project_type: 'Eco Luxury Villas' },
-    { project_id: 4, id: 4, name: 'Contech Emerald Meadows Plotted Layout', code: 'CONTEC-0409', location: 'Devenahalli, Bengaluru', project_type: 'Plotted Development' },
-    { project_id: 5, id: 5, name: 'Contech Business Square', code: 'CONTEC-0438', location: 'Koramangala, Bengaluru', project_type: 'Commercial & Retail' }
-  ];
+  projectsList: any[] = [];
 
   // Follow-up modal state
   showFollowUpModal = false;
@@ -127,199 +121,6 @@ export class BuyerListComponent implements OnInit {
 
   prospects: any[] = [];
 
-  fallbackProspects = [
-    {
-      id: 1,
-      name: 'Sneha Kulkarni',
-      source: 'SimpliQualify',
-      phone: '7058533669',
-      score: 92,
-      delta: 6,
-      stage: 'Qualified',
-      bhk: '3 BHK',
-      budget: '₹1.80 Cr – ₹2.00 Cr',
-      owner: 'Unassigned',
-      next_action: 'Assign owner and call within 15 minutes',
-      sla_breached: true,
-      sla_time: '40 days ago',
-      at_risk: '₹1.43 Cr',
-      project_id: 1,
-      project_name: 'Contech Crown Heights',
-      project_code: 'CCH-BLR'
-    },
-    {
-      id: 2,
-      name: 'Anand Bhagat',
-      source: 'Google Ads',
-      phone: '7058533669',
-      score: 91,
-      delta: 6,
-      stage: 'High Intent',
-      bhk: '4 BHK',
-      budget: '₹3.00 Cr – ₹3.50 Cr',
-      owner: 'Unassigned',
-      next_action: 'Buyer Score 91 - assign owner immediately',
-      sla_breached: true,
-      sla_time: '40 days ago',
-      at_risk: '₹2.18 Cr',
-      project_id: 1,
-      project_name: 'Contech Crown Heights',
-      project_code: 'CCH-BLR'
-    },
-    {
-      id: 3,
-      name: 'Deepa Sharma',
-      source: 'Referral',
-      phone: '7058533669',
-      score: 90,
-      delta: 2,
-      stage: 'Booking Intent',
-      bhk: '3 BHK',
-      budget: '₹1.30 Cr – ₹1.50 Cr',
-      owner: 'Sneha Joshi',
-      next_action: 'Initiate booking paperwork',
-      sla_breached: true,
-      sla_time: '39 days ago',
-      at_risk: '₹1.23 Cr',
-      project_id: 1,
-      project_name: 'Contech Crown Heights',
-      project_code: 'CCH-BLR'
-    },
-    {
-      id: 4,
-      name: 'Rahul Deshmukh',
-      source: 'SimpliQualify',
-      phone: '7058533669',
-      score: 89,
-      delta: 5,
-      stage: 'Site Visit Scheduled',
-      bhk: '3 BHK',
-      budget: '₹2.00 Cr – ₹2.30 Cr',
-      owner: 'Amit Kulkarni',
-      next_action: 'Confirm Saturday site visit',
-      sla_breached: true,
-      sla_time: '39 days ago',
-      at_risk: '₹1.51 Cr',
-      project_id: 2,
-      project_name: 'Contech Skyline Elegance',
-      project_code: 'CSE-BLR'
-    },
-    {
-      id: 5,
-      name: 'Neha Agarwal',
-      source: 'Instagram',
-      phone: '7058533669',
-      score: 88,
-      delta: 2,
-      stage: 'Negotiation',
-      bhk: '4 BHK',
-      budget: '₹2.60 Cr – ₹2.90 Cr',
-      owner: 'Kavya Rao',
-      next_action: 'Manager intervention on price objection',
-      sla_breached: true,
-      sla_time: '40 days ago',
-      at_risk: '₹1.65 Cr',
-      project_id: 2,
-      project_name: 'Contech Skyline Elegance',
-      project_code: 'CSE-BLR'
-    },
-    {
-      id: 6,
-      name: 'Harish Menon',
-      source: 'Referral',
-      phone: '7058533669',
-      score: 87,
-      delta: 2,
-      stage: 'Visit Completed',
-      bhk: '4 BHK',
-      budget: '₹2.90 Cr – ₹3.30 Cr',
-      owner: 'Sneha Joshi',
-      next_action: 'Share proposal and initiate negotiation',
-      sla_breached: true,
-      sla_time: '40 days ago',
-      at_risk: '₹2.02 Cr',
-      project_id: 2,
-      project_name: 'Contech Skyline Elegance',
-      project_code: 'CSE-BLR'
-    },
-    {
-      id: 7,
-      name: 'Sameer Kale',
-      source: 'Website',
-      phone: '7058533669',
-      score: 87,
-      delta: 4,
-      stage: 'Visit Completed',
-      bhk: '3 BHK',
-      budget: '₹1.70 Cr – ₹1.90 Cr',
-      owner: 'Rohit Patil',
-      next_action: 'Share proposal for shortlisted unit',
-      sla_breached: true,
-      sla_time: '40 days ago',
-      at_risk: '₹1.22 Cr',
-      project_id: 3,
-      project_name: 'Contech Greenfield Sanctuary',
-      project_code: 'CGS-BLR'
-    },
-    {
-      id: 8,
-      name: 'Girish Naik',
-      source: 'Property Portal',
-      phone: '7058533669',
-      score: 86,
-      delta: 4,
-      stage: 'Site Visit Scheduled',
-      bhk: '4 BHK',
-      budget: '₹2.80 Cr – ₹3.20 Cr',
-      owner: 'Amit Kulkarni',
-      next_action: 'Confirm AE and vehicle for tomorrow visit',
-      sla_breached: true,
-      sla_time: '39 days ago',
-      at_risk: '₹1.86 Cr',
-      project_id: 3,
-      project_name: 'Contech Greenfield Sanctuary',
-      project_code: 'CGS-BLR'
-    },
-    {
-      id: 9,
-      name: 'Suhas Kirloskar',
-      source: 'Referral',
-      phone: '7058533669',
-      score: 85,
-      delta: 1,
-      stage: 'Negotiation',
-      bhk: '4 BHK',
-      budget: '₹3.30 Cr – ₹3.80 Cr',
-      owner: 'Nikhil Shinde',
-      next_action: 'Manager to close pricing gap',
-      sla_breached: true,
-      sla_time: '39 days ago',
-      at_risk: '₹2.03 Cr',
-      project_id: 4,
-      project_name: 'Contech Emerald Meadows Plotted Layout',
-      project_code: 'CONTEC-0409'
-    },
-    {
-      id: 10,
-      name: 'Pooja Mehta',
-      source: 'Meta Ads',
-      phone: '7058533669',
-      score: 84,
-      delta: 4,
-      stage: 'Site Visit Scheduled',
-      bhk: '2 BHK',
-      budget: '₹90.00 L – ₹1.10 Cr',
-      owner: 'Sneha Joshi',
-      next_action: 'Confirm pickup and visit slot',
-      sla_breached: true,
-      sla_time: '39 days ago',
-      at_risk: '₹73.50 L',
-      project_id: 5,
-      project_name: 'Contech Business Square',
-      project_code: 'CONTEC-0438'
-    }
-  ];
-
   ngOnInit(): void {
     this.loadOwners();
     this.loadProjects();
@@ -338,10 +139,12 @@ export class BuyerListComponent implements OnInit {
             location: p.location || '',
             project_type: p.project_type || 'Residential'
           }));
+        } else {
+          this.projectsList = [];
         }
       },
       error: () => {
-        // Keep fallback projectsList
+        this.projectsList = [];
       }
     });
   }
@@ -481,13 +284,13 @@ export class BuyerListComponent implements OnInit {
           });
           this.rebuildOwnersList();
         } else {
-          this.prospects = [...this.fallbackProspects];
+          this.prospects = [];
           this.rebuildOwnersList();
         }
       },
       error: () => {
         this.loading = false;
-        this.prospects = [...this.fallbackProspects];
+        this.prospects = [];
         this.rebuildOwnersList();
       }
     });

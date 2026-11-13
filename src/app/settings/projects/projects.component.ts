@@ -653,13 +653,13 @@ export class ProjectsComponent implements OnInit {
             };
           });
         } else {
-          this.loadFallbackProjects();
+          this.projects = [];
         }
         this.updateStats();
       },
       error: () => {
         this.loading = false;
-        this.loadFallbackProjects();
+        this.projects = [];
         this.updateStats();
       }
     });

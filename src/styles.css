@@ -109,10 +109,40 @@ button, input, select, textarea {
 }
 
 .page-wrapper {
-  padding: 2rem;
+  padding: 1.75rem 2rem;
   max-width: 1440px;
   width: 100%;
   margin: 0 auto;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+  .page-wrapper {
+    padding: 1.25rem 1.25rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .page-wrapper {
+    padding: 1rem 0.75rem;
+  }
+}
+
+/* Global Table Responsive Utility */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+
+/* Prevent unwanted badge and button text wrapping/overlapping */
+.badge,
+.status-pill,
+.config-tag,
+.assigned-user-tag,
+.proj-code-badge {
+  flex-shrink: 0;
 }
 
 /* Glass & Clean Cards */

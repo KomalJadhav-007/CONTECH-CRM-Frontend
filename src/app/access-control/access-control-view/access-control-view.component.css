@@ -440,13 +440,16 @@
 
 /* Table */
 .table-responsive {
+  width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid #e2e8f0;
   border-radius: 4px;
 }
 
 .matrix-table {
   width: 100%;
+  min-width: 1220px;
   border-collapse: collapse;
   font-size: 0.78rem;
 }

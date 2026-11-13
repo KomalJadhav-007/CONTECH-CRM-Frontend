@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { TaskService } from '../task.service';
 import { BuyerService } from '../../buyers/buyer.service';
 import { UserService } from '../../../users/user.service';
+import { SettingsService } from '../../../settings/settings.service';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -42,11 +43,15 @@ export class TaskListComponent implements OnInit {
   private taskService = inject(TaskService);
   private buyerService = inject(BuyerService);
   private userService = inject(UserService);
+  private settingsService = inject(SettingsService);
 
   loading = true;
   feedbackMessage = '';
   tasks: any[] = [];
   allTasks: any[] = [];
+  projects: any[] = [];
+  selectedProjectId: string | number = 'all';
+
   filterStatus = 'PENDING';
   pendingCount = 0;
   completedCount = 0;
@@ -66,7 +71,8 @@ export class TaskListComponent implements OnInit {
         const desc = (t.description || '').toLowerCase();
         const buyer = (t.buyer?.full_name || '').toLowerCase();
         const rep = (t.assignedUser?.name || '').toLowerCase();
-        return title.includes(q) || desc.includes(q) || buyer.includes(q) || rep.includes(q);
+        const project = (this.getTaskProjectName(t) || '').toLowerCase();
+        return title.includes(q) || desc.includes(q) || buyer.includes(q) || rep.includes(q) || project.includes(q);
       });
     }
     return list;
@@ -117,8 +123,22 @@ export class TaskListComponent implements OnInit {
   next_follow_up_priority = 'HIGH';
 
   ngOnInit(): void {
+    this.loadProjects();
     this.loadTasks();
     this.loadProspectsAndReps();
+  }
+
+  loadProjects(): void {
+    this.settingsService.getSettings().subscribe({
+      next: (res: any) => {
+        if (res && res.success && res.projects) {
+          this.projects = res.projects;
+        }
+      },
+      error: () => {
+        this.projects = [];
+      }
+    });
   }
 
   loadProspectsAndReps(): void {
@@ -251,17 +271,94 @@ export class TaskListComponent implements OnInit {
   }
 
   applyFilter(): void {
-    if (!this.filterStatus) {
-      this.tasks = [...this.allTasks];
-    } else {
-      this.tasks = this.allTasks.filter((t: any) => t.status === this.filterStatus);
+    let list = [...this.allTasks];
+
+    // Status Filter (Pending SLAs, Completed, All Tasks)
+    if (this.filterStatus) {
+      list = list.filter((t: any) => t.status === this.filterStatus);
     }
+
+    // Project Container Filter
+    if (this.selectedProjectId && this.selectedProjectId !== 'all') {
+      if (this.selectedProjectId === 'unassigned') {
+        list = list.filter((t: any) => !this.getTaskProjectId(t));
+      } else {
+        list = list.filter((t: any) => {
+          const pId = this.getTaskProjectId(t);
+          const pName = (this.getTaskProjectName(t) || '').toLowerCase();
+          const matchId = pId && String(pId) === String(this.selectedProjectId);
+          const matchName = typeof this.selectedProjectId === 'string' && pName === this.selectedProjectId.toLowerCase();
+          return matchId || matchName;
+        });
+      }
+    }
+
+    this.tasks = list;
   }
 
   setFilterStatus(status: string): void {
     this.filterStatus = status;
     this.currentPage = 1;
     this.applyFilter();
+  }
+
+  setProjectFilter(projectId: any): void {
+    this.selectedProjectId = projectId;
+    this.currentPage = 1;
+    this.applyFilter();
+  }
+
+  getTaskProjectId(task: any): any {
+    return task.project_id || task.project?.project_id || task.project?.id || task.buyer?.project_id || task.buyer?.project?.project_id || task.siteVisit?.project_id || null;
+  }
+
+  getTaskProjectName(task: any): string {
+    return task.project?.name || task.project_name || task.buyer?.project?.name || task.buyer?.preferred_project || task.siteVisit?.project?.name || 'General Project';
+  }
+
+  getTaskProjectCode(task: any): string {
+    return task.project?.code || task.buyer?.project?.code || '';
+  }
+
+  getTaskProjectLocation(task: any): string {
+    return task.project?.location || task.buyer?.project?.location || '';
+  }
+
+  getPendingCountForProject(projectId: any): number {
+    if (projectId === 'all') {
+      return this.allTasks.filter((t: any) => t.status === 'PENDING').length;
+    }
+    if (projectId === 'unassigned') {
+      return this.allTasks.filter((t: any) => t.status === 'PENDING' && !this.getTaskProjectId(t)).length;
+    }
+    return this.allTasks.filter((t: any) => {
+      const pId = this.getTaskProjectId(t);
+      const pName = (this.getTaskProjectName(t) || '').toLowerCase();
+      const matchId = pId && String(pId) === String(projectId);
+      const matchName = typeof projectId === 'string' && pName === projectId.toLowerCase();
+      return t.status === 'PENDING' && (matchId || matchName);
+    }).length;
+  }
+
+  getTotalCountForProject(projectId: any): number {
+    if (projectId === 'all') {
+      return this.allTasks.length;
+    }
+    if (projectId === 'unassigned') {
+      return this.allTasks.filter((t: any) => !this.getTaskProjectId(t)).length;
+    }
+    return this.allTasks.filter((t: any) => {
+      const pId = this.getTaskProjectId(t);
+      const pName = (this.getTaskProjectName(t) || '').toLowerCase();
+      const matchId = pId && String(pId) === String(projectId);
+      const matchName = typeof projectId === 'string' && pName === projectId.toLowerCase();
+      return matchId || matchName;
+    }).length;
+  }
+
+  getBuyerProjectName(buyer: any): string {
+    if (!buyer) return 'General Project';
+    return buyer.project?.name || buyer.preferred_project || 'General Project';
   }
 
   getPriorityClass(priority: string): string {

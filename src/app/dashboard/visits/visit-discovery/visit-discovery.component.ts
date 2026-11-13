@@ -49,25 +49,9 @@ export class VisitDiscoveryComponent implements OnInit {
 
   visitId!: number;
   
-  fallbackVisit: any = {
-    visit_id: 1,
-    scheduled_date: 'Today',
-    time_slot: '11:00 AM - 12:30 PM (Peak Slot)',
-    buyer: {
-      full_name: 'Jaywant Patil',
-      phone: '+919960688432',
-      preferred_bhk: '3 BHK'
-    },
-    project: {
-      project_id: 1,
-      name: 'Contech Crown Heights (Whitefield)'
-    },
-    salesRep: {
-      name: 'Amit Verma (Account Executive)'
-    }
-  };
+  fallbackVisit: any = null;
 
-  visit: any = { ...this.fallbackVisit };
+  visit: any = null;
   loading = true;
   saving = false;
   successMessage = '';
@@ -203,9 +187,6 @@ export class VisitDiscoveryComponent implements OnInit {
       },
       error: () => {
         this.loading = false;
-        if (!this.visit || !this.visit.buyer) {
-          this.visit = { ...this.fallbackVisit };
-        }
         this.populateProjectUnits();
       }
     });
