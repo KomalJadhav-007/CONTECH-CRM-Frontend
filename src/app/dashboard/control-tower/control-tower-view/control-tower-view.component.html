@@ -94,6 +94,7 @@
             <tr>
               <th>BUYER NAME</th>
               <th>PHONE</th>
+              <th>PROJECT</th>
               <th>BUDGET MAX</th>
               <th>TIMEFRAME</th>
               <th>CURRENT ASSIGNED REP</th>
@@ -107,6 +108,15 @@
                 <div class="buyer-name">{{ buyer.full_name }}</div>
               </td>
               <td>{{ buyer.phone }}</td>
+              <td>
+                <div class="project-tag-box" [title]="getBuyerProjectName(buyer)">
+                  <span class="project-tag-name">
+                    <mat-icon class="proj-icon-mini">domain</mat-icon>
+                    {{ getBuyerProjectName(buyer) }}
+                  </span>
+                  <span *ngIf="buyer.project?.location" class="proj-loc-sub">{{ buyer.project?.location }}</span>
+                </div>
+              </td>
               <td class="budget-cell">₹{{ buyer.budget_max_lacs }} Lacs</td>
               <td>{{ buyer.buying_timeframe }}</td>
               <td>{{ buyer.assignedRep?.name || 'Unassigned' }}</td>
@@ -124,7 +134,7 @@
               </td>
             </tr>
             <tr *ngIf="filteredNeglectedBuyers.length === 0">
-              <td colspan="7" class="empty-cell">
+              <td colspan="8" class="empty-cell">
                 <mat-icon class="empty-icon">check_circle</mat-icon>
                 <span>Zero neglected buyers detected. All high-intent deals are actively nurtured.</span>
               </td>
@@ -184,6 +194,7 @@
           <thead>
             <tr>
               <th>BUYER</th>
+              <th>PROJECT / SITE</th>
               <th>TIME SLOT</th>
               <th>CUSTOMER CONFIRMED</th>
               <th>REP CONFIRMED</th>
@@ -196,6 +207,15 @@
             <tr *ngFor="let visit of pagedVisits">
               <td>
                 <div class="buyer-name">{{ visit.buyer?.full_name }}</div>
+              </td>
+              <td>
+                <div class="project-tag-box" [title]="getVisitProjectName(visit)">
+                  <span class="project-tag-name">
+                    <mat-icon class="proj-icon-mini">domain</mat-icon>
+                    {{ getVisitProjectName(visit) }}
+                  </span>
+                  <span *ngIf="visit.project?.location" class="proj-loc-sub">{{ visit.project?.location }}</span>
+                </div>
               </td>
               <td>{{ visit.time_slot }}</td>
               <td>
@@ -227,7 +247,7 @@
               </td>
             </tr>
             <tr *ngIf="radarData.at_risk_visits.length === 0">
-              <td colspan="7" class="empty-cell">
+              <td colspan="8" class="empty-cell">
                 <mat-icon class="empty-icon">check_circle</mat-icon>
                 <span>All today's visits have 100% 4-way confirmations.</span>
               </td>
@@ -287,6 +307,7 @@
             <tr>
               <th>TASK TITLE</th>
               <th>BUYER</th>
+              <th>PROJECT</th>
               <th>ASSIGNED REP</th>
               <th>DUE TIME</th>
               <th class="text-right">ACTION</th>
@@ -298,6 +319,18 @@
                 <div class="buyer-name">{{ task.title }}</div>
               </td>
               <td>{{ task.buyer?.full_name || 'Prospect' }}</td>
+              <td>
+                <div class="project-tag-box" [title]="getTaskProjectName(task)">
+                  <span class="project-tag-name">
+                    <mat-icon class="proj-icon-mini">domain</mat-icon>
+                    {{ getTaskProjectName(task) }}
+                  </span>
+                  <div class="proj-tag-sub-row" *ngIf="getTaskProjectLocation(task) || getTaskProjectCode(task)">
+                    <span *ngIf="getTaskProjectCode(task)" class="proj-code-chip">{{ getTaskProjectCode(task) }}</span>
+                    <span *ngIf="getTaskProjectLocation(task)" class="proj-loc-sub">{{ getTaskProjectLocation(task) }}</span>
+                  </div>
+                </div>
+              </td>
               <td>{{ task.assignedUser?.name || 'Unassigned' }}</td>
               <td>
                 <span class="due-badge">{{ task.due_at | date:'medium' }}</span>
