@@ -24,6 +24,76 @@
     {{ feedbackMessage }}
   </div>
 
+  <!-- Project Containers Row: Displays each project container and its remaining follow-ups -->
+  <div class="project-containers-section">
+    <div class="project-containers-header">
+      <div class="p-header-left">
+        <span class="p-header-label">PROJECT CONTAINERS &bull; REMAINING FOLLOW-UPS</span>
+        <span class="p-header-sub">Isolate and track remaining follow-ups dedicated to each project development container</span>
+      </div>
+      <div class="p-header-right" *ngIf="selectedProjectId !== 'all'">
+        <button type="button" class="btn-reset-proj" (click)="setProjectFilter('all')">
+          <mat-icon>clear_all</mat-icon> View All Developments
+        </button>
+      </div>
+    </div>
+
+    <div class="project-cards-container">
+      <!-- Universal All Projects Container Card -->
+      <div
+        class="project-card-container"
+        [class.active-container]="selectedProjectId === 'all'"
+        (click)="setProjectFilter('all')"
+      >
+        <div class="proj-card-top">
+          <div class="proj-icon-wrapper" [class.active-icon]="selectedProjectId === 'all'">
+            <mat-icon>domain_add</mat-icon>
+          </div>
+          <div class="proj-card-info">
+            <span class="proj-title">All Project Containers</span>
+            <span class="proj-sub">Portfolio Overview</span>
+          </div>
+        </div>
+        <div class="proj-card-bottom">
+          <span class="badge-rem-sla" [class.badge-has-pending]="getPendingCountForProject('all') > 0">
+            <mat-icon class="badge-mini-icon">{{ getPendingCountForProject('all') > 0 ? 'alarm' : 'check_circle' }}</mat-icon>
+            {{ getPendingCountForProject('all') }} Pending SLAs
+          </span>
+          <span class="proj-total-lbl">{{ allTasks.length }} Total Tasks</span>
+        </div>
+      </div>
+
+      <!-- Individual Project Container Cards -->
+      <div
+        *ngFor="let p of projects"
+        class="project-card-container"
+        [class.active-container]="selectedProjectId == (p.project_id || p.id)"
+        (click)="setProjectFilter(p.project_id || p.id)"
+      >
+        <div class="proj-card-top">
+          <div class="proj-icon-wrapper" [class.active-icon]="selectedProjectId == (p.project_id || p.id)">
+            <mat-icon>apartment</mat-icon>
+          </div>
+          <div class="proj-card-info">
+            <span class="proj-title" [title]="p.name">{{ p.name }}</span>
+            <span class="proj-sub">{{ p.code || 'BLR' }} &middot; {{ p.location || 'Bengaluru' }}</span>
+          </div>
+        </div>
+        <div class="proj-card-bottom">
+          <span
+            class="badge-rem-sla"
+            [class.badge-has-pending]="getPendingCountForProject(p.project_id || p.id) > 0"
+            [class.badge-zero]="getPendingCountForProject(p.project_id || p.id) === 0"
+          >
+            <mat-icon class="badge-mini-icon">{{ getPendingCountForProject(p.project_id || p.id) > 0 ? 'schedule' : 'task_alt' }}</mat-icon>
+            {{ getPendingCountForProject(p.project_id || p.id) }} Remaining
+          </span>
+          <span class="proj-total-lbl">{{ getTotalCountForProject(p.project_id || p.id) }} Total</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Filter & Search Toolbar - Space Optimized -->
   <div class="filters-bar">
     <div class="filter-pills-group">
@@ -54,6 +124,22 @@
         <span>All Tasks</span>
         <span class="pill-count">{{ totalCount }}</span>
       </button>
+
+      <!-- Project Quick Filter Dropdown -->
+      <div class="project-quick-select-wrap">
+        <mat-icon class="proj-select-icon">domain</mat-icon>
+        <select
+          [ngModel]="selectedProjectId"
+          (ngModelChange)="setProjectFilter($event)"
+          class="project-native-select"
+        >
+          <option value="all">Container: All Projects ({{ getPendingCountForProject('all') }} remaining)</option>
+          <option *ngFor="let p of projects" [value]="p.project_id || p.id">
+            {{ p.name }} &mdash; {{ getPendingCountForProject(p.project_id || p.id) }} Remaining
+          </option>
+        </select>
+        <mat-icon class="proj-select-arrow">arrow_drop_down</mat-icon>
+      </div>
     </div>
 
     <!-- Search Input -->
@@ -63,7 +149,7 @@
         type="text"
         [(ngModel)]="searchQuery"
         (ngModelChange)="currentPage = 1"
-        placeholder="Search task, buyer, rep..."
+        placeholder="Search task, buyer, project, rep..."
         class="search-text-input"
       />
       <button *ngIf="searchQuery" type="button" class="search-clear-btn" (click)="searchQuery = ''; currentPage = 1" title="Clear search">
@@ -81,6 +167,7 @@
           <tr>
             <th class="col-task">TASK &amp; FOLLOW-UP REQUIREMENT</th>
             <th class="col-buyer">BUYER CONTEXT</th>
+            <th class="col-project">PROJECT CONTAINER</th>
             <th class="col-sla">COUNTDOWN SLA</th>
             <th class="col-priority">PRIORITY</th>
             <th class="col-rep">ASSIGNED REP</th>
@@ -112,6 +199,26 @@
                 </div>
                 <div class="buyer-contact" *ngIf="task.buyer">
                   {{ task.buyer.preferred_bhk || 'Flexible BHK' }} &middot; Max ₹{{ task.buyer.budget_max_lacs || '150' }}L
+                </div>
+              </div>
+            </td>
+            <td class="col-project">
+              <div class="project-tag-box" [title]="getTaskProjectName(task)">
+                <div class="project-tag-main">
+                  <mat-icon class="project-tag-icon">domain</mat-icon>
+                  <span class="project-tag-name">{{ getTaskProjectName(task) }}</span>
+                </div>
+                <div class="project-tag-sub" *ngIf="getTaskProjectLocation(task) || getTaskProjectCode(task)">
+                  <span *ngIf="getTaskProjectCode(task)" class="proj-code-badge">{{ getTaskProjectCode(task) }}</span>
+                  <span *ngIf="getTaskProjectLocation(task)">{{ getTaskProjectLocation(task) }}</span>
+                </div>
+                <div class="project-tag-status">
+                  <span *ngIf="task.status === 'PENDING'" class="status-remain-badge">
+                    <span class="status-dot-pulse"></span> Follow-up Remaining
+                  </span>
+                  <span *ngIf="task.status === 'COMPLETED'" class="status-cleared-badge">
+                    &#10003; Follow-up Resolved
+                  </span>
                 </div>
               </div>
             </td>
@@ -432,6 +539,10 @@
         <div class="selected-prospect-banner" *ngIf="getSelectedBuyer() as buyer">
           <div style="font-weight: 700; color: #0f172a; font-size: 0.92rem;">{{ buyer.full_name }}</div>
           <div class="prospect-meta-chips">
+            <span class="meta-chip meta-chip-proj">
+              <mat-icon style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle;">domain</mat-icon>
+              Container: <strong>{{ getBuyerProjectName(buyer) }}</strong>
+            </span>
             <span class="meta-chip">Intent: <strong>{{ buyer.intent_score || 95 }}</strong> {{ (buyer.intent_delta !== undefined ? buyer.intent_delta : 5) >= 0 ? '▲' : '▼' }} {{ buyer.intent_delta || 5 }}</span>
             <span class="meta-chip">Stage: <strong>{{ buyer.stage || 'New' }}</strong></span>
             <span class="meta-chip">Requirement: <strong>{{ buyer.preferred_bhk || '3 BHK' }}</strong></span>
