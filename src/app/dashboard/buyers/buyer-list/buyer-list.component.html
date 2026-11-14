@@ -182,13 +182,7 @@
     <div class="filter-dropdown-wrap">
       <select [(ngModel)]="selectedSource" class="filter-native-select" (change)="currentPage = 1">
         <option value="all">Source: All sources</option>
-        <option value="Google Ads">Google Ads</option>
-        <option value="Meta Ads">Meta Ads</option>
-        <option value="Referral">Referral</option>
-        <option value="SimpliQualify">SimpliQualify</option>
-        <option value="Website">Website</option>
-        <option value="Instagram">Instagram</option>
-        <option value="Property Portal">Property Portal</option>
+        <option *ngFor="let src of availableSources" [value]="src">{{ src }}</option>
       </select>
       <mat-icon class="dropdown-arrow-icon">arrow_drop_down</mat-icon>
     </div>
