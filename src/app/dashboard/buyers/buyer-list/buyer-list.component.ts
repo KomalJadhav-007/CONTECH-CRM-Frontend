@@ -121,6 +121,41 @@ export class BuyerListComponent implements OnInit {
 
   prospects: any[] = [];
 
+  get availableSources(): string[] {
+    const baseSources = [
+      'Google Ads',
+      'Meta Ads',
+      'Referral',
+      'SimpliQualify',
+      'Website',
+      'Instagram',
+      'Property Portal',
+      'Broker'
+    ];
+    let customSources: string[] = [];
+    try {
+      const stored = localStorage.getItem('contech_custom_lead_sources');
+      customSources = stored ? JSON.parse(stored) : [];
+    } catch {
+      customSources = [];
+    }
+    const prospectSources = (this.prospects || [])
+      .map(p => (p?.source || '').trim())
+      .filter(Boolean);
+
+    const seen = new Set<string>();
+    const result: string[] = [];
+    for (const src of [...baseSources, ...customSources, ...prospectSources]) {
+      const trimmed = String(src || '').trim();
+      const key = trimmed.toLowerCase();
+      if (trimmed && !seen.has(key)) {
+        seen.add(key);
+        result.push(trimmed);
+      }
+    }
+    return result;
+  }
+
   ngOnInit(): void {
     this.loadOwners();
     this.loadProjects();
