@@ -12,16 +12,6 @@
       </p>
     </div>
     <div class="top-actions">
-      <!-- Project Filter Dropdown for Super Admin & Admin -->
-      <div class="filter-dropdown-wrap project-dropdown-wrap" *ngIf="isAdminOrSuperAdmin && projectsList.length > 0">
-        <mat-icon class="dropdown-prefix-icon">business</mat-icon>
-        <select [(ngModel)]="selectedProject" class="filter-native-select" (change)="onProjectFilterChange()">
-          <option value="all">All Projects ({{ projectsList.length }})</option>
-          <option *ngFor="let prj of projectsList" [value]="prj.project_id || prj.id">{{ prj.name }}</option>
-        </select>
-        <mat-icon class="dropdown-arrow-icon">arrow_drop_down</mat-icon>
-      </div>
-
       <button mat-stroked-button type="button" class="btn-refresh" (click)="loadTrips()">
         <mat-icon>refresh</mat-icon> Refresh Trips
       </button>
@@ -64,6 +54,16 @@
       >
         Completed ({{ completedTripsCount }})
       </button>
+    </div>
+
+    <!-- Project Filter Dropdown in Filter Bar (Right-aligned) -->
+    <div class="filter-dropdown-wrap project-dropdown-wrap" *ngIf="isAdminOrSuperAdmin && projectsList.length > 0">
+      <mat-icon class="dropdown-prefix-icon">business</mat-icon>
+      <select [(ngModel)]="selectedProject" class="filter-native-select" (change)="onProjectFilterChange()">
+        <option value="all">All Projects ({{ projectsList.length }})</option>
+        <option *ngFor="let prj of projectsList" [value]="prj.project_id || prj.id">{{ prj.name }}</option>
+      </select>
+      <mat-icon class="dropdown-arrow-icon">arrow_drop_down</mat-icon>
     </div>
   </div>
 
