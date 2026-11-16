@@ -1,6 +1,9 @@
 .prospects-page-wrapper {
   padding: 1.25rem 1.75rem 3rem 1.75rem;
+  width: 100%;
   max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
   margin: 0 auto;
   box-sizing: border-box;
   font-family: var(--font-main, 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
@@ -388,16 +391,29 @@
 
 /* Filters Toolbar */
 .filters-toolbar {
-  display: flex;
-  gap: 0.75rem;
+  display: grid;
+  grid-template-columns: minmax(220px, 1.5fr) repeat(5, minmax(135px, 1fr));
+  gap: 0.65rem;
   margin-bottom: 1.25rem;
-  flex-wrap: wrap;
   align-items: center;
+  width: 100%;
+}
+
+@media (max-width: 1200px) {
+  .filters-toolbar {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .filters-toolbar {
+    grid-template-columns: 1fr;
+  }
 }
 
 .search-input-box {
-  flex: 1 1 280px;
-  max-width: 400px;
+  width: 100%;
+  min-width: 0;
   position: relative;
   display: flex;
   align-items: center;
@@ -407,6 +423,7 @@
   height: 40px;
   padding: 0 0.75rem;
   transition: all 0.15s ease;
+  box-sizing: border-box;
 }
 
 .search-input-box:focus-within {
@@ -460,13 +477,17 @@
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   height: 40px;
-  padding: 0 0.65rem 0 0.75rem;
-  min-width: 170px;
+  padding: 0 0.55rem 0 0.65rem;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   transition: all 0.15s ease;
 }
 
-.intent-dropdown-wrap { min-width: 210px; }
-.owner-dropdown-wrap { min-width: 180px; }
+.intent-dropdown-wrap,
+.owner-dropdown-wrap {
+  min-width: 0;
+}
 
 .filter-dropdown-wrap:focus-within {
   border-color: #0f172a;
@@ -524,7 +545,7 @@
 
 .prospects-table {
   width: 100%;
-  min-width: 1140px;
+  min-width: 960px;
   border-collapse: collapse;
   font-size: 0.82rem;
   text-align: left;
@@ -2079,7 +2100,7 @@
    ========================================================================== */
 
 .project-dropdown-wrap {
-  min-width: 190px;
+  min-width: 0;
 }
 
 .view-mode-toggle-wrap {
@@ -2089,8 +2110,8 @@
   padding: 3px;
   border-radius: 8px;
   border: 1px solid #e2e8f0;
-  margin-left: auto;
   gap: 2px;
+  flex-shrink: 0;
 }
 
 .view-toggle-btn {

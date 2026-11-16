@@ -118,6 +118,7 @@
       (click)="setQuickTab('visits')"
     >
       <span>Site Visits</span>
+      <span class="tab-badge">{{ getVisitsCount() }}</span>
     </button>
     <button
       type="button"
@@ -126,6 +127,7 @@
       (click)="setQuickTab('negotiation')"
     >
       <span>Negotiations</span>
+      <span class="tab-badge">{{ getNegotiationCount() }}</span>
     </button>
     <button
       type="button"
@@ -134,7 +136,7 @@
       (click)="setQuickTab('sla')"
     >
       <span>SLA Breached</span>
-      <span class="tab-badge badge-danger" *ngIf="getSlaBreachedCount() > 0">{{ getSlaBreachedCount() }}</span>
+      <span class="tab-badge" [class.badge-danger]="getSlaBreachedCount() > 0">{{ getSlaBreachedCount() }}</span>
     </button>
 
     <div class="quick-tabs-spacer"></div>
@@ -143,6 +145,37 @@
       <mat-icon>filter_alt_off</mat-icon>
       <span>Reset Filters</span>
     </button>
+
+    <!-- View Mode Switcher aligned cleanly on Quick Tabs bar -->
+    <div class="view-mode-toggle-wrap">
+      <button 
+        type="button" 
+        class="view-toggle-btn" 
+        [class.active]="viewMode === 'project_grid'" 
+        (click)="viewMode = 'project_grid'"
+        matTooltip="View Interactive Project Cards: Click a card to view its prospects">
+        <mat-icon class="toggle-icon">grid_view</mat-icon>
+        <span>Project Cards</span>
+      </button>
+      <button 
+        type="button" 
+        class="view-toggle-btn" 
+        [class.active]="viewMode === 'project_cards'" 
+        (click)="viewMode = 'project_cards'"
+        matTooltip="View Prospects grouped in Project Containers">
+        <mat-icon class="toggle-icon">view_agenda</mat-icon>
+        <span>Project Containers</span>
+      </button>
+      <button 
+        type="button" 
+        class="view-toggle-btn" 
+        [class.active]="viewMode === 'table'" 
+        (click)="viewMode = 'table'"
+        matTooltip="View Flat Table of All Prospects">
+        <mat-icon class="toggle-icon">table_chart</mat-icon>
+        <span>All Prospects</span>
+      </button>
+    </div>
   </div>
 
   <!-- Sleek Modern Filter Toolbar (No Truncation) -->
@@ -215,37 +248,6 @@
         <option *ngFor="let prj of projectsList" [value]="prj.project_id || prj.id">{{ prj.name }}</option>
       </select>
       <mat-icon class="dropdown-arrow-icon">arrow_drop_down</mat-icon>
-    </div>
-
-    <!-- View Mode Switcher -->
-    <div class="view-mode-toggle-wrap">
-      <button 
-        type="button" 
-        class="view-toggle-btn" 
-        [class.active]="viewMode === 'project_grid'" 
-        (click)="viewMode = 'project_grid'"
-        matTooltip="View Interactive Project Cards: Click a card to view its prospects">
-        <mat-icon class="toggle-icon">grid_view</mat-icon>
-        <span>Project Cards</span>
-      </button>
-      <button 
-        type="button" 
-        class="view-toggle-btn" 
-        [class.active]="viewMode === 'project_cards'" 
-        (click)="viewMode = 'project_cards'"
-        matTooltip="View Prospects grouped in Project Containers">
-        <mat-icon class="toggle-icon">view_agenda</mat-icon>
-        <span>Project Containers</span>
-      </button>
-      <button 
-        type="button" 
-        class="view-toggle-btn" 
-        [class.active]="viewMode === 'table'" 
-        (click)="viewMode = 'table'"
-        matTooltip="View Flat Table of All Prospects">
-        <mat-icon class="toggle-icon">table_chart</mat-icon>
-        <span>All Prospects</span>
-      </button>
     </div>
   </div>
 

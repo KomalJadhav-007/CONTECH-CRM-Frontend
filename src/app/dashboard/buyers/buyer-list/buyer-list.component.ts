@@ -333,7 +333,7 @@ export class BuyerListComponent implements OnInit {
 
   // --- Executive KPI Summary Computations ---
   getVeryHighIntentCount(): number {
-    return this.prospects.filter(p => p.score >= 90).length;
+    return this.prospects.filter(p => p.score >= 85).length;
   }
 
   getTotalExposureAtRisk(): string {
@@ -357,7 +357,18 @@ export class BuyerListComponent implements OnInit {
 
   getVisitsAndNegotiationCount(): number {
     return this.prospects.filter(p =>
-      ['Site Visit Scheduled', 'Visit Completed', 'Negotiation', 'Booking Intent'].includes(p.stage)
+      ['Site Visit Scheduled', 'Visit Completed', 'Negotiation', 'Booking Intent', 'Booked'].includes(p.stage) ||
+      (p.stage || '').includes('Visit')
+    ).length;
+  }
+
+  getVisitsCount(): number {
+    return this.prospects.filter(p => (p.stage || '').includes('Visit')).length;
+  }
+
+  getNegotiationCount(): number {
+    return this.prospects.filter(p =>
+      p.stage === 'Negotiation' || p.stage === 'Booking Intent' || p.stage === 'Booked'
     ).length;
   }
 
@@ -507,16 +518,16 @@ export class BuyerListComponent implements OnInit {
   }
 
   getScoreClass(score: number): string {
-    if (score >= 90) return 'score-very-high';
-    if (score >= 80) return 'score-high';
-    if (score >= 65) return 'score-qualified';
+    if (score >= 85) return 'score-very-high';
+    if (score >= 75) return 'score-high';
+    if (score >= 60) return 'score-qualified';
     return 'score-warm';
   }
 
   getScoreBarClass(score: number): string {
-    if (score >= 90) return 'bar-very-high';
-    if (score >= 80) return 'bar-high';
-    if (score >= 65) return 'bar-qualified';
+    if (score >= 85) return 'bar-very-high';
+    if (score >= 75) return 'bar-high';
+    if (score >= 60) return 'bar-qualified';
     return 'bar-warm';
   }
 
