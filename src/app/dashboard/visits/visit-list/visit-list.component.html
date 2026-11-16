@@ -82,19 +82,32 @@
       </button>
     </div>
 
-    <!-- Search Input -->
-    <div class="search-input-box">
-      <mat-icon class="search-box-icon">search</mat-icon>
-      <input
-        type="text"
-        [(ngModel)]="searchQuery"
-        (ngModelChange)="currentPage = 1"
-        placeholder="Search buyer, project, driver..."
-        class="search-text-input"
-      />
-      <button *ngIf="searchQuery" type="button" class="search-clear-btn" (click)="searchQuery = ''; currentPage = 1" title="Clear search">
-        <mat-icon>close</mat-icon>
-      </button>
+    <!-- Right Controls: Project Filter & Search Input -->
+    <div class="filters-right-group">
+      <!-- Project Filter Dropdown for Super Admin & Admin -->
+      <div class="filter-dropdown-wrap project-dropdown-wrap" *ngIf="isAdminOrSuperAdmin && projectsList.length > 0">
+        <mat-icon class="dropdown-prefix-icon">business</mat-icon>
+        <select [(ngModel)]="selectedProject" class="filter-native-select" (change)="onProjectFilterChange()">
+          <option value="all">All Projects ({{ projectsList.length }})</option>
+          <option *ngFor="let prj of projectsList" [value]="prj.project_id || prj.id">{{ prj.name }}</option>
+        </select>
+        <mat-icon class="dropdown-arrow-icon">arrow_drop_down</mat-icon>
+      </div>
+
+      <!-- Search Input -->
+      <div class="search-input-box">
+        <mat-icon class="search-box-icon">search</mat-icon>
+        <input
+          type="text"
+          [(ngModel)]="searchQuery"
+          (ngModelChange)="currentPage = 1"
+          placeholder="Search buyer, project, driver..."
+          class="search-text-input"
+        />
+        <button *ngIf="searchQuery" type="button" class="search-clear-btn" (click)="searchQuery = ''; currentPage = 1" title="Clear search">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
     </div>
   </div>
 

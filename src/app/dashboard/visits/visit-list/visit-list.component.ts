@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { VisitService } from '../visit.service';
+import { AuthService } from '../../../auth/auth.service';
+import { SettingsService } from '../../../settings/settings.service';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -40,6 +42,8 @@ import { MatDividerModule } from '@angular/material/divider';
 })
 export class VisitListComponent implements OnInit {
   private visitService = inject(VisitService);
+  private authService = inject(AuthService);
+  private settingsService = inject(SettingsService);
   private route = inject(ActivatedRoute);
 
   loading = true;
@@ -48,6 +52,12 @@ export class VisitListComponent implements OnInit {
   feedbackMessage = '';
   lastWaUrl = '';
 
+  // Project Filtering for Super Admin & Admin
+  currentUser: any = null;
+  isAdminOrSuperAdmin = false;
+  projectsList: any[] = [];
+  selectedProject: string | number = 'all';
+
   // Pagination & Search State
   currentPage = 1;
   pageSize = 10;
@@ -55,6 +65,12 @@ export class VisitListComponent implements OnInit {
 
   get filteredVisits(): any[] {
     let list = this.visits;
+    if (this.selectedProject && this.selectedProject !== 'all') {
+      list = list.filter((v: any) => {
+        const pid = v.project_id || v.project?.project_id || v.project?.id;
+        return String(pid) === String(this.selectedProject);
+      });
+    }
     if (this.filterStatus) {
       if (this.filterStatus === 'CANCELLED') {
         list = list.filter((v: any) => v.status === 'CANCELLED' || v.status === 'NO_SHOW');
@@ -91,6 +107,13 @@ export class VisitListComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.currentUser = this.authService.getCurrentUser();
+    const role = String(this.currentUser?.role || this.currentUser?.role_code || '').toUpperCase();
+    this.isAdminOrSuperAdmin = ['SUPER_ADMIN', 'ORG_ADMIN', 'DIRECTOR', 'ADMIN', 'MANAGEMENT', 'SALES_HEAD', 'SALES_MANAGER', 'SITE_VISIT_COORDINATOR'].includes(role) || !role.includes('DRIVER');
+
+    if (this.isAdminOrSuperAdmin) {
+      this.loadProjects();
+    }
     this.loadTimeSlots();
     this.loadVisits();
     const waSent = this.route.snapshot.queryParamMap.get('whatsapp_sent');
@@ -103,10 +126,34 @@ export class VisitListComponent implements OnInit {
     }
   }
 
+  loadProjects(): void {
+    this.settingsService.getSettings().subscribe({
+      next: (res: any) => {
+        if (res && res.projects && res.projects.length > 0) {
+          this.projectsList = res.projects.map((p: any) => ({
+            project_id: p.project_id || p.id,
+            id: p.project_id || p.id,
+            name: p.name,
+            code: p.code || '',
+            location: p.location || ''
+          }));
+        }
+      }
+    });
+  }
+
+  onProjectFilterChange(): void {
+    this.currentPage = 1;
+    this.loadVisits();
+  }
+
   loadVisits(): void {
     this.loading = true;
     const params: any = {};
     if (this.filterStatus) params.status = this.filterStatus;
+    if (this.selectedProject && this.selectedProject !== 'all') {
+      params.project_id = this.selectedProject;
+    }
 
     this.visitService.getSiteVisits(params).subscribe({
       next: (res) => {

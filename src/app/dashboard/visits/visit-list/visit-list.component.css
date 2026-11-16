@@ -95,6 +95,64 @@
   flex-wrap: wrap;
 }
 
+.filters-right-group {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.filter-dropdown-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  height: 34px;
+  padding: 0 0.65rem;
+  transition: all 0.15s ease;
+  min-width: 200px;
+}
+
+.filter-dropdown-wrap:focus-within {
+  border-color: #0f172a;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.08);
+}
+
+.dropdown-prefix-icon {
+  font-size: 17px;
+  width: 17px;
+  height: 17px;
+  color: #64748b;
+  margin-right: 0.35rem;
+  flex-shrink: 0;
+}
+
+.filter-native-select {
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1e293b;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  padding-right: 1.4rem;
+}
+
+.dropdown-arrow-icon {
+  position: absolute;
+  right: 0.45rem;
+  pointer-events: none;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #64748b;
+}
+
 .search-input-box {
   display: flex;
   align-items: center;
