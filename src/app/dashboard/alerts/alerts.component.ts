@@ -205,13 +205,27 @@ export class AlertsComponent implements OnInit {
     });
   }
 
+  // Format a Date into local YYYY-MM-DDTHH:mm for datetime-local inputs
+  toLocalISOString(date: Date): string {
+    const tzOffset = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
+  }
+
+  openDateTimePicker(inputEl: HTMLInputElement): void {
+    if (inputEl && typeof (inputEl as any).showPicker === 'function') {
+      try {
+        (inputEl as any).showPicker();
+      } catch (_) {}
+    }
+  }
+
   // Open Schedule Follow-Up Modal
   openScheduleModal(buyer: any, defaultTitle = 'Urgent Follow-Up Call'): void {
     const buyerId = buyer.buyer_id || buyer.id;
     const now = new Date();
-    // Default 4 hours from now in ISO local string
+    // Default 4 hours from now in local time string
     const fourHoursLater = new Date(now.getTime() + 4 * 60 * 60 * 1000);
-    const dateFormatted = fourHoursLater.toISOString().slice(0, 16);
+    const dateFormatted = this.toLocalISOString(fourHoursLater);
 
     this.scheduleForm = {
       buyer_id: buyerId,
@@ -230,14 +244,14 @@ export class AlertsComponent implements OnInit {
   setQuickDue(hours: number): void {
     this.scheduleForm.countdown_hours = hours;
     const target = new Date(Date.now() + hours * 60 * 60 * 1000);
-    this.scheduleForm.due_date = target.toISOString().slice(0, 16);
+    this.scheduleForm.due_date = this.toLocalISOString(target);
   }
 
   setQuickDueTomorrow(): void {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(10, 0, 0, 0);
-    this.scheduleForm.due_date = tomorrow.toISOString().slice(0, 16);
+    this.scheduleForm.due_date = this.toLocalISOString(tomorrow);
     this.scheduleForm.countdown_hours = 24;
   }
 
@@ -252,16 +266,20 @@ export class AlertsComponent implements OnInit {
     }
 
     this.submittingAction = true;
+    const resolvedDueIso = this.scheduleForm.due_date
+      ? new Date(this.scheduleForm.due_date).toISOString()
+      : new Date(Date.now() + (this.scheduleForm.countdown_hours || 4) * 3600000).toISOString();
+
     this.alertService.scheduleFollowUp({
       buyer_id: this.scheduleForm.buyer_id,
       title: this.scheduleForm.title,
-      due_at: this.scheduleForm.due_date,
+      due_at: resolvedDueIso,
       countdown_hours: this.scheduleForm.countdown_hours,
       priority: this.scheduleForm.priority,
       assigned_to_id: this.scheduleForm.assigned_to_id,
       description: this.scheduleForm.description
     }).subscribe({
-      next: (res) => {
+      next: () => {
         this.submittingAction = false;
         this.closeScheduleModal();
         this.showToast(`Follow-up scheduled for ${this.scheduleForm.buyer_name}!`);
@@ -292,7 +310,7 @@ export class AlertsComponent implements OnInit {
       manual_intent_band: (task.buyer?.intent_score || 95) >= 80 ? 'HIGH' : 'MEDIUM',
       schedule_next: true,
       next_title: `Next Touchpoint with ${task.buyer ? task.buyer.full_name : 'Buyer'}`,
-      next_date: tomorrow.toISOString().slice(0, 16)
+      next_date: this.toLocalISOString(tomorrow)
     };
     this.showCompleteModal = true;
   }

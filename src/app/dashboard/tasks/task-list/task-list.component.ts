@@ -164,6 +164,19 @@ export class TaskListComponent implements OnInit {
     return this.prospectsList.find(b => (b.buyer_id || b.id) == this.createForm.buyer_id) || null;
   }
 
+  toLocalISOString(date: Date): string {
+    const tzOffset = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
+  }
+
+  openDateTimePicker(inputEl: HTMLInputElement): void {
+    if (inputEl && typeof (inputEl as any).showPicker === 'function') {
+      try {
+        (inputEl as any).showPicker();
+      } catch (_) {}
+    }
+  }
+
   openCreateModal(): void {
     const fourHoursLater = new Date(Date.now() + 4 * 60 * 60 * 1000);
     const defaultBuyer = this.prospectsList[0] || null;
@@ -176,7 +189,7 @@ export class TaskListComponent implements OnInit {
       assigned_to_id: defaultBuyer?.assigned_rep_id || (this.salesRepsList[0]?.user_id || null),
       priority: 'HIGH',
       countdown_hours: 4,
-      due_at: fourHoursLater.toISOString().slice(0, 16)
+      due_at: this.toLocalISOString(fourHoursLater)
     };
 
     this.createTaskModalOpen = true;
@@ -215,7 +228,7 @@ export class TaskListComponent implements OnInit {
   setCreateCountdown(hours: number): void {
     this.createForm.countdown_hours = hours;
     const target = new Date(Date.now() + hours * 60 * 60 * 1000);
-    this.createForm.due_at = target.toISOString().slice(0, 16);
+    this.createForm.due_at = this.toLocalISOString(target);
   }
 
   submitCreateTask(): void {
@@ -393,7 +406,7 @@ export class TaskListComponent implements OnInit {
     this.next_follow_up_title = `Next Follow-up Call for ${task.buyer?.full_name || 'Prospect'}`;
     const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
     tomorrow.setHours(11, 0, 0, 0);
-    this.next_follow_up_date = tomorrow.toISOString().slice(0, 16);
+    this.next_follow_up_date = this.toLocalISOString(tomorrow);
     this.next_follow_up_priority = task.priority || 'HIGH';
     this.completeTaskModalOpen = true;
   }

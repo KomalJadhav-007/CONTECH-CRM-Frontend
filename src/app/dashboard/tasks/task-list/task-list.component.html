@@ -462,7 +462,22 @@
             <div class="form-row-2">
               <mat-form-field appearance="outline" class="w-100">
                 <mat-label>Next Due Date &amp; Time</mat-label>
-                <input matInput type="datetime-local" [(ngModel)]="next_follow_up_date" />
+                <input
+                  #nextTaskDateInput
+                  matInput
+                  type="datetime-local"
+                  [(ngModel)]="next_follow_up_date"
+                  (click)="openDateTimePicker(nextTaskDateInput)"
+                />
+                <button
+                  mat-icon-button
+                  matSuffix
+                  type="button"
+                  (click)="openDateTimePicker(nextTaskDateInput); $event.stopPropagation()"
+                  matTooltip="Open Date & Time Picker"
+                >
+                  <mat-icon>calendar_month</mat-icon>
+                </button>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="w-100">
@@ -606,7 +621,22 @@
           </div>
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Exact Target Date &amp; Time</mat-label>
-            <input matInput type="datetime-local" [(ngModel)]="createForm.due_at" />
+            <input
+              #createDueAtInput
+              matInput
+              type="datetime-local"
+              [(ngModel)]="createForm.due_at"
+              (click)="openDateTimePicker(createDueAtInput)"
+            />
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              (click)="openDateTimePicker(createDueAtInput); $event.stopPropagation()"
+              matTooltip="Open Date & Time Picker"
+            >
+              <mat-icon>calendar_month</mat-icon>
+            </button>
           </mat-form-field>
         </div>
       </div>
