@@ -56,6 +56,10 @@ export class ProjectsComponent implements OnInit {
 
   loading = false;
   feedbackMessage = '';
+  feedbackType: 'success' | 'delete' | 'warning' | 'info' = 'success';
+  showDeleteTypologyModal = false;
+  typologyIndexToDelete: number | null = null;
+  typologyNameToDelete = '';
   editingProjectId: number | null = null;
   editForm: any = {};
   accessScope: any = null;
@@ -760,27 +764,60 @@ export class ProjectsComponent implements OnInit {
   // --- Add Project Form Actions ---
   addPropertyTypeRow(): void {
     const nextWing = String.fromCharCode(65 + (this.newProjectPropertyTypes.length % 26));
+    const nextIndex = this.newProjectPropertyTypes.length + 1;
+    const label = this.getTypologyAddLabel();
+    const configName = `${nextIndex === 2 ? '3 BHK Premium' : nextIndex === 3 ? '4 BHK Luxury Penthouse' : '2 BHK Executive'} (Config #${nextIndex})`;
+
     this.newProjectPropertyTypes.push({
-      name: '4 BHK Luxury Penthouse',
-      bhk_type: '4 BHK',
+      name: configName,
+      bhk_type: nextIndex === 2 ? '3 BHK' : nextIndex === 3 ? '4 BHK' : '2 BHK',
       carpet_area_sqft: 2200,
       super_builtup_area_sqft: 2750,
       base_price_lacs: 280,
       total_units: 15,
       facing: 'Panoramic Park Facing',
-      tower_wing: `Tower ${nextWing} / Wing ${this.newProjectPropertyTypes.length + 1}`,
+      tower_wing: `Tower ${nextWing} / Wing ${nextIndex}`,
       floor_range: 'Floors 12-24',
       front_road_width: '40 ft Road',
       plot_location: 'Center / Intermediate Plot'
     });
     this.syncConfigurationsText();
+    this.showFeedback(`${label} #${nextIndex} ("${configName}") added successfully!`, 'success');
+  }
+
+  confirmDeletePropertyTypeRow(index: number): void {
+    if (this.newProjectPropertyTypes.length <= 1) {
+      this.showFeedback('At least one property configuration is required for a project.', 'warning');
+      return;
+    }
+    const item = this.newProjectPropertyTypes[index];
+    this.typologyIndexToDelete = index;
+    const label = this.getTypologyAddLabel();
+    this.typologyNameToDelete = item.name || `${item.bhk_type || label} (Config #${index + 1})`;
+    this.showDeleteTypologyModal = true;
+  }
+
+  cancelDeleteTypology(): void {
+    this.showDeleteTypologyModal = false;
+    this.typologyIndexToDelete = null;
+    this.typologyNameToDelete = '';
+  }
+
+  executeDeletePropertyType(): void {
+    if (this.typologyIndexToDelete !== null && this.typologyIndexToDelete >= 0) {
+      const deletedName = this.typologyNameToDelete;
+      const label = this.getTypologyAddLabel();
+      this.newProjectPropertyTypes.splice(this.typologyIndexToDelete, 1);
+      this.syncConfigurationsText();
+      this.showFeedback(`${label} "${deletedName}" deleted successfully.`, 'delete');
+    }
+    this.showDeleteTypologyModal = false;
+    this.typologyIndexToDelete = null;
+    this.typologyNameToDelete = '';
   }
 
   removePropertyTypeRow(index: number): void {
-    if (this.newProjectPropertyTypes.length > 1) {
-      this.newProjectPropertyTypes.splice(index, 1);
-      this.syncConfigurationsText();
-    }
+    this.confirmDeletePropertyTypeRow(index);
   }
 
   syncConfigurationsText(): void {
@@ -1244,11 +1281,11 @@ export class ProjectsComponent implements OnInit {
     this.settingsService.deletePropertyType(this.activeProject.id, typeId).subscribe({
       next: () => {
         this.activeInventory.propertyTypes = this.activeInventory.propertyTypes.filter(t => (t.id || t.property_type_id) !== typeId);
-        this.showFeedback('Property configuration removed.');
+        this.showFeedback('Property configuration deleted.', 'delete');
       },
       error: () => {
         this.activeInventory.propertyTypes = this.activeInventory.propertyTypes.filter(t => (t.id || t.property_type_id) !== typeId);
-        this.showFeedback('Property configuration removed.');
+        this.showFeedback('Property configuration deleted.', 'delete');
       }
     });
   }
@@ -1291,12 +1328,17 @@ export class ProjectsComponent implements OnInit {
     this.customPurposeValue = '';
   }
 
-  private showFeedback(msg: string): void {
+  showFeedback(msg: string, type: 'success' | 'delete' | 'warning' | 'info' = 'success'): void {
     this.feedbackMessage = msg;
+    this.feedbackType = type;
     setTimeout(() => {
       if (this.feedbackMessage === msg) {
         this.feedbackMessage = '';
       }
-    }, 4000);
+    }, 4500);
+  }
+
+  dismissFeedback(): void {
+    this.feedbackMessage = '';
   }
 }

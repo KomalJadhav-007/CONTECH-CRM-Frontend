@@ -9,9 +9,11 @@
     </p>
   </div>
 
-  <!-- Feedback Message Banner -->
-  <div *ngIf="feedbackMessage" class="feedback-banner">
-    <span class="feedback-icon">✓</span> {{ feedbackMessage }}
+  <!-- Feedback Message Banner (In-flow) -->
+  <div *ngIf="feedbackMessage" class="feedback-banner" [ngClass]="'feedback-' + feedbackType">
+    <span class="feedback-icon">{{ feedbackType === 'delete' ? '🗑️' : feedbackType === 'warning' ? '⚠️' : '✓' }}</span>
+    <span class="feedback-text">{{ feedbackMessage }}</span>
+    <button type="button" class="feedback-dismiss-btn" (click)="dismissFeedback()" aria-label="Close banner">&times;</button>
   </div>
 
   <!-- Project Scope Alert Banner for Restricted Users -->
@@ -1032,6 +1034,64 @@
           <button mat-flat-button color="primary" type="button" (click)="openTypeModal()">+ Add Configuration
             Tier</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Popup Notification Toast (Always visible regardless of scroll) -->
+  <div *ngIf="feedbackMessage" class="feedback-floating-popup" [ngClass]="'popup-' + feedbackType" role="alert" aria-live="assertive">
+    <div class="popup-icon-wrap">
+      <mat-icon *ngIf="feedbackType === 'success'">check_circle</mat-icon>
+      <mat-icon *ngIf="feedbackType === 'delete'">delete_sweep</mat-icon>
+      <mat-icon *ngIf="feedbackType === 'warning'">warning</mat-icon>
+      <mat-icon *ngIf="feedbackType === 'info'">info</mat-icon>
+    </div>
+    <div class="popup-text-content">
+      <div class="popup-top-line">
+        <span class="popup-badge">{{ feedbackType === 'delete' ? 'Typology Deleted' : feedbackType === 'warning' ? 'Notice' : 'Typology Added' }}</span>
+        <button type="button" class="popup-close-btn" (click)="dismissFeedback()" aria-label="Close notification">&times;</button>
+      </div>
+      <div class="popup-msg">{{ feedbackMessage }}</div>
+    </div>
+  </div>
+
+  <!-- Delete Typology Confirmation Modal Popup -->
+  <div *ngIf="showDeleteTypologyModal" class="confirm-modal-overlay" (click)="cancelDeleteTypology()">
+    <div class="confirm-modal-box" (click)="$event.stopPropagation()">
+      <div class="confirm-modal-header danger-header">
+        <div class="confirm-header-icon-wrap">
+          <mat-icon>delete_forever</mat-icon>
+        </div>
+        <div class="confirm-header-titles">
+          <h3 class="confirm-modal-title">Delete {{ getTypologyAddLabel() }}?</h3>
+          <p class="confirm-modal-sub">Remove configuration from project builder</p>
+        </div>
+        <button type="button" class="confirm-modal-close" (click)="cancelDeleteTypology()" aria-label="Close modal">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="confirm-modal-body">
+        <div class="confirm-item-preview">
+          <mat-icon class="preview-item-icon">apartment</mat-icon>
+          <div class="preview-item-info">
+            <span class="preview-item-name">{{ typologyNameToDelete }}</span>
+            <span class="preview-item-tag">Configuration #{{ (typologyIndexToDelete ?? 0) + 1 }}</span>
+          </div>
+        </div>
+        <p class="confirm-prompt-text">
+          Are you sure you want to delete this {{ getTypologyAddLabel() | lowercase }}? All specified parameters (BHK, sqft, price, inventory) for this configuration will be removed from this project.
+        </p>
+      </div>
+
+      <div class="confirm-modal-footer">
+        <button type="button" class="btn-modal-cancel" (click)="cancelDeleteTypology()">
+          Cancel
+        </button>
+        <button type="button" class="btn-modal-delete-danger" (click)="executeDeletePropertyType()">
+          <mat-icon>delete</mat-icon>
+          <span>Delete {{ getTypologyAddLabel() }}</span>
+        </button>
       </div>
     </div>
   </div>
