@@ -1132,7 +1132,7 @@ mat-card.modal-card-manage {
 
 .custom-slot-time-pickers {
   display: grid;
-  grid-template-columns: 1fr 1fr 1.2fr;
+  grid-template-columns: 1fr 1fr;
   gap: 0.65rem;
   margin-bottom: 0.25rem;
 }

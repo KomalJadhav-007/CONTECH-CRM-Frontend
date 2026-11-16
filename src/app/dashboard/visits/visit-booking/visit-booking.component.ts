@@ -56,21 +56,18 @@ export class VisitBookingComponent implements OnInit {
   vehicles: any[] = [];
   selectedVehicleId: number | null = null;
 
-  scheduledDateTime: string = `${new Date().toISOString().split('T')[0]}T11:00`;
-
   defaultTimeSlots: string[] = [
-    '09:30 AM - 11:00 AM (Morning Slot)',
-    '11:00 AM - 12:30 PM (Peak Slot)',
-    '02:00 PM - 03:30 PM (Afternoon Slot)',
-    '04:00 PM - 05:30 PM (Evening Sunset Slot)'
+    '09:30 AM - 11:00 AM',
+    '11:00 AM - 12:30 PM',
+    '02:00 PM - 03:30 PM',
+    '04:00 PM - 05:30 PM'
   ];
   timeSlots: string[] = [];
   isCreatingCustomTimeSlot = false;
   newCustomTimeSlot = '';
   customSlotStartTime = '10:00';
   customSlotEndTime = '11:30';
-  customSlotLabel = 'Custom Slot';
-  previousTimeSlot = '11:00 AM - 12:30 PM (Peak Slot)';
+  previousTimeSlot = '11:00 AM - 12:30 PM';
 
   bookingData: any = {
     buyer_id: null,
@@ -79,7 +76,7 @@ export class VisitBookingComponent implements OnInit {
     driver_id: null,
     vehicle_id: null,
     scheduled_date: new Date().toISOString().split('T')[0],
-    time_slot: '11:00 AM - 12:30 PM (Peak Slot)',
+    time_slot: '11:00 AM - 12:30 PM',
     cab_required: true,
     cab_number: '',
     pickup_address: 'Customer Residence / Office',
@@ -102,13 +99,6 @@ export class VisitBookingComponent implements OnInit {
       try {
         (inputEl as any).showPicker();
       } catch (_) {}
-    }
-  }
-
-  onScheduledDateTimeChange(val: string): void {
-    this.scheduledDateTime = val;
-    if (val) {
-      this.bookingData.scheduled_date = val.split('T')[0];
     }
   }
 
@@ -143,9 +133,10 @@ export class VisitBookingComponent implements OnInit {
   updateCustomSlotPreview(): void {
     const start = this.formatTime12h(this.customSlotStartTime);
     const end = this.formatTime12h(this.customSlotEndTime);
-    const label = this.customSlotLabel.trim();
     if (start && end) {
-      this.newCustomTimeSlot = label ? `${start} - ${end} (${label})` : `${start} - ${end}`;
+      this.newCustomTimeSlot = `${start} - ${end}`;
+    } else if (start) {
+      this.newCustomTimeSlot = start;
     }
   }
 

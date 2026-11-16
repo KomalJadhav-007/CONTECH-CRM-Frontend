@@ -380,24 +380,24 @@
           </div>
 
           <div class="form-row-2" style="margin-top: 1rem;">
-            <!-- New Scheduled Date & Time -->
+            <!-- New Scheduled Date (Date Only) -->
             <mat-form-field appearance="outline" class="w-100">
-              <mat-label>New Scheduled Date &amp; Time *</mat-label>
+              <mat-label>New Scheduled Date *</mat-label>
               <input
-                #rescheduleDateTimeInput
+                #rescheduleDateInput
                 matInput
-                type="datetime-local"
-                [ngModel]="rescheduleDateTime"
-                (ngModelChange)="onRescheduleDateTimeChange($event)"
-                (click)="openDateTimePicker(rescheduleDateTimeInput)"
+                type="date"
+                [(ngModel)]="manageForm.new_date"
+                [min]="todayDateStr"
+                (click)="openDateTimePicker(rescheduleDateInput)"
                 required
               />
               <button
                 mat-icon-button
                 matSuffix
                 type="button"
-                (click)="openDateTimePicker(rescheduleDateTimeInput); $event.stopPropagation()"
-                matTooltip="Open Date & Time Picker"
+                (click)="openDateTimePicker(rescheduleDateInput); $event.stopPropagation()"
+                matTooltip="Open Date Picker"
               >
                 <mat-icon>calendar_month</mat-icon>
               </button>
@@ -427,8 +427,8 @@
           <div *ngIf="isCreatingCustomTimeSlot" class="custom-slot-banner">
             <div class="custom-slot-header">
               <div class="custom-slot-badge">
-                <mat-icon>add_circle</mat-icon>
-                <span>CREATE NEW WALKTHROUGH TIME SLOT</span>
+                <mat-icon>schedule</mat-icon>
+                <span>SELECT EXACT TIME FOR TIME SLOT</span>
               </div>
               <button mat-icon-button type="button" class="btn-close-slot" (click)="cancelCustomTimeSlot()" matTooltip="Close">
                 <mat-icon>close</mat-icon>
@@ -438,7 +438,7 @@
             <div class="custom-slot-body">
               <div class="custom-slot-time-pickers">
                 <mat-form-field appearance="outline" class="slot-picker-field">
-                  <mat-label>Start Time</mat-label>
+                  <mat-label>Start Time *</mat-label>
                   <input
                     #startReschedInput
                     matInput
@@ -447,10 +447,19 @@
                     (ngModelChange)="updateCustomSlotPreview()"
                     (click)="openDateTimePicker(startReschedInput)"
                   />
+                  <button
+                    mat-icon-button
+                    matSuffix
+                    type="button"
+                    (click)="openDateTimePicker(startReschedInput); $event.stopPropagation()"
+                    matTooltip="Pick Start Time"
+                  >
+                    <mat-icon>access_time</mat-icon>
+                  </button>
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" class="slot-picker-field">
-                  <mat-label>End Time</mat-label>
+                  <mat-label>End Time *</mat-label>
                   <input
                     #endReschedInput
                     matInput
@@ -459,29 +468,27 @@
                     (ngModelChange)="updateCustomSlotPreview()"
                     (click)="openDateTimePicker(endReschedInput)"
                   />
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" class="slot-picker-field">
-                  <mat-label>Slot Label</mat-label>
-                  <input
-                    matInput
-                    type="text"
-                    [(ngModel)]="customSlotLabel"
-                    (ngModelChange)="updateCustomSlotPreview()"
-                    placeholder="e.g. Custom Slot"
-                  />
+                  <button
+                    mat-icon-button
+                    matSuffix
+                    type="button"
+                    (click)="openDateTimePicker(endReschedInput); $event.stopPropagation()"
+                    matTooltip="Pick End Time"
+                  >
+                    <mat-icon>access_time</mat-icon>
+                  </button>
                 </mat-form-field>
               </div>
 
               <div class="custom-slot-row">
                 <mat-form-field appearance="outline" class="custom-slot-input-field">
-                  <mat-label>New Time Slot</mat-label>
+                  <mat-label>Exact Time Slot</mat-label>
                   <mat-icon matPrefix class="field-icon">schedule</mat-icon>
                   <input
                     matInput
                     type="text"
                     [(ngModel)]="newCustomTimeSlot"
-                    placeholder="e.g. 10:00 AM - 11:30 AM (Custom Slot)"
+                    placeholder="e.g. 10:00 AM - 11:30 AM"
                     (keydown.enter)="saveCustomTimeSlot($event)"
                   />
                 </mat-form-field>

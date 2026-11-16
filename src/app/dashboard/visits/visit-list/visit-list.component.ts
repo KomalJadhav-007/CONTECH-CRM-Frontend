@@ -139,21 +139,19 @@ export class VisitListComponent implements OnInit {
   showCancelModal = false;
   selectedVisitForCancel: any = null;
   todayDateStr: string = new Date().toISOString().slice(0, 10);
-  rescheduleDateTime: string = `${new Date().toISOString().slice(0, 10)}T14:00`;
 
   defaultTimeSlots: string[] = [
-    '09:30 AM - 11:00 AM (Morning Slot)',
-    '11:00 AM - 12:30 PM (Peak Slot)',
-    '02:00 PM - 03:30 PM (Afternoon Slot)',
-    '04:00 PM - 05:30 PM (Evening Sunset Slot)'
+    '09:30 AM - 11:00 AM',
+    '11:00 AM - 12:30 PM',
+    '02:00 PM - 03:30 PM',
+    '04:00 PM - 05:30 PM'
   ];
   timeSlots: string[] = [];
   isCreatingCustomTimeSlot = false;
   newCustomTimeSlot = '';
   customSlotStartTime = '10:00';
   customSlotEndTime = '11:30';
-  customSlotLabel = 'Custom Slot';
-  previousTimeSlot = '02:00 PM - 03:30 PM (Afternoon Slot)';
+  previousTimeSlot = '02:00 PM - 03:30 PM';
 
   manageForm: {
     decision: 'RESCHEDULE' | 'CANCEL';
@@ -166,7 +164,7 @@ export class VisitListComponent implements OnInit {
   } = {
     decision: 'RESCHEDULE',
     new_date: '',
-    new_time_slot: '02:00 PM - 03:30 PM (Afternoon Slot)',
+    new_time_slot: '02:00 PM - 03:30 PM',
     cancel_type: 'CANCELLED',
     reschedule_reason: 'Buyer requested reschedule due to work conflict',
     cancel_reason: 'Buyer lost interest / dropped inquiry',
@@ -181,13 +179,6 @@ export class VisitListComponent implements OnInit {
       try {
         (inputEl as any).showPicker();
       } catch (_) {}
-    }
-  }
-
-  onRescheduleDateTimeChange(val: string): void {
-    this.rescheduleDateTime = val;
-    if (val) {
-      this.manageForm.new_date = val.split('T')[0];
     }
   }
 
@@ -222,9 +213,10 @@ export class VisitListComponent implements OnInit {
   updateCustomSlotPreview(): void {
     const start = this.formatTime12h(this.customSlotStartTime);
     const end = this.formatTime12h(this.customSlotEndTime);
-    const label = this.customSlotLabel.trim();
     if (start && end) {
-      this.newCustomTimeSlot = label ? `${start} - ${end} (${label})` : `${start} - ${end}`;
+      this.newCustomTimeSlot = `${start} - ${end}`;
+    } else if (start) {
+      this.newCustomTimeSlot = start;
     }
   }
 
@@ -325,9 +317,8 @@ export class VisitListComponent implements OnInit {
     nextDate.setDate(nextDate.getDate() + 1);
     const defaultDateStr = nextDate.toISOString().slice(0, 10);
     const chosenDate = visit.scheduled_date ? String(visit.scheduled_date).split('T')[0] : defaultDateStr;
-    this.rescheduleDateTime = `${chosenDate}T14:00`;
 
-    const chosenSlot = visit.time_slot || '02:00 PM - 03:30 PM (Afternoon Slot)';
+    const chosenSlot = visit.time_slot || '02:00 PM - 03:30 PM';
     if (chosenSlot && !this.timeSlots.some(s => s.toLowerCase() === chosenSlot.toLowerCase())) {
       this.timeSlots.push(chosenSlot);
     }

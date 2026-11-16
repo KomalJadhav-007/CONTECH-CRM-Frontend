@@ -57,35 +57,19 @@
         <div class="section-heading">2. DATE, TIME SLOT &amp; CAPACITY CHECK</div>
         <div class="form-grid-3">
           <mat-form-field appearance="outline" class="w-100">
-            <mat-label>VISIT DATE &amp; TIME</mat-label>
-            <input
-              #visitDateTimeInput
-              matInput
-              type="datetime-local"
-              [ngModel]="scheduledDateTime"
-              (ngModelChange)="onScheduledDateTimeChange($event)"
-              (click)="openDateTimePicker(visitDateTimeInput)"
-              name="scheduledDateTime"
-              required
-            />
-            <button
-              mat-icon-button
-              matSuffix
-              type="button"
-              (click)="openDateTimePicker(visitDateTimeInput); $event.stopPropagation()"
-              matTooltip="Open Date & Time Picker"
-            >
+            <mat-label>VISIT DATE</mat-label>
+            <input #visitDateInput matInput type="date" [(ngModel)]="bookingData.scheduled_date"
+              (click)="openDateTimePicker(visitDateInput)" name="scheduled_date" required />
+            <button mat-icon-button matSuffix type="button"
+              (click)="openDateTimePicker(visitDateInput); $event.stopPropagation()" matTooltip="Open Date Picker">
               <mat-icon>calendar_month</mat-icon>
             </button>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>AVAILABLE TIME SLOT</mat-label>
-            <mat-select
-              [(ngModel)]="bookingData.time_slot"
-              name="time_slot"
-              (selectionChange)="onTimeSlotChange($event.value)"
-            >
+            <mat-select [(ngModel)]="bookingData.time_slot" name="time_slot"
+              (selectionChange)="onTimeSlotChange($event.value)">
               <mat-option *ngFor="let slot of timeSlots" [value]="slot">
                 {{ slot }}
               </mat-option>
@@ -111,86 +95,55 @@
         <div *ngIf="isCreatingCustomTimeSlot" class="custom-slot-banner">
           <div class="custom-slot-header">
             <div class="custom-slot-badge">
-              <mat-icon>add_circle</mat-icon>
-              <span>CREATE NEW WALKTHROUGH TIME SLOT</span>
+              <mat-icon>schedule</mat-icon>
+              <span>SELECT EXACT TIME FOR TIME SLOT</span>
             </div>
-            <button mat-icon-button type="button" class="btn-close-slot" (click)="cancelCustomTimeSlot()" matTooltip="Close">
+            <button mat-icon-button type="button" class="btn-close-slot" (click)="cancelCustomTimeSlot()"
+              matTooltip="Close">
               <mat-icon>close</mat-icon>
             </button>
           </div>
 
           <div class="custom-slot-body">
-            <p class="custom-slot-desc">Pick start/end times or type a custom time slot label to add it to the dropdown and select it for this site visit:</p>
-            <div class="custom-slot-time-pickers">
+            <p class="custom-slot-desc">Select the exact start and end time from the time picker to add it to Available
+              Time Slots:</p>
+            <div class="custom-slot-time-pickers-2">
               <mat-form-field appearance="outline" class="slot-picker-field">
-                <mat-label>Start Time</mat-label>
-                <input
-                  #startTimeInput
-                  matInput
-                  type="time"
-                  [(ngModel)]="customSlotStartTime"
-                  (ngModelChange)="updateCustomSlotPreview()"
-                  (click)="openDateTimePicker(startTimeInput)"
-                  name="customSlotStartTime"
-                />
+                <mat-label>Start Time *</mat-label>
+                <input #startTimeInput matInput type="time" [(ngModel)]="customSlotStartTime"
+                  (ngModelChange)="updateCustomSlotPreview()" (click)="openDateTimePicker(startTimeInput)"
+                  name="customSlotStartTime" />
+                <button mat-icon-button matSuffix type="button"
+                  (click)="openDateTimePicker(startTimeInput); $event.stopPropagation()" matTooltip="Pick Start Time">
+                  <mat-icon>access_time</mat-icon>
+                </button>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="slot-picker-field">
-                <mat-label>End Time</mat-label>
-                <input
-                  #endTimeInput
-                  matInput
-                  type="time"
-                  [(ngModel)]="customSlotEndTime"
-                  (ngModelChange)="updateCustomSlotPreview()"
-                  (click)="openDateTimePicker(endTimeInput)"
-                  name="customSlotEndTime"
-                />
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="slot-picker-field">
-                <mat-label>Slot Tag / Label</mat-label>
-                <input
-                  matInput
-                  type="text"
-                  [(ngModel)]="customSlotLabel"
-                  (ngModelChange)="updateCustomSlotPreview()"
-                  name="customSlotLabel"
-                  placeholder="e.g. VIP Slot, Weekend Slot"
-                />
+                <mat-label>End Time *</mat-label>
+                <input #endTimeInput matInput type="time" [(ngModel)]="customSlotEndTime"
+                  (ngModelChange)="updateCustomSlotPreview()" (click)="openDateTimePicker(endTimeInput)"
+                  name="customSlotEndTime" />
+                <button mat-icon-button matSuffix type="button"
+                  (click)="openDateTimePicker(endTimeInput); $event.stopPropagation()" matTooltip="Pick End Time">
+                  <mat-icon>access_time</mat-icon>
+                </button>
               </mat-form-field>
             </div>
 
             <div class="custom-slot-row">
               <mat-form-field appearance="outline" class="custom-slot-input-field">
-                <mat-label>New Time Slot</mat-label>
+                <mat-label>Exact Time Slot</mat-label>
                 <mat-icon matPrefix class="field-icon">schedule</mat-icon>
-                <input
-                  matInput
-                  type="text"
-                  [(ngModel)]="newCustomTimeSlot"
-                  name="newCustomTimeSlot"
-                  placeholder="e.g. 10:00 AM - 11:30 AM (Custom Slot)"
-                  (keydown.enter)="saveCustomTimeSlot($event)"
-                />
+                <input matInput type="text" [(ngModel)]="newCustomTimeSlot" name="newCustomTimeSlot"
+                  placeholder="e.g. 10:00 AM - 11:30 AM" (keydown.enter)="saveCustomTimeSlot($event)" />
               </mat-form-field>
               <div class="custom-slot-btns">
-                <button
-                  mat-flat-button
-                  color="primary"
-                  type="button"
-                  class="btn-save-slot"
-                  [disabled]="!newCustomTimeSlot.trim()"
-                  (click)="saveCustomTimeSlot()"
-                >
+                <button mat-flat-button color="primary" type="button" class="btn-save-slot"
+                  [disabled]="!newCustomTimeSlot.trim()" (click)="saveCustomTimeSlot()">
                   <mat-icon>check</mat-icon> Add &amp; Select
                 </button>
-                <button
-                  mat-stroked-button
-                  type="button"
-                  class="btn-cancel-slot"
-                  (click)="cancelCustomTimeSlot()"
-                >
+                <button mat-stroked-button type="button" class="btn-cancel-slot" (click)="cancelCustomTimeSlot()">
                   Cancel
                 </button>
               </div>
@@ -213,10 +166,12 @@
 
           <mat-form-field appearance="outline" class="w-100" *ngIf="bookingData.cab_required">
             <mat-label>SELECT FLEET VEHICLE MASTER</mat-label>
-            <mat-select [ngModel]="selectedVehicleId" (ngModelChange)="onVehicleSelect($event)" name="selectedVehicleId">
+            <mat-select [ngModel]="selectedVehicleId" (ngModelChange)="onVehicleSelect($event)"
+              name="selectedVehicleId">
               <mat-option [value]="null">-- Select Company Vehicle --</mat-option>
               <mat-option *ngFor="let v of vehicles" [value]="v.vehicle_id || v.id">
-                {{ v.make_model || v.model || 'Company Vehicle' }} &middot; {{ v.registration_number }} ({{ v.seating_capacity || 4 }} seats, {{ v.vehicle_type || 'SUV' }})
+                {{ v.make_model || v.model || 'Company Vehicle' }} &middot; {{ v.registration_number }} ({{
+                v.seating_capacity || 4 }} seats, {{ v.vehicle_type || 'SUV' }})
               </mat-option>
               <mat-option [value]="'custom'">+ Assign Another / Dedicated Cab (Custom Reg No.)</mat-option>
             </mat-select>
@@ -226,7 +181,8 @@
         <div class="form-grid-2" *ngIf="bookingData.cab_required" style="margin-top: 0.5rem;">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>ASSIGNED DRIVER</mat-label>
-            <mat-select [(ngModel)]="bookingData.driver_id" (selectionChange)="onDriverSelect($event.value)" name="driver_id">
+            <mat-select [(ngModel)]="bookingData.driver_id" (selectionChange)="onDriverSelect($event.value)"
+              name="driver_id">
               <mat-option *ngFor="let d of drivers" [value]="d.user_id || d.id">
                 {{ d.name }}
               </mat-option>
@@ -235,15 +191,8 @@
 
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>DISPATCHED CAB REGISTRATION NO.</mat-label>
-            <input
-              matInput
-              type="text"
-              [(ngModel)]="bookingData.cab_number"
-              (ngModelChange)="onCabNumberChange($event)"
-              name="cab_number"
-              placeholder="e.g. KA-01-MJ-8822"
-              class="font-mono text-uppercase"
-            />
+            <input matInput type="text" [(ngModel)]="bookingData.cab_number" (ngModelChange)="onCabNumberChange($event)"
+              name="cab_number" placeholder="e.g. KA-01-MJ-8822" class="font-mono text-uppercase" />
             <mat-hint>Assign any company fleet car or alternate vehicle to this driver</mat-hint>
           </mat-form-field>
         </div>
@@ -264,13 +213,8 @@
         <div class="form-field full-width" *ngIf="bookingData.cab_required" style="margin-top: 0.5rem;">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>BUYER PICKUP ADDRESS</mat-label>
-            <input
-              matInput
-              type="text"
-              [(ngModel)]="bookingData.pickup_address"
-              name="pickup_address"
-              placeholder="Customer Residence / Office"
-            />
+            <input matInput type="text" [(ngModel)]="bookingData.pickup_address" name="pickup_address"
+              placeholder="Customer Residence / Office" />
           </mat-form-field>
         </div>
 
@@ -286,26 +230,24 @@
                 <span class="wa-badge">FREE API</span>
               </div>
               <p class="wa-desc">
-                When booked, the assigned driver (<strong>{{ getSelectedDriverName() }}</strong>) automatically receives a WhatsApp dispatch message with client name, pickup location, client contact number, scheduled slot, and cab registration.
+                When booked, the assigned driver (<strong>{{ getSelectedDriverName() }}</strong>) automatically receives
+                a WhatsApp dispatch message with client name, pickup location, client contact number, scheduled slot,
+                and cab registration.
               </p>
             </div>
           </div>
           <div class="wa-preview-pill">
             <mat-icon class="preview-icon">contact_phone</mat-icon>
-            <span>Passenger: <strong>{{ getSelectedBuyerName() }}</strong> ({{ getSelectedBuyerPhone() }}) &bull; Pickup: <strong>{{ bookingData.pickup_address || 'Customer Residence' }}</strong></span>
+            <span>Passenger: <strong>{{ getSelectedBuyerName() }}</strong> ({{ getSelectedBuyerPhone() }}) &bull;
+              Pickup: <strong>{{ bookingData.pickup_address || 'Customer Residence' }}</strong></span>
           </div>
         </div>
 
         <div class="form-field full-width" style="margin-top: 0.5rem;">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>SPECIAL VISIT NOTES</mat-label>
-            <textarea
-              matInput
-              rows="3"
-              [(ngModel)]="bookingData.notes"
-              name="notes"
-              placeholder="Confirm buyer preferred floor plan copies ready in sales lounge."
-            ></textarea>
+            <textarea matInput rows="3" [(ngModel)]="bookingData.notes" name="notes"
+              placeholder="Confirm buyer preferred floor plan copies ready in sales lounge."></textarea>
           </mat-form-field>
         </div>
       </div>
