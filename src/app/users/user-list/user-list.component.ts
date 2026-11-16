@@ -145,7 +145,7 @@ export class UserListComponent implements OnInit {
     this.userService.getUsers().subscribe({
       next: (res: any) => {
         this.loading = false;
-        if (res && res.success && res.users && res.users.length > 0) {
+        if (res && res.success && Array.isArray(res.users)) {
           this.users = res.users.map((u: any) => {
             const assignedList = u.assigned_projects || [];
             const assignedIds = u.assigned_project_ids || assignedList.map((p: any) => p.project_id || p.id);
@@ -342,8 +342,9 @@ export class UserListComponent implements OnInit {
       },
       error: (err: any) => {
         this.isSubmitting = false;
-        const msg = err.error?.message || 'Failed to create user in database.';
-        this.addUserError = msg;
+        const baseMsg = err.error?.message || 'Failed to create user in database.';
+        const detail = err.error?.error ? ` (${err.error.error})` : '';
+        this.addUserError = `${baseMsg}${detail}`;
       }
     });
   }
@@ -506,7 +507,9 @@ export class UserListComponent implements OnInit {
       },
       error: (err: any) => {
         this.isEditing = false;
-        this.editUserError = err.error?.message || 'Failed to update user.';
+        const baseMsg = err.error?.message || 'Failed to update user.';
+        const detail = err.error?.error ? ` (${err.error.error})` : '';
+        this.editUserError = `${baseMsg}${detail}`;
       }
     });
   }
