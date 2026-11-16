@@ -16,6 +16,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-visit-booking',
@@ -32,7 +34,9 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
     MatButtonModule,
     MatIconModule,
     MatChipsModule,
-    MatProgressBarModule
+    MatProgressBarModule,
+    MatDividerModule,
+    MatTooltipModule
   ],
   templateUrl: './visit-booking.component.html',
   styleUrl: './visit-booking.component.css'
@@ -52,6 +56,22 @@ export class VisitBookingComponent implements OnInit {
   vehicles: any[] = [];
   selectedVehicleId: number | null = null;
 
+  scheduledDateTime: string = `${new Date().toISOString().split('T')[0]}T11:00`;
+
+  defaultTimeSlots: string[] = [
+    '09:30 AM - 11:00 AM (Morning Slot)',
+    '11:00 AM - 12:30 PM (Peak Slot)',
+    '02:00 PM - 03:30 PM (Afternoon Slot)',
+    '04:00 PM - 05:30 PM (Evening Sunset Slot)'
+  ];
+  timeSlots: string[] = [];
+  isCreatingCustomTimeSlot = false;
+  newCustomTimeSlot = '';
+  customSlotStartTime = '10:00';
+  customSlotEndTime = '11:30';
+  customSlotLabel = 'Custom Slot';
+  previousTimeSlot = '11:00 AM - 12:30 PM (Peak Slot)';
+
   bookingData: any = {
     buyer_id: null,
     project_id: null,
@@ -70,10 +90,118 @@ export class VisitBookingComponent implements OnInit {
   errorMessage = '';
 
   ngOnInit(): void {
+    this.loadTimeSlots();
     this.loadProjects();
     this.loadUsers();
     this.loadBuyers();
     this.loadVehicles();
+  }
+
+  openDateTimePicker(inputEl: HTMLInputElement): void {
+    if (inputEl && typeof (inputEl as any).showPicker === 'function') {
+      try {
+        (inputEl as any).showPicker();
+      } catch (_) {}
+    }
+  }
+
+  onScheduledDateTimeChange(val: string): void {
+    this.scheduledDateTime = val;
+    if (val) {
+      this.bookingData.scheduled_date = val.split('T')[0];
+    }
+  }
+
+  loadTimeSlots(): void {
+    const saved = localStorage.getItem('contech_custom_time_slots');
+    let customList: string[] = [];
+    if (saved) {
+      try {
+        customList = JSON.parse(saved);
+      } catch {
+        customList = [];
+      }
+    }
+    this.timeSlots = [...this.defaultTimeSlots];
+    for (const slot of customList) {
+      if (slot && !this.timeSlots.some(s => s.toLowerCase() === slot.toLowerCase())) {
+        this.timeSlots.push(slot);
+      }
+    }
+  }
+
+  formatTime12h(time24: string): string {
+    if (!time24 || !time24.includes(':')) return time24;
+    const [hStr, mStr] = time24.split(':');
+    let h = parseInt(hStr, 10);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12;
+    if (h === 0) h = 12;
+    return `${String(h).padStart(2, '0')}:${mStr} ${ampm}`;
+  }
+
+  updateCustomSlotPreview(): void {
+    const start = this.formatTime12h(this.customSlotStartTime);
+    const end = this.formatTime12h(this.customSlotEndTime);
+    const label = this.customSlotLabel.trim();
+    if (start && end) {
+      this.newCustomTimeSlot = label ? `${start} - ${end} (${label})` : `${start} - ${end}`;
+    }
+  }
+
+  onTimeSlotChange(value: string): void {
+    if (value === '__create_new_slot__') {
+      this.isCreatingCustomTimeSlot = true;
+      this.updateCustomSlotPreview();
+      setTimeout(() => {
+        this.bookingData.time_slot = this.previousTimeSlot;
+      });
+    } else {
+      this.previousTimeSlot = value;
+      this.isCreatingCustomTimeSlot = false;
+    }
+  }
+
+  saveCustomTimeSlot(event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    const trimmed = this.newCustomTimeSlot.trim();
+    if (!trimmed) return;
+
+    const existing = this.timeSlots.find(s => s.toLowerCase() === trimmed.toLowerCase());
+    if (existing) {
+      this.bookingData.time_slot = existing;
+      this.previousTimeSlot = existing;
+    } else {
+      this.timeSlots.push(trimmed);
+      this.bookingData.time_slot = trimmed;
+      this.previousTimeSlot = trimmed;
+
+      const saved = localStorage.getItem('contech_custom_time_slots');
+      let customList: string[] = [];
+      if (saved) {
+        try {
+          customList = JSON.parse(saved);
+        } catch {
+          customList = [];
+        }
+      }
+      if (!customList.some(s => s.toLowerCase() === trimmed.toLowerCase())) {
+        customList.push(trimmed);
+        localStorage.setItem('contech_custom_time_slots', JSON.stringify(customList));
+      }
+    }
+
+    this.isCreatingCustomTimeSlot = false;
+    this.newCustomTimeSlot = '';
+  }
+
+  cancelCustomTimeSlot(): void {
+    this.isCreatingCustomTimeSlot = false;
+    this.newCustomTimeSlot = '';
+    this.bookingData.time_slot = this.previousTimeSlot;
   }
 
   loadProjects(): void {

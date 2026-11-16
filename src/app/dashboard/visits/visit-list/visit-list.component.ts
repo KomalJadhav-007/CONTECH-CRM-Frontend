@@ -14,6 +14,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatInputModule } from '@angular/material/input';
+import { MatDividerModule } from '@angular/material/divider';
 
 @Component({
   selector: 'app-visit-list',
@@ -31,7 +32,8 @@ import { MatInputModule } from '@angular/material/input';
     MatProgressBarModule,
     MatTooltipModule,
     MatBadgeModule,
-    MatInputModule
+    MatInputModule,
+    MatDividerModule
   ],
   templateUrl: './visit-list.component.html',
   styleUrl: './visit-list.component.css'
@@ -89,6 +91,7 @@ export class VisitListComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadTimeSlots();
     this.loadVisits();
     const waSent = this.route.snapshot.queryParamMap.get('whatsapp_sent');
     const driver = this.route.snapshot.queryParamMap.get('driver') || 'assigned driver';
@@ -136,6 +139,22 @@ export class VisitListComponent implements OnInit {
   showCancelModal = false;
   selectedVisitForCancel: any = null;
   todayDateStr: string = new Date().toISOString().slice(0, 10);
+  rescheduleDateTime: string = `${new Date().toISOString().slice(0, 10)}T14:00`;
+
+  defaultTimeSlots: string[] = [
+    '09:30 AM - 11:00 AM (Morning Slot)',
+    '11:00 AM - 12:30 PM (Peak Slot)',
+    '02:00 PM - 03:30 PM (Afternoon Slot)',
+    '04:00 PM - 05:30 PM (Evening Sunset Slot)'
+  ];
+  timeSlots: string[] = [];
+  isCreatingCustomTimeSlot = false;
+  newCustomTimeSlot = '';
+  customSlotStartTime = '10:00';
+  customSlotEndTime = '11:30';
+  customSlotLabel = 'Custom Slot';
+  previousTimeSlot = '02:00 PM - 03:30 PM (Afternoon Slot)';
+
   manageForm: {
     decision: 'RESCHEDULE' | 'CANCEL';
     new_date: string;
@@ -156,6 +175,113 @@ export class VisitListComponent implements OnInit {
   cancelling = false;
   cancelError = '';
   waSendingId: number | null = null;
+
+  openDateTimePicker(inputEl: HTMLInputElement): void {
+    if (inputEl && typeof (inputEl as any).showPicker === 'function') {
+      try {
+        (inputEl as any).showPicker();
+      } catch (_) {}
+    }
+  }
+
+  onRescheduleDateTimeChange(val: string): void {
+    this.rescheduleDateTime = val;
+    if (val) {
+      this.manageForm.new_date = val.split('T')[0];
+    }
+  }
+
+  loadTimeSlots(): void {
+    const saved = localStorage.getItem('contech_custom_time_slots');
+    let customList: string[] = [];
+    if (saved) {
+      try {
+        customList = JSON.parse(saved);
+      } catch {
+        customList = [];
+      }
+    }
+    this.timeSlots = [...this.defaultTimeSlots];
+    for (const slot of customList) {
+      if (slot && !this.timeSlots.some(s => s.toLowerCase() === slot.toLowerCase())) {
+        this.timeSlots.push(slot);
+      }
+    }
+  }
+
+  formatTime12h(time24: string): string {
+    if (!time24 || !time24.includes(':')) return time24;
+    const [hStr, mStr] = time24.split(':');
+    let h = parseInt(hStr, 10);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12;
+    if (h === 0) h = 12;
+    return `${String(h).padStart(2, '0')}:${mStr} ${ampm}`;
+  }
+
+  updateCustomSlotPreview(): void {
+    const start = this.formatTime12h(this.customSlotStartTime);
+    const end = this.formatTime12h(this.customSlotEndTime);
+    const label = this.customSlotLabel.trim();
+    if (start && end) {
+      this.newCustomTimeSlot = label ? `${start} - ${end} (${label})` : `${start} - ${end}`;
+    }
+  }
+
+  onTimeSlotChange(value: string): void {
+    if (value === '__create_new_slot__') {
+      this.isCreatingCustomTimeSlot = true;
+      this.updateCustomSlotPreview();
+      setTimeout(() => {
+        this.manageForm.new_time_slot = this.previousTimeSlot;
+      });
+    } else {
+      this.previousTimeSlot = value;
+      this.isCreatingCustomTimeSlot = false;
+    }
+  }
+
+  saveCustomTimeSlot(event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    const trimmed = this.newCustomTimeSlot.trim();
+    if (!trimmed) return;
+
+    const existing = this.timeSlots.find(s => s.toLowerCase() === trimmed.toLowerCase());
+    if (existing) {
+      this.manageForm.new_time_slot = existing;
+      this.previousTimeSlot = existing;
+    } else {
+      this.timeSlots.push(trimmed);
+      this.manageForm.new_time_slot = trimmed;
+      this.previousTimeSlot = trimmed;
+
+      const saved = localStorage.getItem('contech_custom_time_slots');
+      let customList: string[] = [];
+      if (saved) {
+        try {
+          customList = JSON.parse(saved);
+        } catch {
+          customList = [];
+        }
+      }
+      if (!customList.some(s => s.toLowerCase() === trimmed.toLowerCase())) {
+        customList.push(trimmed);
+        localStorage.setItem('contech_custom_time_slots', JSON.stringify(customList));
+      }
+    }
+
+    this.isCreatingCustomTimeSlot = false;
+    this.newCustomTimeSlot = '';
+  }
+
+  cancelCustomTimeSlot(): void {
+    this.isCreatingCustomTimeSlot = false;
+    this.newCustomTimeSlot = '';
+    this.manageForm.new_time_slot = this.previousTimeSlot;
+  }
 
   setDecision(decision: 'RESCHEDULE' | 'CANCEL'): void {
     this.manageForm.decision = decision;
@@ -192,15 +318,25 @@ export class VisitListComponent implements OnInit {
     this.selectedVisitForCancel = visit;
     this.showCancelModal = true;
     this.cancelError = '';
+    this.isCreatingCustomTimeSlot = false;
+    this.loadTimeSlots();
 
     const nextDate = new Date();
     nextDate.setDate(nextDate.getDate() + 1);
     const defaultDateStr = nextDate.toISOString().slice(0, 10);
+    const chosenDate = visit.scheduled_date ? String(visit.scheduled_date).split('T')[0] : defaultDateStr;
+    this.rescheduleDateTime = `${chosenDate}T14:00`;
+
+    const chosenSlot = visit.time_slot || '02:00 PM - 03:30 PM (Afternoon Slot)';
+    if (chosenSlot && !this.timeSlots.some(s => s.toLowerCase() === chosenSlot.toLowerCase())) {
+      this.timeSlots.push(chosenSlot);
+    }
+    this.previousTimeSlot = chosenSlot;
 
     this.manageForm = {
       decision: isNoShow ? 'CANCEL' : defaultDecision,
-      new_date: visit.scheduled_date || defaultDateStr,
-      new_time_slot: visit.time_slot || '02:00 PM - 03:30 PM (Afternoon Slot)',
+      new_date: chosenDate,
+      new_time_slot: chosenSlot,
       cancel_type: isNoShow ? 'NO_SHOW' : 'CANCELLED',
       reschedule_reason: 'Buyer requested reschedule due to work conflict',
       cancel_reason: isNoShow ? 'Buyer unresponsive at scheduled pickup time' : 'Buyer lost interest / dropped inquiry',

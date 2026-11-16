@@ -380,28 +380,133 @@
           </div>
 
           <div class="form-row-2" style="margin-top: 1rem;">
-            <!-- New Scheduled Date -->
+            <!-- New Scheduled Date & Time -->
             <mat-form-field appearance="outline" class="w-100">
-              <mat-label>New Scheduled Date *</mat-label>
+              <mat-label>New Scheduled Date &amp; Time *</mat-label>
               <input
+                #rescheduleDateTimeInput
                 matInput
-                type="date"
-                [(ngModel)]="manageForm.new_date"
-                [min]="todayDateStr"
+                type="datetime-local"
+                [ngModel]="rescheduleDateTime"
+                (ngModelChange)="onRescheduleDateTimeChange($event)"
+                (click)="openDateTimePicker(rescheduleDateTimeInput)"
                 required
               />
+              <button
+                mat-icon-button
+                matSuffix
+                type="button"
+                (click)="openDateTimePicker(rescheduleDateTimeInput); $event.stopPropagation()"
+                matTooltip="Open Date & Time Picker"
+              >
+                <mat-icon>calendar_month</mat-icon>
+              </button>
             </mat-form-field>
 
             <!-- New Time Slot -->
             <mat-form-field appearance="outline" class="w-100">
               <mat-label>New Walkthrough Time Slot *</mat-label>
-              <mat-select [(ngModel)]="manageForm.new_time_slot" required>
-                <mat-option value="09:30 AM - 11:00 AM (Morning Slot)">09:30 AM - 11:00 AM (Morning Slot)</mat-option>
-                <mat-option value="11:00 AM - 12:30 PM (Peak Slot)">11:00 AM - 12:30 PM (Peak Slot)</mat-option>
-                <mat-option value="02:00 PM - 03:30 PM (Afternoon Slot)">02:00 PM - 03:30 PM (Afternoon Slot)</mat-option>
-                <mat-option value="04:00 PM - 05:30 PM (Evening Sunset Slot)">04:00 PM - 05:30 PM (Evening Sunset Slot)</mat-option>
+              <mat-select
+                [(ngModel)]="manageForm.new_time_slot"
+                (selectionChange)="onTimeSlotChange($event.value)"
+                required
+              >
+                <mat-option *ngFor="let slot of timeSlots" [value]="slot">
+                  {{ slot }}
+                </mat-option>
+                <mat-divider></mat-divider>
+                <mat-option value="__create_new_slot__" class="create-new-option">
+                  <mat-icon class="create-new-icon">add_circle</mat-icon>
+                  <span class="create-new-text">+ Create Custom Time Slot...</span>
+                </mat-option>
               </mat-select>
             </mat-form-field>
+          </div>
+
+          <!-- Custom Time Slot Creator Panel inside Reschedule Modal -->
+          <div *ngIf="isCreatingCustomTimeSlot" class="custom-slot-banner">
+            <div class="custom-slot-header">
+              <div class="custom-slot-badge">
+                <mat-icon>add_circle</mat-icon>
+                <span>CREATE NEW WALKTHROUGH TIME SLOT</span>
+              </div>
+              <button mat-icon-button type="button" class="btn-close-slot" (click)="cancelCustomTimeSlot()" matTooltip="Close">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+
+            <div class="custom-slot-body">
+              <div class="custom-slot-time-pickers">
+                <mat-form-field appearance="outline" class="slot-picker-field">
+                  <mat-label>Start Time</mat-label>
+                  <input
+                    #startReschedInput
+                    matInput
+                    type="time"
+                    [(ngModel)]="customSlotStartTime"
+                    (ngModelChange)="updateCustomSlotPreview()"
+                    (click)="openDateTimePicker(startReschedInput)"
+                  />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="slot-picker-field">
+                  <mat-label>End Time</mat-label>
+                  <input
+                    #endReschedInput
+                    matInput
+                    type="time"
+                    [(ngModel)]="customSlotEndTime"
+                    (ngModelChange)="updateCustomSlotPreview()"
+                    (click)="openDateTimePicker(endReschedInput)"
+                  />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="slot-picker-field">
+                  <mat-label>Slot Label</mat-label>
+                  <input
+                    matInput
+                    type="text"
+                    [(ngModel)]="customSlotLabel"
+                    (ngModelChange)="updateCustomSlotPreview()"
+                    placeholder="e.g. Custom Slot"
+                  />
+                </mat-form-field>
+              </div>
+
+              <div class="custom-slot-row">
+                <mat-form-field appearance="outline" class="custom-slot-input-field">
+                  <mat-label>New Time Slot</mat-label>
+                  <mat-icon matPrefix class="field-icon">schedule</mat-icon>
+                  <input
+                    matInput
+                    type="text"
+                    [(ngModel)]="newCustomTimeSlot"
+                    placeholder="e.g. 10:00 AM - 11:30 AM (Custom Slot)"
+                    (keydown.enter)="saveCustomTimeSlot($event)"
+                  />
+                </mat-form-field>
+                <div class="custom-slot-btns">
+                  <button
+                    mat-flat-button
+                    color="primary"
+                    type="button"
+                    class="btn-save-slot"
+                    [disabled]="!newCustomTimeSlot.trim()"
+                    (click)="saveCustomTimeSlot()"
+                  >
+                    <mat-icon>check</mat-icon> Add &amp; Select
+                  </button>
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    class="btn-cancel-slot"
+                    (click)="cancelCustomTimeSlot()"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div style="margin-top: 0.5rem;">

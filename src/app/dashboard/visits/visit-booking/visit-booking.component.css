@@ -518,3 +518,118 @@
   width: 18px;
   height: 18px;
 }
+
+/* Custom Time Slot Option & Inline Creator Banner */
+.create-new-option {
+  color: #2563eb !important;
+  font-weight: 700 !important;
+}
+
+.create-new-icon {
+  color: #2563eb !important;
+  margin-right: 6px;
+}
+
+.create-new-text {
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.custom-slot-banner {
+  margin-top: 0.75rem;
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  border: 1.5px solid #86efac;
+  border-left: 4px solid #16a34a;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+}
+
+.custom-slot-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.45rem;
+}
+
+.custom-slot-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #15803d;
+  letter-spacing: 0.05em;
+}
+
+.custom-slot-badge mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #16a34a;
+}
+
+.btn-close-slot {
+  width: 28px !important;
+  height: 28px !important;
+  line-height: 28px !important;
+  color: #64748b;
+}
+
+.custom-slot-desc {
+  font-size: 0.8rem;
+  color: #166534;
+  margin: 0 0 0.75rem 0;
+}
+
+.custom-slot-time-pickers {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.2fr;
+  gap: 0.85rem;
+  margin-bottom: 0.35rem;
+}
+
+.slot-picker-field {
+  width: 100%;
+}
+
+.custom-slot-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+
+.custom-slot-input-field {
+  flex: 1;
+}
+
+.custom-slot-btns {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+}
+
+.btn-save-slot {
+  background: #16a34a !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  height: 44px;
+  padding: 0 1.15rem !important;
+}
+
+.btn-cancel-slot {
+  height: 44px;
+}
+
+@media (max-width: 768px) {
+  .custom-slot-time-pickers {
+    grid-template-columns: 1fr;
+  }
+  .custom-slot-row {
+    flex-direction: column;
+  }
+  .custom-slot-input-field,
+  .custom-slot-btns {
+    width: 100%;
+  }
+}

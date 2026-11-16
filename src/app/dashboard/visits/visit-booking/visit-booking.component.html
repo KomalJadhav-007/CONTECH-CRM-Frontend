@@ -57,23 +57,43 @@
         <div class="section-heading">2. DATE, TIME SLOT &amp; CAPACITY CHECK</div>
         <div class="form-grid-3">
           <mat-form-field appearance="outline" class="w-100">
-            <mat-label>VISIT DATE</mat-label>
+            <mat-label>VISIT DATE &amp; TIME</mat-label>
             <input
+              #visitDateTimeInput
               matInput
-              type="date"
-              [(ngModel)]="bookingData.scheduled_date"
-              name="scheduled_date"
+              type="datetime-local"
+              [ngModel]="scheduledDateTime"
+              (ngModelChange)="onScheduledDateTimeChange($event)"
+              (click)="openDateTimePicker(visitDateTimeInput)"
+              name="scheduledDateTime"
               required
             />
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              (click)="openDateTimePicker(visitDateTimeInput); $event.stopPropagation()"
+              matTooltip="Open Date & Time Picker"
+            >
+              <mat-icon>calendar_month</mat-icon>
+            </button>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>AVAILABLE TIME SLOT</mat-label>
-            <mat-select [(ngModel)]="bookingData.time_slot" name="time_slot">
-              <mat-option value="09:30 AM - 11:00 AM (Morning Slot)">09:30 AM - 11:00 AM (Morning Slot)</mat-option>
-              <mat-option value="11:00 AM - 12:30 PM (Peak Slot)">11:00 AM - 12:30 PM (Peak Slot)</mat-option>
-              <mat-option value="02:00 PM - 03:30 PM (Afternoon Slot)">02:00 PM - 03:30 PM (Afternoon Slot)</mat-option>
-              <mat-option value="04:00 PM - 05:30 PM (Evening Sunset Slot)">04:00 PM - 05:30 PM (Evening Sunset Slot)</mat-option>
+            <mat-select
+              [(ngModel)]="bookingData.time_slot"
+              name="time_slot"
+              (selectionChange)="onTimeSlotChange($event.value)"
+            >
+              <mat-option *ngFor="let slot of timeSlots" [value]="slot">
+                {{ slot }}
+              </mat-option>
+              <mat-divider></mat-divider>
+              <mat-option value="__create_new_slot__" class="create-new-option">
+                <mat-icon class="create-new-icon">add_circle</mat-icon>
+                <span class="create-new-text">+ Create Custom Time Slot...</span>
+              </mat-option>
             </mat-select>
           </mat-form-field>
 
@@ -85,6 +105,97 @@
               </mat-option>
             </mat-select>
           </mat-form-field>
+        </div>
+
+        <!-- Custom Time Slot Creator Panel -->
+        <div *ngIf="isCreatingCustomTimeSlot" class="custom-slot-banner">
+          <div class="custom-slot-header">
+            <div class="custom-slot-badge">
+              <mat-icon>add_circle</mat-icon>
+              <span>CREATE NEW WALKTHROUGH TIME SLOT</span>
+            </div>
+            <button mat-icon-button type="button" class="btn-close-slot" (click)="cancelCustomTimeSlot()" matTooltip="Close">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+
+          <div class="custom-slot-body">
+            <p class="custom-slot-desc">Pick start/end times or type a custom time slot label to add it to the dropdown and select it for this site visit:</p>
+            <div class="custom-slot-time-pickers">
+              <mat-form-field appearance="outline" class="slot-picker-field">
+                <mat-label>Start Time</mat-label>
+                <input
+                  #startTimeInput
+                  matInput
+                  type="time"
+                  [(ngModel)]="customSlotStartTime"
+                  (ngModelChange)="updateCustomSlotPreview()"
+                  (click)="openDateTimePicker(startTimeInput)"
+                  name="customSlotStartTime"
+                />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="slot-picker-field">
+                <mat-label>End Time</mat-label>
+                <input
+                  #endTimeInput
+                  matInput
+                  type="time"
+                  [(ngModel)]="customSlotEndTime"
+                  (ngModelChange)="updateCustomSlotPreview()"
+                  (click)="openDateTimePicker(endTimeInput)"
+                  name="customSlotEndTime"
+                />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="slot-picker-field">
+                <mat-label>Slot Tag / Label</mat-label>
+                <input
+                  matInput
+                  type="text"
+                  [(ngModel)]="customSlotLabel"
+                  (ngModelChange)="updateCustomSlotPreview()"
+                  name="customSlotLabel"
+                  placeholder="e.g. VIP Slot, Weekend Slot"
+                />
+              </mat-form-field>
+            </div>
+
+            <div class="custom-slot-row">
+              <mat-form-field appearance="outline" class="custom-slot-input-field">
+                <mat-label>New Time Slot</mat-label>
+                <mat-icon matPrefix class="field-icon">schedule</mat-icon>
+                <input
+                  matInput
+                  type="text"
+                  [(ngModel)]="newCustomTimeSlot"
+                  name="newCustomTimeSlot"
+                  placeholder="e.g. 10:00 AM - 11:30 AM (Custom Slot)"
+                  (keydown.enter)="saveCustomTimeSlot($event)"
+                />
+              </mat-form-field>
+              <div class="custom-slot-btns">
+                <button
+                  mat-flat-button
+                  color="primary"
+                  type="button"
+                  class="btn-save-slot"
+                  [disabled]="!newCustomTimeSlot.trim()"
+                  (click)="saveCustomTimeSlot()"
+                >
+                  <mat-icon>check</mat-icon> Add &amp; Select
+                </button>
+                <button
+                  mat-stroked-button
+                  type="button"
+                  class="btn-cancel-slot"
+                  (click)="cancelCustomTimeSlot()"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

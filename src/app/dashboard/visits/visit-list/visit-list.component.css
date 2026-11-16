@@ -1072,3 +1072,113 @@ mat-card.modal-card-manage {
   color: #334155;
   white-space: nowrap;
 }
+
+/* Custom Time Slot Option & Inline Creator Banner */
+.create-new-option {
+  color: #2563eb !important;
+  font-weight: 700 !important;
+}
+
+.create-new-icon {
+  color: #2563eb !important;
+  margin-right: 6px;
+}
+
+.create-new-text {
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.custom-slot-banner {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  border: 1.5px solid #86efac;
+  border-left: 4px solid #16a34a;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+}
+
+.custom-slot-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.45rem;
+}
+
+.custom-slot-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #15803d;
+  letter-spacing: 0.05em;
+}
+
+.custom-slot-badge mat-icon {
+  font-size: 17px;
+  width: 17px;
+  height: 17px;
+  color: #16a34a;
+}
+
+.btn-close-slot {
+  width: 26px !important;
+  height: 26px !important;
+  line-height: 26px !important;
+  color: #64748b;
+}
+
+.custom-slot-time-pickers {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.2fr;
+  gap: 0.65rem;
+  margin-bottom: 0.25rem;
+}
+
+.slot-picker-field {
+  width: 100%;
+}
+
+.custom-slot-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+
+.custom-slot-input-field {
+  flex: 1;
+}
+
+.custom-slot-btns {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding-top: 0.25rem;
+}
+
+.btn-save-slot {
+  background: #16a34a !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  height: 42px;
+  padding: 0 1rem !important;
+}
+
+.btn-cancel-slot {
+  height: 42px;
+}
+
+@media (max-width: 768px) {
+  .custom-slot-time-pickers {
+    grid-template-columns: 1fr;
+  }
+  .custom-slot-row {
+    flex-direction: column;
+  }
+  .custom-slot-input-field,
+  .custom-slot-btns {
+    width: 100%;
+  }
+}
