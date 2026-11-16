@@ -177,61 +177,6 @@
   color: #ffffff;
 }
 
-/* Project Quick Pills */
-.project-filter-pills {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  flex-wrap: wrap;
-  background: #f8fafc;
-  padding: 0.25rem 0.65rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-}
-
-.project-pill-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-right: 0.25rem;
-  white-space: nowrap;
-}
-
-.project-pills-scroll {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  flex-wrap: wrap;
-}
-
-.project-pill-btn {
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  color: #475569;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.25rem 0.65rem;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-}
-
-.project-pill-btn:hover {
-  background: #f1f5f9;
-  border-color: #94a3b8;
-  color: #0f172a;
-}
-
-.project-pill-btn.active {
-  background: #0f172a;
-  border-color: #0f172a;
-  color: #ffffff;
-  font-weight: 700;
-}
-
 /* Trips Grid - Robust & Responsive */
 .trips-grid {
   display: grid;
@@ -835,13 +780,6 @@
     flex: 1;
     text-align: center;
     padding: 0.4rem 0.5rem;
-  }
-  .project-filter-pills {
-    width: 100%;
-  }
-  .project-pills-scroll {
-    overflow-x: auto;
-    padding-bottom: 2px;
   }
   .trips-grid {
     grid-template-columns: 1fr;

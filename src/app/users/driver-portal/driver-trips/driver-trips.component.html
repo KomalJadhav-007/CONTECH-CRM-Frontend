@@ -65,30 +65,6 @@
         Completed ({{ completedTripsCount }})
       </button>
     </div>
-
-    <!-- Project Quick Pills for Super Admin / Admin -->
-    <div class="project-filter-pills" *ngIf="isAdminOrSuperAdmin && projectsList.length > 0">
-      <span class="project-pill-label">PROJECT:</span>
-      <div class="project-pills-scroll">
-        <button
-          type="button"
-          class="project-pill-btn"
-          [class.active]="selectedProject === 'all'"
-          (click)="setProjectFilter('all')"
-        >
-          All Projects
-        </button>
-        <button
-          *ngFor="let prj of projectsList"
-          type="button"
-          class="project-pill-btn"
-          [class.active]="selectedProject == (prj.project_id || prj.id)"
-          (click)="setProjectFilter(prj.project_id || prj.id)"
-        >
-          {{ prj.name }}
-        </button>
-      </div>
-    </div>
   </div>
 
   <!-- Trips Cards Grid -->
