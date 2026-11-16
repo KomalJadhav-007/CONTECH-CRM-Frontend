@@ -762,6 +762,8 @@ export class ProjectsComponent implements OnInit {
   }
 
   // --- Add Project Form Actions ---
+  lastDeletedTypology: { item: PropertyTypeConfig; index: number } | null = null;
+
   addPropertyTypeRow(): void {
     const nextWing = String.fromCharCode(65 + (this.newProjectPropertyTypes.length % 26));
     const nextIndex = this.newProjectPropertyTypes.length + 1;
@@ -785,39 +787,30 @@ export class ProjectsComponent implements OnInit {
     this.showFeedback(`${label} #${nextIndex} ("${configName}") added successfully!`, 'success');
   }
 
-  confirmDeletePropertyTypeRow(index: number): void {
+  removePropertyTypeRow(index: number): void {
     if (this.newProjectPropertyTypes.length <= 1) {
       this.showFeedback('At least one property configuration is required for a project.', 'warning');
       return;
     }
     const item = this.newProjectPropertyTypes[index];
-    this.typologyIndexToDelete = index;
     const label = this.getTypologyAddLabel();
-    this.typologyNameToDelete = item.name || `${item.bhk_type || label} (Config #${index + 1})`;
-    this.showDeleteTypologyModal = true;
+    const deletedName = item.name || `${item.bhk_type || label} (Config #${index + 1})`;
+    this.lastDeletedTypology = { item: { ...item }, index };
+    this.newProjectPropertyTypes.splice(index, 1);
+    this.syncConfigurationsText();
+    this.showFeedback(`${label} "${deletedName}" deleted successfully.`, 'delete');
   }
 
-  cancelDeleteTypology(): void {
-    this.showDeleteTypologyModal = false;
-    this.typologyIndexToDelete = null;
-    this.typologyNameToDelete = '';
-  }
-
-  executeDeletePropertyType(): void {
-    if (this.typologyIndexToDelete !== null && this.typologyIndexToDelete >= 0) {
-      const deletedName = this.typologyNameToDelete;
-      const label = this.getTypologyAddLabel();
-      this.newProjectPropertyTypes.splice(this.typologyIndexToDelete, 1);
+  undoDeleteTypology(): void {
+    if (this.lastDeletedTypology) {
+      const { item, index } = this.lastDeletedTypology;
+      const targetIndex = Math.min(index, this.newProjectPropertyTypes.length);
+      this.newProjectPropertyTypes.splice(targetIndex, 0, item);
       this.syncConfigurationsText();
-      this.showFeedback(`${label} "${deletedName}" deleted successfully.`, 'delete');
+      const label = this.getTypologyAddLabel();
+      this.showFeedback(`${label} "${item.name}" restored successfully.`, 'success');
+      this.lastDeletedTypology = null;
     }
-    this.showDeleteTypologyModal = false;
-    this.typologyIndexToDelete = null;
-    this.typologyNameToDelete = '';
-  }
-
-  removePropertyTypeRow(index: number): void {
-    this.confirmDeletePropertyTypeRow(index);
   }
 
   syncConfigurationsText(): void {
