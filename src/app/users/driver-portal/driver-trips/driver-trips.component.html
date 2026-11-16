@@ -5,13 +5,22 @@
   <!-- Header matching Prospects / Pipeline / Visits Theme -->
   <div class="page-title-row">
     <div>
-      <div class="section-tag">LOGISTICS &middot; DRIVER PORTAL</div>
-      <h1 class="page-title">My Daily Site Visit Trips</h1>
+      <div class="section-tag">{{ isAdminOrSuperAdmin ? 'FLEET &amp; LOGISTICS &middot; ALL SITE VISIT DISPATCHES' : 'LOGISTICS &middot; DRIVER PORTAL' }}</div>
+      <h1 class="page-title">{{ isAdminOrSuperAdmin ? 'Site Visit Trips Dispatch Board' : 'My Daily Site Visit Trips' }}</h1>
       <p class="page-subtitle">
-        Live passenger pickup coordinates &amp; one-touch journey tracking.
+        {{ isAdminOrSuperAdmin ? 'Comprehensive tracking of passenger pickups, driver allocations, and transit statuses across development projects.' : 'Live passenger pickup coordinates &amp; one-touch journey tracking.' }}
       </p>
     </div>
     <div class="top-actions">
+      <!-- Project Filter Dropdown for Super Admin & Admin -->
+      <div class="filter-dropdown-wrap project-dropdown-wrap" *ngIf="isAdminOrSuperAdmin && projectsList.length > 0">
+        <select [(ngModel)]="selectedProject" class="filter-native-select" (change)="onProjectFilterChange()">
+          <option value="all">🏢 Project: All Projects ({{ projectsList.length }})</option>
+          <option *ngFor="let prj of projectsList" [value]="prj.project_id || prj.id">🏢 {{ prj.name }}</option>
+        </select>
+        <mat-icon class="dropdown-arrow-icon">arrow_drop_down</mat-icon>
+      </div>
+
       <button mat-stroked-button type="button" (click)="loadTrips()">
         <mat-icon>refresh</mat-icon> Refresh Trips
       </button>
@@ -25,34 +34,58 @@
   </div>
 
   <!-- Trips Filter Bar -->
-  <div class="filters-bar" *ngIf="trips.length > 0">
-    <button
-      mat-stroked-button
-      type="button"
-      class="filter-tab"
-      [class.active]="filterStatus === ''"
-      (click)="setFilter('')"
-    >
-      All Trips ({{ trips.length }})
-    </button>
-    <button
-      mat-stroked-button
-      type="button"
-      class="filter-tab"
-      [class.active]="filterStatus === 'ACTIVE'"
-      (click)="setFilter('ACTIVE')"
-    >
-      Active Journeys
-    </button>
-    <button
-      mat-stroked-button
-      type="button"
-      class="filter-tab"
-      [class.active]="filterStatus === 'COMPLETED'"
-      (click)="setFilter('COMPLETED')"
-    >
-      Completed
-    </button>
+  <div class="filters-bar" *ngIf="trips.length > 0 || selectedProject !== 'all'">
+    <div class="filter-tabs-group">
+      <button
+        mat-stroked-button
+        type="button"
+        class="filter-tab"
+        [class.active]="filterStatus === ''"
+        (click)="setFilter('')"
+      >
+        All Trips ({{ totalProjectTripsCount }})
+      </button>
+      <button
+        mat-stroked-button
+        type="button"
+        class="filter-tab"
+        [class.active]="filterStatus === 'ACTIVE'"
+        (click)="setFilter('ACTIVE')"
+      >
+        Active Journeys ({{ activeTripsCount }})
+      </button>
+      <button
+        mat-stroked-button
+        type="button"
+        class="filter-tab"
+        [class.active]="filterStatus === 'COMPLETED'"
+        (click)="setFilter('COMPLETED')"
+      >
+        Completed ({{ completedTripsCount }})
+      </button>
+    </div>
+
+    <!-- Project Quick Pills for Super Admin / Admin -->
+    <div class="project-filter-pills" *ngIf="isAdminOrSuperAdmin && projectsList.length > 0">
+      <span class="project-pill-label">Project:</span>
+      <button
+        type="button"
+        class="project-pill-btn"
+        [class.active]="selectedProject === 'all'"
+        (click)="setProjectFilter('all')"
+      >
+        All Projects
+      </button>
+      <button
+        *ngFor="let prj of projectsList"
+        type="button"
+        class="project-pill-btn"
+        [class.active]="selectedProject == (prj.project_id || prj.id)"
+        (click)="setProjectFilter(prj.project_id || prj.id)"
+      >
+        {{ prj.name }}
+      </button>
+    </div>
   </div>
 
   <!-- Trips Cards Grid -->
@@ -62,6 +95,11 @@
         <div class="trip-time-info">
           <span class="trip-time">{{ trip.siteVisit?.time_slot || 'Today' }}</span>
           <span class="cab-tag">{{ trip.siteVisit?.cab_number || 'Company Fleet' }}</span>
+          <!-- Project Specific Tag -->
+          <span class="project-tag" *ngIf="trip.siteVisit?.project?.name || trip.drop_address">
+            <mat-icon class="project-tag-icon">business</mat-icon>
+            {{ trip.siteVisit?.project?.name || 'Project Site' }}
+          </span>
         </div>
         <span
           class="stage-badge"
@@ -90,6 +128,22 @@
         </div>
       </div>
 
+      <!-- Assigned Driver Info for Super Admin / Admin -->
+      <div class="driver-allocation-box" *ngIf="isAdminOrSuperAdmin && (trip.driver || trip.siteVisit?.driver)">
+        <div class="driver-alloc-label">
+          <mat-icon class="driver-alloc-icon">directions_car</mat-icon>
+          <span>Assigned Driver: <strong>{{ trip.driver?.name || trip.siteVisit?.driver?.name }}</strong></span>
+        </div>
+        <a
+          *ngIf="trip.driver?.phone || trip.siteVisit?.driver?.phone"
+          [href]="'tel:' + (trip.driver?.phone || trip.siteVisit?.driver?.phone)"
+          class="driver-phone-chip"
+        >
+          <mat-icon style="font-size: 13px; width: 13px; height: 13px;">call</mat-icon>
+          {{ trip.driver?.phone || trip.siteVisit?.driver?.phone }}
+        </a>
+      </div>
+
       <!-- Route Timeline -->
       <div class="route-box">
         <div class="route-stop">
@@ -105,7 +159,7 @@
         <div class="route-stop">
           <div class="stop-dot drop"></div>
           <div>
-            <div class="stop-label">DESTINATION SITE GALLERY</div>
+            <div class="stop-label">DESTINATION &middot; {{ trip.siteVisit?.project?.name || 'PROJECT SALES GALLERY' }}</div>
             <div class="stop-address">{{ trip.drop_address }}</div>
           </div>
         </div>
@@ -156,6 +210,9 @@
   <div class="table-footer-bar trips-footer-bar" *ngIf="filteredTrips.length > 0">
     <div class="footer-summary">
       <span>Showing <strong>{{ pagedTrips.length }}</strong> of <strong>{{ filteredTrips.length }}</strong> trips</span>
+      <span *ngIf="selectedProject !== 'all'" class="footer-project-badge">
+        &middot; Project: <strong>{{ getSelectedProjectName() }}</strong>
+      </span>
     </div>
 
     <div class="footer-controls">
@@ -193,8 +250,13 @@
   <mat-card *ngIf="filteredTrips.length === 0 && !loading" class="table-card empty-card">
     <div class="empty-state">
       <div class="empty-icon"><mat-icon style="font-size: 44px; width: 44px; height: 44px; color: #94a3b8;">directions_car</mat-icon></div>
-      <h2 class="empty-title">No Pending Trips Assigned</h2>
-      <p class="empty-subtitle">You are all caught up for today. New dispatch notifications will appear here.</p>
+      <h2 class="empty-title">{{ selectedProject !== 'all' ? 'No Trips for ' + getSelectedProjectName() : 'No Pending Trips Assigned' }}</h2>
+      <p class="empty-subtitle">
+        {{ selectedProject !== 'all' ? 'No site visit dispatch journeys found targeting this project.' : 'You are all caught up for today. New dispatch notifications will appear here.' }}
+      </p>
+      <button *ngIf="selectedProject !== 'all'" mat-stroked-button type="button" (click)="clearProjectFilter()" style="margin-top: 1rem;">
+        <mat-icon style="margin-right: 4px;">clear_all</mat-icon> View All Projects Trips
+      </button>
     </div>
   </mat-card>
 </div>

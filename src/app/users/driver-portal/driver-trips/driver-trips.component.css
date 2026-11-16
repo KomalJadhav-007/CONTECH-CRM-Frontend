@@ -38,10 +38,53 @@
   line-height: 1.45;
 }
 
+/* Top Actions & Project Filter Dropdown */
 .top-actions {
   display: flex;
   gap: 0.65rem;
   align-items: center;
+  flex-wrap: wrap;
+}
+
+.filter-dropdown-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0.35rem 0.65rem;
+  transition: all 0.15s ease;
+  min-width: 220px;
+}
+
+.filter-dropdown-wrap:focus-within {
+  border-color: #0f172a;
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+}
+
+.filter-native-select {
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #1e293b;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  padding-right: 1.5rem;
+}
+
+.dropdown-arrow-icon {
+  position: absolute;
+  right: 0.45rem;
+  pointer-events: none;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: #64748b;
 }
 
 .btn-export {
@@ -82,8 +125,16 @@
 /* Filter Bar matching Prospects / Tasks / Visits */
 .filters-bar {
   display: flex;
-  gap: 0.5rem;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
   margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.filter-tabs-group {
+  display: flex;
+  gap: 0.5rem;
   flex-wrap: wrap;
 }
 
@@ -108,6 +159,52 @@
   background: #0f172a;
   border-color: #0f172a;
   color: #ffffff;
+}
+
+/* Project Quick Pills */
+.project-filter-pills {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  background: #f8fafc;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+}
+
+.project-pill-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-right: 0.2rem;
+}
+
+.project-pill-btn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.65rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.project-pill-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.project-pill-btn.active {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #ffffff;
+  font-weight: 700;
 }
 
 /* Trips Grid */
@@ -163,6 +260,77 @@
   border: 1px solid #e2e8f0;
   padding: 0.2rem 0.55rem;
   border-radius: 6px;
+}
+
+/* Project Specific Tag on Trip Card */
+.project-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #0369a1;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+.project-tag-icon {
+  font-size: 13px !important;
+  width: 13px !important;
+  height: 13px !important;
+  color: #0284c7;
+}
+
+/* Assigned Driver Info Box */
+.driver-allocation-box {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 6px;
+  padding: 0.4rem 0.75rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.driver-alloc-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  color: #475569;
+}
+
+.driver-alloc-icon {
+  font-size: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
+  color: #64748b;
+}
+
+.driver-phone-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #0284c7;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.driver-phone-chip:hover {
+  background: #e0f2fe;
+  border-color: #38bdf8;
 }
 
 /* Status Badges */
@@ -476,6 +644,11 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.footer-project-badge {
+  color: #0284c7;
+  font-weight: 600;
 }
 
 .footer-controls {
