@@ -1651,15 +1651,17 @@
   <!-- Modal: Schedule / Add Follow-up for Prospect -->
   <div class="modal-backdrop-custom" *ngIf="showFollowUpModal" (click)="closeFollowUpModal()">
     <div class="modal-card-custom followup-modal-card" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <div class="modal-header-icon bg-indigo">
-          <mat-icon>add_task</mat-icon>
-        </div>
-        <div class="modal-title-wrap">
-          <h2 class="modal-title">Schedule Follow-up for {{ selectedBuyerForFollowUp?.name }}</h2>
-          <p class="modal-subtitle">
-            Create an SLA countdown follow-up task and update the manual intent score for this prospect.
-          </p>
+      <div class="modal-header modal-header-followup">
+        <div class="modal-header-left-group">
+          <div class="modal-header-icon bg-indigo">
+            <mat-icon>add_task</mat-icon>
+          </div>
+          <div class="modal-title-wrap">
+            <h2 class="modal-title">Schedule Follow-up for {{ selectedBuyerForFollowUp?.name }}</h2>
+            <p class="modal-subtitle">
+              Create an SLA countdown follow-up task and update the manual intent score for this prospect.
+            </p>
+          </div>
         </div>
         <button mat-icon-button type="button" class="btn-close-modal" (click)="closeFollowUpModal()">
           <mat-icon>close</mat-icon>
@@ -1697,8 +1699,10 @@
           <div class="form-group-custom">
             <label class="form-label-custom">Due Date & Time (SLA Target)</label>
             <input
+              #followUpDueInput
               type="datetime-local"
               [(ngModel)]="followUpModalForm.due_at"
+              (click)="openDateTimePicker(followUpDueInput)"
               class="form-input-custom"
             />
           </div>

@@ -798,6 +798,14 @@ export class BuyerListComponent implements OnInit {
   }
 
   // --- Follow-Up Modal Actions ---
+  openDateTimePicker(inputEl: HTMLInputElement): void {
+    if (inputEl && typeof (inputEl as any).showPicker === 'function') {
+      try {
+        (inputEl as any).showPicker();
+      } catch (_) {}
+    }
+  }
+
   openFollowUpModal(p: any): void {
     this.selectedBuyerForFollowUp = p;
     const defaultDue = new Date(Date.now() + 4 * 60 * 60 * 1000);
