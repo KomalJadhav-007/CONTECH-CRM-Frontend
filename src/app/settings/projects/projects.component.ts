@@ -1053,33 +1053,73 @@ export class ProjectsComponent implements OnInit {
       },
       error: () => {
         this.inventoryLoading = false;
-        // Mock fallback inventory for development
+        // Reconciled fallback inventory matching full project configuration count
+        const propTypes = this.activeProject?.property_types || [
+          { id: 1, name: '2 BHK Elegance', bhk_type: '2 BHK', carpet_area_sqft: 1050, super_builtup_area_sqft: 1320, base_price_lacs: 145, total_units: 40, facing: 'East Facing', tower_wing: 'Tower A' },
+          { id: 2, name: '3 BHK Royal Grand', bhk_type: '3 BHK', carpet_area_sqft: 1480, super_builtup_area_sqft: 1850, base_price_lacs: 195, total_units: 50, facing: 'North-East Facing', tower_wing: 'Tower A' },
+          { id: 3, name: '4 BHK Sky Penthouse', bhk_type: '4 BHK', carpet_area_sqft: 2250, super_builtup_area_sqft: 2850, base_price_lacs: 310, total_units: 30, facing: 'Panoramic Park Facing', tower_wing: 'Tower B' }
+        ];
+        const units: any[] = [];
+        let uId = 1;
+        for (const pt of propTypes) {
+          const count = pt.total_units || 10;
+          const tower = pt.tower_wing ? pt.tower_wing.split('/')[0].trim() : 'Tower A';
+          const prefix = tower.replace(/^(Tower|Wing)\s*/i, '').trim() || 'A';
+          for (let i = 0; i < count; i++) {
+            const floor = Math.floor(i / 4) + 1;
+            const u = (i % 4) + 1;
+            const isBooked = (uId === 4);
+            const isReserved = (uId === 6);
+            units.push({
+              unit_id: uId++,
+              property_type_id: pt.id || pt.property_type_id,
+              unit_number: `${prefix}-${floor}${u < 10 ? '0' + u : u}`,
+              tower_block: tower,
+              floor_number: floor,
+              bhk_type: pt.bhk_type || '2 BHK',
+              area_sqft: pt.super_builtup_area_sqft || pt.carpet_area_sqft || 1200,
+              price_lacs: pt.base_price_lacs || 120.00,
+              facing: pt.facing || 'East Facing',
+              status: isBooked ? 'BOOKED' : (isReserved ? 'RESERVED' : 'AVAILABLE'),
+              notes: isBooked ? 'Booked by Buyer' : (isReserved ? 'Shortlisted' : '')
+            });
+          }
+        }
+        const total = units.length;
+        const available = units.filter(u => u.status === 'AVAILABLE').length;
+        const reserved = units.filter(u => u.status === 'RESERVED').length;
+        const booked = units.filter(u => u.status === 'BOOKED').length;
+        const totalVal = units.reduce((acc, u) => acc + (parseFloat(u.price_lacs) || 0), 0);
+        const bookedVal = units.filter(u => u.status === 'BOOKED').reduce((acc, u) => acc + (parseFloat(u.price_lacs) || 0), 0);
+
         this.activeInventory = {
-          propertyTypes: this.activeProject?.property_types || [
-            { id: 1, name: '2 BHK Elegance', bhk_type: '2 BHK', carpet_area_sqft: 1050, super_builtup_area_sqft: 1320, base_price_lacs: 145, total_units: 40, facing: 'East Facing' },
-            { id: 2, name: '3 BHK Royal Grand', bhk_type: '3 BHK', carpet_area_sqft: 1480, super_builtup_area_sqft: 1850, base_price_lacs: 195, total_units: 50, facing: 'North-East Facing' },
-            { id: 3, name: '4 BHK Sky Penthouse', bhk_type: '4 BHK', carpet_area_sqft: 2250, super_builtup_area_sqft: 2850, base_price_lacs: 310, total_units: 30, facing: 'Panoramic Park Facing' }
-          ],
-          units: [
-            { unit_id: 1, unit_number: 'Tower A - 101', tower_block: 'Tower A', floor_number: 1, bhk_type: '2 BHK', area_sqft: 1320, price_lacs: 145.00, facing: 'East Facing', status: 'AVAILABLE' },
-            { unit_id: 2, unit_number: 'Tower A - 102', tower_block: 'Tower A', floor_number: 1, bhk_type: '2 BHK', area_sqft: 1320, price_lacs: 145.00, facing: 'West Facing', status: 'AVAILABLE' },
-            { unit_id: 3, unit_number: 'Tower A - 201', tower_block: 'Tower A', floor_number: 2, bhk_type: '3 BHK', area_sqft: 1850, price_lacs: 195.00, facing: 'North-East Facing', status: 'AVAILABLE' },
-            { unit_id: 4, unit_number: 'Tower A - 402', tower_block: 'Tower A', floor_number: 4, bhk_type: '3 BHK', area_sqft: 1850, price_lacs: 195.00, facing: 'East Facing', status: 'BOOKED', notes: 'Booked by Rohiet Kumar' },
-            { unit_id: 5, unit_number: 'Tower B - 501', tower_block: 'Tower B', floor_number: 5, bhk_type: '3 BHK', area_sqft: 1850, price_lacs: 202.00, facing: 'Park Facing', status: 'AVAILABLE' },
-            { unit_id: 6, unit_number: 'Tower B - 703', tower_block: 'Tower B', floor_number: 7, bhk_type: '3 BHK', area_sqft: 1850, price_lacs: 210.00, facing: 'East Facing', status: 'RESERVED', notes: 'Shortlisted by Vikram Malhotra' },
-            { unit_id: 7, unit_number: 'Tower B - 1201', tower_block: 'Tower B', floor_number: 12, bhk_type: '4 BHK', area_sqft: 2850, price_lacs: 310.00, facing: 'Panoramic Park Facing', status: 'AVAILABLE' },
-            { unit_id: 8, unit_number: 'Tower B - 1202', tower_block: 'Tower B', floor_number: 12, bhk_type: '4 BHK', area_sqft: 2850, price_lacs: 315.00, facing: 'Panoramic Park Facing', status: 'AVAILABLE' }
-          ],
+          propertyTypes: propTypes,
+          units,
           stats: {
-            total_flats: 8,
-            available_flats: 6,
-            reserved_flats: 1,
-            booked_flats: 1,
+            total_flats: total,
+            available_flats: available,
+            reserved_flats: reserved,
+            booked_flats: booked,
             blocked_flats: 0,
-            total_value_cr: '16.97',
-            booked_value_cr: '1.95'
+            total_value_cr: (totalVal / 100).toFixed(2),
+            booked_value_cr: (bookedVal / 100).toFixed(2)
           }
         };
+
+        if (this.activeProject) {
+          this.activeProject.total_units = total;
+          this.activeProject.available_units = available;
+          this.activeProject.booked_units = booked;
+          this.activeProject.reserved_units = reserved;
+          const prjInList = this.projects.find(p => p.id === this.activeProject.id);
+          if (prjInList) {
+            prjInList.total_units = total;
+            prjInList.available_units = available;
+            prjInList.booked_units = booked;
+            prjInList.reserved_units = reserved;
+          }
+          this.updateStats();
+        }
       }
     });
   }
@@ -1297,11 +1337,13 @@ export class ProjectsComponent implements OnInit {
 
     this.settingsService.deletePropertyType(this.activeProject.id, typeId).subscribe({
       next: () => {
-        this.activeInventory.propertyTypes = this.activeInventory.propertyTypes.filter(t => (t.id || t.property_type_id) !== typeId);
+        this.loadProjectInventory(this.activeProject.id);
         this.showFeedback('Property configuration deleted.', 'delete');
       },
       error: () => {
         this.activeInventory.propertyTypes = this.activeInventory.propertyTypes.filter(t => (t.id || t.property_type_id) !== typeId);
+        this.activeInventory.units = this.activeInventory.units.filter(u => (u.property_type_id) !== typeId);
+        this.recalculateInventoryStats();
         this.showFeedback('Property configuration deleted.', 'delete');
       }
     });
