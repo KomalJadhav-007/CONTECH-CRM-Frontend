@@ -1265,6 +1265,18 @@ export class BuyerListComponent implements OnInit {
     this.selectedFileName = file.name;
     this.importError = '';
     this.importStats = null;
+    this.parsedCsvRows = [];
+
+    // 1. File extension validation
+    const validExtensions = ['.csv', '.xlsx', '.xls'];
+    const lowerName = (file.name || '').toLowerCase();
+    const hasValidExt = validExtensions.some(ext => lowerName.endsWith(ext));
+    if (!hasValidExt) {
+      this.importError = 'Import rejected: Invalid file format. Please upload a valid .csv, .xlsx, or .xls file.';
+      this.parsedCsvRows = [];
+      if (event.target) event.target.value = '';
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = (e: any) => {
@@ -1273,7 +1285,9 @@ export class BuyerListComponent implements OnInit {
         const workbook = XLSX.read(data, { type: 'array' });
         const firstSheetName = workbook.SheetNames[0];
         if (!firstSheetName) {
-          this.importError = 'No sheet found in uploaded spreadsheet.';
+          this.importError = 'Import rejected: No readable sheet found in the uploaded file.';
+          this.parsedCsvRows = [];
+          if (event.target) event.target.value = '';
           return;
         }
 
@@ -1281,7 +1295,9 @@ export class BuyerListComponent implements OnInit {
         const rawJson: any[] = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
 
         if (!rawJson || rawJson.length === 0) {
-          this.importError = 'The uploaded file contains no data rows.';
+          this.importError = 'Import rejected: The uploaded file is empty or contains no data rows.';
+          this.parsedCsvRows = [];
+          if (event.target) event.target.value = '';
           return;
         }
 
@@ -1297,10 +1313,72 @@ export class BuyerListComponent implements OnInit {
           return clean;
         });
 
-        this.parsedCsvRows = rows;
+        // 2. Column / Header validation:
+        // Must contain recognizable prospect columns (Name and Phone)
+        const nameKeys = ['full_name', 'name', 'prospect_name', 'prospect', 'buyer_name', 'buyer', 'lead_name', 'customer_name'];
+        const phoneKeys = ['phone', 'phone_number', 'mobile', 'mobile_number', 'contact', 'contact_number', 'contact_no', 'tel'];
+
+        const sampleKeys = new Set<string>();
+        rows.slice(0, 5).forEach(r => Object.keys(r).forEach(k => sampleKeys.add(k.toLowerCase().replace(/[\s\-\.]+/g, '_'))));
+
+        const hasNameHeader = nameKeys.some(k => sampleKeys.has(k));
+        const hasPhoneHeader = phoneKeys.some(k => sampleKeys.has(k));
+
+        if (!hasNameHeader || !hasPhoneHeader) {
+          this.importError = 'Import rejected: Malformed or invalid CSV file. The file must include valid prospect headers (at minimum "full_name" or "name", and "phone" or "contact").';
+          this.parsedCsvRows = [];
+          if (event.target) event.target.value = '';
+          return;
+        }
+
+        // 3. Row data validation:
+        // Filter valid rows: Must contain non-empty name (at least 2 chars, not purely digits) and phone with at least 7 digits
+        const validRows = rows.filter(row => {
+          const name = (
+            row.full_name || row['Full Name'] ||
+            row.name || row['Name'] ||
+            row.prospect_name || row['Prospect Name'] ||
+            row.prospect || row['Prospect'] ||
+            row.buyer_name || row['Buyer Name'] ||
+            row.customer_name || row['Customer Name'] ||
+            row.lead_name || row['Lead Name'] ||
+            ''
+          ).toString().trim();
+
+          const phone = (
+            row.phone || row['Phone Number'] || row['Phone'] ||
+            row.mobile || row['Mobile'] ||
+            row.contact || row['Contact'] ||
+            row.contact_no || row['Contact No'] ||
+            row.phone_number || row['Phone No'] ||
+            ''
+          ).toString().trim();
+
+          const cleanPhone = phone.replace(/\D/g, '');
+          const hasValidName = name.length >= 2 && !/^\d+$/.test(name);
+          const hasValidPhone = cleanPhone.length >= 7;
+
+          return hasValidName && hasValidPhone;
+        });
+
+        if (validRows.length === 0) {
+          this.importError = 'Import rejected: No valid prospect records found in the file. Each row must contain a valid name and phone number (min 7 digits).';
+          this.parsedCsvRows = [];
+          if (event.target) event.target.value = '';
+          return;
+        }
+
+        this.parsedCsvRows = validRows;
       } catch (err: any) {
-        this.importError = 'Failed to parse file: ' + err.message;
+        this.importError = 'Import rejected: Failed to parse file - ' + (err.message || 'File is corrupted or malformed.');
+        this.parsedCsvRows = [];
+        if (event.target) event.target.value = '';
       }
+    };
+    reader.onerror = () => {
+      this.importError = 'Import rejected: Error reading the uploaded file. Please ensure it is a valid, readable CSV or Excel file.';
+      this.parsedCsvRows = [];
+      if (event.target) event.target.value = '';
     };
     reader.readAsArrayBuffer(file);
   }
@@ -1360,7 +1438,7 @@ export class BuyerListComponent implements OnInit {
   }
 
   executeImport(): void {
-    if (this.parsedCsvRows.length === 0) {
+    if (!this.parsedCsvRows || this.parsedCsvRows.length === 0) {
       this.importError = 'Please upload a valid Excel or CSV file with prospect rows first.';
       return;
     }
@@ -1371,20 +1449,23 @@ export class BuyerListComponent implements OnInit {
     this.buyerService.importBuyersFromCsv(this.parsedCsvRows, this.importTargetProjectId).subscribe({
       next: (res) => {
         this.importing = false;
-        if (res.success) {
+        if (res.success && res.results && res.results.imported_count > 0) {
           this.importStats = res.results;
           this.loadBuyers();
           const projectsCount = Object.keys(res.results.projects_summary || {}).length;
           this.showFeedback(
             `Import finished: ${res.results.imported_count} imported across ${projectsCount} project(s), ${res.results.duplicate_count} duplicates skipped.`
           );
+        } else if (res.success && res.results && res.results.imported_count === 0 && res.results.duplicate_count > 0) {
+          this.importStats = res.results;
+          this.showFeedback(`Import finished: All ${res.results.duplicate_count} records were duplicates and skipped.`);
         } else {
-          this.importError = res.message || 'Import failed';
+          this.importError = res.message || 'Import rejected: No records were imported.';
         }
       },
       error: (err) => {
         this.importing = false;
-        this.importError = err.error?.message || 'Failed to import file';
+        this.importError = err.error?.message || err.message || 'Failed to import file';
       }
     });
   }

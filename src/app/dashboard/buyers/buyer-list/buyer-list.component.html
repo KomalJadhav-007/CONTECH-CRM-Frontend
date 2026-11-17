@@ -1597,9 +1597,9 @@
         </div>
 
         <!-- Preview Table -->
-        <div *ngIf="parsedCsvRows.length > 0 && !importStats" class="preview-section">
+        <div *ngIf="parsedCsvRows.length > 0 && !importStats && !importError" class="preview-section">
           <div class="preview-title">
-            <span>Prospects Preview ({{ parsedCsvRows.length }} rows parsed instantly)</span>
+            <span>Prospects Preview ({{ parsedCsvRows.length }} {{ parsedCsvRows.length === 1 ? 'row' : 'rows' }} parsed instantly)</span>
           </div>
           <div class="preview-table-wrapper">
             <table class="preview-table">
@@ -1618,8 +1618,8 @@
               <tbody>
                 <tr *ngFor="let row of parsedCsvRows.slice(0, 6); let i = index">
                   <td>{{ i + 1 }}</td>
-                  <td><strong>{{ row.full_name || row['Full Name'] || row.name }}</strong></td>
-                  <td>{{ row.phone || row['Phone Number'] || row.contact }}</td>
+                  <td><strong>{{ row.full_name || row['Full Name'] || row.name || '-' }}</strong></td>
+                  <td>{{ row.phone || row['Phone Number'] || row.contact || '-' }}</td>
                   <td><span class="preview-project-badge">{{ getRowProjectName(row, i) }}</span></td>
                   <td>₹{{ row.budget_min_lacs || '100' }} - {{ row.budget_max_lacs || '200' }}L</td>
                   <td>{{ row.preferred_bhk || '3 BHK' }}</td>
