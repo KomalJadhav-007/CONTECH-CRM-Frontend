@@ -74,22 +74,40 @@
     </div>
 
     <form (ngSubmit)="addProject()" class="project-form">
+      <!-- Validation Summary Banner -->
+      <div *ngIf="formSubmitted && hasValidationErrors" class="form-validation-summary-banner">
+        <mat-icon class="banner-err-icon">error</mat-icon>
+        <div class="banner-err-text">
+          <strong>Cannot save project:</strong> Please complete all required fields highlighted in red below before submitting.
+        </div>
+      </div>
+
       <!-- Row 1: General Details -->
       <div class="form-row-4">
-        <div class="form-field">
+        <div class="form-field" [class.has-error]="isProjectNameInvalid">
           <label class="field-label">Project Name *</label>
           <input type="text" [(ngModel)]="newProject.name" name="name" required class="input-field"
+            [class.input-error]="isProjectNameInvalid"
             placeholder="e.g. Contech Aurum Towers" />
+          <div *ngIf="isProjectNameInvalid" class="field-error-msg">
+            <mat-icon class="err-icon">error_outline</mat-icon>
+            <span>Project Name is required</span>
+          </div>
         </div>
         <div class="form-field">
           <label class="field-label">Developer / Builder</label>
           <input type="text" [(ngModel)]="newProject.developer" name="developer" class="input-field"
             placeholder="e.g. Contech Developments Pvt Ltd" />
         </div>
-        <div class="form-field">
+        <div class="form-field" [class.has-error]="isLocationInvalid">
           <label class="field-label">Location / Micro-Market *</label>
           <input type="text" [(ngModel)]="newProject.location" name="location" class="input-field"
+            [class.input-error]="isLocationInvalid"
             placeholder="e.g. Whitefield, Bengaluru" />
+          <div *ngIf="isLocationInvalid" class="field-error-msg">
+            <mat-icon class="err-icon">error_outline</mat-icon>
+            <span>Location / Micro-Market is required</span>
+          </div>
         </div>
         <div class="form-field">
           <label class="field-label">Full Address / Landmark</label>
@@ -159,6 +177,14 @@
           </div>
         </div>
 
+        <!-- Empty configurations warning -->
+        <div *ngIf="newProjectPropertyTypes.length === 0" class="empty-typologies-warning">
+          <mat-icon class="warn-icon">warning_amber</mat-icon>
+          <div class="warn-text">
+            <strong>No typologies configured.</strong> A project requires at least one flat or property configuration. Click <em>"Add Another {{ getTypologyAddLabel() }}"</em> above to configure a typology.
+          </div>
+        </div>
+
         <div class="type-rows-container">
           <div *ngFor="let pt of newProjectPropertyTypes; let i = index" class="type-card-item">
             <!-- Header of each configuration card -->
@@ -182,10 +208,14 @@
 
             <!-- Responsive Multi-tier Grid for each configuration -->
             <div class="type-card-body-grid">
-              <div class="type-field-group col-name">
+              <div class="type-field-group col-name" [class.has-error]="formSubmitted && (!pt.name || !pt.name.trim())">
                 <label class="sub-label">Configuration / Flat Name <span class="req-star">*</span></label>
                 <input type="text" [(ngModel)]="pt.name" [name]="'pt_name_' + i" (input)="syncConfigurationsText()"
-                  class="input-field-sm" placeholder="e.g. 2 BHK Executive" />
+                  class="input-field-sm" [class.input-error]="formSubmitted && (!pt.name || !pt.name.trim())"
+                  placeholder="e.g. 2 BHK Executive" />
+                <div *ngIf="formSubmitted && (!pt.name || !pt.name.trim())" class="field-error-msg-sm">
+                  <span>Configuration name is required</span>
+                </div>
               </div>
 
               <div class="type-field-group col-bhk">
@@ -275,10 +305,14 @@
                   placeholder="125" />
               </div>
 
-              <div class="type-field-group col-units">
-                <label class="sub-label">Planned Units</label>
+              <div class="type-field-group col-units" [class.has-error]="formSubmitted && (!pt.total_units || pt.total_units <= 0)">
+                <label class="sub-label">Planned Units <span class="req-star">*</span></label>
                 <input type="number" [(ngModel)]="pt.total_units" [name]="'pt_units_' + i" class="input-field-sm"
+                  [class.input-error]="formSubmitted && (!pt.total_units || pt.total_units <= 0)"
                   placeholder="30" />
+                <div *ngIf="formSubmitted && (!pt.total_units || pt.total_units <= 0)" class="field-error-msg-sm">
+                  <span>Planned units must be at least 1</span>
+                </div>
               </div>
 
               <div class="type-field-group col-facing">

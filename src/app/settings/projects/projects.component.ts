@@ -80,11 +80,33 @@ export class ProjectsComponent implements OnInit {
     location: '',
     address: '',
     project_purpose: 'Housing / Residential',
-    configurations: '2 BHK, 3 BHK, 4 BHK Luxury',
+    configurations: '',
     daily_capacity: 20,
     working_hours: '09:00 AM - 07:00 PM',
     status: 'active'
   };
+
+  formSubmitted = false;
+
+  get isProjectNameInvalid(): boolean {
+    return this.formSubmitted && (!this.newProject.name || !this.newProject.name.trim());
+  }
+
+  get isLocationInvalid(): boolean {
+    return this.formSubmitted && (!this.newProject.location || !this.newProject.location.trim());
+  }
+
+  get isTypologyListEmpty(): boolean {
+    return this.formSubmitted && this.newProjectPropertyTypes.length === 0;
+  }
+
+  get hasTypologyErrors(): boolean {
+    return this.newProjectPropertyTypes.some(pt => !pt.name?.trim() || !pt.total_units || pt.total_units <= 0);
+  }
+
+  get hasValidationErrors(): boolean {
+    return this.isProjectNameInvalid || this.isLocationInvalid || this.isTypologyListEmpty || (this.formSubmitted && this.hasTypologyErrors);
+  }
 
   // Purpose options for real estate developments
   projectPurposeOptions: {
@@ -616,6 +638,7 @@ export class ProjectsComponent implements OnInit {
   };
 
   ngOnInit(): void {
+    this.syncConfigurationsText();
     this.loadProjects();
   }
 
@@ -805,7 +828,7 @@ export class ProjectsComponent implements OnInit {
     this.lastDeletedTypology = { item: { ...item }, index };
     this.newProjectPropertyTypes.splice(index, 1);
     this.syncConfigurationsText();
-    this.showFeedback(`${label} "${deletedName}" deleted successfully.`, 'delete');
+    this.showFeedback(`${label} "${deletedName}" removed. It will not appear in saved inventory.`, 'delete');
   }
 
   undoDeleteTypology(): void {
@@ -823,40 +846,62 @@ export class ProjectsComponent implements OnInit {
   syncConfigurationsText(): void {
     if (this.newProjectPropertyTypes.length > 0) {
       this.newProject.configurations = this.newProjectPropertyTypes
-        .map(t => t.name || `${t.bhk_type} Unit`)
+        .map(t => (t.name || `${t.bhk_type} Unit`).trim())
+        .filter(Boolean)
         .join(', ');
+    } else {
+      this.newProject.configurations = '';
     }
   }
 
   addProject(): void {
-    if (!this.newProject.name.trim()) return;
-
+    this.formSubmitted = true;
     this.syncConfigurationsText();
 
+    if (this.hasValidationErrors) {
+      if (this.isProjectNameInvalid) {
+        this.showFeedback('Project Name is required.', 'warning');
+      } else if (this.isLocationInvalid) {
+        this.showFeedback('Location / Micro-Market is required.', 'warning');
+      } else if (this.isTypologyListEmpty) {
+        this.showFeedback('At least one flat/property configuration is required.', 'warning');
+      } else if (this.hasTypologyErrors) {
+        this.showFeedback('Please provide valid Configuration Name and Units for all configurations.', 'warning');
+      }
+      return;
+    }
+
+    // Deep clone active property configurations so removed typologies do not persist
+    const activePropertyTypes: PropertyTypeConfig[] = JSON.parse(JSON.stringify(this.newProjectPropertyTypes));
+
     const payload: any = {
-      name: this.newProject.name,
-      developer: this.newProject.developer || 'Contech Developments Pvt Ltd',
-      location: this.newProject.location || 'Bengaluru',
-      address: this.newProject.address || '',
+      name: this.newProject.name.trim(),
+      developer: this.newProject.developer?.trim() || 'Contech Developments Pvt Ltd',
+      location: this.newProject.location.trim(),
+      address: this.newProject.address?.trim() || '',
       project_purpose: this.newProject.project_purpose || 'Housing / Residential',
       configurations: this.newProject.configurations,
       daily_capacity: Number(this.newProject.daily_capacity) || 20,
-      working_hours: this.newProject.working_hours,
+      working_hours: this.newProject.working_hours || '09:00 AM - 07:00 PM',
       is_active: this.newProject.status === 'active',
-      property_types: this.newProjectPropertyTypes
+      property_types: activePropertyTypes
     };
-
 
     this.settingsService.createProject(payload).subscribe({
       next: (res: any) => {
         const created = res.project || payload;
-        const sumTypologies = this.newProjectPropertyTypes.reduce((acc, pt) => acc + (Number(pt.total_units) || 0), 0);
+        const savedPropertyTypes = (res.property_types && res.property_types.length > 0)
+          ? res.property_types
+          : activePropertyTypes;
+
+        const sumTypologies = savedPropertyTypes.reduce((acc: number, pt: any) => acc + (Number(pt.total_units) || 0), 0);
         const newTotal = (res.units && res.units.length)
           ? res.units.length
-          : (created.total_units || (sumTypologies > 0 ? sumTypologies : (payload.units ? payload.units.length : 20)));
+          : (created.total_units || sumTypologies || 20);
         const newAvailable = created.available_units !== undefined && created.available_units !== null
           ? created.available_units
           : newTotal;
+
         this.projects.unshift({
           id: created.id || created.project_id || Date.now(),
           name: created.name,
@@ -864,7 +909,7 @@ export class ProjectsComponent implements OnInit {
           location: created.location,
           address: created.address,
           project_purpose: created.project_purpose || payload.project_purpose,
-          configurations: created.configurations,
+          configurations: created.configurations || this.newProject.configurations,
           capacity_per_day: created.daily_capacity,
           total_units: newTotal,
           available_units: newAvailable,
@@ -875,39 +920,18 @@ export class ProjectsComponent implements OnInit {
           crm_bookings: 0,
           crm_booking_value_cr: '0.00',
           historical_sold_units: 0,
-          starting_price_lacs: (this.newProjectPropertyTypes[0]?.base_price_lacs) || 125,
-          property_types: res.property_types || this.newProjectPropertyTypes,
+          starting_price_lacs: (savedPropertyTypes[0]?.base_price_lacs) || 125,
+          property_types: savedPropertyTypes,
           status: created.is_active ? 'active' : 'inactive'
         });
         this.updateStats();
+        const createdName = created.name;
         this.resetForm();
-        this.showFeedback(`Project "${created.name}" created with ${this.newProjectPropertyTypes.length} property configurations & inventory.`);
+        this.showFeedback(`Project "${createdName}" created successfully with ${savedPropertyTypes.length} property configurations & inventory.`, 'success');
       },
-      error: () => {
-        const fallbackId = Date.now();
-        const sumTypologies = this.newProjectPropertyTypes.reduce((acc, pt) => acc + (Number(pt.total_units) || 0), 0);
-        const fallbackTotal = sumTypologies > 0 ? sumTypologies : (payload.units ? payload.units.length : 20);
-        this.projects.unshift({
-          id: fallbackId,
-          ...payload,
-          project_purpose: payload.project_purpose,
-          capacity_per_day: payload.daily_capacity,
-          total_units: fallbackTotal,
-          available_units: fallbackTotal,
-          booked_units: 0,
-          reserved_units: 0,
-          active_pipeline: 0,
-          upcoming_visits: 0,
-          crm_bookings: 0,
-          crm_booking_value_cr: '0.00',
-          historical_sold_units: 0,
-          starting_price_lacs: 125,
-          property_types: this.newProjectPropertyTypes,
-          status: payload.is_active ? 'active' : 'inactive'
-        });
-        this.updateStats();
-        this.resetForm();
-        this.showFeedback(`Project "${payload.name}" created locally.`);
+      error: (err: any) => {
+        const errMsg = err?.error?.message || 'Failed to create project';
+        this.showFeedback(errMsg, 'warning');
       }
     });
   }
@@ -1053,12 +1077,12 @@ export class ProjectsComponent implements OnInit {
       },
       error: () => {
         this.inventoryLoading = false;
-        // Reconciled fallback inventory matching full project configuration count
-        const propTypes = this.activeProject?.property_types || [
-          { id: 1, name: '2 BHK Elegance', bhk_type: '2 BHK', carpet_area_sqft: 1050, super_builtup_area_sqft: 1320, base_price_lacs: 145, total_units: 40, facing: 'East Facing', tower_wing: 'Tower A' },
-          { id: 2, name: '3 BHK Royal Grand', bhk_type: '3 BHK', carpet_area_sqft: 1480, super_builtup_area_sqft: 1850, base_price_lacs: 195, total_units: 50, facing: 'North-East Facing', tower_wing: 'Tower A' },
-          { id: 3, name: '4 BHK Sky Penthouse', bhk_type: '4 BHK', carpet_area_sqft: 2250, super_builtup_area_sqft: 2850, base_price_lacs: 310, total_units: 30, facing: 'Panoramic Park Facing', tower_wing: 'Tower B' }
-        ];
+        // Reconciled fallback inventory strictly using project's actual property configurations
+        const propTypes = (this.activeProject?.property_types && this.activeProject.property_types.length > 0)
+          ? this.activeProject.property_types
+          : [
+            { id: 1, name: '2 BHK Elegance', bhk_type: '2 BHK', carpet_area_sqft: 1050, super_builtup_area_sqft: 1320, base_price_lacs: 145, total_units: 40, facing: 'East Facing', tower_wing: 'Tower A' }
+          ];
         const units: any[] = [];
         let uId = 1;
         for (const pt of propTypes) {
@@ -1397,11 +1421,17 @@ export class ProjectsComponent implements OnInit {
 
   private resetForm(): void {
     this.newProject.name = '';
+    this.newProject.developer = 'Contech Developments Pvt Ltd';
     this.newProject.location = '';
     this.newProject.address = '';
     this.newProject.project_purpose = 'Housing / Residential';
+    this.newProject.daily_capacity = 20;
+    this.newProject.working_hours = '09:00 AM - 07:00 PM';
+    this.newProject.status = 'active';
     this.isCustomPurposeActive = false;
     this.customPurposeValue = '';
+    this.formSubmitted = false;
+    this.applyPurposePresets('Housing / Residential');
   }
 
   showFeedback(msg: string, type: 'success' | 'delete' | 'warning' | 'info' = 'success'): void {
