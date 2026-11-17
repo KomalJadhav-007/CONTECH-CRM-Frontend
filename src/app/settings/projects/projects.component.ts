@@ -628,6 +628,13 @@ export class ProjectsComponent implements OnInit {
           this.accessScope = res.access_scope || (res.settings && res.settings.access_scope) || null;
           this.projects = res.projects.map((p: any) => {
             const pId = p.id || p.project_id;
+            const propTypes = p.property_types || [];
+            const typologiesTotal = propTypes.reduce((acc: number, pt: any) => acc + (Number(pt.total_units) || 0), 0);
+            
+            // True calculated inventory
+            const totalUnits = Number(p.flats_count !== undefined ? p.flats_count : (p.total_units !== undefined ? p.total_units : (typologiesTotal || 0)));
+            const availUnits = Number(p.available_flats_count !== undefined ? p.available_flats_count : (p.available_units !== undefined ? p.available_units : totalUnits));
+
             return {
               id: pId,
               name: p.name,
@@ -640,17 +647,17 @@ export class ProjectsComponent implements OnInit {
               capacity_per_day: p.daily_capacity || 20,
               working_hours: p.operating_hours || '09:00 AM - 07:00 PM',
               blackout_periods: p.blackout_periods || 'None',
-              total_units: p.flats_count !== undefined ? p.flats_count : (p.total_units || 0),
-              available_units: p.available_flats_count !== undefined ? p.available_flats_count : (p.available_units || 0),
+              total_units: totalUnits,
+              available_units: availUnits,
               booked_units: p.booked_flats_count || 0,
               reserved_units: p.reserved_flats_count || 0,
               active_pipeline: p.active_pipeline || (pId === 3 ? 1 : 2),
               upcoming_visits: p.upcoming_visits !== undefined ? p.upcoming_visits : (pId === 1 || pId === 2 ? 1 : 0),
               crm_bookings: p.crm_bookings !== undefined ? p.crm_bookings : (pId === 1 ? 1 : 0),
               crm_booking_value_cr: p.crm_booking_value_cr || (pId === 1 ? '1.95' : '0.00'),
-              historical_sold_units: (p.total_units - p.available_units) > 0 ? (p.total_units - p.available_units) : 0,
+              historical_sold_units: (totalUnits - availUnits) > 0 ? (totalUnits - availUnits) : 0,
               starting_price_lacs: p.starting_price_lacs || 125,
-              property_types: p.property_types || [],
+              property_types: propTypes,
               assigned_users: p.assigned_users || [],
               user_access_scoped: p.user_access_scoped || false,
               status: (p.status === 'ACTIVE' || p.is_active !== false) ? 'active' : 'inactive'
@@ -680,8 +687,8 @@ export class ProjectsComponent implements OnInit {
         project_purpose: 'Housing / Residential',
         configurations: '2 BHK Elegance, 3 BHK Royal Grand, 4 BHK Sky Penthouse',
         capacity_per_day: 25,
-        total_units: 8,
-        available_units: 6,
+        total_units: 120,
+        available_units: 118,
         booked_units: 1,
         reserved_units: 1,
         active_pipeline: 2,
@@ -706,8 +713,8 @@ export class ProjectsComponent implements OnInit {
         project_purpose: 'Commercial',
         configurations: 'Grade-A Bare Shell Office, High-Street Retail Showroom',
         capacity_per_day: 18,
-        total_units: 4,
-        available_units: 4,
+        total_units: 37,
+        available_units: 37,
         booked_units: 0,
         reserved_units: 0,
         active_pipeline: 2,
@@ -731,8 +738,8 @@ export class ProjectsComponent implements OnInit {
         project_purpose: 'Plot / Plotted Land',
         configurations: '30x40 Standard Plot, 30x50 Premium Plot, 40x60 Executive Plot',
         capacity_per_day: 35,
-        total_units: 5,
-        available_units: 5,
+        total_units: 75,
+        available_units: 75,
         booked_units: 0,
         reserved_units: 0,
         active_pipeline: 1,
@@ -843,7 +850,13 @@ export class ProjectsComponent implements OnInit {
     this.settingsService.createProject(payload).subscribe({
       next: (res: any) => {
         const created = res.project || payload;
-        const newTotal = (res.units && res.units.length) ? res.units.length : (payload.units ? payload.units.length : 20);
+        const sumTypologies = this.newProjectPropertyTypes.reduce((acc, pt) => acc + (Number(pt.total_units) || 0), 0);
+        const newTotal = (res.units && res.units.length)
+          ? res.units.length
+          : (created.total_units || (sumTypologies > 0 ? sumTypologies : (payload.units ? payload.units.length : 20)));
+        const newAvailable = created.available_units !== undefined && created.available_units !== null
+          ? created.available_units
+          : newTotal;
         this.projects.unshift({
           id: created.id || created.project_id || Date.now(),
           name: created.name,
@@ -854,7 +867,7 @@ export class ProjectsComponent implements OnInit {
           configurations: created.configurations,
           capacity_per_day: created.daily_capacity,
           total_units: newTotal,
-          available_units: newTotal,
+          available_units: newAvailable,
           booked_units: 0,
           reserved_units: 0,
           active_pipeline: 0,
@@ -872,13 +885,15 @@ export class ProjectsComponent implements OnInit {
       },
       error: () => {
         const fallbackId = Date.now();
+        const sumTypologies = this.newProjectPropertyTypes.reduce((acc, pt) => acc + (Number(pt.total_units) || 0), 0);
+        const fallbackTotal = sumTypologies > 0 ? sumTypologies : (payload.units ? payload.units.length : 20);
         this.projects.unshift({
           id: fallbackId,
           ...payload,
           project_purpose: payload.project_purpose,
           capacity_per_day: payload.daily_capacity,
-          total_units: payload.units ? payload.units.length : 20,
-          available_units: payload.units ? payload.units.length : 20,
+          total_units: fallbackTotal,
+          available_units: fallbackTotal,
           booked_units: 0,
           reserved_units: 0,
           active_pipeline: 0,
@@ -1023,6 +1038,15 @@ export class ProjectsComponent implements OnInit {
             this.activeProject.booked_units = res.stats.booked_flats;
             this.activeProject.reserved_units = res.stats.reserved_flats;
             this.activeProject.property_types = res.propertyTypes;
+
+            const prjInList = this.projects.find(p => p.id === this.activeProject.id);
+            if (prjInList) {
+              prjInList.total_units = res.stats.total_flats;
+              prjInList.available_units = res.stats.available_flats;
+              prjInList.booked_units = res.stats.booked_flats;
+              prjInList.reserved_units = res.stats.reserved_flats;
+              prjInList.property_types = res.propertyTypes;
+            }
             this.updateStats();
           }
         }
@@ -1284,14 +1308,23 @@ export class ProjectsComponent implements OnInit {
   }
 
   private recalculateInventoryStats(): void {
-    const units = this.activeInventory.units;
-    const total = units.length;
-    const available = units.filter(u => u.status === 'AVAILABLE').length;
-    const reserved = units.filter(u => u.status === 'RESERVED').length;
-    const booked = units.filter(u => u.status === 'BOOKED').length;
-    const blocked = units.filter(u => u.status === 'BLOCKED').length;
-    const totalVal = units.reduce((acc, u) => acc + (parseFloat(u.price_lacs) || 0), 0);
-    const bookedVal = units.filter(u => u.status === 'BOOKED').reduce((acc, u) => acc + (parseFloat(u.price_lacs) || 0), 0);
+    const units = this.activeInventory.units || [];
+    const propertyTypes = this.activeInventory.propertyTypes || [];
+    let total = units.length;
+    let available = units.filter(u => u.status === 'AVAILABLE').length;
+    let reserved = units.filter(u => u.status === 'RESERVED').length;
+    let booked = units.filter(u => u.status === 'BOOKED').length;
+    let blocked = units.filter(u => u.status === 'BLOCKED').length;
+    let totalVal = units.reduce((acc, u) => acc + (parseFloat(u.price_lacs) || 0), 0);
+    let bookedVal = units.filter(u => u.status === 'BOOKED').reduce((acc, u) => acc + (parseFloat(u.price_lacs) || 0), 0);
+
+    if (total === 0 && propertyTypes.length > 0) {
+      total = propertyTypes.reduce((acc, pt) => acc + (Number(pt.total_units) || 0), 0);
+      booked = Number(this.activeProject?.booked_units) || 0;
+      reserved = Number(this.activeProject?.reserved_units) || 0;
+      available = Math.max(0, total - booked - reserved);
+      totalVal = propertyTypes.reduce((acc, pt) => acc + ((Number(pt.total_units) || 0) * (parseFloat(pt.base_price_lacs) || 0)), 0);
+    }
 
     this.activeInventory.stats = {
       total_flats: total,
@@ -1308,6 +1341,14 @@ export class ProjectsComponent implements OnInit {
       this.activeProject.available_units = available;
       this.activeProject.booked_units = booked;
       this.activeProject.reserved_units = reserved;
+      
+      const prjInList = this.projects.find(p => p.id === this.activeProject.id);
+      if (prjInList) {
+        prjInList.total_units = total;
+        prjInList.available_units = available;
+        prjInList.booked_units = booked;
+        prjInList.reserved_units = reserved;
+      }
       this.updateStats();
     }
   }
