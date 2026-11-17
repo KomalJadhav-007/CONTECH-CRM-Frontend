@@ -126,12 +126,34 @@ export class ControlTowerViewComponent implements OnInit {
   }
 
   get totalBuyerPages(): number {
-    return Math.ceil(this.filteredNeglectedBuyers.length / this.buyerPageSize) || 1;
+    const size = Number(this.buyerPageSize) || 10;
+    return Math.ceil(this.filteredNeglectedBuyers.length / size) || 1;
   }
 
   get pagedNeglectedBuyers(): any[] {
-    const start = (this.buyerPage - 1) * this.buyerPageSize;
-    return this.filteredNeglectedBuyers.slice(start, start + this.buyerPageSize);
+    const size = Number(this.buyerPageSize) || 10;
+    const page = Math.max(1, Number(this.buyerPage) || 1);
+    const start = (page - 1) * size;
+    return this.filteredNeglectedBuyers.slice(start, start + size);
+  }
+
+  get buyerStartItem(): number {
+    if (!this.filteredNeglectedBuyers || this.filteredNeglectedBuyers.length === 0) return 0;
+    const size = Number(this.buyerPageSize) || 10;
+    const page = Math.max(1, Number(this.buyerPage) || 1);
+    return (page - 1) * size + 1;
+  }
+
+  get buyerEndItem(): number {
+    if (!this.filteredNeglectedBuyers || this.filteredNeglectedBuyers.length === 0) return 0;
+    const size = Number(this.buyerPageSize) || 10;
+    const page = Math.max(1, Number(this.buyerPage) || 1);
+    return Math.min(page * size, this.filteredNeglectedBuyers.length);
+  }
+
+  setBuyerPageSize(size: any): void {
+    this.buyerPageSize = Number(size) || 10;
+    this.buyerPage = 1;
   }
 
   // At-Risk Visits Pagination
@@ -140,13 +162,37 @@ export class ControlTowerViewComponent implements OnInit {
 
   get totalVisitPages(): number {
     const list = this.radarData?.at_risk_visits || [];
-    return Math.ceil(list.length / this.visitPageSize) || 1;
+    const size = Number(this.visitPageSize) || 10;
+    return Math.ceil(list.length / size) || 1;
   }
 
   get pagedVisits(): any[] {
     const list = this.radarData?.at_risk_visits || [];
-    const start = (this.visitPage - 1) * this.visitPageSize;
-    return list.slice(start, start + this.visitPageSize);
+    const size = Number(this.visitPageSize) || 10;
+    const page = Math.max(1, Number(this.visitPage) || 1);
+    const start = (page - 1) * size;
+    return list.slice(start, start + size);
+  }
+
+  get visitStartItem(): number {
+    const list = this.radarData?.at_risk_visits || [];
+    if (list.length === 0) return 0;
+    const size = Number(this.visitPageSize) || 10;
+    const page = Math.max(1, Number(this.visitPage) || 1);
+    return (page - 1) * size + 1;
+  }
+
+  get visitEndItem(): number {
+    const list = this.radarData?.at_risk_visits || [];
+    if (list.length === 0) return 0;
+    const size = Number(this.visitPageSize) || 10;
+    const page = Math.max(1, Number(this.visitPage) || 1);
+    return Math.min(page * size, list.length);
+  }
+
+  setVisitPageSize(size: any): void {
+    this.visitPageSize = Number(size) || 10;
+    this.visitPage = 1;
   }
 
   // Overdue Tasks Pagination
@@ -155,13 +201,37 @@ export class ControlTowerViewComponent implements OnInit {
 
   get totalTaskPages(): number {
     const list = this.radarData?.overdue_tasks || [];
-    return Math.ceil(list.length / this.taskPageSize) || 1;
+    const size = Number(this.taskPageSize) || 10;
+    return Math.ceil(list.length / size) || 1;
   }
 
   get pagedTasks(): any[] {
     const list = this.radarData?.overdue_tasks || [];
-    const start = (this.taskPage - 1) * this.taskPageSize;
-    return list.slice(start, start + this.taskPageSize);
+    const size = Number(this.taskPageSize) || 10;
+    const page = Math.max(1, Number(this.taskPage) || 1);
+    const start = (page - 1) * size;
+    return list.slice(start, start + size);
+  }
+
+  get taskStartItem(): number {
+    const list = this.radarData?.overdue_tasks || [];
+    if (list.length === 0) return 0;
+    const size = Number(this.taskPageSize) || 10;
+    const page = Math.max(1, Number(this.taskPage) || 1);
+    return (page - 1) * size + 1;
+  }
+
+  get taskEndItem(): number {
+    const list = this.radarData?.overdue_tasks || [];
+    if (list.length === 0) return 0;
+    const size = Number(this.taskPageSize) || 10;
+    const page = Math.max(1, Number(this.taskPage) || 1);
+    return Math.min(page * size, list.length);
+  }
+
+  setTaskPageSize(size: any): void {
+    this.taskPageSize = Number(size) || 10;
+    this.taskPage = 1;
   }
 
   ngOnInit(): void {

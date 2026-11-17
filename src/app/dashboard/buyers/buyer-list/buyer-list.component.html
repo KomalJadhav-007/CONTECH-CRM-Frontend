@@ -695,7 +695,7 @@
         <!-- Dossier Table Footer with Pagination & Summary -->
         <div class="table-footer-bar" *ngIf="selectedProjectGroup.prospects.length > 0">
           <div class="footer-summary">
-            <span>Showing <strong>{{ pagedDossierProspects.length }}</strong> of <strong>{{ selectedProjectGroup.prospects.length }}</strong> prospects</span>
+            <span>Showing <strong>{{ dossierStartItem }}–{{ dossierEndItem }}</strong> of <strong>{{ selectedProjectGroup.prospects.length }}</strong> prospects</span>
             <span class="footer-pipe">&middot;</span>
             <span class="footer-total-risk">Project Exposure: <strong>{{ selectedProjectGroup.exposureDisplay }}</strong></span>
           </div>
@@ -703,16 +703,16 @@
           <div class="footer-controls">
             <div class="page-size-selector">
               <label>Rows per page:</label>
-              <select [(ngModel)]="dossierPageSize" (change)="dossierPage = 1" class="page-size-dropdown">
-                <option [value]="5">5</option>
-                <option [value]="10">10</option>
-                <option [value]="25">25</option>
-                <option [value]="50">50</option>
+              <select [ngModel]="dossierPageSize" (ngModelChange)="setDossierPageSize($event)" class="page-size-dropdown">
+                <option [ngValue]="5">5</option>
+                <option [ngValue]="10">10</option>
+                <option [ngValue]="25">25</option>
+                <option [ngValue]="50">50</option>
               </select>
             </div>
 
             <div class="page-navigator">
-              <button type="button" [disabled]="dossierPage === 1" (click)="dossierPage = dossierPage - 1" class="page-nav-btn" aria-label="Previous page">&lsaquo;</button>
+              <button type="button" [disabled]="dossierPage <= 1" (click)="dossierPage = dossierPage - 1" class="page-nav-btn" aria-label="Previous page">&lsaquo;</button>
               <span class="page-current-info">Page {{ dossierPage }} of {{ totalDossierPages }}</span>
               <button type="button" [disabled]="dossierPage >= totalDossierPages" (click)="dossierPage = dossierPage + 1" class="page-nav-btn" aria-label="Next page">&rsaquo;</button>
             </div>
@@ -1100,7 +1100,7 @@
         <!-- Container Table Footer with Pagination & Summary -->
         <div class="table-footer-bar" *ngIf="group.prospects.length > 0">
           <div class="footer-summary">
-            <span>Showing <strong>{{ getPagedContainerProspects(group).length }}</strong> of <strong>{{ group.prospects.length }}</strong> prospects</span>
+            <span>Showing <strong>{{ getContainerStartItem(group) }}–{{ getContainerEndItem(group) }}</strong> of <strong>{{ group.prospects.length }}</strong> prospects</span>
             <span class="footer-pipe">&middot;</span>
             <span class="footer-total-risk">Project Exposure: <strong>{{ group.exposureDisplay }}</strong></span>
           </div>
@@ -1113,17 +1113,17 @@
                 (ngModelChange)="setContainerPageSize(group.project.project_id || group.project.id, $event)"
                 class="page-size-dropdown"
               >
-                <option [value]="5">5</option>
-                <option [value]="10">10</option>
-                <option [value]="25">25</option>
-                <option [value]="50">50</option>
+                <option [ngValue]="5">5</option>
+                <option [ngValue]="10">10</option>
+                <option [ngValue]="25">25</option>
+                <option [ngValue]="50">50</option>
               </select>
             </div>
 
             <div class="page-navigator">
               <button
                 type="button"
-                [disabled]="getContainerPage(group.project.project_id || group.project.id) === 1"
+                [disabled]="getContainerPage(group.project.project_id || group.project.id) <= 1"
                 (click)="setContainerPage(group.project.project_id || group.project.id, getContainerPage(group.project.project_id || group.project.id) - 1)"
                 class="page-nav-btn"
                 aria-label="Previous page"
@@ -1489,7 +1489,7 @@
     <!-- Table Footer with Pagination & Summary -->
     <div class="table-footer-bar">
       <div class="footer-summary">
-        <span>Showing <strong>{{ pagedProspects.length }}</strong> of <strong>{{ filteredProspects.length }}</strong> prospects</span>
+        <span>Showing <strong>{{ prospectStartItem }}–{{ prospectEndItem }}</strong> of <strong>{{ filteredProspects.length }}</strong> prospects</span>
         <span class="footer-pipe">&middot;</span>
         <span class="footer-total-risk">Total Exposure: <strong>{{ getTotalExposureAtRisk() }}</strong></span>
       </div>
@@ -1497,16 +1497,16 @@
       <div class="footer-controls">
         <div class="page-size-selector">
           <label>Rows per page:</label>
-          <select [(ngModel)]="pageSize" (change)="currentPage = 1" class="page-size-dropdown">
-            <option [value]="5">5</option>
-            <option [value]="10">10</option>
-            <option [value]="25">25</option>
-            <option [value]="50">50</option>
+          <select [ngModel]="pageSize" (ngModelChange)="setPageSize($event)" class="page-size-dropdown">
+            <option [ngValue]="5">5</option>
+            <option [ngValue]="10">10</option>
+            <option [ngValue]="25">25</option>
+            <option [ngValue]="50">50</option>
           </select>
         </div>
 
         <div class="page-navigator">
-          <button type="button" [disabled]="currentPage === 1" (click)="currentPage = currentPage - 1" class="page-nav-btn" aria-label="Previous page">&lsaquo;</button>
+          <button type="button" [disabled]="currentPage <= 1" (click)="currentPage = currentPage - 1" class="page-nav-btn" aria-label="Previous page">&lsaquo;</button>
           <span class="page-current-info">Page {{ currentPage }} of {{ totalPages || 1 }}</span>
           <button type="button" [disabled]="currentPage >= totalPages" (click)="currentPage = currentPage + 1" class="page-nav-btn" aria-label="Next page">&rsaquo;</button>
         </div>

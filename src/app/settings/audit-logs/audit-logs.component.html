@@ -139,24 +139,24 @@
       <!-- Table Footer with Pagination & Summary -->
       <div class="table-footer-bar" *ngIf="filteredLogs.length > 0">
         <div class="footer-summary">
-          <span>Showing <strong>{{ pagedLogs.length }}</strong> of <strong>{{ filteredLogs.length }}</strong> entries</span>
+          <span>Showing <strong>{{ logStartItem }}–{{ logEndItem }}</strong> of <strong>{{ filteredLogs.length }}</strong> entries</span>
         </div>
 
         <div class="footer-controls">
           <div class="page-size-selector">
             <label>Rows per page:</label>
-            <select [(ngModel)]="pageSize" (change)="currentPage = 1" class="page-size-dropdown">
-              <option [value]="5">5</option>
-              <option [value]="10">10</option>
-              <option [value]="25">25</option>
-              <option [value]="50">50</option>
+            <select [ngModel]="pageSize" (ngModelChange)="setPageSize($event)" class="page-size-dropdown">
+              <option [ngValue]="5">5</option>
+              <option [ngValue]="10">10</option>
+              <option [ngValue]="25">25</option>
+              <option [ngValue]="50">50</option>
             </select>
           </div>
 
           <div class="page-navigator">
             <button
               type="button"
-              [disabled]="currentPage === 1"
+              [disabled]="currentPage <= 1"
               (click)="currentPage = currentPage - 1"
               class="page-nav-btn"
               aria-label="Previous page"
@@ -269,24 +269,24 @@
       <!-- Table Footer with Pagination & Summary for Alerts -->
       <div class="table-footer-bar" *ngIf="alerts.length > 0">
         <div class="footer-summary">
-          <span>Showing <strong>{{ pagedAlerts.length }}</strong> of <strong>{{ alerts.length }}</strong> alerts</span>
+          <span>Showing <strong>{{ alertStartItem }}–{{ alertEndItem }}</strong> of <strong>{{ alerts.length }}</strong> alerts</span>
         </div>
 
         <div class="footer-controls">
           <div class="page-size-selector">
             <label>Rows per page:</label>
-            <select [(ngModel)]="alertPageSize" (change)="alertCurrentPage = 1" class="page-size-dropdown">
-              <option [value]="5">5</option>
-              <option [value]="10">10</option>
-              <option [value]="25">25</option>
-              <option [value]="50">50</option>
+            <select [ngModel]="alertPageSize" (ngModelChange)="setAlertPageSize($event)" class="page-size-dropdown">
+              <option [ngValue]="5">5</option>
+              <option [ngValue]="10">10</option>
+              <option [ngValue]="25">25</option>
+              <option [ngValue]="50">50</option>
             </select>
           </div>
 
           <div class="page-navigator">
             <button
               type="button"
-              [disabled]="alertCurrentPage === 1"
+              [disabled]="alertCurrentPage <= 1"
               (click)="alertCurrentPage = alertCurrentPage - 1"
               class="page-nav-btn"
               aria-label="Previous page"

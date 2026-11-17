@@ -41,12 +41,34 @@ export class DriverTripsComponent implements OnInit {
   pageSize = 6;
 
   get totalPages(): number {
-    return Math.max(1, Math.ceil(this.filteredTrips.length / this.pageSize));
+    const size = Number(this.pageSize) || 6;
+    return Math.max(1, Math.ceil(this.filteredTrips.length / size));
   }
 
   get pagedTrips(): any[] {
-    const start = (this.currentPage - 1) * this.pageSize;
-    return this.filteredTrips.slice(start, start + this.pageSize);
+    const size = Number(this.pageSize) || 6;
+    const page = Math.max(1, Number(this.currentPage) || 1);
+    const start = (page - 1) * size;
+    return this.filteredTrips.slice(start, start + size);
+  }
+
+  get tripStartItem(): number {
+    if (!this.filteredTrips || this.filteredTrips.length === 0) return 0;
+    const size = Number(this.pageSize) || 6;
+    const page = Math.max(1, Number(this.currentPage) || 1);
+    return (page - 1) * size + 1;
+  }
+
+  get tripEndItem(): number {
+    if (!this.filteredTrips || this.filteredTrips.length === 0) return 0;
+    const size = Number(this.pageSize) || 6;
+    const page = Math.max(1, Number(this.currentPage) || 1);
+    return Math.min(page * size, this.filteredTrips.length);
+  }
+
+  setPageSize(size: any): void {
+    this.pageSize = Number(size) || 6;
+    this.currentPage = 1;
   }
 
   setFilter(status: string): void {

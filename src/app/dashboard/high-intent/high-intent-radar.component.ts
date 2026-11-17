@@ -195,12 +195,34 @@ export class HighIntentRadarComponent implements OnInit {
   }
 
   get totalPages(): number {
-    return Math.ceil(this.filteredBuyers.length / this.pageSize) || 1;
+    const size = Number(this.pageSize) || 10;
+    return Math.ceil(this.filteredBuyers.length / size) || 1;
   }
 
   get pagedBuyers(): any[] {
-    const start = (this.currentPage - 1) * this.pageSize;
-    return this.filteredBuyers.slice(start, start + this.pageSize);
+    const size = Number(this.pageSize) || 10;
+    const page = Math.max(1, Number(this.currentPage) || 1);
+    const start = (page - 1) * size;
+    return this.filteredBuyers.slice(start, start + size);
+  }
+
+  get buyerStartItem(): number {
+    if (!this.filteredBuyers || this.filteredBuyers.length === 0) return 0;
+    const size = Number(this.pageSize) || 10;
+    const page = Math.max(1, Number(this.currentPage) || 1);
+    return (page - 1) * size + 1;
+  }
+
+  get buyerEndItem(): number {
+    if (!this.filteredBuyers || this.filteredBuyers.length === 0) return 0;
+    const size = Number(this.pageSize) || 10;
+    const page = Math.max(1, Number(this.currentPage) || 1);
+    return Math.min(page * size, this.filteredBuyers.length);
+  }
+
+  setPageSize(size: any): void {
+    this.pageSize = Number(size) || 10;
+    this.currentPage = 1;
   }
 
   openBuyer(buyerId: number): void {

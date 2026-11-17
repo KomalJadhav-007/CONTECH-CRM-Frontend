@@ -302,24 +302,24 @@
     <!-- Table Footer with Pagination & Summary -->
     <div class="table-footer-bar" *ngIf="filteredTasks.length > 0">
       <div class="footer-summary">
-        <span>Showing <strong>{{ pagedTasks.length }}</strong> of <strong>{{ filteredTasks.length }}</strong> tasks</span>
+        <span>Showing <strong>{{ taskStartItem }}–{{ taskEndItem }}</strong> of <strong>{{ filteredTasks.length }}</strong> tasks</span>
       </div>
 
       <div class="footer-controls">
         <div class="page-size-selector">
           <label>Rows per page:</label>
-          <select [(ngModel)]="pageSize" (change)="currentPage = 1" class="page-size-dropdown">
-            <option [value]="5">5</option>
-            <option [value]="10">10</option>
-            <option [value]="25">25</option>
-            <option [value]="50">50</option>
+          <select [ngModel]="pageSize" (ngModelChange)="setPageSize($event)" class="page-size-dropdown">
+            <option [ngValue]="5">5</option>
+            <option [ngValue]="10">10</option>
+            <option [ngValue]="25">25</option>
+            <option [ngValue]="50">50</option>
           </select>
         </div>
 
         <div class="page-navigator">
           <button
             type="button"
-            [disabled]="currentPage === 1"
+            [disabled]="currentPage <= 1"
             (click)="currentPage = currentPage - 1"
             class="page-nav-btn"
             aria-label="Previous page"

@@ -56,21 +56,65 @@ export class AuditLogsComponent implements OnInit {
   alertPageSize = 10;
 
   get totalPages(): number {
-    return Math.max(1, Math.ceil(this.filteredLogs.length / this.pageSize));
+    const size = Number(this.pageSize) || 15;
+    return Math.max(1, Math.ceil(this.filteredLogs.length / size));
   }
 
   get pagedLogs(): any[] {
-    const start = (this.currentPage - 1) * this.pageSize;
-    return this.filteredLogs.slice(start, start + this.pageSize);
+    const size = Number(this.pageSize) || 15;
+    const page = Math.max(1, Number(this.currentPage) || 1);
+    const start = (page - 1) * size;
+    return this.filteredLogs.slice(start, start + size);
+  }
+
+  get logStartItem(): number {
+    if (!this.filteredLogs || this.filteredLogs.length === 0) return 0;
+    const size = Number(this.pageSize) || 15;
+    const page = Math.max(1, Number(this.currentPage) || 1);
+    return (page - 1) * size + 1;
+  }
+
+  get logEndItem(): number {
+    if (!this.filteredLogs || this.filteredLogs.length === 0) return 0;
+    const size = Number(this.pageSize) || 15;
+    const page = Math.max(1, Number(this.currentPage) || 1);
+    return Math.min(page * size, this.filteredLogs.length);
+  }
+
+  setPageSize(size: any): void {
+    this.pageSize = Number(size) || 15;
+    this.currentPage = 1;
   }
 
   get totalAlertPages(): number {
-    return Math.max(1, Math.ceil(this.alerts.length / this.alertPageSize));
+    const size = Number(this.alertPageSize) || 10;
+    return Math.max(1, Math.ceil(this.alerts.length / size));
   }
 
   get pagedAlerts(): any[] {
-    const start = (this.alertCurrentPage - 1) * this.alertPageSize;
-    return this.alerts.slice(start, start + this.alertPageSize);
+    const size = Number(this.alertPageSize) || 10;
+    const page = Math.max(1, Number(this.alertCurrentPage) || 1);
+    const start = (page - 1) * size;
+    return this.alerts.slice(start, start + size);
+  }
+
+  get alertStartItem(): number {
+    if (!this.alerts || this.alerts.length === 0) return 0;
+    const size = Number(this.alertPageSize) || 10;
+    const page = Math.max(1, Number(this.alertCurrentPage) || 1);
+    return (page - 1) * size + 1;
+  }
+
+  get alertEndItem(): number {
+    if (!this.alerts || this.alerts.length === 0) return 0;
+    const size = Number(this.alertPageSize) || 10;
+    const page = Math.max(1, Number(this.alertCurrentPage) || 1);
+    return Math.min(page * size, this.alerts.length);
+  }
+
+  setAlertPageSize(size: any): void {
+    this.alertPageSize = Number(size) || 10;
+    this.alertCurrentPage = 1;
   }
 
   ngOnInit(): void {

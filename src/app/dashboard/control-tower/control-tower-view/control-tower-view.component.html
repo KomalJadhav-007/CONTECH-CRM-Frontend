@@ -146,23 +146,23 @@
       <!-- Pagination Footer for Neglected Buyers -->
       <div class="table-footer-bar" *ngIf="filteredNeglectedBuyers.length > 0">
         <div class="footer-summary">
-          <span>Showing <strong>{{ pagedNeglectedBuyers.length }}</strong> of <strong>{{ filteredNeglectedBuyers.length
+          <span>Showing <strong>{{ buyerStartItem }}–{{ buyerEndItem }}</strong> of <strong>{{ filteredNeglectedBuyers.length
               }}</strong> alerts</span>
         </div>
 
         <div class="footer-controls">
           <div class="page-size-selector">
             <label>Rows per page:</label>
-            <select [(ngModel)]="buyerPageSize" (change)="buyerPage = 1" class="page-size-dropdown">
-              <option [value]="5">5</option>
-              <option [value]="10">10</option>
-              <option [value]="25">25</option>
-              <option [value]="50">50</option>
+            <select [ngModel]="buyerPageSize" (ngModelChange)="setBuyerPageSize($event)" class="page-size-dropdown">
+              <option [ngValue]="5">5</option>
+              <option [ngValue]="10">10</option>
+              <option [ngValue]="25">25</option>
+              <option [ngValue]="50">50</option>
             </select>
           </div>
 
           <div class="page-navigator">
-            <button type="button" [disabled]="buyerPage === 1" (click)="buyerPage = buyerPage - 1" class="page-nav-btn"
+            <button type="button" [disabled]="buyerPage <= 1" (click)="buyerPage = buyerPage - 1" class="page-nav-btn"
               aria-label="Previous page">&lsaquo;</button>
             <span class="page-current-info">Page {{ buyerPage }} of {{ totalBuyerPages || 1 }}</span>
             <button type="button" [disabled]="buyerPage >= totalBuyerPages" (click)="buyerPage = buyerPage + 1"
@@ -259,22 +259,22 @@
       <!-- Pagination Footer for At-Risk Visits if > 5 -->
       <div class="table-footer-bar" *ngIf="radarData.at_risk_visits.length > 5">
         <div class="footer-summary">
-          <span>Showing <strong>{{ pagedVisits.length }}</strong> of <strong>{{ radarData.at_risk_visits.length
+          <span>Showing <strong>{{ visitStartItem }}–{{ visitEndItem }}</strong> of <strong>{{ radarData.at_risk_visits.length
               }}</strong> visits</span>
         </div>
 
         <div class="footer-controls">
           <div class="page-size-selector">
             <label>Rows per page:</label>
-            <select [(ngModel)]="visitPageSize" (change)="visitPage = 1" class="page-size-dropdown">
-              <option [value]="5">5</option>
-              <option [value]="10">10</option>
-              <option [value]="25">25</option>
+            <select [ngModel]="visitPageSize" (ngModelChange)="setVisitPageSize($event)" class="page-size-dropdown">
+              <option [ngValue]="5">5</option>
+              <option [ngValue]="10">10</option>
+              <option [ngValue]="25">25</option>
             </select>
           </div>
 
           <div class="page-navigator">
-            <button type="button" [disabled]="visitPage === 1" (click)="visitPage = visitPage - 1" class="page-nav-btn"
+            <button type="button" [disabled]="visitPage <= 1" (click)="visitPage = visitPage - 1" class="page-nav-btn"
               aria-label="Previous page">&lsaquo;</button>
             <span class="page-current-info">Page {{ visitPage }} of {{ totalVisitPages || 1 }}</span>
             <button type="button" [disabled]="visitPage >= totalVisitPages" (click)="visitPage = visitPage + 1"
@@ -348,22 +348,22 @@
       <!-- Pagination Footer for Overdue Tasks if > 5 -->
       <div class="table-footer-bar" *ngIf="radarData.overdue_tasks.length > 5">
         <div class="footer-summary">
-          <span>Showing <strong>{{ pagedTasks.length }}</strong> of <strong>{{ radarData.overdue_tasks.length
+          <span>Showing <strong>{{ taskStartItem }}–{{ taskEndItem }}</strong> of <strong>{{ radarData.overdue_tasks.length
               }}</strong> tasks</span>
         </div>
 
         <div class="footer-controls">
           <div class="page-size-selector">
             <label>Rows per page:</label>
-            <select [(ngModel)]="taskPageSize" (change)="taskPage = 1" class="page-size-dropdown">
-              <option [value]="5">5</option>
-              <option [value]="10">10</option>
-              <option [value]="25">25</option>
+            <select [ngModel]="taskPageSize" (ngModelChange)="setTaskPageSize($event)" class="page-size-dropdown">
+              <option [ngValue]="5">5</option>
+              <option [ngValue]="10">10</option>
+              <option [ngValue]="25">25</option>
             </select>
           </div>
 
           <div class="page-navigator">
-            <button type="button" [disabled]="taskPage === 1" (click)="taskPage = taskPage - 1" class="page-nav-btn"
+            <button type="button" [disabled]="taskPage <= 1" (click)="taskPage = taskPage - 1" class="page-nav-btn"
               aria-label="Previous page">&lsaquo;</button>
             <span class="page-current-info">Page {{ taskPage }} of {{ totalTaskPages || 1 }}</span>
             <button type="button" [disabled]="taskPage >= totalTaskPages" (click)="taskPage = taskPage + 1"

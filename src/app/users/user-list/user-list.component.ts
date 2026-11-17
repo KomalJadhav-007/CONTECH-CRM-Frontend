@@ -223,12 +223,34 @@ export class UserListComponent implements OnInit {
   }
 
   get totalPages(): number {
-    return Math.ceil(this.filteredUsers.length / this.pageSize) || 1;
+    const size = Number(this.pageSize) || 10;
+    return Math.ceil(this.filteredUsers.length / size) || 1;
   }
 
   get pagedUsers(): any[] {
-    const start = (this.currentPage - 1) * this.pageSize;
-    return this.filteredUsers.slice(start, start + this.pageSize);
+    const size = Number(this.pageSize) || 10;
+    const page = Math.max(1, Number(this.currentPage) || 1);
+    const start = (page - 1) * size;
+    return this.filteredUsers.slice(start, start + size);
+  }
+
+  get userStartItem(): number {
+    if (!this.filteredUsers || this.filteredUsers.length === 0) return 0;
+    const size = Number(this.pageSize) || 10;
+    const page = Math.max(1, Number(this.currentPage) || 1);
+    return (page - 1) * size + 1;
+  }
+
+  get userEndItem(): number {
+    if (!this.filteredUsers || this.filteredUsers.length === 0) return 0;
+    const size = Number(this.pageSize) || 10;
+    const page = Math.max(1, Number(this.currentPage) || 1);
+    return Math.min(page * size, this.filteredUsers.length);
+  }
+
+  setPageSize(size: any): void {
+    this.pageSize = Number(size) || 10;
+    this.currentPage = 1;
   }
 
   // --- ADD USER MODAL ACTIONS ---

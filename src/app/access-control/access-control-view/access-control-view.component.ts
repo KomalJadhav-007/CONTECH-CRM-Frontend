@@ -84,12 +84,34 @@ export class AccessControlViewComponent implements OnInit {
   pageSize = 8;
 
   get totalPages(): number {
-    return Math.max(1, Math.ceil(this.filteredModules.length / this.pageSize));
+    const size = Number(this.pageSize) || 12;
+    return Math.max(1, Math.ceil(this.filteredModules.length / size));
   }
 
   get pagedModules(): string[] {
-    const start = (this.currentPage - 1) * this.pageSize;
-    return this.filteredModules.slice(start, start + this.pageSize);
+    const size = Number(this.pageSize) || 12;
+    const page = Math.max(1, Number(this.currentPage) || 1);
+    const start = (page - 1) * size;
+    return this.filteredModules.slice(start, start + size);
+  }
+
+  get moduleStartItem(): number {
+    if (!this.filteredModules || this.filteredModules.length === 0) return 0;
+    const size = Number(this.pageSize) || 12;
+    const page = Math.max(1, Number(this.currentPage) || 1);
+    return (page - 1) * size + 1;
+  }
+
+  get moduleEndItem(): number {
+    if (!this.filteredModules || this.filteredModules.length === 0) return 0;
+    const size = Number(this.pageSize) || 12;
+    const page = Math.max(1, Number(this.currentPage) || 1);
+    return Math.min(page * size, this.filteredModules.length);
+  }
+
+  setPageSize(size: any): void {
+    this.pageSize = Number(size) || 12;
+    this.currentPage = 1;
   }
 
   notificationMessage = '';

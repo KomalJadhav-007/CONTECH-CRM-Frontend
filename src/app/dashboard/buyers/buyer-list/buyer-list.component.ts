@@ -1071,24 +1071,68 @@ export class BuyerListComponent implements OnInit {
   }
 
   get pagedProspects(): any[] {
-    const start = (this.currentPage - 1) * this.pageSize;
-    return this.filteredProspects.slice(start, start + this.pageSize);
+    const size = Number(this.pageSize) || 10;
+    const page = Math.max(1, Number(this.currentPage) || 1);
+    const start = (page - 1) * size;
+    return this.filteredProspects.slice(start, start + size);
   }
 
   get totalPages(): number {
-    return Math.ceil(this.filteredProspects.length / this.pageSize) || 1;
+    const size = Number(this.pageSize) || 10;
+    return Math.ceil(this.filteredProspects.length / size) || 1;
+  }
+
+  get prospectStartItem(): number {
+    if (!this.filteredProspects || this.filteredProspects.length === 0) return 0;
+    const size = Number(this.pageSize) || 10;
+    const page = Math.max(1, Number(this.currentPage) || 1);
+    return (page - 1) * size + 1;
+  }
+
+  get prospectEndItem(): number {
+    if (!this.filteredProspects || this.filteredProspects.length === 0) return 0;
+    const size = Number(this.pageSize) || 10;
+    const page = Math.max(1, Number(this.currentPage) || 1);
+    return Math.min(page * size, this.filteredProspects.length);
+  }
+
+  setPageSize(size: any): void {
+    this.pageSize = Number(size) || 10;
+    this.currentPage = 1;
   }
 
   // --- Project Cards Dossier Pagination ---
   get pagedDossierProspects(): any[] {
     if (!this.selectedProjectGroup || !this.selectedProjectGroup.prospects) return [];
-    const start = (this.dossierPage - 1) * this.dossierPageSize;
-    return this.selectedProjectGroup.prospects.slice(start, start + this.dossierPageSize);
+    const size = Number(this.dossierPageSize) || 10;
+    const page = Math.max(1, Number(this.dossierPage) || 1);
+    const start = (page - 1) * size;
+    return this.selectedProjectGroup.prospects.slice(start, start + size);
   }
 
   get totalDossierPages(): number {
     if (!this.selectedProjectGroup || !this.selectedProjectGroup.prospects) return 1;
-    return Math.ceil(this.selectedProjectGroup.prospects.length / this.dossierPageSize) || 1;
+    const size = Number(this.dossierPageSize) || 10;
+    return Math.ceil(this.selectedProjectGroup.prospects.length / size) || 1;
+  }
+
+  get dossierStartItem(): number {
+    if (!this.selectedProjectGroup || !this.selectedProjectGroup.prospects || this.selectedProjectGroup.prospects.length === 0) return 0;
+    const size = Number(this.dossierPageSize) || 10;
+    const page = Math.max(1, Number(this.dossierPage) || 1);
+    return (page - 1) * size + 1;
+  }
+
+  get dossierEndItem(): number {
+    if (!this.selectedProjectGroup || !this.selectedProjectGroup.prospects || this.selectedProjectGroup.prospects.length === 0) return 0;
+    const size = Number(this.dossierPageSize) || 10;
+    const page = Math.max(1, Number(this.dossierPage) || 1);
+    return Math.min(page * size, this.selectedProjectGroup.prospects.length);
+  }
+
+  setDossierPageSize(size: any): void {
+    this.dossierPageSize = Number(size) || 10;
+    this.dossierPage = 1;
   }
 
   // --- Project Containers Pagination ---
@@ -1124,8 +1168,8 @@ export class BuyerListComponent implements OnInit {
   getPagedContainerProspects(group: any): any[] {
     if (!group || !group.prospects) return [];
     const pId = group.project?.project_id || group.project?.id || 0;
-    const page = this.getContainerPage(pId);
-    const pageSize = this.getContainerPageSize(pId);
+    const page = Math.max(1, Number(this.getContainerPage(pId)) || 1);
+    const pageSize = Number(this.getContainerPageSize(pId)) || 10;
     const start = (page - 1) * pageSize;
     return group.prospects.slice(start, start + pageSize);
   }
@@ -1133,8 +1177,24 @@ export class BuyerListComponent implements OnInit {
   getTotalContainerPages(group: any): number {
     if (!group || !group.prospects) return 1;
     const pId = group.project?.project_id || group.project?.id || 0;
-    const pageSize = this.getContainerPageSize(pId);
+    const pageSize = Number(this.getContainerPageSize(pId)) || 10;
     return Math.ceil(group.prospects.length / pageSize) || 1;
+  }
+
+  getContainerStartItem(group: any): number {
+    if (!group || !group.prospects || group.prospects.length === 0) return 0;
+    const pId = group.project?.project_id || group.project?.id || 0;
+    const page = Math.max(1, Number(this.getContainerPage(pId)) || 1);
+    const pageSize = Number(this.getContainerPageSize(pId)) || 10;
+    return (page - 1) * pageSize + 1;
+  }
+
+  getContainerEndItem(group: any): number {
+    if (!group || !group.prospects || group.prospects.length === 0) return 0;
+    const pId = group.project?.project_id || group.project?.id || 0;
+    const page = Math.max(1, Number(this.getContainerPage(pId)) || 1);
+    const pageSize = Number(this.getContainerPageSize(pId)) || 10;
+    return Math.min(page * pageSize, group.prospects.length);
   }
 
   // --- Excel & CSV Bulk Import ---

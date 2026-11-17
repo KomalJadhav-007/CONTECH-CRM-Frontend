@@ -206,7 +206,7 @@
   <!-- Trips Pagination Footer -->
   <div class="table-footer-bar trips-footer-bar" *ngIf="filteredTrips.length > 0">
     <div class="footer-summary">
-      <span>Showing <strong>{{ pagedTrips.length }}</strong> of <strong>{{ filteredTrips.length }}</strong> trips</span>
+      <span>Showing <strong>{{ tripStartItem }}–{{ tripEndItem }}</strong> of <strong>{{ filteredTrips.length }}</strong> trips</span>
       <span *ngIf="selectedProject !== 'all'" class="footer-project-badge">
         &middot; Project: <strong>{{ getSelectedProjectName() }}</strong>
       </span>
@@ -215,18 +215,18 @@
     <div class="footer-controls">
       <div class="page-size-selector">
         <label>Trips per page:</label>
-        <select [(ngModel)]="pageSize" (change)="currentPage = 1" class="page-size-dropdown">
-          <option [value]="3">3</option>
-          <option [value]="6">6</option>
-          <option [value]="9">9</option>
-          <option [value]="18">18</option>
+        <select [ngModel]="pageSize" (ngModelChange)="setPageSize($event)" class="page-size-dropdown">
+          <option [ngValue]="3">3</option>
+          <option [ngValue]="6">6</option>
+          <option [ngValue]="9">9</option>
+          <option [ngValue]="18">18</option>
         </select>
       </div>
 
       <div class="page-navigator">
         <button
           type="button"
-          [disabled]="currentPage === 1"
+          [disabled]="currentPage <= 1"
           (click)="currentPage = currentPage - 1"
           class="page-nav-btn"
           aria-label="Previous page"
