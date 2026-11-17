@@ -576,17 +576,22 @@
   white-space: nowrap;
   user-select: none;
   overflow: hidden;
+  text-align: center !important;
 }
 
 .th-content {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  width: 100%;
   gap: 0.35rem;
   cursor: pointer;
+  text-align: center;
 }
 
 .th-content:hover { color: #0f172a; }
-.th-content.justify-end { justify-content: flex-end; width: 100%; }
+.th-content.justify-end,
+.th-content.justify-center { justify-content: center; width: 100%; }
 
 .sort-icon {
   font-size: 14px;
@@ -606,6 +611,7 @@
 
 .prospect-row:hover td { background-color: #fafbfd; }
 .text-right { text-align: right; }
+.text-center { text-align: center !important; }
 
 /* Buyer Profile Cell */
 .buyer-profile-cell {
