@@ -232,12 +232,9 @@ export class BuyerListComponent implements OnInit {
             const isBooked = rawStatus === 'BOOKED';
             const isUnassigned = !b.assigned_rep_id || !b.assignedRep || b.assignedRep.name === 'Unassigned';
 
-            // Distinct calculated exposure at risk (Sum of prospect property values)
-            let atRiskText = '₹0 (Booked)';
-            if (!isBooked) {
-              const maxLacs = parseFloat(b.budget_max_lacs || 150);
-              atRiskText = maxLacs >= 100 ? `₹${(maxLacs / 100).toFixed(2)} Cr` : `₹${maxLacs.toFixed(2)} L`;
-            }
+            // Distinct calculated exposure at risk (Sum of prospect property values matching Pipeline Value)
+            const maxLacs = parseFloat(b.budget_max_lacs || 150);
+            const atRiskText = maxLacs >= 100 ? `₹${(maxLacs / 100).toFixed(2)} Cr` : `₹${maxLacs.toFixed(2)} L`;
 
             // Contextual, high-intelligence Next Best Action
             let nextAction = b.notes || 'Follow up with buyer';
