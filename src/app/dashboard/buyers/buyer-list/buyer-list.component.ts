@@ -236,27 +236,40 @@ export class BuyerListComponent implements OnInit {
             const maxLacs = parseFloat(b.budget_max_lacs || 150);
             const atRiskText = maxLacs >= 100 ? `₹${(maxLacs / 100).toFixed(2)} Cr` : `₹${maxLacs.toFixed(2)} L`;
 
+            // Tasks & Overdue SLA Check
+            const buyerTasks: any[] = b.tasks || [];
+            const overdueTasks = buyerTasks.filter(t => t.status !== 'COMPLETED' && new Date(t.due_at) < new Date());
+            const hasOverdueTask = overdueTasks.length > 0 || !!b.has_overdue_task;
+
+            // First response SOW SLA check: 15 minutes for NEW prospects without touchpoint
+            const createdMs = b.created_at ? new Date(b.created_at).getTime() : 0;
+            const isNewBreached = (rawStatus.toUpperCase() === 'NEW') && createdMs > 0 && (Date.now() - createdMs > 15 * 60 * 1000);
+
             // Contextual, high-intelligence Next Best Action
             let nextAction = b.notes || 'Follow up with buyer';
             let slaBreached = false;
             let slaTime = '';
 
-            if (isBooked) {
-              nextAction = 'Execute sale agreement & collect balance token';
-            } else if (isUnassigned) {
+            if (isUnassigned) {
               nextAction = `Assign dedicated AE immediately (Score ${b.intent_score || 95} unassigned)`;
               slaBreached = true;
               slaTime = 'Unassigned > 24h';
+            } else if (hasOverdueTask) {
+              const topTask = overdueTasks[0] || b.latest_overdue_task;
+              nextAction = (topTask && topTask.title) ? topTask.title : (b.notes || 'Follow up with buyer');
+              slaBreached = true;
+              const dueTime = topTask ? new Date(topTask.due_at).getTime() : 0;
+              const overdueHours = dueTime > 0 ? Math.round((Date.now() - dueTime) / (1000 * 60 * 60)) : 0;
+              slaTime = overdueHours > 0 ? `Overdue by ${overdueHours}h` : 'Task overdue';
+            } else if (isNewBreached) {
+              nextAction = 'First response call within 15 mins (SOW SLA)';
+              slaBreached = true;
+              const ageHours = Math.round((Date.now() - createdMs) / (1000 * 60 * 60));
+              slaTime = ageHours > 0 ? `No response (${ageHours}h)` : 'SOW SLA Breached';
+            } else if (isBooked) {
+              nextAction = 'Execute sale agreement & collect balance token';
             } else if (rawStatus === 'VISIT_SCHEDULED') {
-              if (b.full_name && b.full_name.includes('Rohiet')) {
-                nextAction = 'Confirm cab KA-01-MJ-8822 & dispatch Unit 703 schedule';
-                slaBreached = true;
-                slaTime = 'Task overdue (3.5h)';
-              } else if (b.full_name && b.full_name.includes('Jaywant')) {
-                nextAction = 'Confirm sunset slot (4 PM) & driver dispatch';
-              } else {
-                nextAction = 'Verify site lounge readiness & buyer confirmations';
-              }
+              nextAction = 'Verify site lounge readiness & buyer confirmations';
             } else if (rawStatus === 'CONTACTED') {
               nextAction = 'Lock in rescheduled visit for Saturday 11:30 AM';
             } else if (rawStatus === 'NEW') {
