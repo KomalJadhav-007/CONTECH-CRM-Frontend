@@ -797,3 +797,43 @@
     align-items: flex-start;
   }
 }
+
+.driver-available-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 0.65rem 0.85rem;
+  margin-top: 0.6rem;
+  width: 100%;
+}
+
+.driver-available-status-badge .avail-icon {
+  color: #16a34a;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.driver-available-status-badge .avail-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.driver-available-status-badge .avail-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #15803d;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.driver-available-status-badge .avail-subtitle {
+  font-size: 0.74rem;
+  color: #166534;
+  font-weight: 500;
+}

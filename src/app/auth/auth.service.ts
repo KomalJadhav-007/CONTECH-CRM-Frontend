@@ -105,12 +105,12 @@ export class AuthService {
       this.verifySession().subscribe({ error: () => {} });
     }
 
-    // Periodic heartbeat every 15 seconds to immediately detect deactivations
+    // Periodic heartbeat every 3 seconds to immediately detect deactivations and revoke access
     this.sessionCheckInterval = setInterval(() => {
       if (this.isAuthenticated()) {
         this.verifySession().subscribe({ error: () => {} });
       }
-    }, 15000);
+    }, 3000);
 
     // Immediate check on tab focus or visibility change
     const onFocusOrVisible = () => {

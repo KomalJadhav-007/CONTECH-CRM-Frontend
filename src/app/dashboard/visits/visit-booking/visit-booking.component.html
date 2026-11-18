@@ -64,6 +64,7 @@
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>VISIT DATE</mat-label>
             <input #visitDateInput matInput type="date" [(ngModel)]="bookingData.scheduled_date"
+              (ngModelChange)="onDateChange()"
               (click)="openDateTimePicker(visitDateInput)" name="scheduled_date" required />
             <button mat-icon-button matSuffix type="button"
               (click)="openDateTimePicker(visitDateInput); $event.stopPropagation()" matTooltip="Open Date Picker">
@@ -90,7 +91,7 @@
             <mat-label>ASSIGNED SALES EXECUTIVE</mat-label>
             <mat-select [(ngModel)]="bookingData.sales_rep_id" name="sales_rep_id">
               <mat-option *ngFor="let s of salesExecutives" [value]="s.user_id || s.id">
-                {{ s.name }}
+                {{ s.name }} &mdash; <span class="slot-avail-tag" [ngClass]="getRepSlotStatusClass(s)">{{ getRepSlotStatusText(s) }}</span>
               </mat-option>
             </mat-select>
           </mat-form-field>
@@ -190,10 +191,16 @@
               <mat-select [(ngModel)]="bookingData.driver_id" (selectionChange)="onDriverSelect($event.value)"
                 name="driver_id">
                 <mat-option *ngFor="let d of drivers" [value]="d.user_id || d.id">
-                  {{ d.name }}
+                  {{ d.name }} &mdash; <span class="slot-avail-tag" [ngClass]="getDriverSlotStatusClass(d)">{{ getDriverSlotStatusText(d) }}</span>
                 </mat-option>
               </mat-select>
             </mat-form-field>
+
+            <!-- Driver Availability Indicator -->
+            <div *ngIf="bookingData.driver_id" class="driver-slot-avail-badge">
+              <mat-icon>verified</mat-icon>
+              <span>{{ getSelectedDriverAvailabilitySummary() }}</span>
+            </div>
 
             <!-- Real-time WhatsApp Presence Feedback directly on the driver field -->
             <div *ngIf="driverWhatsAppStatus" class="driver-wa-live-badge"

@@ -92,6 +92,104 @@ export class VisitBookingComponent implements OnInit {
     this.loadUsers();
     this.loadBuyers();
     this.loadVehicles();
+    this.loadDateVisits();
+  }
+
+  dateVisits: any[] = [];
+
+  loadDateVisits(): void {
+    if (!this.bookingData.scheduled_date) return;
+    this.visitService.getSiteVisits({ date: this.bookingData.scheduled_date }).subscribe({
+      next: (res: any) => {
+        if (res && res.success && Array.isArray(res.visits)) {
+          this.dateVisits = res.visits;
+        } else {
+          this.dateVisits = [];
+        }
+      },
+      error: () => {
+        this.dateVisits = [];
+      }
+    });
+  }
+
+  onDateChange(): void {
+    this.loadDateVisits();
+  }
+
+  getDriverSlotStatusText(driver: any): string {
+    const dId = driver.user_id || driver.id;
+    const currentSlot = this.bookingData.time_slot;
+    const sameSlotVisit = this.dateVisits.find(v => (v.driver_id === dId || v.driver?.user_id === dId) && v.time_slot === currentSlot);
+
+    if (sameSlotVisit) {
+      const isCompleted = sameSlotVisit.status === 'COMPLETED' || sameSlotVisit.trip?.trip_status === 'COMPLETED' || sameSlotVisit.status === 'DROPPED_AT_SITE';
+      if (isCompleted) {
+        return 'Available (Trip Completed)';
+      }
+      if (sameSlotVisit.status === 'CANCELLED') {
+        return 'Available';
+      }
+      return 'Busy (In Slot)';
+    }
+
+    const hasCompletedTrip = this.dateVisits.some(v => (v.driver_id === dId || v.driver?.user_id === dId) && (v.status === 'COMPLETED' || v.trip?.trip_status === 'COMPLETED' || v.status === 'DROPPED_AT_SITE'));
+    if (hasCompletedTrip) {
+      return 'Available (Trip Completed)';
+    }
+
+    return 'Available';
+  }
+
+  getDriverSlotStatusClass(driver: any): string {
+    const text = this.getDriverSlotStatusText(driver);
+    if (text.includes('Busy')) return 'status-busy';
+    if (text.includes('Trip Completed')) return 'status-available-completed';
+    return 'status-available';
+  }
+
+  getRepSlotStatusText(rep: any): string {
+    const rId = rep.user_id || rep.id;
+    const currentSlot = this.bookingData.time_slot;
+    const sameSlotVisit = this.dateVisits.find(v => (v.sales_rep_id === rId || v.salesRep?.user_id === rId) && v.time_slot === currentSlot);
+
+    if (sameSlotVisit) {
+      const isCompleted = sameSlotVisit.status === 'COMPLETED' || sameSlotVisit.status === 'DROPPED_AT_SITE';
+      if (isCompleted) {
+        return 'Available (Visit Completed)';
+      }
+      if (sameSlotVisit.status === 'CANCELLED') {
+        return 'Available';
+      }
+      return 'Busy (In Slot)';
+    }
+
+    const hasCompletedVisit = this.dateVisits.some(v => (v.sales_rep_id === rId || v.salesRep?.user_id === rId) && (v.status === 'COMPLETED' || v.status === 'DROPPED_AT_SITE'));
+    if (hasCompletedVisit) {
+      return 'Available (Visit Completed)';
+    }
+
+    return 'Available';
+  }
+
+  getRepSlotStatusClass(rep: any): string {
+    const text = this.getRepSlotStatusText(rep);
+    if (text.includes('Busy')) return 'status-busy';
+    if (text.includes('Completed')) return 'status-available-completed';
+    return 'status-available';
+  }
+
+  getSelectedDriverAvailabilitySummary(): string {
+    const driver = this.getSelectedDriver();
+    if (!driver) return 'No driver assigned';
+    const status = this.getDriverSlotStatusText(driver);
+    if (status.includes('Trip Completed')) {
+      return `Driver ${driver.name} is AVAILABLE (Previous trip completed; released for new bookings).`;
+    }
+    if (status.includes('Busy')) {
+      return `Driver ${driver.name} is assigned to an active trip in slot ${this.bookingData.time_slot}.`;
+    }
+    return `Driver ${driver.name} is AVAILABLE for this slot.`;
   }
 
   openDateTimePicker(inputEl: HTMLInputElement): void {

@@ -873,4 +873,50 @@
   height: 40px !important;
 }
 
+/* Driver & Sales Executive Live Availability Badges */
+.slot-avail-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+  margin-left: 0.35rem;
+  vertical-align: middle;
+}
+.status-available {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+.status-available-completed {
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+}
+.status-busy {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+.driver-slot-avail-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  margin-top: 0.35rem;
+  margin-bottom: 0.5rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+  font-weight: 500;
+}
+.driver-slot-avail-badge mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #16a34a;
+}
+
 

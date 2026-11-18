@@ -73,7 +73,7 @@
       </button>
     </div>
 
-    <form (ngSubmit)="addProject()" class="project-form">
+    <form novalidate (ngSubmit)="addProject()" class="project-form">
       <!-- Validation Summary Banner -->
       <div *ngIf="formSubmitted && hasValidationErrors" class="form-validation-summary-banner">
         <mat-icon class="banner-err-icon">error</mat-icon>

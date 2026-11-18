@@ -199,6 +199,15 @@
         >
           <mat-icon style="margin-right: 6px; color: #16a34a;">check_circle</mat-icon> Trip Completed
         </button>
+
+        <!-- Driver Real-Time Availability Notification -->
+        <div *ngIf="trip.trip_status === 'COMPLETED'" class="driver-available-status-badge">
+          <mat-icon class="avail-icon">verified</mat-icon>
+          <div class="avail-text">
+            <span class="avail-title">STATUS: AVAILABLE</span>
+            <span class="avail-subtitle">Trip completed. Driver &amp; vehicle released and available for next booking.</span>
+          </div>
+        </div>
       </div>
     </mat-card>
   </div>

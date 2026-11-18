@@ -93,6 +93,7 @@ export class ControlTowerViewComponent implements OnInit, OnDestroy {
     if (!rawQuery) {
       return list;
     }
+    const tokens = rawQuery.split(/\s+/).filter(Boolean);
     const cleanDigits = rawQuery.replace(/\D/g, '');
 
     return list.filter((b: any) => {
@@ -103,14 +104,23 @@ export class ControlTowerViewComponent implements OnInit, OnDestroy {
       const timeframe = (b.buying_timeframe || '').toLowerCase();
       const proj = (this.getBuyerProjectName(b) || '').toLowerCase();
 
-      return (
-        name.includes(rawQuery) ||
-        phone.includes(rawQuery) ||
-        (cleanDigits.length >= 3 && phoneDigits.includes(cleanDigits)) ||
-        rep.includes(rawQuery) ||
-        timeframe.includes(rawQuery) ||
-        proj.includes(rawQuery)
-      );
+      // If numeric query matches phone directly
+      if (cleanDigits.length >= 3 && phoneDigits.includes(cleanDigits)) {
+        return true;
+      }
+
+      // Check if every token matches at least one field
+      return tokens.every(token => {
+        const tokenDigits = token.replace(/\D/g, '');
+        return (
+          name.includes(token) ||
+          phone.includes(token) ||
+          (tokenDigits.length >= 3 && phoneDigits.includes(tokenDigits)) ||
+          rep.includes(token) ||
+          timeframe.includes(token) ||
+          proj.includes(token)
+        );
+      });
     });
   }
 
@@ -124,6 +134,7 @@ export class ControlTowerViewComponent implements OnInit, OnDestroy {
     if (!rawQuery) {
       return list;
     }
+    const tokens = rawQuery.split(/\s+/).filter(Boolean);
     const cleanDigits = rawQuery.replace(/\D/g, '');
 
     return list.filter((v: any) => {
@@ -135,15 +146,24 @@ export class ControlTowerViewComponent implements OnInit, OnDestroy {
       const slot = (v.time_slot || '').toLowerCase();
       const proj = (this.getVisitProjectName(v) || '').toLowerCase();
 
-      return (
-        buyerName.includes(rawQuery) ||
-        phone.includes(rawQuery) ||
-        (cleanDigits.length >= 3 && phoneDigits.includes(cleanDigits)) ||
-        rep.includes(rawQuery) ||
-        driver.includes(rawQuery) ||
-        slot.includes(rawQuery) ||
-        proj.includes(rawQuery)
-      );
+      // If numeric query matches phone directly
+      if (cleanDigits.length >= 3 && phoneDigits.includes(cleanDigits)) {
+        return true;
+      }
+
+      // Check if every token matches at least one field
+      return tokens.every(token => {
+        const tokenDigits = token.replace(/\D/g, '');
+        return (
+          buyerName.includes(token) ||
+          phone.includes(token) ||
+          (tokenDigits.length >= 3 && phoneDigits.includes(tokenDigits)) ||
+          rep.includes(token) ||
+          driver.includes(token) ||
+          slot.includes(token) ||
+          proj.includes(token)
+        );
+      });
     });
   }
 
@@ -157,6 +177,7 @@ export class ControlTowerViewComponent implements OnInit, OnDestroy {
     if (!rawQuery) {
       return list;
     }
+    const tokens = rawQuery.split(/\s+/).filter(Boolean);
     const cleanDigits = rawQuery.replace(/\D/g, '');
 
     return list.filter((t: any) => {
@@ -167,14 +188,23 @@ export class ControlTowerViewComponent implements OnInit, OnDestroy {
       const rep = (t.assignedUser?.name || t.salesRep?.name || t.assigned_rep_name || (t.assigned_user_id ? '' : 'unassigned')).toLowerCase();
       const proj = (this.getTaskProjectName(t) || '').toLowerCase();
 
-      return (
-        title.includes(rawQuery) ||
-        buyerName.includes(rawQuery) ||
-        phone.includes(rawQuery) ||
-        (cleanDigits.length >= 3 && phoneDigits.includes(cleanDigits)) ||
-        rep.includes(rawQuery) ||
-        proj.includes(rawQuery)
-      );
+      // If numeric query matches phone directly
+      if (cleanDigits.length >= 3 && phoneDigits.includes(cleanDigits)) {
+        return true;
+      }
+
+      // Check if every token matches at least one field
+      return tokens.every(token => {
+        const tokenDigits = token.replace(/\D/g, '');
+        return (
+          title.includes(token) ||
+          buyerName.includes(token) ||
+          phone.includes(token) ||
+          (tokenDigits.length >= 3 && phoneDigits.includes(tokenDigits)) ||
+          rep.includes(token) ||
+          proj.includes(token)
+        );
+      });
     });
   }
 

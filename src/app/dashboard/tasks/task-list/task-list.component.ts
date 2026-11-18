@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -44,6 +44,8 @@ export class TaskListComponent implements OnInit, OnDestroy {
   private buyerService = inject(BuyerService);
   private userService = inject(UserService);
   private settingsService = inject(SettingsService);
+  private cdr = inject(ChangeDetectorRef);
+  private ngZone = inject(NgZone);
 
   loading = true;
   feedbackMessage = '';
@@ -52,7 +54,7 @@ export class TaskListComponent implements OnInit, OnDestroy {
   projects: any[] = [];
   selectedProjectId: string | number = 'all';
 
-  filterStatus = 'PENDING';
+  filterStatus = typeof localStorage !== 'undefined' ? (localStorage.getItem('contech_tasks_filter_status') || 'PENDING') : 'PENDING';
   pendingCount = 0;
   completedCount = 0;
   totalCount = 0;
@@ -310,10 +312,16 @@ export class TaskListComponent implements OnInit, OnDestroy {
     this.updateSlaCountdowns();
     if (this.countdownInterval) {
       clearInterval(this.countdownInterval);
+      this.countdownInterval = null;
     }
-    this.countdownInterval = setInterval(() => {
-      this.updateSlaCountdowns();
-    }, 1000);
+    this.ngZone.runOutsideAngular(() => {
+      this.countdownInterval = setInterval(() => {
+        this.ngZone.run(() => {
+          this.updateSlaCountdowns();
+          this.cdr.markForCheck();
+        });
+      }, 1000);
+    });
   }
 
   updateSlaCountdowns(): void {
@@ -341,7 +349,7 @@ export class TaskListComponent implements OnInit, OnDestroy {
         const mins = Math.floor((overdueMs % 3600000) / 60000);
         const secs = Math.floor((overdueMs % 60000) / 1000);
         if (hrs > 0) {
-          task.countdown_text = `OVERDUE (${hrs}h ${mins}m ago)`;
+          task.countdown_text = `OVERDUE (${hrs}h ${mins}m ${secs}s ago)`;
         } else if (mins > 0) {
           task.countdown_text = `OVERDUE (${mins}m ${secs}s ago)`;
         } else {
