@@ -235,6 +235,9 @@ export class VisitBookingComponent implements OnInit {
           if (this.drivers.length > 0 && !this.bookingData.driver_id) {
             this.bookingData.driver_id = this.drivers[0].user_id || this.drivers[0].id;
           }
+          if (this.bookingData.driver_id) {
+            this.evaluateDriverWhatsApp(this.bookingData.driver_id);
+          }
         }
       }
     });
@@ -321,6 +324,7 @@ export class VisitBookingComponent implements OnInit {
 
   onDriverSelect(driverId: any): void {
     this.bookingData.driver_id = driverId ? parseInt(driverId, 10) : null;
+    this.evaluateDriverWhatsApp(this.bookingData.driver_id);
     if (this.bookingData.driver_id) {
       const selectedDriver = this.drivers.find(d => (d.user_id || d.id) === this.bookingData.driver_id);
       // If driver has a default vehicle in profile and no cab number is set yet:
@@ -353,11 +357,89 @@ export class VisitBookingComponent implements OnInit {
   }
 
   whatsappSuccessDispatch: any = null;
+  driverWhatsAppStatus: { present: boolean; message: string; phone?: string } | null = null;
+  driverWhatsAppWarning: string = '';
+
+  getSelectedDriver(): any {
+    if (!this.bookingData.driver_id) return null;
+    return this.drivers.find(d => (d.user_id || d.id) == this.bookingData.driver_id) || null;
+  }
 
   getSelectedDriverName(): string {
-    if (!this.bookingData.driver_id) return 'Unassigned';
-    const found = this.drivers.find(d => (d.user_id || d.id) === this.bookingData.driver_id);
-    return found ? found.name : 'Driver #' + this.bookingData.driver_id;
+    const driver = this.getSelectedDriver();
+    return driver ? driver.name : (this.bookingData.driver_id ? 'Driver #' + this.bookingData.driver_id : 'Unassigned');
+  }
+
+  getSelectedDriverRawPhone(): string {
+    const driver = this.getSelectedDriver();
+    return driver?.phone ? String(driver.phone).trim() : '';
+  }
+
+  getSelectedDriverCleanPhone(): string {
+    const raw = this.getSelectedDriverRawPhone();
+    const digits = raw.replace(/\D/g, '');
+    if (digits.length === 10) return '91' + digits;
+    if (digits.length === 12 && digits.startsWith('91')) return digits;
+    return digits || raw;
+  }
+
+  evaluateDriverWhatsApp(driverId: any): void {
+    if (!driverId) {
+      this.driverWhatsAppStatus = null;
+      this.driverWhatsAppWarning = '';
+      return;
+    }
+
+    const driver = this.drivers.find(d => (d.user_id || d.id) == driverId);
+    if (!driver) {
+      this.driverWhatsAppStatus = null;
+      this.driverWhatsAppWarning = '';
+      return;
+    }
+
+    const rawPhone = driver.phone ? String(driver.phone).trim() : '';
+    const digits = rawPhone.replace(/\D/g, '');
+
+    let isValid = false;
+    let cleanPhone = '';
+
+    if (digits.length === 10) {
+      if (/^[6-9]\d{9}$/.test(digits)) {
+        cleanPhone = '91' + digits;
+        isValid = true;
+      }
+    } else if (digits.length === 11 && digits.startsWith('0')) {
+      const local = digits.slice(1);
+      if (/^[6-9]\d{9}$/.test(local)) {
+        cleanPhone = '91' + local;
+        isValid = true;
+      }
+    } else if (digits.length === 12 && digits.startsWith('91')) {
+      const local = digits.slice(2);
+      if (/^[6-9]\d{9}$/.test(local)) {
+        cleanPhone = digits;
+        isValid = true;
+      }
+    } else if (digits.length >= 10 && digits.length <= 15) {
+      cleanPhone = digits;
+      isValid = true;
+    }
+
+    if (!rawPhone || !isValid) {
+      this.driverWhatsAppStatus = {
+        present: false,
+        phone: rawPhone || 'no phone registered',
+        message: `WhatsApp is not present for this number (${rawPhone || 'no phone registered'}).`
+      };
+      this.driverWhatsAppWarning = `WhatsApp is not present for this number (${rawPhone || 'no phone registered'}). The driver will not receive direct trip WhatsApp notifications.`;
+    } else {
+      this.driverWhatsAppStatus = {
+        present: true,
+        phone: cleanPhone,
+        message: `Direct WhatsApp active (+${cleanPhone}). Trip details will be sent directly without browser redirection.`
+      };
+      this.driverWhatsAppWarning = '';
+    }
   }
 
   getSelectedBuyerName(): string {
@@ -370,15 +452,14 @@ export class VisitBookingComponent implements OnInit {
     return found ? (found.phone || '7058533669') : '7058533669';
   }
 
-  buildDriverWhatsAppUrl(): string {
-    const driverPhone = '917058533669';
+  buildDriverTripMessage(): string {
     const driverName = this.getSelectedDriverName();
     const buyerName = this.getSelectedBuyerName();
     const buyerPhone = this.getSelectedBuyerPhone();
     const pickup = this.bookingData.pickup_address || 'Customer Residence / Office';
     const timeSlot = this.bookingData.time_slot || '04:00 PM - 05:30 PM';
     const date = this.bookingData.scheduled_date || 'Today';
-    const cab = this.bookingData.cab_number || 'KA-05-NB-4411';
+    const cab = this.bookingData.cab_number || 'Company Vehicle';
 
     const lines = [
       '🚗 *CONTECH CRM - DRIVER TRIP ASSIGNMENT* 🚗',
@@ -389,14 +470,14 @@ export class VisitBookingComponent implements OnInit {
       `👤 *Passenger / Client:* ${buyerName}`,
       `📞 *Client Contact:* ${buyerPhone}`,
       `📍 *Pickup Location:* ${pickup}`,
-      `🏢 *Destination:* Contech Sales Gallery, ITPL Main Road, Whitefield`,
+      `🏢 *Destination:* Contech Sales Gallery`,
       `📅 *Date:* ${date}`,
       `⏰ *Time Slot:* ${timeSlot}`,
       `🚘 *Vehicle:* ${cab}`,
       '',
       '⚡ _Please call the passenger 30 minutes in advance to confirm pickup coordination._'
     ];
-    return `https://api.whatsapp.com/send?phone=${driverPhone}&text=${encodeURIComponent(lines.join('\n'))}`;
+    return lines.join('\n');
   }
 
   onSubmit(): void {
@@ -411,6 +492,7 @@ export class VisitBookingComponent implements OnInit {
 
     this.loading = true;
     this.errorMessage = '';
+    this.driverWhatsAppWarning = '';
 
     this.visitService.bookSiteVisit(this.bookingData).subscribe({
       next: (res) => {
@@ -418,25 +500,30 @@ export class VisitBookingComponent implements OnInit {
         if (res.success) {
           const driverName = this.getSelectedDriverName();
           const dispatch = res.whatsapp_dispatch;
-          const waUrl = dispatch?.web_whatsapp_url ||
-                        dispatch?.whatsapp_url ||
-                        this.buildDriverWhatsAppUrl();
 
-          // Automatically send WhatsApp message to driver in background/browser
-          if (this.bookingData.cab_required && this.bookingData.driver_id && waUrl) {
-            try {
-              window.open(waUrl, '_blank');
-            } catch (e) {
-              console.warn('Auto window.open intercepted:', e);
+          // DIRECT SERVER DISPATCH: Never redirect user to WhatsApp Web or window.open!
+
+          if (this.bookingData.cab_required && this.bookingData.driver_id) {
+            if (dispatch?.status === 'NOT_PRESENT' || (!dispatch?.sent && dispatch?.error_code === 'NOT_PRESENT')) {
+              // Highlight message right here on screen as requested by user
+              const notPresentMsg = dispatch?.message || `WhatsApp is not present for this number (+${this.getSelectedDriverCleanPhone() || 'unregistered'}).`;
+              this.driverWhatsAppWarning = notPresentMsg;
+              this.errorMessage = `Site visit scheduled, but ${notPresentMsg} The driver could not receive automated WhatsApp alerts.`;
+              return;
             }
           }
 
-          // Navigate to visits with dispatch details
+          // Direct background dispatch completed without redirection
+          const successMsg = this.bookingData.cab_required && this.bookingData.driver_id
+            ? `Site visit booked! Trip assignment message dispatched directly to driver ${driverName} on WhatsApp.`
+            : 'Site visit booked successfully!';
+
           this.router.navigate(['/visits'], {
             queryParams: {
-              whatsapp_sent: 'true',
+              booked: 'true',
+              whatsapp_sent: dispatch?.sent ? 'true' : 'false',
               driver: driverName,
-              wa_url: encodeURIComponent(waUrl || '')
+              wa_msg: dispatch?.message || successMsg
             }
           });
         }

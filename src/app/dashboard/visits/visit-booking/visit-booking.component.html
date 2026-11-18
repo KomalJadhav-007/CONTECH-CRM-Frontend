@@ -22,6 +22,11 @@
         {{ errorMessage }}
       </div>
 
+      <div *ngIf="driverWhatsAppWarning && !errorMessage" class="error-alert warning-alert" style="background: #fffbeb; border-color: #fde68a; color: #92400e; display: flex; align-items: center; gap: 0.5rem;">
+        <mat-icon style="font-size: 18px; width: 18px; height: 18px; color: #d97706;">warning</mat-icon>
+        <span>{{ driverWhatsAppWarning }}</span>
+      </div>
+
       <!-- Section 1: Buyer & Project Selection -->
       <div class="form-section">
         <div class="section-heading">1. BUYER &amp; PROJECT SELECTION</div>
@@ -179,15 +184,28 @@
         </div>
 
         <div class="form-grid-2" *ngIf="bookingData.cab_required" style="margin-top: 0.5rem;">
-          <mat-form-field appearance="outline" class="w-100">
-            <mat-label>ASSIGNED DRIVER</mat-label>
-            <mat-select [(ngModel)]="bookingData.driver_id" (selectionChange)="onDriverSelect($event.value)"
-              name="driver_id">
-              <mat-option *ngFor="let d of drivers" [value]="d.user_id || d.id">
-                {{ d.name }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
+          <div class="driver-select-container">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>ASSIGNED DRIVER</mat-label>
+              <mat-select [(ngModel)]="bookingData.driver_id" (selectionChange)="onDriverSelect($event.value)"
+                name="driver_id">
+                <mat-option *ngFor="let d of drivers" [value]="d.user_id || d.id">
+                  {{ d.name }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <!-- Real-time WhatsApp Presence Feedback directly on the driver field -->
+            <div *ngIf="driverWhatsAppStatus" class="driver-wa-live-badge"
+              [class.wa-present]="driverWhatsAppStatus.present"
+              [class.wa-not-present]="!driverWhatsAppStatus.present">
+              <mat-icon class="wa-badge-icon">{{ driverWhatsAppStatus.present ? 'check_circle' : 'error' }}</mat-icon>
+              <span class="wa-badge-text">
+                <strong *ngIf="!driverWhatsAppStatus.present">WhatsApp is not present for this number: </strong>
+                {{ driverWhatsAppStatus.message }}
+              </span>
+            </div>
+          </div>
 
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>DISPATCHED CAB REGISTRATION NO.</mat-label>
@@ -226,13 +244,12 @@
             </div>
             <div class="wa-title-block">
               <div class="wa-title-row">
-                <span class="wa-title">Automated WhatsApp Notification to Driver</span>
-                <span class="wa-badge">FREE API</span>
+                <span class="wa-title">Direct Automated WhatsApp Notification to Driver</span>
+                <span class="wa-badge">DIRECT DISPATCH</span>
               </div>
               <p class="wa-desc">
-                When booked, the assigned driver (<strong>{{ getSelectedDriverName() }}</strong>) automatically receives
-                a WhatsApp dispatch message with client name, pickup location, client contact number, scheduled slot,
-                and cab registration.
+                When booked, trip assignment is sent directly from the server to <strong>{{ getSelectedDriverName() }}</strong>'s WhatsApp (+{{ getSelectedDriverCleanPhone() }}).
+                <strong>Zero browser redirection:</strong> you will stay on your dashboard without WhatsApp Web opening.
               </p>
             </div>
           </div>
@@ -240,6 +257,10 @@
             <mat-icon class="preview-icon">contact_phone</mat-icon>
             <span>Passenger: <strong>{{ getSelectedBuyerName() }}</strong> ({{ getSelectedBuyerPhone() }}) &bull;
               Pickup: <strong>{{ bookingData.pickup_address || 'Customer Residence' }}</strong></span>
+          </div>
+          <div *ngIf="driverWhatsAppStatus && !driverWhatsAppStatus.present" class="wa-not-present-warning-pill">
+            <mat-icon class="pill-warn-icon">error_outline</mat-icon>
+            <span><strong>WhatsApp is not present for this number:</strong> {{ driverWhatsAppStatus.message }}</span>
           </div>
         </div>
 

@@ -50,6 +50,7 @@ export class VisitListComponent implements OnInit {
   visits: any[] = [];
   filterStatus = '';
   feedbackMessage = '';
+  feedbackErrorMessage = '';
   lastWaUrl = '';
 
   // Project Filtering for Super Admin & Admin
@@ -356,21 +357,23 @@ export class VisitListComponent implements OnInit {
   sendDriverWhatsApp(visit: any): void {
     const vId = visit.site_visit_id || visit.id;
     this.waSendingId = vId;
+    this.feedbackErrorMessage = '';
+    this.feedbackMessage = '';
     this.visitService.notifyDriverWhatsApp(vId).subscribe({
       next: (res) => {
         this.waSendingId = null;
-        if (res.success && res.whatsapp_dispatch?.whatsapp_url) {
-          window.open(res.whatsapp_dispatch.whatsapp_url, '_blank');
-          this.feedbackMessage = `WhatsApp notification generated for driver ${visit.driver?.name || ''}!`;
-          setTimeout(() => this.feedbackMessage = '', 4000);
+        if (res.whatsapp_dispatch?.status === 'NOT_PRESENT' || res.whatsapp_dispatch?.sent === false) {
+          this.feedbackErrorMessage = res.whatsapp_dispatch.message || 'WhatsApp is not present for this driver number.';
+          setTimeout(() => this.feedbackErrorMessage = '', 8000);
+        } else if (res.success) {
+          this.feedbackMessage = `Trip assignment dispatched directly to ${visit.driver?.name || 'driver'} via WhatsApp (zero browser redirection).`;
+          setTimeout(() => this.feedbackMessage = '', 6000);
         }
       },
-      error: () => {
+      error: (err) => {
         this.waSendingId = null;
-        const driverPhone = String(visit.driver?.phone || '7058533669').replace(/\D/g, '');
-        const clean = driverPhone.length === 10 ? '91' + driverPhone : driverPhone;
-        const msg = `🚗 CONTECH CRM - TRIP ASSIGNMENT\nPassenger: ${visit.buyer?.full_name || 'Client'}\nContact: ${visit.buyer?.phone || '7058533669'}\nPickup: ${visit.pickup_address || 'Customer Residence'}\nSite: ${visit.project?.name || 'Project Site'}\nDate: ${visit.scheduled_date} (${visit.time_slot})\nCab: ${visit.cab_number || 'KA-01-MJ-8822'}`;
-        window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`, '_blank');
+        this.feedbackErrorMessage = err.error?.message || 'Unable to dispatch WhatsApp message directly to driver. Please check driver mobile number.';
+        setTimeout(() => this.feedbackErrorMessage = '', 8000);
       }
     });
   }
