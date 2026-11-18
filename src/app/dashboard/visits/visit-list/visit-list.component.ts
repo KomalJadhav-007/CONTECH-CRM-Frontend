@@ -53,6 +53,27 @@ export class VisitListComponent implements OnInit {
   feedbackErrorMessage = '';
   lastWaUrl = '';
 
+  // Automatic WhatsApp Pop-up Modal State
+  showWhatsAppModal = false;
+  whatsAppModalType: 'NOT_PRESENT' | 'SUCCESS' | 'ERROR' = 'NOT_PRESENT';
+  whatsAppModalTitle = '';
+  whatsAppModalMessage = '';
+  whatsAppModalPhone = '';
+  whatsAppModalDriverName = '';
+
+  openWhatsAppPopup(type: 'NOT_PRESENT' | 'SUCCESS' | 'ERROR', title: string, message: string, phone: string, driverName?: string): void {
+    this.whatsAppModalType = type;
+    this.whatsAppModalTitle = title;
+    this.whatsAppModalMessage = message;
+    this.whatsAppModalPhone = phone;
+    this.whatsAppModalDriverName = driverName || 'Driver';
+    this.showWhatsAppModal = true;
+  }
+
+  closeWhatsAppPopup(): void {
+    this.showWhatsAppModal = false;
+  }
+
   // Project Filtering for Super Admin & Admin
   currentUser: any = null;
   isAdminOrSuperAdmin = false;
@@ -356,6 +377,8 @@ export class VisitListComponent implements OnInit {
 
   sendDriverWhatsApp(visit: any): void {
     const vId = visit.site_visit_id || visit.id;
+    const driverName = visit.driver?.name || 'Assigned Driver';
+    const driverPhone = visit.driver?.phone || 'No phone registered';
     this.waSendingId = vId;
     this.feedbackErrorMessage = '';
     this.feedbackMessage = '';
@@ -363,17 +386,20 @@ export class VisitListComponent implements OnInit {
       next: (res) => {
         this.waSendingId = null;
         if (res.whatsapp_dispatch?.status === 'NOT_PRESENT' || res.whatsapp_dispatch?.sent === false) {
-          this.feedbackErrorMessage = res.whatsapp_dispatch.message || 'WhatsApp is not present for this driver number.';
-          setTimeout(() => this.feedbackErrorMessage = '', 8000);
+          const msg = res.whatsapp_dispatch?.message || `WhatsApp is not present for this number: ${driverPhone}`;
+          this.feedbackErrorMessage = msg;
+          this.openWhatsAppPopup('NOT_PRESENT', 'WhatsApp Not Present for Driver', msg, driverPhone, driverName);
         } else if (res.success) {
-          this.feedbackMessage = `Trip assignment dispatched directly to ${visit.driver?.name || 'driver'} via WhatsApp (zero browser redirection).`;
-          setTimeout(() => this.feedbackMessage = '', 6000);
+          const msg = `Trip assignment dispatched directly to driver ${driverName} on WhatsApp via backend API (zero browser redirection).`;
+          this.feedbackMessage = msg;
+          this.openWhatsAppPopup('SUCCESS', 'Trip Dispatched to WhatsApp Directly', msg, driverPhone, driverName);
         }
       },
       error: (err) => {
         this.waSendingId = null;
-        this.feedbackErrorMessage = err.error?.message || 'Unable to dispatch WhatsApp message directly to driver. Please check driver mobile number.';
-        setTimeout(() => this.feedbackErrorMessage = '', 8000);
+        const msg = err.error?.message || `WhatsApp is not present for this number: ${driverPhone}`;
+        this.feedbackErrorMessage = msg;
+        this.openWhatsAppPopup('NOT_PRESENT', 'WhatsApp Dispatch Notice', msg, driverPhone, driverName);
       }
     });
   }

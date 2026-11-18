@@ -375,6 +375,10 @@ export class VisitBookingComponent implements OnInit {
     return driver?.phone ? String(driver.phone).trim() : '';
   }
 
+  getSelectedDriverPhone(): string {
+    return this.getSelectedDriverRawPhone();
+  }
+
   getSelectedDriverCleanPhone(): string {
     const raw = this.getSelectedDriverRawPhone();
     const digits = raw.replace(/\D/g, '');
@@ -480,6 +484,30 @@ export class VisitBookingComponent implements OnInit {
     return lines.join('\n');
   }
 
+  // WhatsApp Automatic Popup Modal State
+  showWhatsAppModal = false;
+  whatsAppModalType: 'NOT_PRESENT' | 'SUCCESS' | 'ERROR' = 'NOT_PRESENT';
+  whatsAppModalTitle = '';
+  whatsAppModalMessage = '';
+  whatsAppModalPhone = '';
+  whatsAppModalDriverName = '';
+
+  openWhatsAppPopup(type: 'NOT_PRESENT' | 'SUCCESS' | 'ERROR', title: string, message: string, phone: string, driverName?: string): void {
+    this.whatsAppModalType = type;
+    this.whatsAppModalTitle = title;
+    this.whatsAppModalMessage = message;
+    this.whatsAppModalPhone = phone;
+    this.whatsAppModalDriverName = driverName || this.getSelectedDriverName();
+    this.showWhatsAppModal = true;
+  }
+
+  closeWhatsAppPopup(): void {
+    this.showWhatsAppModal = false;
+    if (this.whatsAppModalType === 'SUCCESS') {
+      this.router.navigate(['/visits']);
+    }
+  }
+
   onSubmit(): void {
     if (!this.bookingData.buyer_id) {
       this.errorMessage = 'Please select a registered prospect/buyer first.';
@@ -500,32 +528,38 @@ export class VisitBookingComponent implements OnInit {
         if (res.success) {
           const driverName = this.getSelectedDriverName();
           const dispatch = res.whatsapp_dispatch;
+          const driverPhone = this.getSelectedDriverPhone();
 
           // DIRECT SERVER DISPATCH: Never redirect user to WhatsApp Web or window.open!
 
           if (this.bookingData.cab_required && this.bookingData.driver_id) {
             if (dispatch?.status === 'NOT_PRESENT' || (!dispatch?.sent && dispatch?.error_code === 'NOT_PRESENT')) {
-              // Highlight message right here on screen as requested by user
-              const notPresentMsg = dispatch?.message || `WhatsApp is not present for this number (+${this.getSelectedDriverCleanPhone() || 'unregistered'}).`;
+              // AUTOMATIC POP-UP MODAL: Pop up immediately on screen
+              const notPresentMsg = dispatch?.message || `WhatsApp is not present for this number: ${driverPhone}`;
               this.driverWhatsAppWarning = notPresentMsg;
-              this.errorMessage = `Site visit scheduled, but ${notPresentMsg} The driver could not receive automated WhatsApp alerts.`;
+              this.openWhatsAppPopup(
+                'NOT_PRESENT',
+                'WhatsApp Not Present for Driver',
+                notPresentMsg,
+                driverPhone,
+                driverName
+              );
               return;
             }
           }
 
-          // Direct background dispatch completed without redirection
+          // Direct background dispatch completed via backend API without browser redirection
           const successMsg = this.bookingData.cab_required && this.bookingData.driver_id
-            ? `Site visit booked! Trip assignment message dispatched directly to driver ${driverName} on WhatsApp.`
+            ? `Site visit booked! Trip assignment message dispatched directly to driver ${driverName} on WhatsApp via backend API (zero browser redirection).`
             : 'Site visit booked successfully!';
 
-          this.router.navigate(['/visits'], {
-            queryParams: {
-              booked: 'true',
-              whatsapp_sent: dispatch?.sent ? 'true' : 'false',
-              driver: driverName,
-              wa_msg: dispatch?.message || successMsg
-            }
-          });
+          this.openWhatsAppPopup(
+            'SUCCESS',
+            'Trip Dispatched to WhatsApp Directly',
+            successMsg,
+            driverPhone,
+            driverName
+          );
         }
       },
       error: (err) => {
