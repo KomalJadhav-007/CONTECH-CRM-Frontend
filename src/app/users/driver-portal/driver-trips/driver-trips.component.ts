@@ -126,6 +126,11 @@ export class DriverTripsComponent implements OnInit {
 
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
+    if (this.currentUser && (this.currentUser.is_active === false || this.currentUser.is_active === 0 || this.currentUser.is_active === '0' || this.currentUser.is_active === 'false')) {
+      this.authService.revokeSession('ACCOUNT_DEACTIVATED');
+      return;
+    }
+
     const role = String(this.currentUser?.role || this.currentUser?.role_code || '').toUpperCase();
     this.isAdminOrSuperAdmin = !role.includes('DRIVER');
 
@@ -183,8 +188,11 @@ export class DriverTripsComponent implements OnInit {
           this.trips = res.trips || [];
         }
       },
-      error: () => {
+      error: (err) => {
         this.loading = false;
+        if (err.status === 401 || err.status === 403 || err.error?.code === 'ACCOUNT_DEACTIVATED') {
+          this.authService.revokeSession('ACCOUNT_DEACTIVATED');
+        }
       }
     });
   }
@@ -208,8 +216,11 @@ export class DriverTripsComponent implements OnInit {
           setTimeout(() => this.statusMessage = '', 3500);
         }
       },
-      error: () => {
+      error: (err) => {
         this.updatingId = null;
+        if (err.status === 401 || err.status === 403 || err.error?.code === 'ACCOUNT_DEACTIVATED') {
+          this.authService.revokeSession('ACCOUNT_DEACTIVATED');
+        }
       }
     });
   }
