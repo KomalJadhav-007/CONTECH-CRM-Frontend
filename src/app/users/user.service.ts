@@ -37,5 +37,13 @@ export class UserService {
   assignUserProjects(id: number, data: { project_ids?: number[]; all_projects?: boolean }): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/${id}/projects`, data);
   }
+
+  getVehicleTypes(): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/vehicles/types`);
+  }
+
+  createVehicleType(name: string): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/vehicles/types`, { name });
+  }
 }
 

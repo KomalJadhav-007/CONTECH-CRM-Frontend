@@ -329,9 +329,16 @@
 
           <div class="form-row-2">
             <div class="form-group">
-              <label class="form-label">Vehicle Type <span class="required">*</span></label>
-              <select [(ngModel)]="newUser.vehicle_type" class="form-select">
+              <div class="form-label-row">
+                <label class="form-label mb-0">Vehicle Type <span class="required">*</span></label>
+                <button type="button" class="btn-create-type" (click)="openAddVehicleTypeModal('new')">
+                  <mat-icon class="create-type-icon">add</mat-icon>
+                  <span>+ Create Type</span>
+                </button>
+              </div>
+              <select [ngModel]="newUser.vehicle_type" (ngModelChange)="onVehicleTypeChange($event, 'new')" class="form-select">
                 <option *ngFor="let vt of vehicleTypes" [value]="vt">{{ vt }}</option>
+                <option value="__ADD_NEW__">+ Create New Vehicle Type...</option>
               </select>
             </div>
             <div class="form-group">
@@ -557,9 +564,16 @@
 
           <div class="form-row-2">
             <div class="form-group">
-              <label class="form-label">Vehicle Type <span class="required">*</span></label>
-              <select [(ngModel)]="editingUser.vehicle_type" class="form-select">
+              <div class="form-label-row">
+                <label class="form-label mb-0">Vehicle Type <span class="required">*</span></label>
+                <button type="button" class="btn-create-type" (click)="openAddVehicleTypeModal('edit')">
+                  <mat-icon class="create-type-icon">add</mat-icon>
+                  <span>+ Create Type</span>
+                </button>
+              </div>
+              <select [ngModel]="editingUser.vehicle_type" (ngModelChange)="onVehicleTypeChange($event, 'edit')" class="form-select">
                 <option *ngFor="let vt of vehicleTypes" [value]="vt">{{ vt }}</option>
+                <option value="__ADD_NEW__">+ Create New Vehicle Type...</option>
               </select>
             </div>
             <div class="form-group">
@@ -744,6 +758,57 @@
           [disabled]="isReassigning || !selectedReassignTargetId">
           <span *ngIf="!isReassigning">Transfer All &amp; Confirm</span>
           <span *ngIf="isReassigning">Transferring...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CREATE VEHICLE TYPE MODAL (Nested above Add/Edit User modal) -->
+  <div *ngIf="showAddVehicleTypeModal" class="modal-backdrop modal-backdrop-nested">
+    <div class="modal-card modal-card-sm">
+      <div class="modal-header">
+        <div>
+          <div class="modal-supertitle">FLEET CONFIGURATION</div>
+          <h3 class="modal-title" style="font-size: 1.15rem;">Create Vehicle Type</h3>
+          <p class="modal-subtitle" style="font-size: 0.78rem; color: #64748b; margin-top: 0.2rem; margin-bottom: 0;">
+            Add a new vehicle classification for fleet cabs and driver assignments.
+          </p>
+        </div>
+        <button type="button" class="modal-close" (click)="closeAddVehicleTypeModal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="modal-body" style="padding: 1.25rem 1.75rem;">
+        <div *ngIf="addVehicleTypeError" class="modal-error-alert" style="margin-bottom: 1rem;">
+          {{ addVehicleTypeError }}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Vehicle Type Name <span class="required">*</span></label>
+          <input type="text" [(ngModel)]="newVehicleTypeName" (keyup.enter)="saveNewVehicleType()"
+            class="form-input" placeholder="e.g. Electric SUV, Hatchback, Mini Bus, Tempo Traveller" autofocus />
+          <small class="form-help" style="color: #64748b; font-size: 0.74rem; margin-top: 0.35rem; display: block;">
+            This vehicle type will be immediately available across driver registrations and site visit bookings.
+          </small>
+        </div>
+
+        <!-- Existing Vehicle Types Pill list -->
+        <div class="existing-types-box" *ngIf="vehicleTypes.length > 0">
+          <label class="existing-types-label">Currently Available Types ({{ vehicleTypes.length }}):</label>
+          <div class="types-pill-row">
+            <span *ngFor="let t of vehicleTypes" class="type-chip">{{ t }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="padding: 1rem 1.75rem; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 0.65rem;">
+        <button type="button" class="btn-modal-cancel" (click)="closeAddVehicleTypeModal()" [disabled]="isCreatingVehicleType">
+          Cancel
+        </button>
+        <button type="button" class="btn-modal-submit" (click)="saveNewVehicleType()" [disabled]="isCreatingVehicleType">
+          <span *ngIf="!isCreatingVehicleType">+ Add Vehicle Type</span>
+          <span *ngIf="isCreatingVehicleType">Saving...</span>
         </button>
       </div>
     </div>

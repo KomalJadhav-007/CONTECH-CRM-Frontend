@@ -68,6 +68,11 @@ export class UserListComponent implements OnInit {
   addUserError = '';
   showNewPassword = false;
   vehicleTypes: string[] = ['SUV', 'Sedan', 'Luxury', 'Van'];
+  showAddVehicleTypeModal = false;
+  newVehicleTypeName = '';
+  addVehicleTypeError = '';
+  isCreatingVehicleType = false;
+  vehicleTypeTargetContext: 'new' | 'edit' = 'new';
   newUser = {
     name: '',
     email: '',
@@ -107,6 +112,84 @@ export class UserListComponent implements OnInit {
   ngOnInit(): void {
     this.loadProjects();
     this.loadUsers();
+    this.loadVehicleTypes();
+  }
+
+  loadVehicleTypes(): void {
+    this.userService.getVehicleTypes().subscribe({
+      next: (res: any) => {
+        if (res && res.success && Array.isArray(res.vehicleTypes) && res.vehicleTypes.length > 0) {
+          this.vehicleTypes = res.vehicleTypes;
+        }
+      },
+      error: () => {}
+    });
+  }
+
+  openAddVehicleTypeModal(context: 'new' | 'edit' = 'new'): void {
+    this.vehicleTypeTargetContext = context;
+    this.newVehicleTypeName = '';
+    this.addVehicleTypeError = '';
+    this.showAddVehicleTypeModal = true;
+  }
+
+  closeAddVehicleTypeModal(): void {
+    this.showAddVehicleTypeModal = false;
+    this.newVehicleTypeName = '';
+    this.addVehicleTypeError = '';
+  }
+
+  onVehicleTypeChange(val: string, context: 'new' | 'edit'): void {
+    if (val === '__ADD_NEW__') {
+      this.openAddVehicleTypeModal(context);
+    } else {
+      if (context === 'new') {
+        this.newUser.vehicle_type = val;
+      } else if (this.editingUser) {
+        this.editingUser.vehicle_type = val;
+      }
+    }
+  }
+
+  saveNewVehicleType(): void {
+    const name = (this.newVehicleTypeName || '').trim();
+    if (!name) {
+      this.addVehicleTypeError = 'Please enter a vehicle type name.';
+      return;
+    }
+
+    const alreadyExists = this.vehicleTypes.some(t => t.toLowerCase() === name.toLowerCase());
+    if (alreadyExists) {
+      this.addVehicleTypeError = `Vehicle type "${name}" already exists.`;
+      return;
+    }
+
+    this.isCreatingVehicleType = true;
+    this.addVehicleTypeError = '';
+
+    this.userService.createVehicleType(name).subscribe({
+      next: (res: any) => {
+        this.isCreatingVehicleType = false;
+        const createdType = res?.createdType || name;
+        if (res && res.vehicleTypes && Array.isArray(res.vehicleTypes)) {
+          this.vehicleTypes = res.vehicleTypes;
+        } else if (!this.vehicleTypes.includes(createdType)) {
+          this.vehicleTypes.push(createdType);
+        }
+
+        if (this.vehicleTypeTargetContext === 'new') {
+          this.newUser.vehicle_type = createdType;
+        } else if (this.editingUser) {
+          this.editingUser.vehicle_type = createdType;
+        }
+
+        this.closeAddVehicleTypeModal();
+      },
+      error: (err: any) => {
+        this.isCreatingVehicleType = false;
+        this.addVehicleTypeError = err.error?.message || 'Failed to create vehicle type.';
+      }
+    });
   }
 
   loadProjects(): void {
