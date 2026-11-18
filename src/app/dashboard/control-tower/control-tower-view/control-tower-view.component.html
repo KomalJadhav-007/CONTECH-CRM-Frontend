@@ -12,6 +12,16 @@
       </p>
     </div>
     <div class="header-actions">
+      <div class="panel-search-box header-search-box">
+        <mat-icon class="search-box-icon">search</mat-icon>
+        <input type="text" [ngModel]="globalSearchQuery" (ngModelChange)="onSearchChange($event)"
+          placeholder="Search buyer, phone, rep..." class="panel-search-input" />
+        <button *ngIf="globalSearchQuery" type="button" class="search-clear-btn"
+          (click)="clearSearch()" title="Clear">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
       <button mat-stroked-button class="btn-scan" (click)="loadRadar(true)" [disabled]="isScanning">
         <mat-icon [class.spin-icon]="isScanning">sync</mat-icon>
         <span>{{ isScanning ? 'Scanning Radar...' : 'Scan Radar' }}</span>
@@ -74,10 +84,10 @@
           <!-- Compact Search Box -->
           <div class="panel-search-box">
             <mat-icon class="search-box-icon">search</mat-icon>
-            <input type="text" [(ngModel)]="buyerSearchQuery" (ngModelChange)="buyerPage = 1"
+            <input type="text" [ngModel]="globalSearchQuery" (ngModelChange)="onSearchChange($event)"
               placeholder="Search buyer, phone, rep..." class="panel-search-input" />
-            <button *ngIf="buyerSearchQuery" type="button" class="search-clear-btn"
-              (click)="buyerSearchQuery = ''; buyerPage = 1" title="Clear">
+            <button *ngIf="globalSearchQuery" type="button" class="search-clear-btn"
+              (click)="clearSearch()" title="Clear">
               <mat-icon>close</mat-icon>
             </button>
           </div>
@@ -135,8 +145,8 @@
             </tr>
             <tr *ngIf="filteredNeglectedBuyers.length === 0">
               <td colspan="8" class="empty-cell">
-                <mat-icon class="empty-icon">check_circle</mat-icon>
-                <span>Zero neglected buyers detected. All high-intent deals are actively nurtured.</span>
+                <mat-icon class="empty-icon">{{ globalSearchQuery ? 'search_off' : 'check_circle' }}</mat-icon>
+                <span>{{ globalSearchQuery ? ('No neglected buyers match "' + globalSearchQuery + '".') : 'Zero neglected buyers detected. All high-intent deals are actively nurtured.' }}</span>
               </td>
             </tr>
           </tbody>
@@ -184,8 +194,19 @@
           </div>
           <p class="panel-subtitle">Prevent dispatching empty cabs and wasting driver resources.</p>
         </div>
-        <div class="badge-warning-pill">
-          {{ radarData.at_risk_visits.length }} VISITS
+        <div class="panel-header-right">
+          <div class="panel-search-box">
+            <mat-icon class="search-box-icon">search</mat-icon>
+            <input type="text" [ngModel]="globalSearchQuery" (ngModelChange)="onSearchChange($event)"
+              placeholder="Search buyer, phone, rep..." class="panel-search-input" />
+            <button *ngIf="globalSearchQuery" type="button" class="search-clear-btn"
+              (click)="clearSearch()" title="Clear">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+          <div class="badge-warning-pill">
+            {{ filteredVisits.length }} VISITS
+          </div>
         </div>
       </div>
 
@@ -206,7 +227,7 @@
           <tbody>
             <tr *ngFor="let visit of pagedVisits">
               <td>
-                <div class="buyer-name">{{ visit.buyer?.full_name }}</div>
+                <div class="buyer-name">{{ visit.buyer?.full_name || visit.buyer_name }}</div>
               </td>
               <td>
                 <div class="project-tag-box" [title]="getVisitProjectName(visit)">
@@ -246,20 +267,20 @@
                 </a>
               </td>
             </tr>
-            <tr *ngIf="radarData.at_risk_visits.length === 0">
+            <tr *ngIf="filteredVisits.length === 0">
               <td colspan="8" class="empty-cell">
-                <mat-icon class="empty-icon">check_circle</mat-icon>
-                <span>All today's visits have 100% 4-way confirmations.</span>
+                <mat-icon class="empty-icon">{{ globalSearchQuery ? 'search_off' : 'check_circle' }}</mat-icon>
+                <span>{{ globalSearchQuery ? ('No at-risk site visits match "' + globalSearchQuery + '".') : "All today's visits have 100% 4-way confirmations." }}</span>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <!-- Pagination Footer for At-Risk Visits if > 5 -->
-      <div class="table-footer-bar" *ngIf="radarData.at_risk_visits.length > 5">
+      <!-- Pagination Footer for At-Risk Visits -->
+      <div class="table-footer-bar" *ngIf="filteredVisits.length > 5 || (globalSearchQuery && filteredVisits.length > 0)">
         <div class="footer-summary">
-          <span>Showing <strong>{{ visitStartItem }}–{{ visitEndItem }}</strong> of <strong>{{ radarData.at_risk_visits.length
+          <span>Showing <strong>{{ visitStartItem }}–{{ visitEndItem }}</strong> of <strong>{{ filteredVisits.length
               }}</strong> visits</span>
         </div>
 
@@ -286,7 +307,7 @@
   </div>
 
   <!-- Section 3: Overdue Follow-up Tasks (SLA Breaches) -->
-  <div class="panel-section" *ngIf="radarData.overdue_tasks && radarData.overdue_tasks.length > 0">
+  <div class="panel-section" *ngIf="radarData.overdue_tasks && (radarData.overdue_tasks.length > 0 || globalSearchQuery)">
     <div class="panel-card">
       <div class="panel-header">
         <div class="panel-header-left">
@@ -296,8 +317,19 @@
           </div>
           <p class="panel-subtitle">Next best actions that have breached the 4-hour countdown SLA deadline.</p>
         </div>
-        <div class="badge-alert-pill">
-          {{ radarData.overdue_tasks.length }} BREACHES
+        <div class="panel-header-right">
+          <div class="panel-search-box">
+            <mat-icon class="search-box-icon">search</mat-icon>
+            <input type="text" [ngModel]="globalSearchQuery" (ngModelChange)="onSearchChange($event)"
+              placeholder="Search buyer, phone, rep..." class="panel-search-input" />
+            <button *ngIf="globalSearchQuery" type="button" class="search-clear-btn"
+              (click)="clearSearch()" title="Clear">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+          <div class="badge-alert-pill">
+            {{ filteredTasks.length }} BREACHES
+          </div>
         </div>
       </div>
 
@@ -318,7 +350,7 @@
               <td>
                 <div class="buyer-name">{{ task.title }}</div>
               </td>
-              <td>{{ task.buyer?.full_name || 'Prospect' }}</td>
+              <td>{{ task.buyer?.full_name || task.buyer_name || 'Prospect' }}</td>
               <td>
                 <div class="project-tag-box" [title]="getTaskProjectName(task)">
                   <span class="project-tag-name">
@@ -331,7 +363,7 @@
                   </div>
                 </div>
               </td>
-              <td>{{ task.assignedUser?.name || 'Unassigned' }}</td>
+              <td>{{ task.assignedUser?.name || task.assigned_rep_name || 'Unassigned' }}</td>
               <td>
                 <span class="due-badge">{{ task.due_at | date:'medium' }}</span>
               </td>
@@ -341,14 +373,20 @@
                 </a>
               </td>
             </tr>
+            <tr *ngIf="filteredTasks.length === 0">
+              <td colspan="6" class="empty-cell">
+                <mat-icon class="empty-icon">{{ globalSearchQuery ? 'search_off' : 'check_circle' }}</mat-icon>
+                <span>{{ globalSearchQuery ? ('No overdue follow-up tasks match "' + globalSearchQuery + '".') : 'Zero overdue follow-up tasks detected.' }}</span>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
 
-      <!-- Pagination Footer for Overdue Tasks if > 5 -->
-      <div class="table-footer-bar" *ngIf="radarData.overdue_tasks.length > 5">
+      <!-- Pagination Footer for Overdue Tasks -->
+      <div class="table-footer-bar" *ngIf="filteredTasks.length > 5 || (globalSearchQuery && filteredTasks.length > 0)">
         <div class="footer-summary">
-          <span>Showing <strong>{{ taskStartItem }}–{{ taskEndItem }}</strong> of <strong>{{ radarData.overdue_tasks.length
+          <span>Showing <strong>{{ taskStartItem }}–{{ taskEndItem }}</strong> of <strong>{{ filteredTasks.length
               }}</strong> tasks</span>
         </div>
 

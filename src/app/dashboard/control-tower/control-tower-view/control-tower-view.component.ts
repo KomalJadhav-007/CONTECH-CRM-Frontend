@@ -1,7 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { ControlTowerService } from '../control-tower.service';
 
 import { MatCardModule } from '@angular/material/card';
@@ -38,9 +39,10 @@ import { UserService } from '../../../users/user.service';
   templateUrl: './control-tower-view.component.html',
   styleUrl: './control-tower-view.component.css'
 })
-export class ControlTowerViewComponent implements OnInit {
+export class ControlTowerViewComponent implements OnInit, OnDestroy {
   private controlTowerService = inject(ControlTowerService);
   private userService = inject(UserService);
+  private scanSub?: Subscription;
 
   loading = true;
   radarData: any = {
@@ -64,24 +66,115 @@ export class ControlTowerViewComponent implements OnInit {
   isScanning = false;
   successMessage = '';
 
-  // Neglected Buyers Pagination & Search
+  // Unified Multi-Field Search (Buyer Name, Phone, Representative, Project)
+  globalSearchQuery = '';
   buyerSearchQuery = '';
+
+  onSearchChange(query: string): void {
+    const val = query || '';
+    this.globalSearchQuery = val;
+    this.buyerSearchQuery = val;
+    this.buyerPage = 1;
+    this.visitPage = 1;
+    this.taskPage = 1;
+  }
+
+  clearSearch(): void {
+    this.onSearchChange('');
+  }
+
+  // Neglected Buyers Pagination & Search
   buyerPage = 1;
   buyerPageSize = 10;
 
   get filteredNeglectedBuyers(): any[] {
     const list = this.radarData?.neglected_buyers || [];
-    if (!this.buyerSearchQuery || !this.buyerSearchQuery.trim()) {
+    const rawQuery = (this.globalSearchQuery || this.buyerSearchQuery || '').trim().toLowerCase();
+    if (!rawQuery) {
       return list;
     }
-    const q = this.buyerSearchQuery.toLowerCase().trim();
+    const cleanDigits = rawQuery.replace(/\D/g, '');
+
     return list.filter((b: any) => {
-      const name = (b.full_name || '').toLowerCase();
+      const name = (b.full_name || b.name || '').toLowerCase();
       const phone = (b.phone || '').toLowerCase();
-      const rep = (b.assignedRep?.name || '').toLowerCase();
+      const phoneDigits = (b.phone || '').replace(/\D/g, '');
+      const rep = (b.assignedRep?.name || b.salesRep?.name || b.assigned_rep_name || (b.assigned_rep_id ? '' : 'unassigned')).toLowerCase();
       const timeframe = (b.buying_timeframe || '').toLowerCase();
-      const proj = (b.project_name || b.project?.name || b.preferred_project || '').toLowerCase();
-      return name.includes(q) || phone.includes(q) || rep.includes(q) || timeframe.includes(q) || proj.includes(q);
+      const proj = (this.getBuyerProjectName(b) || '').toLowerCase();
+
+      return (
+        name.includes(rawQuery) ||
+        phone.includes(rawQuery) ||
+        (cleanDigits.length >= 3 && phoneDigits.includes(cleanDigits)) ||
+        rep.includes(rawQuery) ||
+        timeframe.includes(rawQuery) ||
+        proj.includes(rawQuery)
+      );
+    });
+  }
+
+  // At-Risk Site Visits Pagination & Search
+  visitPage = 1;
+  visitPageSize = 10;
+
+  get filteredVisits(): any[] {
+    const list = this.radarData?.at_risk_visits || [];
+    const rawQuery = (this.globalSearchQuery || this.buyerSearchQuery || '').trim().toLowerCase();
+    if (!rawQuery) {
+      return list;
+    }
+    const cleanDigits = rawQuery.replace(/\D/g, '');
+
+    return list.filter((v: any) => {
+      const buyerName = (v.buyer?.full_name || v.buyer?.name || v.buyer_name || '').toLowerCase();
+      const phone = (v.buyer?.phone || v.phone || '').toLowerCase();
+      const phoneDigits = (v.buyer?.phone || v.phone || '').replace(/\D/g, '');
+      const rep = (v.salesRep?.name || v.assignedRep?.name || v.sales_rep_name || (v.sales_rep_id ? '' : 'unassigned')).toLowerCase();
+      const driver = (v.driver?.name || v.driver_name || '').toLowerCase();
+      const slot = (v.time_slot || '').toLowerCase();
+      const proj = (this.getVisitProjectName(v) || '').toLowerCase();
+
+      return (
+        buyerName.includes(rawQuery) ||
+        phone.includes(rawQuery) ||
+        (cleanDigits.length >= 3 && phoneDigits.includes(cleanDigits)) ||
+        rep.includes(rawQuery) ||
+        driver.includes(rawQuery) ||
+        slot.includes(rawQuery) ||
+        proj.includes(rawQuery)
+      );
+    });
+  }
+
+  // Overdue Follow-up Tasks Pagination & Search
+  taskPage = 1;
+  taskPageSize = 10;
+
+  get filteredTasks(): any[] {
+    const list = this.radarData?.overdue_tasks || [];
+    const rawQuery = (this.globalSearchQuery || this.buyerSearchQuery || '').trim().toLowerCase();
+    if (!rawQuery) {
+      return list;
+    }
+    const cleanDigits = rawQuery.replace(/\D/g, '');
+
+    return list.filter((t: any) => {
+      const title = (t.title || '').toLowerCase();
+      const buyerName = (t.buyer?.full_name || t.buyer?.name || t.buyer_name || '').toLowerCase();
+      const phone = (t.buyer?.phone || t.phone || '').toLowerCase();
+      const phoneDigits = (t.buyer?.phone || t.phone || '').replace(/\D/g, '');
+      const rep = (t.assignedUser?.name || t.salesRep?.name || t.assigned_rep_name || (t.assigned_user_id ? '' : 'unassigned')).toLowerCase();
+      const proj = (this.getTaskProjectName(t) || '').toLowerCase();
+
+      return (
+        title.includes(rawQuery) ||
+        buyerName.includes(rawQuery) ||
+        phone.includes(rawQuery) ||
+        (cleanDigits.length >= 3 && phoneDigits.includes(cleanDigits)) ||
+        rep.includes(rawQuery) ||
+        proj.includes(rawQuery)
+      );
     });
   }
 
@@ -156,38 +249,30 @@ export class ControlTowerViewComponent implements OnInit {
     this.buyerPage = 1;
   }
 
-  // At-Risk Visits Pagination
-  visitPage = 1;
-  visitPageSize = 10;
-
   get totalVisitPages(): number {
-    const list = this.radarData?.at_risk_visits || [];
     const size = Number(this.visitPageSize) || 10;
-    return Math.ceil(list.length / size) || 1;
+    return Math.ceil(this.filteredVisits.length / size) || 1;
   }
 
   get pagedVisits(): any[] {
-    const list = this.radarData?.at_risk_visits || [];
     const size = Number(this.visitPageSize) || 10;
     const page = Math.max(1, Number(this.visitPage) || 1);
     const start = (page - 1) * size;
-    return list.slice(start, start + size);
+    return this.filteredVisits.slice(start, start + size);
   }
 
   get visitStartItem(): number {
-    const list = this.radarData?.at_risk_visits || [];
-    if (list.length === 0) return 0;
+    if (this.filteredVisits.length === 0) return 0;
     const size = Number(this.visitPageSize) || 10;
     const page = Math.max(1, Number(this.visitPage) || 1);
     return (page - 1) * size + 1;
   }
 
   get visitEndItem(): number {
-    const list = this.radarData?.at_risk_visits || [];
-    if (list.length === 0) return 0;
+    if (this.filteredVisits.length === 0) return 0;
     const size = Number(this.visitPageSize) || 10;
     const page = Math.max(1, Number(this.visitPage) || 1);
-    return Math.min(page * size, list.length);
+    return Math.min(page * size, this.filteredVisits.length);
   }
 
   setVisitPageSize(size: any): void {
@@ -195,38 +280,30 @@ export class ControlTowerViewComponent implements OnInit {
     this.visitPage = 1;
   }
 
-  // Overdue Tasks Pagination
-  taskPage = 1;
-  taskPageSize = 10;
-
   get totalTaskPages(): number {
-    const list = this.radarData?.overdue_tasks || [];
     const size = Number(this.taskPageSize) || 10;
-    return Math.ceil(list.length / size) || 1;
+    return Math.ceil(this.filteredTasks.length / size) || 1;
   }
 
   get pagedTasks(): any[] {
-    const list = this.radarData?.overdue_tasks || [];
     const size = Number(this.taskPageSize) || 10;
     const page = Math.max(1, Number(this.taskPage) || 1);
     const start = (page - 1) * size;
-    return list.slice(start, start + size);
+    return this.filteredTasks.slice(start, start + size);
   }
 
   get taskStartItem(): number {
-    const list = this.radarData?.overdue_tasks || [];
-    if (list.length === 0) return 0;
+    if (this.filteredTasks.length === 0) return 0;
     const size = Number(this.taskPageSize) || 10;
     const page = Math.max(1, Number(this.taskPage) || 1);
     return (page - 1) * size + 1;
   }
 
   get taskEndItem(): number {
-    const list = this.radarData?.overdue_tasks || [];
-    if (list.length === 0) return 0;
+    if (this.filteredTasks.length === 0) return 0;
     const size = Number(this.taskPageSize) || 10;
     const page = Math.max(1, Number(this.taskPage) || 1);
-    return Math.min(page * size, list.length);
+    return Math.min(page * size, this.filteredTasks.length);
   }
 
   setTaskPageSize(size: any): void {
@@ -237,6 +314,12 @@ export class ControlTowerViewComponent implements OnInit {
   ngOnInit(): void {
     this.loadRadar(false);
     this.loadSalesReps();
+  }
+
+  ngOnDestroy(): void {
+    if (this.scanSub) {
+      this.scanSub.unsubscribe();
+    }
   }
 
   loadSalesReps(): void {
@@ -253,16 +336,55 @@ export class ControlTowerViewComponent implements OnInit {
   }
 
   loadRadar(isUserClick: boolean = false): void {
+    if (this.isScanning) {
+      return;
+    }
     this.loading = true;
     this.isScanning = true;
-    this.controlTowerService.getLiveRadarStatus().subscribe({
+
+    if (this.scanSub) {
+      this.scanSub.unsubscribe();
+    }
+
+    this.scanSub = this.controlTowerService.getLiveRadarStatus().subscribe({
       next: (res) => {
         this.loading = false;
         this.isScanning = false;
-        if (res.success && res.data) {
-          this.radarData = res.data;
+        if (res && res.success && res.data) {
+          const dedupe = (arr: any[], key: string) => {
+            if (!Array.isArray(arr)) return [];
+            const seen = new Set();
+            return arr.filter(item => {
+              const val = item ? (item[key] ?? item.id) : null;
+              if (val === null || val === undefined) return true;
+              if (seen.has(val)) return false;
+              seen.add(val);
+              return true;
+            });
+          };
+
+          const neglected = dedupe(res.data.neglected_buyers || [], 'buyer_id');
+          const visits = dedupe(res.data.at_risk_visits || [], 'site_visit_id');
+          const tasks = dedupe(res.data.overdue_tasks || [], 'follow_up_task_id');
+
+          this.radarData = {
+            ...res.data,
+            neglected_buyers: neglected,
+            at_risk_visits: visits,
+            overdue_tasks: tasks,
+            summary: {
+              ...res.data.summary,
+              neglected_buyers_count: neglected.length,
+              at_risk_visits_today: visits.length,
+              overdue_tasks_count: tasks.length,
+              total_exceptions_count: (res.data.summary?.total_exceptions_count != null)
+                ? res.data.summary.total_exceptions_count
+                : (neglected.length + visits.length + tasks.length)
+            }
+          };
+
           if (isUserClick) {
-            this.successMessage = `Live Radar Scan Complete: Audited ${res.data.summary?.total_exceptions_count || 0} operational exception(s). Pipeline health index: ${res.data.summary?.health_score || 100}/100.`;
+            this.successMessage = `Live Radar Scan Complete: Audited ${this.radarData.summary?.total_exceptions_count || 0} operational exception(s). Pipeline health index: ${this.radarData.summary?.health_score || 100}/100.`;
             setTimeout(() => {
               this.successMessage = '';
             }, 4500);
