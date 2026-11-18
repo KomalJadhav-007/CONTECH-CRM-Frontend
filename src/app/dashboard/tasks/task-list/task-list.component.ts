@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -39,7 +39,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
   templateUrl: './task-list.component.html',
   styleUrl: './task-list.component.css'
 })
-export class TaskListComponent implements OnInit {
+export class TaskListComponent implements OnInit, OnDestroy {
   private taskService = inject(TaskService);
   private buyerService = inject(BuyerService);
   private userService = inject(UserService);
@@ -56,6 +56,7 @@ export class TaskListComponent implements OnInit {
   pendingCount = 0;
   completedCount = 0;
   totalCount = 0;
+  countdownInterval: any = null;
 
   // Pagination & Search State
   currentPage = 1;
@@ -145,9 +146,28 @@ export class TaskListComponent implements OnInit {
   next_follow_up_priority = 'HIGH';
 
   ngOnInit(): void {
+    try {
+      const savedFilter = localStorage.getItem('contech_tasks_filter_status');
+      if (savedFilter !== null && savedFilter !== undefined) {
+        this.filterStatus = savedFilter;
+      }
+      const savedProj = localStorage.getItem('contech_tasks_project_id');
+      if (savedProj !== null && savedProj !== undefined) {
+        this.selectedProjectId = savedProj;
+      }
+    } catch (_) {}
+
     this.loadProjects();
     this.loadTasks();
     this.loadProspectsAndReps();
+    this.startCountdownTimer();
+  }
+
+  ngOnDestroy(): void {
+    if (this.countdownInterval) {
+      clearInterval(this.countdownInterval);
+      this.countdownInterval = null;
+    }
   }
 
   loadProjects(): void {
@@ -280,6 +300,69 @@ export class TaskListComponent implements OnInit {
     });
   }
 
+  isCompleted(task: any): boolean {
+    if (!task) return false;
+    const st = (task.status || '').toString().trim().toUpperCase();
+    return st === 'COMPLETED' || !!task.completed_at;
+  }
+
+  startCountdownTimer(): void {
+    this.updateSlaCountdowns();
+    if (this.countdownInterval) {
+      clearInterval(this.countdownInterval);
+    }
+    this.countdownInterval = setInterval(() => {
+      this.updateSlaCountdowns();
+    }, 1000);
+  }
+
+  updateSlaCountdowns(): void {
+    if (!this.allTasks || this.allTasks.length === 0) return;
+    const now = Date.now();
+    for (const task of this.allTasks) {
+      if (this.isCompleted(task)) {
+        task.countdown_text = 'Completed';
+        task.is_overdue = false;
+        continue;
+      }
+      if (!task.due_at) {
+        task.countdown_text = task.hours_remaining ? `${task.hours_remaining}h Remaining` : 'Pending SLA';
+        task.is_overdue = false;
+        continue;
+      }
+
+      const dueTime = new Date(task.due_at).getTime();
+      const diffMs = dueTime - now;
+
+      if (diffMs <= 0) {
+        task.is_overdue = true;
+        const overdueMs = Math.abs(diffMs);
+        const hrs = Math.floor(overdueMs / 3600000);
+        const mins = Math.floor((overdueMs % 3600000) / 60000);
+        const secs = Math.floor((overdueMs % 60000) / 1000);
+        if (hrs > 0) {
+          task.countdown_text = `OVERDUE (${hrs}h ${mins}m ago)`;
+        } else if (mins > 0) {
+          task.countdown_text = `OVERDUE (${mins}m ${secs}s ago)`;
+        } else {
+          task.countdown_text = `OVERDUE (${secs}s ago)`;
+        }
+      } else {
+        task.is_overdue = false;
+        const hrs = Math.floor(diffMs / 3600000);
+        const mins = Math.floor((diffMs % 3600000) / 60000);
+        const secs = Math.floor((diffMs % 60000) / 1000);
+        if (hrs > 0) {
+          task.countdown_text = `${hrs}h ${mins}m ${secs}s remaining`;
+        } else if (mins > 0) {
+          task.countdown_text = `${mins}m ${secs}s remaining`;
+        } else {
+          task.countdown_text = `${secs}s remaining`;
+        }
+      }
+    }
+  }
+
   loadTasks(): void {
     this.loading = true;
     this.taskService.getTasks({}).subscribe({
@@ -293,9 +376,10 @@ export class TaskListComponent implements OnInit {
             return idB - idA;
           });
           this.allTasks = list;
-          this.pendingCount = list.filter((t: any) => t.status === 'PENDING').length;
-          this.completedCount = list.filter((t: any) => t.status === 'COMPLETED').length;
+          this.pendingCount = list.filter((t: any) => !this.isCompleted(t)).length;
+          this.completedCount = list.filter((t: any) => this.isCompleted(t)).length;
           this.totalCount = list.length;
+          this.updateSlaCountdowns();
           this.applyFilter();
         }
       },
@@ -309,8 +393,12 @@ export class TaskListComponent implements OnInit {
     let list = [...this.allTasks];
 
     // Status Filter (Pending SLAs, Completed, All Tasks)
-    if (this.filterStatus) {
-      list = list.filter((t: any) => t.status === this.filterStatus);
+    if (this.filterStatus === 'PENDING') {
+      list = list.filter((t: any) => !this.isCompleted(t));
+    } else if (this.filterStatus === 'COMPLETED') {
+      list = list.filter((t: any) => this.isCompleted(t));
+    } else if (this.filterStatus) {
+      list = list.filter((t: any) => (t.status || '').toUpperCase() === this.filterStatus.toUpperCase());
     }
 
     // Project Container Filter
@@ -333,12 +421,18 @@ export class TaskListComponent implements OnInit {
 
   setFilterStatus(status: string): void {
     this.filterStatus = status;
+    try {
+      localStorage.setItem('contech_tasks_filter_status', status);
+    } catch (_) {}
     this.currentPage = 1;
     this.applyFilter();
   }
 
   setProjectFilter(projectId: any): void {
     this.selectedProjectId = projectId;
+    try {
+      localStorage.setItem('contech_tasks_project_id', String(projectId));
+    } catch (_) {}
     this.currentPage = 1;
     this.applyFilter();
   }
@@ -361,17 +455,17 @@ export class TaskListComponent implements OnInit {
 
   getPendingCountForProject(projectId: any): number {
     if (projectId === 'all') {
-      return this.allTasks.filter((t: any) => t.status === 'PENDING').length;
+      return this.allTasks.filter((t: any) => !this.isCompleted(t)).length;
     }
     if (projectId === 'unassigned') {
-      return this.allTasks.filter((t: any) => t.status === 'PENDING' && !this.getTaskProjectId(t)).length;
+      return this.allTasks.filter((t: any) => !this.isCompleted(t) && !this.getTaskProjectId(t)).length;
     }
     return this.allTasks.filter((t: any) => {
       const pId = this.getTaskProjectId(t);
       const pName = (this.getTaskProjectName(t) || '').toLowerCase();
       const matchId = pId && String(pId) === String(projectId);
       const matchName = typeof projectId === 'string' && pName === projectId.toLowerCase();
-      return t.status === 'PENDING' && (matchId || matchName);
+      return !this.isCompleted(t) && (matchId || matchName);
     }).length;
   }
 
@@ -444,6 +538,59 @@ export class TaskListComponent implements OnInit {
     this.manual_intent_band = score >= 80 ? 'HIGH' : (score >= 50 ? 'MEDIUM' : 'LOW');
   }
 
+  quickCompleteTask(task: any, event?: Event): void {
+    if (event) event.stopPropagation();
+    const id = task.follow_up_task_id || task.id;
+    if (!id) return;
+
+    const confirmed = window.confirm(`Mark follow-up "${task.title}" as Completed?`);
+    if (!confirmed) return;
+
+    task.completing = true;
+    const payload = {
+      status: 'COMPLETED',
+      outcome_status: 'Completed Directly',
+      outcome_notes: 'Marked complete via 1-click quick completion',
+      manual_intent_score: task.buyer?.intent_score || 95,
+      manual_intent_delta: task.buyer?.intent_delta || 5,
+      manual_intent_band: (task.buyer?.intent_score || 95) >= 80 ? 'HIGH' : 'MEDIUM'
+    };
+
+    this.taskService.completeTask(id, payload).subscribe({
+      next: (res) => {
+        task.completing = false;
+        task.status = 'COMPLETED';
+        task.completed_at = new Date().toISOString();
+        task.outcome_status = 'Completed Directly';
+        this.showFeedback(`✓ Follow-up marked as Completed!`);
+        this.pendingCount = this.allTasks.filter((t: any) => !this.isCompleted(t)).length;
+        this.completedCount = this.allTasks.filter((t: any) => this.isCompleted(t)).length;
+        this.updateSlaCountdowns();
+        this.applyFilter();
+      },
+      error: () => {
+        // Fallback to updateTask
+        this.taskService.updateTask(id, { status: 'COMPLETED', completed_at: new Date() }).subscribe({
+          next: () => {
+            task.completing = false;
+            task.status = 'COMPLETED';
+            task.completed_at = new Date().toISOString();
+            task.outcome_status = 'Completed Directly';
+            this.showFeedback(`✓ Follow-up marked as Completed!`);
+            this.pendingCount = this.allTasks.filter((t: any) => !this.isCompleted(t)).length;
+            this.completedCount = this.allTasks.filter((t: any) => this.isCompleted(t)).length;
+            this.updateSlaCountdowns();
+            this.applyFilter();
+          },
+          error: (err2) => {
+            task.completing = false;
+            alert('Failed to complete follow-up: ' + (err2.error?.message || err2.message || 'Error'));
+          }
+        });
+      }
+    });
+  }
+
   submitTaskCompletion(): void {
     if (!this.selectedTaskForCompletion) return;
     this.completingTask = true;
@@ -464,6 +611,11 @@ export class TaskListComponent implements OnInit {
       next: (res) => {
         this.completingTask = false;
         if (res.success) {
+          if (this.selectedTaskForCompletion) {
+            this.selectedTaskForCompletion.status = 'COMPLETED';
+            this.selectedTaskForCompletion.completed_at = new Date().toISOString();
+            this.selectedTaskForCompletion.outcome_status = this.outcome_status;
+          }
           this.closeCompleteModal();
           this.showFeedback(`✓ Action taken & recorded! Follow-up marked complete and buyer intent score updated.`);
           this.loadTasks();
