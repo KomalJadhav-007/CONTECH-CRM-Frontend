@@ -45,22 +45,28 @@
 }
 
 .btn-new {
-  background: #0f172a;
-  border: 1px solid #0f172a;
-  color: #ffffff;
-  font-size: 0.8rem;
-  font-weight: 600;
-  padding: 0.45rem 1.1rem;
-  border-radius: 4px;
+  background: #0f172a !important;
+  border: none !important;
+  color: #ffffff !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  padding: 0 1.15rem !important;
+  height: 38px !important;
+  border-radius: 6px !important;
   cursor: pointer;
-  transition: all 0.15s ease;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
+  transition: all 0.2s ease !important;
+  text-decoration: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.35rem !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12) !important;
 }
 
 .btn-new:hover {
-  background: #1e293b;
+  background: #1e293b !important;
+  color: #ffffff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.2) !important;
 }
 
 /* Feedback Banner */
