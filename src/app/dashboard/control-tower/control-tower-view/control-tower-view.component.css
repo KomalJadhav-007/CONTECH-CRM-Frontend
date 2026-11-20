@@ -63,28 +63,44 @@
 .btn-scan {
   display: inline-flex !important;
   align-items: center !important;
-  gap: 0.35rem !important;
-  background: #ffffff !important;
-  border: 1px solid #cbd5e1 !important;
-  border-radius: 5px !important;
-  color: #0f172a !important;
-  font-size: 0.78rem !important;
+  gap: 0.4rem !important;
+  background: #0f172a !important;
+  border: none !important;
+  border-radius: 6px !important;
+  color: #ffffff !important;
+  font-size: 0.82rem !important;
   font-weight: 600 !important;
-  height: 34px !important;
-  padding: 0 0.85rem !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
-  transition: all 0.15s ease;
+  height: 38px !important;
+  padding: 0 1.15rem !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12) !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer;
 }
 
-.btn-scan:hover {
-  background: #f8fafc !important;
-  border-color: #94a3b8 !important;
+.btn-scan:hover:not([disabled]) {
+  background: #1e293b !important;
+  color: #ffffff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.2) !important;
 }
 
 .btn-scan mat-icon {
-  font-size: 1rem;
-  width: 1rem;
-  height: 1rem;
+  font-size: 1.05rem;
+  width: 1.05rem;
+  height: 1.05rem;
+  color: #ffffff !important;
+}
+
+.btn-scan[disabled] {
+  background: #334155 !important;
+  color: #94a3b8 !important;
+  opacity: 0.85;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.btn-scan[disabled] mat-icon {
+  color: #94a3b8 !important;
 }
 
 @keyframes spinSync {
