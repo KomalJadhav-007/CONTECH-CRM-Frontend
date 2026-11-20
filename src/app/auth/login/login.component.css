@@ -98,31 +98,6 @@
   color: #64748b;
 }
 
-/* Tabs */
-.auth-tabs {
-  display: flex;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  padding: 3px;
-  background: #f8fafc;
-  margin-bottom: 1.5rem;
-}
-
-.tab-btn {
-  flex: 1;
-  padding: 0.45rem !important;
-  font-size: 0.82rem !important;
-  font-weight: 600 !important;
-  color: #64748b !important;
-  border-radius: 4px !important;
-}
-
-.tab-btn.active {
-  background: #ffffff !important;
-  color: #0f172a !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-
 .auth-form {
   display: flex;
   flex-direction: column;
@@ -143,13 +118,22 @@
   font-size: 0.9rem !important;
   font-weight: 700 !important;
   border-radius: 6px !important;
-  background: #d97706 !important;
+  background: #0f172a !important;
   color: #ffffff !important;
-  margin-top: 0.5rem;
+  margin-top: 0.75rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15) !important;
+  transition: all 0.2s ease !important;
 }
 
-.btn-signin-mat:hover {
-  background: #b45309 !important;
+.btn-signin-mat:hover:not(:disabled) {
+  background: #1e293b !important;
+  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.25) !important;
+  transform: translateY(-1px);
+}
+
+.btn-signin-mat:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 
 .error-banner {

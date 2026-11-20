@@ -41,28 +41,6 @@
         <p class="form-subtitle">Enterprise revenue intelligence for real estate sales teams.</p>
       </div>
 
-      <!-- Tabs -->
-      <div class="auth-tabs">
-        <button
-          mat-button
-          type="button"
-          class="tab-btn"
-          [class.active]="activeTab === 'signin'"
-          (click)="activeTab = 'signin'"
-        >
-          Sign In
-        </button>
-        <button
-          mat-button
-          type="button"
-          class="tab-btn"
-          [class.active]="activeTab === 'signup'"
-          (click)="activeTab = 'signup'"
-        >
-          Create account
-        </button>
-      </div>
-
       <mat-progress-bar *ngIf="loading" mode="indeterminate" class="auth-progress"></mat-progress-bar>
 
       <div *ngIf="errorMessage" class="error-banner">
@@ -70,8 +48,8 @@
       </div>
 
       <!-- Sign In Form with Angular Material -->
-      <form (ngSubmit)="onSubmit()" class="auth-form" *ngIf="activeTab === 'signin'">
-        <mat-form-field appearance="outline" class="w-full mat-field-custom">
+      <form (ngSubmit)="onSubmit()" class="auth-form" novalidate>
+        <mat-form-field appearance="outline" class="w-full mat-field-custom" [class.mat-form-field-invalid]="emailError">
           <mat-label>Work email</mat-label>
           <mat-icon matPrefix>email</mat-icon>
           <input
@@ -79,13 +57,16 @@
             type="email"
             name="email"
             [(ngModel)]="email"
+            (ngModelChange)="onEmailChange()"
+            (blur)="validateEmail()"
             required
             placeholder="you@company.com"
             autocomplete="username"
           />
+          <mat-error *ngIf="emailError">{{ emailError }}</mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="w-full mat-field-custom">
+        <mat-form-field appearance="outline" class="w-full mat-field-custom" [class.mat-form-field-invalid]="passwordError">
           <mat-label>Password</mat-label>
           <mat-icon matPrefix>lock</mat-icon>
           <input
@@ -93,6 +74,8 @@
             [type]="hidePassword ? 'password' : 'text'"
             name="password"
             [(ngModel)]="password"
+            (ngModelChange)="onPasswordChange()"
+            (blur)="validatePassword()"
             required
             placeholder="••••••••"
             autocomplete="current-password"
@@ -107,35 +90,13 @@
           >
             <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
           </button>
+          <mat-error *ngIf="passwordError">{{ passwordError }}</mat-error>
         </mat-form-field>
 
-        <button mat-flat-button color="primary" type="submit" [disabled]="loading" class="btn-signin-mat">
+        <button mat-flat-button type="submit" [disabled]="loading" class="btn-signin-mat">
           <span *ngIf="!loading">Sign in to Console</span>
           <span *ngIf="loading">Signing in...</span>
         </button>
-      </form>
-
-      <!-- Create Account Form with Angular Material -->
-      <form (ngSubmit)="onSubmit()" class="auth-form" *ngIf="activeTab === 'signup'">
-        <mat-form-field appearance="outline" class="w-full mat-field-custom">
-          <mat-label>Full Name</mat-label>
-          <mat-icon matPrefix>person</mat-icon>
-          <input matInput type="text" placeholder="Your name" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="w-full mat-field-custom">
-          <mat-label>Work email</mat-label>
-          <mat-icon matPrefix>email</mat-icon>
-          <input matInput type="email" placeholder="you@company.com" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="w-full mat-field-custom">
-          <mat-label>Create Password</mat-label>
-          <mat-icon matPrefix>lock</mat-icon>
-          <input matInput type="password" placeholder="Create password" />
-        </mat-form-field>
-
-        <button mat-flat-button color="primary" type="submit" class="btn-signin-mat">Create Account</button>
       </form>
     </div>
   </div>

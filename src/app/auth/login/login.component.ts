@@ -33,12 +33,15 @@ export class LoginComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
-  activeTab: 'signin' | 'signup' = 'signin';
   email = '';
   password = '';
   hidePassword = true;
   loading = false;
   errorMessage = '';
+  emailError = '';
+  passwordError = '';
+
+  private readonly emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
@@ -50,9 +53,46 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  onSubmit() {
-    if (!this.email || !this.password) {
-      this.errorMessage = 'Please enter your work email and password.';
+  onEmailChange(): void {
+    if (this.emailError) {
+      this.validateEmail();
+    }
+  }
+
+  onPasswordChange(): void {
+    if (this.passwordError) {
+      this.validatePassword();
+    }
+  }
+
+  validateEmail(): boolean {
+    const trimmed = (this.email || '').trim();
+    if (!trimmed) {
+      this.emailError = 'Work email is required';
+      return false;
+    }
+    if (!this.emailRegex.test(trimmed)) {
+      this.emailError = 'Please enter a valid work email address (e.g. name@company.com)';
+      return false;
+    }
+    this.emailError = '';
+    return true;
+  }
+
+  validatePassword(): boolean {
+    if (!this.password) {
+      this.passwordError = 'Password is required';
+      return false;
+    }
+    this.passwordError = '';
+    return true;
+  }
+
+  onSubmit(): void {
+    const isEmailValid = this.validateEmail();
+    const isPasswordValid = this.validatePassword();
+
+    if (!isEmailValid || !isPasswordValid) {
       return;
     }
 
@@ -71,6 +111,9 @@ export class LoginComponent implements OnInit {
       error: (err) => {
         this.loading = false;
         this.errorMessage = err.error?.message || 'Login failed. Please check your email and password.';
+        if (err.error?.message && err.error.message.toLowerCase().includes('email')) {
+          this.emailError = err.error.message;
+        }
       }
     });
   }
