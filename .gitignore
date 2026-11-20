@@ -44,3 +44,31 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Local environment overrides (keep shareable examples)
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Tests and generated test reports
+test/
+tests/
+__tests__/
+e2e/
+*.test.*
+*.spec.*
+/test-results/
+/playwright-report/
+/.nyc_output/
+
+# Build caches, logs and temporary editor files
+*.tsbuildinfo
+*.log
+*.swp
+*.swo
+*~
+*.tmp
+*.bak
+.eslintcache
+.stylelintcache

@@ -12,5 +12,6 @@ const getApiUrl = (): string => {
 
 export const environment = {
   production: true,
-  apiUrl: 'https://contech-poc-backend.zerovaega.co.in/api'
+  // apiUrl: 'https://contech-poc-backend.zerovaega.co.in/api'
+  apiUrl: 'https://poc-contech-stag-back.zerovaega.co.in/api'
 };
