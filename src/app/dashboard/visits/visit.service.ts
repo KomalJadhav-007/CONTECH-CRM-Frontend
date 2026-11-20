@@ -38,6 +38,10 @@ export class VisitService {
     return this.http.post<any>(`${this.apiUrl}/${visitId}/notify-driver-whatsapp`, {});
   }
 
+  checkDriverWhatsAppPresence(driverId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/check-driver-whatsapp/${driverId}`);
+  }
+
   getVehicles(params?: any): Observable<any> {
     return this.http.get<any>(`${environment.apiUrl}/vehicles`, { params });
   }

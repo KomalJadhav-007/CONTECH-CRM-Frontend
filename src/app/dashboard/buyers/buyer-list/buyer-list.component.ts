@@ -121,6 +121,41 @@ export class BuyerListComponent implements OnInit {
 
   prospects: any[] = [];
 
+  get availableSources(): string[] {
+    const baseSources = [
+      'Google Ads',
+      'Meta Ads',
+      'Referral',
+      'SimpliQualify',
+      'Website',
+      'Instagram',
+      'Property Portal',
+      'Broker'
+    ];
+    let customSources: string[] = [];
+    try {
+      const stored = localStorage.getItem('contech_custom_lead_sources');
+      customSources = stored ? JSON.parse(stored) : [];
+    } catch {
+      customSources = [];
+    }
+    const prospectSources = (this.prospects || [])
+      .map(p => (p?.source || '').trim())
+      .filter(Boolean);
+
+    const seen = new Set<string>();
+    const result: string[] = [];
+    for (const src of [...baseSources, ...customSources, ...prospectSources]) {
+      const trimmed = String(src || '').trim();
+      const key = trimmed.toLowerCase();
+      if (trimmed && !seen.has(key)) {
+        seen.add(key);
+        result.push(trimmed);
+      }
+    }
+    return result;
+  }
+
   ngOnInit(): void {
     this.loadOwners();
     this.loadProjects();
@@ -197,38 +232,44 @@ export class BuyerListComponent implements OnInit {
             const isBooked = rawStatus === 'BOOKED';
             const isUnassigned = !b.assigned_rep_id || !b.assignedRep || b.assignedRep.name === 'Unassigned';
 
-            // Distinct calculated exposure at risk
-            let atRiskText = '₹0 (Booked)';
-            if (!isBooked) {
-              const maxLacs = parseFloat(b.budget_max_lacs || 150);
-              let prob = 0.10;
-              if (b.intent_urgency === 'HIGH' || (b.intent_score && b.intent_score >= 71)) prob = 0.40;
-              else if (b.intent_urgency === 'MEDIUM' || (b.intent_score && b.intent_score >= 51)) prob = 0.20;
-              const expLacs = maxLacs * prob;
-              atRiskText = expLacs >= 100 ? `₹${(expLacs / 100).toFixed(2)} Cr` : `₹${expLacs.toFixed(2)} L`;
-            }
+            // Distinct calculated exposure at risk (Sum of prospect property values matching Pipeline Value)
+            const maxLacs = parseFloat(b.budget_max_lacs || 150);
+            const atRiskText = maxLacs >= 100 ? `₹${(maxLacs / 100).toFixed(2)} Cr` : `₹${maxLacs.toFixed(2)} L`;
+
+            // Tasks & Overdue SLA Check
+            const buyerTasks: any[] = b.tasks || [];
+            const overdueTasks = buyerTasks.filter(t => t.status !== 'COMPLETED' && new Date(t.due_at) < new Date());
+            const hasOverdueTask = overdueTasks.length > 0 || !!b.has_overdue_task;
+
+            // First response SOW SLA check: 15 minutes for NEW prospects without touchpoint
+            const createdMs = b.created_at ? new Date(b.created_at).getTime() : 0;
+            const isNewBreached = (rawStatus.toUpperCase() === 'NEW') && createdMs > 0 && (Date.now() - createdMs > 15 * 60 * 1000);
 
             // Contextual, high-intelligence Next Best Action
             let nextAction = b.notes || 'Follow up with buyer';
             let slaBreached = false;
             let slaTime = '';
 
-            if (isBooked) {
-              nextAction = 'Execute sale agreement & collect balance token';
-            } else if (isUnassigned) {
+            if (isUnassigned) {
               nextAction = `Assign dedicated AE immediately (Score ${b.intent_score || 95} unassigned)`;
               slaBreached = true;
               slaTime = 'Unassigned > 24h';
+            } else if (hasOverdueTask) {
+              const topTask = overdueTasks[0] || b.latest_overdue_task;
+              nextAction = (topTask && topTask.title) ? topTask.title : (b.notes || 'Follow up with buyer');
+              slaBreached = true;
+              const dueTime = topTask ? new Date(topTask.due_at).getTime() : 0;
+              const overdueHours = dueTime > 0 ? Math.round((Date.now() - dueTime) / (1000 * 60 * 60)) : 0;
+              slaTime = overdueHours > 0 ? `Overdue by ${overdueHours}h` : 'Task overdue';
+            } else if (isNewBreached) {
+              nextAction = 'First response call within 15 mins (SOW SLA)';
+              slaBreached = true;
+              const ageHours = Math.round((Date.now() - createdMs) / (1000 * 60 * 60));
+              slaTime = ageHours > 0 ? `No response (${ageHours}h)` : 'SOW SLA Breached';
+            } else if (isBooked) {
+              nextAction = 'Execute sale agreement & collect balance token';
             } else if (rawStatus === 'VISIT_SCHEDULED') {
-              if (b.full_name && b.full_name.includes('Rohiet')) {
-                nextAction = 'Confirm cab KA-01-MJ-8822 & dispatch Unit 703 schedule';
-                slaBreached = true;
-                slaTime = 'Task overdue (3.5h)';
-              } else if (b.full_name && b.full_name.includes('Jaywant')) {
-                nextAction = 'Confirm sunset slot (4 PM) & driver dispatch';
-              } else {
-                nextAction = 'Verify site lounge readiness & buyer confirmations';
-              }
+              nextAction = 'Verify site lounge readiness & buyer confirmations';
             } else if (rawStatus === 'CONTACTED') {
               nextAction = 'Lock in rescheduled visit for Saturday 11:30 AM';
             } else if (rawStatus === 'NEW') {
@@ -298,7 +339,7 @@ export class BuyerListComponent implements OnInit {
 
   // --- Executive KPI Summary Computations ---
   getVeryHighIntentCount(): number {
-    return this.prospects.filter(p => p.score >= 90).length;
+    return this.prospects.filter(p => p.score >= 85).length;
   }
 
   getTotalExposureAtRisk(): string {
@@ -322,7 +363,18 @@ export class BuyerListComponent implements OnInit {
 
   getVisitsAndNegotiationCount(): number {
     return this.prospects.filter(p =>
-      ['Site Visit Scheduled', 'Visit Completed', 'Negotiation', 'Booking Intent'].includes(p.stage)
+      ['Site Visit Scheduled', 'Visit Completed', 'Negotiation', 'Booking Intent', 'Booked'].includes(p.stage) ||
+      (p.stage || '').includes('Visit')
+    ).length;
+  }
+
+  getVisitsCount(): number {
+    return this.prospects.filter(p => (p.stage || '').includes('Visit')).length;
+  }
+
+  getNegotiationCount(): number {
+    return this.prospects.filter(p =>
+      p.stage === 'Negotiation' || p.stage === 'Booking Intent' || p.stage === 'Booked'
     ).length;
   }
 
@@ -472,16 +524,16 @@ export class BuyerListComponent implements OnInit {
   }
 
   getScoreClass(score: number): string {
-    if (score >= 90) return 'score-very-high';
-    if (score >= 80) return 'score-high';
-    if (score >= 65) return 'score-qualified';
+    if (score >= 85) return 'score-very-high';
+    if (score >= 75) return 'score-high';
+    if (score >= 60) return 'score-qualified';
     return 'score-warm';
   }
 
   getScoreBarClass(score: number): string {
-    if (score >= 90) return 'bar-very-high';
-    if (score >= 80) return 'bar-high';
-    if (score >= 65) return 'bar-qualified';
+    if (score >= 85) return 'bar-very-high';
+    if (score >= 75) return 'bar-high';
+    if (score >= 60) return 'bar-qualified';
     return 'bar-warm';
   }
 
@@ -752,6 +804,14 @@ export class BuyerListComponent implements OnInit {
   }
 
   // --- Follow-Up Modal Actions ---
+  openDateTimePicker(inputEl: HTMLInputElement): void {
+    if (inputEl && typeof (inputEl as any).showPicker === 'function') {
+      try {
+        (inputEl as any).showPicker();
+      } catch (_) {}
+    }
+  }
+
   openFollowUpModal(p: any): void {
     this.selectedBuyerForFollowUp = p;
     const defaultDue = new Date(Date.now() + 4 * 60 * 60 * 1000);
@@ -1024,24 +1084,68 @@ export class BuyerListComponent implements OnInit {
   }
 
   get pagedProspects(): any[] {
-    const start = (this.currentPage - 1) * this.pageSize;
-    return this.filteredProspects.slice(start, start + this.pageSize);
+    const size = Number(this.pageSize) || 10;
+    const page = Math.max(1, Number(this.currentPage) || 1);
+    const start = (page - 1) * size;
+    return this.filteredProspects.slice(start, start + size);
   }
 
   get totalPages(): number {
-    return Math.ceil(this.filteredProspects.length / this.pageSize) || 1;
+    const size = Number(this.pageSize) || 10;
+    return Math.ceil(this.filteredProspects.length / size) || 1;
+  }
+
+  get prospectStartItem(): number {
+    if (!this.filteredProspects || this.filteredProspects.length === 0) return 0;
+    const size = Number(this.pageSize) || 10;
+    const page = Math.max(1, Number(this.currentPage) || 1);
+    return (page - 1) * size + 1;
+  }
+
+  get prospectEndItem(): number {
+    if (!this.filteredProspects || this.filteredProspects.length === 0) return 0;
+    const size = Number(this.pageSize) || 10;
+    const page = Math.max(1, Number(this.currentPage) || 1);
+    return Math.min(page * size, this.filteredProspects.length);
+  }
+
+  setPageSize(size: any): void {
+    this.pageSize = Number(size) || 10;
+    this.currentPage = 1;
   }
 
   // --- Project Cards Dossier Pagination ---
   get pagedDossierProspects(): any[] {
     if (!this.selectedProjectGroup || !this.selectedProjectGroup.prospects) return [];
-    const start = (this.dossierPage - 1) * this.dossierPageSize;
-    return this.selectedProjectGroup.prospects.slice(start, start + this.dossierPageSize);
+    const size = Number(this.dossierPageSize) || 10;
+    const page = Math.max(1, Number(this.dossierPage) || 1);
+    const start = (page - 1) * size;
+    return this.selectedProjectGroup.prospects.slice(start, start + size);
   }
 
   get totalDossierPages(): number {
     if (!this.selectedProjectGroup || !this.selectedProjectGroup.prospects) return 1;
-    return Math.ceil(this.selectedProjectGroup.prospects.length / this.dossierPageSize) || 1;
+    const size = Number(this.dossierPageSize) || 10;
+    return Math.ceil(this.selectedProjectGroup.prospects.length / size) || 1;
+  }
+
+  get dossierStartItem(): number {
+    if (!this.selectedProjectGroup || !this.selectedProjectGroup.prospects || this.selectedProjectGroup.prospects.length === 0) return 0;
+    const size = Number(this.dossierPageSize) || 10;
+    const page = Math.max(1, Number(this.dossierPage) || 1);
+    return (page - 1) * size + 1;
+  }
+
+  get dossierEndItem(): number {
+    if (!this.selectedProjectGroup || !this.selectedProjectGroup.prospects || this.selectedProjectGroup.prospects.length === 0) return 0;
+    const size = Number(this.dossierPageSize) || 10;
+    const page = Math.max(1, Number(this.dossierPage) || 1);
+    return Math.min(page * size, this.selectedProjectGroup.prospects.length);
+  }
+
+  setDossierPageSize(size: any): void {
+    this.dossierPageSize = Number(size) || 10;
+    this.dossierPage = 1;
   }
 
   // --- Project Containers Pagination ---
@@ -1077,8 +1181,8 @@ export class BuyerListComponent implements OnInit {
   getPagedContainerProspects(group: any): any[] {
     if (!group || !group.prospects) return [];
     const pId = group.project?.project_id || group.project?.id || 0;
-    const page = this.getContainerPage(pId);
-    const pageSize = this.getContainerPageSize(pId);
+    const page = Math.max(1, Number(this.getContainerPage(pId)) || 1);
+    const pageSize = Number(this.getContainerPageSize(pId)) || 10;
     const start = (page - 1) * pageSize;
     return group.prospects.slice(start, start + pageSize);
   }
@@ -1086,8 +1190,24 @@ export class BuyerListComponent implements OnInit {
   getTotalContainerPages(group: any): number {
     if (!group || !group.prospects) return 1;
     const pId = group.project?.project_id || group.project?.id || 0;
-    const pageSize = this.getContainerPageSize(pId);
+    const pageSize = Number(this.getContainerPageSize(pId)) || 10;
     return Math.ceil(group.prospects.length / pageSize) || 1;
+  }
+
+  getContainerStartItem(group: any): number {
+    if (!group || !group.prospects || group.prospects.length === 0) return 0;
+    const pId = group.project?.project_id || group.project?.id || 0;
+    const page = Math.max(1, Number(this.getContainerPage(pId)) || 1);
+    const pageSize = Number(this.getContainerPageSize(pId)) || 10;
+    return (page - 1) * pageSize + 1;
+  }
+
+  getContainerEndItem(group: any): number {
+    if (!group || !group.prospects || group.prospects.length === 0) return 0;
+    const pId = group.project?.project_id || group.project?.id || 0;
+    const page = Math.max(1, Number(this.getContainerPage(pId)) || 1);
+    const pageSize = Number(this.getContainerPageSize(pId)) || 10;
+    return Math.min(page * pageSize, group.prospects.length);
   }
 
   // --- Excel & CSV Bulk Import ---
@@ -1158,6 +1278,18 @@ export class BuyerListComponent implements OnInit {
     this.selectedFileName = file.name;
     this.importError = '';
     this.importStats = null;
+    this.parsedCsvRows = [];
+
+    // 1. File extension validation
+    const validExtensions = ['.csv', '.xlsx', '.xls'];
+    const lowerName = (file.name || '').toLowerCase();
+    const hasValidExt = validExtensions.some(ext => lowerName.endsWith(ext));
+    if (!hasValidExt) {
+      this.importError = 'Import rejected: Invalid file format. Please upload a valid .csv, .xlsx, or .xls file.';
+      this.parsedCsvRows = [];
+      if (event.target) event.target.value = '';
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = (e: any) => {
@@ -1166,7 +1298,9 @@ export class BuyerListComponent implements OnInit {
         const workbook = XLSX.read(data, { type: 'array' });
         const firstSheetName = workbook.SheetNames[0];
         if (!firstSheetName) {
-          this.importError = 'No sheet found in uploaded spreadsheet.';
+          this.importError = 'Import rejected: No readable sheet found in the uploaded file.';
+          this.parsedCsvRows = [];
+          if (event.target) event.target.value = '';
           return;
         }
 
@@ -1174,7 +1308,9 @@ export class BuyerListComponent implements OnInit {
         const rawJson: any[] = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
 
         if (!rawJson || rawJson.length === 0) {
-          this.importError = 'The uploaded file contains no data rows.';
+          this.importError = 'Import rejected: The uploaded file is empty or contains no data rows.';
+          this.parsedCsvRows = [];
+          if (event.target) event.target.value = '';
           return;
         }
 
@@ -1190,10 +1326,72 @@ export class BuyerListComponent implements OnInit {
           return clean;
         });
 
-        this.parsedCsvRows = rows;
+        // 2. Column / Header validation:
+        // Must contain recognizable prospect columns (Name and Phone)
+        const nameKeys = ['full_name', 'name', 'prospect_name', 'prospect', 'buyer_name', 'buyer', 'lead_name', 'customer_name'];
+        const phoneKeys = ['phone', 'phone_number', 'mobile', 'mobile_number', 'contact', 'contact_number', 'contact_no', 'tel'];
+
+        const sampleKeys = new Set<string>();
+        rows.slice(0, 5).forEach(r => Object.keys(r).forEach(k => sampleKeys.add(k.toLowerCase().replace(/[\s\-\.]+/g, '_'))));
+
+        const hasNameHeader = nameKeys.some(k => sampleKeys.has(k));
+        const hasPhoneHeader = phoneKeys.some(k => sampleKeys.has(k));
+
+        if (!hasNameHeader || !hasPhoneHeader) {
+          this.importError = 'Import rejected: Malformed or invalid CSV file. The file must include valid prospect headers (at minimum "full_name" or "name", and "phone" or "contact").';
+          this.parsedCsvRows = [];
+          if (event.target) event.target.value = '';
+          return;
+        }
+
+        // 3. Row data validation:
+        // Filter valid rows: Must contain non-empty name (at least 2 chars, not purely digits) and phone with at least 7 digits
+        const validRows = rows.filter(row => {
+          const name = (
+            row.full_name || row['Full Name'] ||
+            row.name || row['Name'] ||
+            row.prospect_name || row['Prospect Name'] ||
+            row.prospect || row['Prospect'] ||
+            row.buyer_name || row['Buyer Name'] ||
+            row.customer_name || row['Customer Name'] ||
+            row.lead_name || row['Lead Name'] ||
+            ''
+          ).toString().trim();
+
+          const phone = (
+            row.phone || row['Phone Number'] || row['Phone'] ||
+            row.mobile || row['Mobile'] ||
+            row.contact || row['Contact'] ||
+            row.contact_no || row['Contact No'] ||
+            row.phone_number || row['Phone No'] ||
+            ''
+          ).toString().trim();
+
+          const cleanPhone = phone.replace(/\D/g, '');
+          const hasValidName = name.length >= 2 && !/^\d+$/.test(name);
+          const hasValidPhone = cleanPhone.length >= 7;
+
+          return hasValidName && hasValidPhone;
+        });
+
+        if (validRows.length === 0) {
+          this.importError = 'Import rejected: No valid prospect records found in the file. Each row must contain a valid name and phone number (min 7 digits).';
+          this.parsedCsvRows = [];
+          if (event.target) event.target.value = '';
+          return;
+        }
+
+        this.parsedCsvRows = validRows;
       } catch (err: any) {
-        this.importError = 'Failed to parse file: ' + err.message;
+        this.importError = 'Import rejected: Failed to parse file - ' + (err.message || 'File is corrupted or malformed.');
+        this.parsedCsvRows = [];
+        if (event.target) event.target.value = '';
       }
+    };
+    reader.onerror = () => {
+      this.importError = 'Import rejected: Error reading the uploaded file. Please ensure it is a valid, readable CSV or Excel file.';
+      this.parsedCsvRows = [];
+      if (event.target) event.target.value = '';
     };
     reader.readAsArrayBuffer(file);
   }
@@ -1253,7 +1451,7 @@ export class BuyerListComponent implements OnInit {
   }
 
   executeImport(): void {
-    if (this.parsedCsvRows.length === 0) {
+    if (!this.parsedCsvRows || this.parsedCsvRows.length === 0) {
       this.importError = 'Please upload a valid Excel or CSV file with prospect rows first.';
       return;
     }
@@ -1264,20 +1462,23 @@ export class BuyerListComponent implements OnInit {
     this.buyerService.importBuyersFromCsv(this.parsedCsvRows, this.importTargetProjectId).subscribe({
       next: (res) => {
         this.importing = false;
-        if (res.success) {
+        if (res.success && res.results && res.results.imported_count > 0) {
           this.importStats = res.results;
           this.loadBuyers();
           const projectsCount = Object.keys(res.results.projects_summary || {}).length;
           this.showFeedback(
             `Import finished: ${res.results.imported_count} imported across ${projectsCount} project(s), ${res.results.duplicate_count} duplicates skipped.`
           );
+        } else if (res.success && res.results && res.results.imported_count === 0 && res.results.duplicate_count > 0) {
+          this.importStats = res.results;
+          this.showFeedback(`Import finished: All ${res.results.duplicate_count} records were duplicates and skipped.`);
         } else {
-          this.importError = res.message || 'Import failed';
+          this.importError = res.message || 'Import rejected: No records were imported.';
         }
       },
       error: (err) => {
         this.importing = false;
-        this.importError = err.error?.message || 'Failed to import file';
+        this.importError = err.error?.message || err.message || 'Failed to import file';
       }
     });
   }

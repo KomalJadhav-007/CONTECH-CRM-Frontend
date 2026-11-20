@@ -555,6 +555,7 @@ Scan Pipeline Again
       <div class="modal-header">
         <div class="modal-title-row">
           <div class="modal-icon-badge amber-badge">
+            <mat-icon>event_available</mat-icon>
           </div>
           <div>
             <h3 class="modal-title">Schedule Follow-up</h3>
@@ -569,10 +570,12 @@ Scan Pipeline Again
       <div class="modal-body">
         <div class="quick-due-chips-row">
           <span class="chips-label">Quick Due Shortcuts:</span>
-          <button type="button" class="quick-chip" (click)="setQuickDue(2)">In 2 Hours</button>
-          <button type="button" class="quick-chip" (click)="setQuickDue(4)">In 4 Hours (SLA)</button>
-          <button type="button" class="quick-chip" (click)="setQuickDueTomorrow()">Tomorrow 10 AM</button>
-          <button type="button" class="quick-chip" (click)="setQuickDue(48)">In 2 Days</button>
+          <div class="quick-chips-group">
+            <button type="button" class="quick-chip" [class.active-chip]="scheduleForm.countdown_hours === 2" (click)="setQuickDue(2)">In 2 Hours</button>
+            <button type="button" class="quick-chip" [class.active-chip]="scheduleForm.countdown_hours === 4" (click)="setQuickDue(4)">In 4 Hours (SLA)</button>
+            <button type="button" class="quick-chip" [class.active-chip]="scheduleForm.countdown_hours === 24" (click)="setQuickDueTomorrow()">Tomorrow 10 AM</button>
+            <button type="button" class="quick-chip" [class.active-chip]="scheduleForm.countdown_hours === 48" (click)="setQuickDue(48)">In 2 Days</button>
+          </div>
         </div>
 
         <mat-form-field appearance="outline" class="w-full">
@@ -583,7 +586,22 @@ Scan Pipeline Again
         <div class="form-grid-2">
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>Due Date &amp; Time</mat-label>
-            <input matInput type="datetime-local" [(ngModel)]="scheduleForm.due_date" />
+            <input
+              #scheduleDueInput
+              matInput
+              type="datetime-local"
+              [(ngModel)]="scheduleForm.due_date"
+              (click)="openDateTimePicker(scheduleDueInput)"
+            />
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              (click)="openDateTimePicker(scheduleDueInput); $event.stopPropagation()"
+              matTooltip="Open Date & Time Picker"
+            >
+              <mat-icon>calendar_month</mat-icon>
+            </button>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="w-full">
@@ -630,6 +648,7 @@ Scan Pipeline Again
       <div class="modal-header">
         <div class="modal-title-row">
           <div class="modal-icon-badge green-badge">
+            <mat-icon>task_alt</mat-icon>
           </div>
           <div>
             <h3 class="modal-title">Complete Follow-up</h3>
@@ -716,7 +735,22 @@ Scan Pipeline Again
 
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>Next Follow-Up Due Date</mat-label>
-              <input matInput type="datetime-local" [(ngModel)]="completeForm.next_date" />
+              <input
+                #nextFollowUpDateInput
+                matInput
+                type="datetime-local"
+                [(ngModel)]="completeForm.next_date"
+                (click)="openDateTimePicker(nextFollowUpDateInput)"
+              />
+              <button
+                mat-icon-button
+                matSuffix
+                type="button"
+                (click)="openDateTimePicker(nextFollowUpDateInput); $event.stopPropagation()"
+                matTooltip="Open Date & Time Picker"
+              >
+                <mat-icon>calendar_month</mat-icon>
+              </button>
             </mat-form-field>
           </div>
         </div>
@@ -740,6 +774,7 @@ Scan Pipeline Again
       <div class="modal-header">
         <div class="modal-title-row">
           <div class="modal-icon-badge purple-badge">
+            <mat-icon>swap_horiz</mat-icon>
           </div>
           <div>
             <h3 class="modal-title">Reassign Sales Representative</h3>

@@ -213,27 +213,32 @@
                   <span *ngIf="getTaskProjectLocation(task)">{{ getTaskProjectLocation(task) }}</span>
                 </div>
                 <div class="project-tag-status">
-                  <span *ngIf="task.status === 'PENDING'" class="status-remain-badge">
+                  <span *ngIf="!isCompleted(task)" class="status-remain-badge">
                     <span class="status-dot-pulse"></span> Follow-up Remaining
                   </span>
-                  <span *ngIf="task.status === 'COMPLETED'" class="status-cleared-badge">
+                  <span *ngIf="isCompleted(task)" class="status-cleared-badge">
                     &#10003; Follow-up Resolved
                   </span>
                 </div>
               </div>
             </td>
             <td class="col-sla">
-              <div *ngIf="task.status === 'PENDING'">
+              <div *ngIf="!isCompleted(task)">
                 <div *ngIf="!task.is_overdue" class="countdown-tag countdown-active">
-                  {{ task.hours_remaining }}h Remaining
+                  <mat-icon class="sla-live-icon">timer</mat-icon>
+                  <span>{{ task.countdown_text || (task.hours_remaining + 'h Remaining') }}</span>
                 </div>
                 <div *ngIf="task.is_overdue" class="countdown-tag countdown-overdue">
-                  OVERDUE
+                  <mat-icon class="sla-live-icon">warning</mat-icon>
+                  <span>{{ task.countdown_text || 'OVERDUE' }}</span>
                 </div>
                 <div class="target-time">Target: {{ task.due_at | date:'shortTime' }}</div>
               </div>
-              <div *ngIf="task.status === 'COMPLETED'">
-                <span class="countdown-tag countdown-completed">&#10003; Completed</span>
+              <div *ngIf="isCompleted(task)">
+                <span class="countdown-tag countdown-completed">
+                  <mat-icon class="sla-live-icon">check_circle</mat-icon>
+                  Completed
+                </span>
               </div>
             </td>
             <td class="col-priority">
@@ -258,14 +263,25 @@
               </span>
             </td>
             <td class="col-status">
-              <span class="stage-badge" [ngClass]="task.status === 'COMPLETED' ? 'stage-completed' : 'stage-pending'">
-                {{ task.status || 'PENDING' }}
+              <span class="stage-badge" [ngClass]="isCompleted(task) ? 'stage-completed' : 'stage-pending'">
+                <mat-icon class="status-badge-icon">{{ isCompleted(task) ? 'task_alt' : 'schedule' }}</mat-icon>
+                <span>{{ isCompleted(task) ? 'Completed' : 'Pending' }}</span>
               </span>
             </td>
             <td class="col-actions text-right">
               <div class="actions-wrapper">
                 <button
-                  *ngIf="task.status === 'PENDING'"
+                  *ngIf="!isCompleted(task)"
+                  type="button"
+                  class="btn-quick-complete"
+                  (click)="quickCompleteTask(task, $event)"
+                  [disabled]="task.completing"
+                  matTooltip="Quick Complete (1-click mark done)"
+                >
+                  <mat-icon class="btn-quick-icon">done</mat-icon>
+                </button>
+                <button
+                  *ngIf="!isCompleted(task)"
                   type="button"
                   class="btn-take-action-pro"
                   (click)="completeTask(task)"
@@ -274,7 +290,7 @@
                   <mat-icon class="btn-action-icon">bolt</mat-icon>
                   <span>Take Action</span>
                 </button>
-                <div *ngIf="task.status === 'COMPLETED'" class="completed-action-info">
+                <div *ngIf="isCompleted(task)" class="completed-action-info">
                   <span class="outcome-badge" *ngIf="task.outcome_status">{{ task.outcome_status }}</span>
                   <span class="outcome-badge-done" *ngIf="!task.outcome_status">Action Taken &#10003;</span>
                 </div>
@@ -291,7 +307,7 @@
           </tr>
 
           <tr *ngIf="tasks.length === 0 && !loading">
-            <td colspan="7" class="empty-state">
+            <td colspan="8" class="empty-state">
               No follow-up tasks found for this status.
             </td>
           </tr>
@@ -302,24 +318,24 @@
     <!-- Table Footer with Pagination & Summary -->
     <div class="table-footer-bar" *ngIf="filteredTasks.length > 0">
       <div class="footer-summary">
-        <span>Showing <strong>{{ pagedTasks.length }}</strong> of <strong>{{ filteredTasks.length }}</strong> tasks</span>
+        <span>Showing <strong>{{ taskStartItem }}–{{ taskEndItem }}</strong> of <strong>{{ filteredTasks.length }}</strong> tasks</span>
       </div>
 
       <div class="footer-controls">
         <div class="page-size-selector">
           <label>Rows per page:</label>
-          <select [(ngModel)]="pageSize" (change)="currentPage = 1" class="page-size-dropdown">
-            <option [value]="5">5</option>
-            <option [value]="10">10</option>
-            <option [value]="25">25</option>
-            <option [value]="50">50</option>
+          <select [ngModel]="pageSize" (ngModelChange)="setPageSize($event)" class="page-size-dropdown">
+            <option [ngValue]="5">5</option>
+            <option [ngValue]="10">10</option>
+            <option [ngValue]="25">25</option>
+            <option [ngValue]="50">50</option>
           </select>
         </div>
 
         <div class="page-navigator">
           <button
             type="button"
-            [disabled]="currentPage === 1"
+            [disabled]="currentPage <= 1"
             (click)="currentPage = currentPage - 1"
             class="page-nav-btn"
             aria-label="Previous page"
@@ -462,7 +478,22 @@
             <div class="form-row-2">
               <mat-form-field appearance="outline" class="w-100">
                 <mat-label>Next Due Date &amp; Time</mat-label>
-                <input matInput type="datetime-local" [(ngModel)]="next_follow_up_date" />
+                <input
+                  #nextTaskDateInput
+                  matInput
+                  type="datetime-local"
+                  [(ngModel)]="next_follow_up_date"
+                  (click)="openDateTimePicker(nextTaskDateInput)"
+                />
+                <button
+                  mat-icon-button
+                  matSuffix
+                  type="button"
+                  (click)="openDateTimePicker(nextTaskDateInput); $event.stopPropagation()"
+                  matTooltip="Open Date & Time Picker"
+                >
+                  <mat-icon>calendar_month</mat-icon>
+                </button>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="w-100">
@@ -606,7 +637,22 @@
           </div>
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Exact Target Date &amp; Time</mat-label>
-            <input matInput type="datetime-local" [(ngModel)]="createForm.due_at" />
+            <input
+              #createDueAtInput
+              matInput
+              type="datetime-local"
+              [(ngModel)]="createForm.due_at"
+              (click)="openDateTimePicker(createDueAtInput)"
+            />
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              (click)="openDateTimePicker(createDueAtInput); $event.stopPropagation()"
+              matTooltip="Open Date & Time Picker"
+            >
+              <mat-icon>calendar_month</mat-icon>
+            </button>
           </mat-form-field>
         </div>
       </div>

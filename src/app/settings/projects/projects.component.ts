@@ -56,6 +56,10 @@ export class ProjectsComponent implements OnInit {
 
   loading = false;
   feedbackMessage = '';
+  feedbackType: 'success' | 'delete' | 'warning' | 'info' = 'success';
+  showDeleteTypologyModal = false;
+  typologyIndexToDelete: number | null = null;
+  typologyNameToDelete = '';
   editingProjectId: number | null = null;
   editForm: any = {};
   accessScope: any = null;
@@ -76,11 +80,33 @@ export class ProjectsComponent implements OnInit {
     location: '',
     address: '',
     project_purpose: 'Housing / Residential',
-    configurations: '2 BHK, 3 BHK, 4 BHK Luxury',
+    configurations: '',
     daily_capacity: 20,
     working_hours: '09:00 AM - 07:00 PM',
     status: 'active'
   };
+
+  formSubmitted = false;
+
+  get isProjectNameInvalid(): boolean {
+    return this.formSubmitted && (!this.newProject.name || !this.newProject.name.trim());
+  }
+
+  get isLocationInvalid(): boolean {
+    return this.formSubmitted && (!this.newProject.location || !this.newProject.location.trim());
+  }
+
+  get isTypologyListEmpty(): boolean {
+    return this.formSubmitted && this.newProjectPropertyTypes.length === 0;
+  }
+
+  get hasTypologyErrors(): boolean {
+    return this.newProjectPropertyTypes.some(pt => !pt.name?.trim() || !pt.total_units || pt.total_units <= 0);
+  }
+
+  get hasValidationErrors(): boolean {
+    return this.isProjectNameInvalid || this.isLocationInvalid || this.isTypologyListEmpty || (this.formSubmitted && this.hasTypologyErrors);
+  }
 
   // Purpose options for real estate developments
   projectPurposeOptions: {
@@ -612,6 +638,7 @@ export class ProjectsComponent implements OnInit {
   };
 
   ngOnInit(): void {
+    this.syncConfigurationsText();
     this.loadProjects();
   }
 
@@ -624,6 +651,13 @@ export class ProjectsComponent implements OnInit {
           this.accessScope = res.access_scope || (res.settings && res.settings.access_scope) || null;
           this.projects = res.projects.map((p: any) => {
             const pId = p.id || p.project_id;
+            const propTypes = p.property_types || [];
+            const typologiesTotal = propTypes.reduce((acc: number, pt: any) => acc + (Number(pt.total_units) || 0), 0);
+            
+            // True calculated inventory
+            const totalUnits = Number(p.flats_count !== undefined ? p.flats_count : (p.total_units !== undefined ? p.total_units : (typologiesTotal || 0)));
+            const availUnits = Number(p.available_flats_count !== undefined ? p.available_flats_count : (p.available_units !== undefined ? p.available_units : totalUnits));
+
             return {
               id: pId,
               name: p.name,
@@ -636,17 +670,17 @@ export class ProjectsComponent implements OnInit {
               capacity_per_day: p.daily_capacity || 20,
               working_hours: p.operating_hours || '09:00 AM - 07:00 PM',
               blackout_periods: p.blackout_periods || 'None',
-              total_units: p.flats_count !== undefined ? p.flats_count : (p.total_units || 0),
-              available_units: p.available_flats_count !== undefined ? p.available_flats_count : (p.available_units || 0),
+              total_units: totalUnits,
+              available_units: availUnits,
               booked_units: p.booked_flats_count || 0,
               reserved_units: p.reserved_flats_count || 0,
               active_pipeline: p.active_pipeline || (pId === 3 ? 1 : 2),
               upcoming_visits: p.upcoming_visits !== undefined ? p.upcoming_visits : (pId === 1 || pId === 2 ? 1 : 0),
               crm_bookings: p.crm_bookings !== undefined ? p.crm_bookings : (pId === 1 ? 1 : 0),
               crm_booking_value_cr: p.crm_booking_value_cr || (pId === 1 ? '1.95' : '0.00'),
-              historical_sold_units: (p.total_units - p.available_units) > 0 ? (p.total_units - p.available_units) : 0,
+              historical_sold_units: (totalUnits - availUnits) > 0 ? (totalUnits - availUnits) : 0,
               starting_price_lacs: p.starting_price_lacs || 125,
-              property_types: p.property_types || [],
+              property_types: propTypes,
               assigned_users: p.assigned_users || [],
               user_access_scoped: p.user_access_scoped || false,
               status: (p.status === 'ACTIVE' || p.is_active !== false) ? 'active' : 'inactive'
@@ -676,8 +710,8 @@ export class ProjectsComponent implements OnInit {
         project_purpose: 'Housing / Residential',
         configurations: '2 BHK Elegance, 3 BHK Royal Grand, 4 BHK Sky Penthouse',
         capacity_per_day: 25,
-        total_units: 8,
-        available_units: 6,
+        total_units: 120,
+        available_units: 118,
         booked_units: 1,
         reserved_units: 1,
         active_pipeline: 2,
@@ -702,8 +736,8 @@ export class ProjectsComponent implements OnInit {
         project_purpose: 'Commercial',
         configurations: 'Grade-A Bare Shell Office, High-Street Retail Showroom',
         capacity_per_day: 18,
-        total_units: 4,
-        available_units: 4,
+        total_units: 37,
+        available_units: 37,
         booked_units: 0,
         reserved_units: 0,
         active_pipeline: 2,
@@ -727,8 +761,8 @@ export class ProjectsComponent implements OnInit {
         project_purpose: 'Plot / Plotted Land',
         configurations: '30x40 Standard Plot, 30x50 Premium Plot, 40x60 Executive Plot',
         capacity_per_day: 35,
-        total_units: 5,
-        available_units: 5,
+        total_units: 75,
+        available_units: 75,
         booked_units: 0,
         reserved_units: 0,
         active_pipeline: 1,
@@ -758,62 +792,116 @@ export class ProjectsComponent implements OnInit {
   }
 
   // --- Add Project Form Actions ---
+  lastDeletedTypology: { item: PropertyTypeConfig; index: number } | null = null;
+
   addPropertyTypeRow(): void {
     const nextWing = String.fromCharCode(65 + (this.newProjectPropertyTypes.length % 26));
+    const nextIndex = this.newProjectPropertyTypes.length + 1;
+    const label = this.getTypologyAddLabel();
+    const configName = `${nextIndex === 2 ? '3 BHK Premium' : nextIndex === 3 ? '4 BHK Luxury Penthouse' : '2 BHK Executive'} (Config #${nextIndex})`;
+
     this.newProjectPropertyTypes.push({
-      name: '4 BHK Luxury Penthouse',
-      bhk_type: '4 BHK',
+      name: configName,
+      bhk_type: nextIndex === 2 ? '3 BHK' : nextIndex === 3 ? '4 BHK' : '2 BHK',
       carpet_area_sqft: 2200,
       super_builtup_area_sqft: 2750,
       base_price_lacs: 280,
       total_units: 15,
       facing: 'Panoramic Park Facing',
-      tower_wing: `Tower ${nextWing} / Wing ${this.newProjectPropertyTypes.length + 1}`,
+      tower_wing: `Tower ${nextWing} / Wing ${nextIndex}`,
       floor_range: 'Floors 12-24',
       front_road_width: '40 ft Road',
       plot_location: 'Center / Intermediate Plot'
     });
     this.syncConfigurationsText();
+    this.showFeedback(`${label} #${nextIndex} ("${configName}") added successfully!`, 'success');
   }
 
   removePropertyTypeRow(index: number): void {
-    if (this.newProjectPropertyTypes.length > 1) {
-      this.newProjectPropertyTypes.splice(index, 1);
+    if (this.newProjectPropertyTypes.length <= 1) {
+      this.showFeedback('At least one property configuration is required for a project.', 'warning');
+      return;
+    }
+    const item = this.newProjectPropertyTypes[index];
+    const label = this.getTypologyAddLabel();
+    const deletedName = item.name || `${item.bhk_type || label} (Config #${index + 1})`;
+    this.lastDeletedTypology = { item: { ...item }, index };
+    this.newProjectPropertyTypes.splice(index, 1);
+    this.syncConfigurationsText();
+    this.showFeedback(`${label} "${deletedName}" removed. It will not appear in saved inventory.`, 'delete');
+  }
+
+  undoDeleteTypology(): void {
+    if (this.lastDeletedTypology) {
+      const { item, index } = this.lastDeletedTypology;
+      const targetIndex = Math.min(index, this.newProjectPropertyTypes.length);
+      this.newProjectPropertyTypes.splice(targetIndex, 0, item);
       this.syncConfigurationsText();
+      const label = this.getTypologyAddLabel();
+      this.showFeedback(`${label} "${item.name}" restored successfully.`, 'success');
+      this.lastDeletedTypology = null;
     }
   }
 
   syncConfigurationsText(): void {
     if (this.newProjectPropertyTypes.length > 0) {
       this.newProject.configurations = this.newProjectPropertyTypes
-        .map(t => t.name || `${t.bhk_type} Unit`)
+        .map(t => (t.name || `${t.bhk_type} Unit`).trim())
+        .filter(Boolean)
         .join(', ');
+    } else {
+      this.newProject.configurations = '';
     }
   }
 
   addProject(): void {
-    if (!this.newProject.name.trim()) return;
-
+    this.formSubmitted = true;
     this.syncConfigurationsText();
 
+    if (this.hasValidationErrors) {
+      if (this.isProjectNameInvalid) {
+        this.showFeedback('Project Name is required.', 'warning');
+      } else if (this.isLocationInvalid) {
+        this.showFeedback('Location / Micro-Market is required.', 'warning');
+      } else if (this.isTypologyListEmpty) {
+        this.showFeedback('At least one flat/property configuration is required.', 'warning');
+      } else if (this.hasTypologyErrors) {
+        this.showFeedback('Please provide valid Configuration Name and Units for all configurations.', 'warning');
+      }
+      return;
+    }
+
+    // Deep clone active property configurations so removed typologies do not persist
+    const activePropertyTypes: PropertyTypeConfig[] = JSON.parse(JSON.stringify(this.newProjectPropertyTypes));
+
     const payload: any = {
-      name: this.newProject.name,
-      developer: this.newProject.developer || 'Contech Developments Pvt Ltd',
-      location: this.newProject.location || 'Bengaluru',
-      address: this.newProject.address || '',
+      name: this.newProject.name.trim(),
+      developer: this.newProject.developer?.trim() || 'Contech Developments Pvt Ltd',
+      location: this.newProject.location.trim(),
+      address: this.newProject.address?.trim() || '',
       project_purpose: this.newProject.project_purpose || 'Housing / Residential',
       configurations: this.newProject.configurations,
       daily_capacity: Number(this.newProject.daily_capacity) || 20,
-      working_hours: this.newProject.working_hours,
+      working_hours: this.newProject.working_hours || '09:00 AM - 07:00 PM',
       is_active: this.newProject.status === 'active',
-      property_types: this.newProjectPropertyTypes
+      property_types: activePropertyTypes
     };
-
 
     this.settingsService.createProject(payload).subscribe({
       next: (res: any) => {
         const created = res.project || payload;
-        const newTotal = (res.units && res.units.length) ? res.units.length : (payload.units ? payload.units.length : 20);
+        const savedPropertyTypes = (res.property_types && res.property_types.length > 0)
+          ? res.property_types
+          : activePropertyTypes;
+
+        const sumTypologies = savedPropertyTypes.reduce((acc: number, pt: any) => acc + (Number(pt.total_units) || 0), 0);
+        const newTotal = (res.units && res.units.length)
+          ? res.units.length
+          : (created.total_units || sumTypologies || 20);
+        const newAvailable = created.available_units !== undefined && created.available_units !== null
+          ? created.available_units
+          : newTotal;
+
         this.projects.unshift({
           id: created.id || created.project_id || Date.now(),
           name: created.name,
@@ -821,10 +909,10 @@ export class ProjectsComponent implements OnInit {
           location: created.location,
           address: created.address,
           project_purpose: created.project_purpose || payload.project_purpose,
-          configurations: created.configurations,
+          configurations: created.configurations || this.newProject.configurations,
           capacity_per_day: created.daily_capacity,
           total_units: newTotal,
-          available_units: newTotal,
+          available_units: newAvailable,
           booked_units: 0,
           reserved_units: 0,
           active_pipeline: 0,
@@ -832,37 +920,18 @@ export class ProjectsComponent implements OnInit {
           crm_bookings: 0,
           crm_booking_value_cr: '0.00',
           historical_sold_units: 0,
-          starting_price_lacs: (this.newProjectPropertyTypes[0]?.base_price_lacs) || 125,
-          property_types: res.property_types || this.newProjectPropertyTypes,
+          starting_price_lacs: (savedPropertyTypes[0]?.base_price_lacs) || 125,
+          property_types: savedPropertyTypes,
           status: created.is_active ? 'active' : 'inactive'
         });
         this.updateStats();
+        const createdName = created.name;
         this.resetForm();
-        this.showFeedback(`Project "${created.name}" created with ${this.newProjectPropertyTypes.length} property configurations & inventory.`);
+        this.showFeedback(`Project "${createdName}" created successfully with ${savedPropertyTypes.length} property configurations & inventory.`, 'success');
       },
-      error: () => {
-        const fallbackId = Date.now();
-        this.projects.unshift({
-          id: fallbackId,
-          ...payload,
-          project_purpose: payload.project_purpose,
-          capacity_per_day: payload.daily_capacity,
-          total_units: payload.units ? payload.units.length : 20,
-          available_units: payload.units ? payload.units.length : 20,
-          booked_units: 0,
-          reserved_units: 0,
-          active_pipeline: 0,
-          upcoming_visits: 0,
-          crm_bookings: 0,
-          crm_booking_value_cr: '0.00',
-          historical_sold_units: 0,
-          starting_price_lacs: 125,
-          property_types: this.newProjectPropertyTypes,
-          status: payload.is_active ? 'active' : 'inactive'
-        });
-        this.updateStats();
-        this.resetForm();
-        this.showFeedback(`Project "${payload.name}" created locally.`);
+      error: (err: any) => {
+        const errMsg = err?.error?.message || 'Failed to create project';
+        this.showFeedback(errMsg, 'warning');
       }
     });
   }
@@ -993,39 +1062,88 @@ export class ProjectsComponent implements OnInit {
             this.activeProject.booked_units = res.stats.booked_flats;
             this.activeProject.reserved_units = res.stats.reserved_flats;
             this.activeProject.property_types = res.propertyTypes;
+
+            const prjInList = this.projects.find(p => p.id === this.activeProject.id);
+            if (prjInList) {
+              prjInList.total_units = res.stats.total_flats;
+              prjInList.available_units = res.stats.available_flats;
+              prjInList.booked_units = res.stats.booked_flats;
+              prjInList.reserved_units = res.stats.reserved_flats;
+              prjInList.property_types = res.propertyTypes;
+            }
             this.updateStats();
           }
         }
       },
       error: () => {
         this.inventoryLoading = false;
-        // Mock fallback inventory for development
+        // Reconciled fallback inventory strictly using project's actual property configurations
+        const propTypes = (this.activeProject?.property_types && this.activeProject.property_types.length > 0)
+          ? this.activeProject.property_types
+          : [
+            { id: 1, name: '2 BHK Elegance', bhk_type: '2 BHK', carpet_area_sqft: 1050, super_builtup_area_sqft: 1320, base_price_lacs: 145, total_units: 40, facing: 'East Facing', tower_wing: 'Tower A' }
+          ];
+        const units: any[] = [];
+        let uId = 1;
+        for (const pt of propTypes) {
+          const count = pt.total_units || 10;
+          const tower = pt.tower_wing ? pt.tower_wing.split('/')[0].trim() : 'Tower A';
+          const prefix = tower.replace(/^(Tower|Wing)\s*/i, '').trim() || 'A';
+          for (let i = 0; i < count; i++) {
+            const floor = Math.floor(i / 4) + 1;
+            const u = (i % 4) + 1;
+            const isBooked = (uId === 4);
+            const isReserved = (uId === 6);
+            units.push({
+              unit_id: uId++,
+              property_type_id: pt.id || pt.property_type_id,
+              unit_number: `${prefix}-${floor}${u < 10 ? '0' + u : u}`,
+              tower_block: tower,
+              floor_number: floor,
+              bhk_type: pt.bhk_type || '2 BHK',
+              area_sqft: pt.super_builtup_area_sqft || pt.carpet_area_sqft || 1200,
+              price_lacs: pt.base_price_lacs || 120.00,
+              facing: pt.facing || 'East Facing',
+              status: isBooked ? 'BOOKED' : (isReserved ? 'RESERVED' : 'AVAILABLE'),
+              notes: isBooked ? 'Booked by Buyer' : (isReserved ? 'Shortlisted' : '')
+            });
+          }
+        }
+        const total = units.length;
+        const available = units.filter(u => u.status === 'AVAILABLE').length;
+        const reserved = units.filter(u => u.status === 'RESERVED').length;
+        const booked = units.filter(u => u.status === 'BOOKED').length;
+        const totalVal = units.reduce((acc, u) => acc + (parseFloat(u.price_lacs) || 0), 0);
+        const bookedVal = units.filter(u => u.status === 'BOOKED').reduce((acc, u) => acc + (parseFloat(u.price_lacs) || 0), 0);
+
         this.activeInventory = {
-          propertyTypes: this.activeProject?.property_types || [
-            { id: 1, name: '2 BHK Elegance', bhk_type: '2 BHK', carpet_area_sqft: 1050, super_builtup_area_sqft: 1320, base_price_lacs: 145, total_units: 40, facing: 'East Facing' },
-            { id: 2, name: '3 BHK Royal Grand', bhk_type: '3 BHK', carpet_area_sqft: 1480, super_builtup_area_sqft: 1850, base_price_lacs: 195, total_units: 50, facing: 'North-East Facing' },
-            { id: 3, name: '4 BHK Sky Penthouse', bhk_type: '4 BHK', carpet_area_sqft: 2250, super_builtup_area_sqft: 2850, base_price_lacs: 310, total_units: 30, facing: 'Panoramic Park Facing' }
-          ],
-          units: [
-            { unit_id: 1, unit_number: 'Tower A - 101', tower_block: 'Tower A', floor_number: 1, bhk_type: '2 BHK', area_sqft: 1320, price_lacs: 145.00, facing: 'East Facing', status: 'AVAILABLE' },
-            { unit_id: 2, unit_number: 'Tower A - 102', tower_block: 'Tower A', floor_number: 1, bhk_type: '2 BHK', area_sqft: 1320, price_lacs: 145.00, facing: 'West Facing', status: 'AVAILABLE' },
-            { unit_id: 3, unit_number: 'Tower A - 201', tower_block: 'Tower A', floor_number: 2, bhk_type: '3 BHK', area_sqft: 1850, price_lacs: 195.00, facing: 'North-East Facing', status: 'AVAILABLE' },
-            { unit_id: 4, unit_number: 'Tower A - 402', tower_block: 'Tower A', floor_number: 4, bhk_type: '3 BHK', area_sqft: 1850, price_lacs: 195.00, facing: 'East Facing', status: 'BOOKED', notes: 'Booked by Rohiet Kumar' },
-            { unit_id: 5, unit_number: 'Tower B - 501', tower_block: 'Tower B', floor_number: 5, bhk_type: '3 BHK', area_sqft: 1850, price_lacs: 202.00, facing: 'Park Facing', status: 'AVAILABLE' },
-            { unit_id: 6, unit_number: 'Tower B - 703', tower_block: 'Tower B', floor_number: 7, bhk_type: '3 BHK', area_sqft: 1850, price_lacs: 210.00, facing: 'East Facing', status: 'RESERVED', notes: 'Shortlisted by Vikram Malhotra' },
-            { unit_id: 7, unit_number: 'Tower B - 1201', tower_block: 'Tower B', floor_number: 12, bhk_type: '4 BHK', area_sqft: 2850, price_lacs: 310.00, facing: 'Panoramic Park Facing', status: 'AVAILABLE' },
-            { unit_id: 8, unit_number: 'Tower B - 1202', tower_block: 'Tower B', floor_number: 12, bhk_type: '4 BHK', area_sqft: 2850, price_lacs: 315.00, facing: 'Panoramic Park Facing', status: 'AVAILABLE' }
-          ],
+          propertyTypes: propTypes,
+          units,
           stats: {
-            total_flats: 8,
-            available_flats: 6,
-            reserved_flats: 1,
-            booked_flats: 1,
+            total_flats: total,
+            available_flats: available,
+            reserved_flats: reserved,
+            booked_flats: booked,
             blocked_flats: 0,
-            total_value_cr: '16.97',
-            booked_value_cr: '1.95'
+            total_value_cr: (totalVal / 100).toFixed(2),
+            booked_value_cr: (bookedVal / 100).toFixed(2)
           }
         };
+
+        if (this.activeProject) {
+          this.activeProject.total_units = total;
+          this.activeProject.available_units = available;
+          this.activeProject.booked_units = booked;
+          this.activeProject.reserved_units = reserved;
+          const prjInList = this.projects.find(p => p.id === this.activeProject.id);
+          if (prjInList) {
+            prjInList.total_units = total;
+            prjInList.available_units = available;
+            prjInList.booked_units = booked;
+            prjInList.reserved_units = reserved;
+          }
+          this.updateStats();
+        }
       }
     });
   }
@@ -1243,25 +1361,36 @@ export class ProjectsComponent implements OnInit {
 
     this.settingsService.deletePropertyType(this.activeProject.id, typeId).subscribe({
       next: () => {
-        this.activeInventory.propertyTypes = this.activeInventory.propertyTypes.filter(t => (t.id || t.property_type_id) !== typeId);
-        this.showFeedback('Property configuration removed.');
+        this.loadProjectInventory(this.activeProject.id);
+        this.showFeedback('Property configuration deleted.', 'delete');
       },
       error: () => {
         this.activeInventory.propertyTypes = this.activeInventory.propertyTypes.filter(t => (t.id || t.property_type_id) !== typeId);
-        this.showFeedback('Property configuration removed.');
+        this.activeInventory.units = this.activeInventory.units.filter(u => (u.property_type_id) !== typeId);
+        this.recalculateInventoryStats();
+        this.showFeedback('Property configuration deleted.', 'delete');
       }
     });
   }
 
   private recalculateInventoryStats(): void {
-    const units = this.activeInventory.units;
-    const total = units.length;
-    const available = units.filter(u => u.status === 'AVAILABLE').length;
-    const reserved = units.filter(u => u.status === 'RESERVED').length;
-    const booked = units.filter(u => u.status === 'BOOKED').length;
-    const blocked = units.filter(u => u.status === 'BLOCKED').length;
-    const totalVal = units.reduce((acc, u) => acc + (parseFloat(u.price_lacs) || 0), 0);
-    const bookedVal = units.filter(u => u.status === 'BOOKED').reduce((acc, u) => acc + (parseFloat(u.price_lacs) || 0), 0);
+    const units = this.activeInventory.units || [];
+    const propertyTypes = this.activeInventory.propertyTypes || [];
+    let total = units.length;
+    let available = units.filter(u => u.status === 'AVAILABLE').length;
+    let reserved = units.filter(u => u.status === 'RESERVED').length;
+    let booked = units.filter(u => u.status === 'BOOKED').length;
+    let blocked = units.filter(u => u.status === 'BLOCKED').length;
+    let totalVal = units.reduce((acc, u) => acc + (parseFloat(u.price_lacs) || 0), 0);
+    let bookedVal = units.filter(u => u.status === 'BOOKED').reduce((acc, u) => acc + (parseFloat(u.price_lacs) || 0), 0);
+
+    if (total === 0 && propertyTypes.length > 0) {
+      total = propertyTypes.reduce((acc, pt) => acc + (Number(pt.total_units) || 0), 0);
+      booked = Number(this.activeProject?.booked_units) || 0;
+      reserved = Number(this.activeProject?.reserved_units) || 0;
+      available = Math.max(0, total - booked - reserved);
+      totalVal = propertyTypes.reduce((acc, pt) => acc + ((Number(pt.total_units) || 0) * (parseFloat(pt.base_price_lacs) || 0)), 0);
+    }
 
     this.activeInventory.stats = {
       total_flats: total,
@@ -1278,25 +1407,44 @@ export class ProjectsComponent implements OnInit {
       this.activeProject.available_units = available;
       this.activeProject.booked_units = booked;
       this.activeProject.reserved_units = reserved;
+      
+      const prjInList = this.projects.find(p => p.id === this.activeProject.id);
+      if (prjInList) {
+        prjInList.total_units = total;
+        prjInList.available_units = available;
+        prjInList.booked_units = booked;
+        prjInList.reserved_units = reserved;
+      }
       this.updateStats();
     }
   }
 
   private resetForm(): void {
     this.newProject.name = '';
+    this.newProject.developer = 'Contech Developments Pvt Ltd';
     this.newProject.location = '';
     this.newProject.address = '';
     this.newProject.project_purpose = 'Housing / Residential';
+    this.newProject.daily_capacity = 20;
+    this.newProject.working_hours = '09:00 AM - 07:00 PM';
+    this.newProject.status = 'active';
     this.isCustomPurposeActive = false;
     this.customPurposeValue = '';
+    this.formSubmitted = false;
+    this.applyPurposePresets('Housing / Residential');
   }
 
-  private showFeedback(msg: string): void {
+  showFeedback(msg: string, type: 'success' | 'delete' | 'warning' | 'info' = 'success'): void {
     this.feedbackMessage = msg;
+    this.feedbackType = type;
     setTimeout(() => {
       if (this.feedbackMessage === msg) {
         this.feedbackMessage = '';
       }
-    }, 4000);
+    }, 4500);
+  }
+
+  dismissFeedback(): void {
+    this.feedbackMessage = '';
   }
 }

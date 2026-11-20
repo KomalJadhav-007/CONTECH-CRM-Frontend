@@ -8,6 +8,8 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { DriverTripService } from '../driver-trip.service';
+import { AuthService } from '../../../auth/auth.service';
+import { SettingsService } from '../../../settings/settings.service';
 
 @Component({
   selector: 'app-driver-trips',
@@ -19,6 +21,8 @@ import { DriverTripService } from '../driver-trip.service';
 
 export class DriverTripsComponent implements OnInit {
   private tripService = inject(DriverTripService);
+  private authService = inject(AuthService);
+  private settingsService = inject(SettingsService);
 
   loading = true;
   trips: any[] = [];
@@ -26,17 +30,45 @@ export class DriverTripsComponent implements OnInit {
   updatingId: number | null = null;
   statusMessage = '';
 
+  // Project Filtering for Super Admin & Admin
+  currentUser: any = null;
+  isAdminOrSuperAdmin = false;
+  projectsList: any[] = [];
+  selectedProject: string | number = 'all';
+
   // Pagination for Daily Trips
   currentPage = 1;
   pageSize = 6;
 
   get totalPages(): number {
-    return Math.max(1, Math.ceil(this.filteredTrips.length / this.pageSize));
+    const size = Number(this.pageSize) || 6;
+    return Math.max(1, Math.ceil(this.filteredTrips.length / size));
   }
 
   get pagedTrips(): any[] {
-    const start = (this.currentPage - 1) * this.pageSize;
-    return this.filteredTrips.slice(start, start + this.pageSize);
+    const size = Number(this.pageSize) || 6;
+    const page = Math.max(1, Number(this.currentPage) || 1);
+    const start = (page - 1) * size;
+    return this.filteredTrips.slice(start, start + size);
+  }
+
+  get tripStartItem(): number {
+    if (!this.filteredTrips || this.filteredTrips.length === 0) return 0;
+    const size = Number(this.pageSize) || 6;
+    const page = Math.max(1, Number(this.currentPage) || 1);
+    return (page - 1) * size + 1;
+  }
+
+  get tripEndItem(): number {
+    if (!this.filteredTrips || this.filteredTrips.length === 0) return 0;
+    const size = Number(this.pageSize) || 6;
+    const page = Math.max(1, Number(this.currentPage) || 1);
+    return Math.min(page * size, this.filteredTrips.length);
+  }
+
+  setPageSize(size: any): void {
+    this.pageSize = Number(size) || 6;
+    this.currentPage = 1;
   }
 
   setFilter(status: string): void {
@@ -45,31 +77,122 @@ export class DriverTripsComponent implements OnInit {
   }
 
   get filteredTrips(): any[] {
-    if (!this.filterStatus) return this.trips;
+    let list = this.trips;
+    if (this.selectedProject && this.selectedProject !== 'all') {
+      list = list.filter(t => {
+        const pid = t.siteVisit?.project_id || t.siteVisit?.project?.project_id || t.siteVisit?.project?.id;
+        return String(pid) === String(this.selectedProject);
+      });
+    }
+    if (!this.filterStatus) return list;
     if (this.filterStatus === 'ACTIVE') {
-      return this.trips.filter(t => t.trip_status !== 'COMPLETED');
+      return list.filter(t => t.trip_status !== 'COMPLETED');
     }
     if (this.filterStatus === 'COMPLETED') {
-      return this.trips.filter(t => t.trip_status === 'COMPLETED');
+      return list.filter(t => t.trip_status === 'COMPLETED');
     }
-    return this.trips;
+    return list;
+  }
+
+  get totalProjectTripsCount(): number {
+    if (!this.selectedProject || this.selectedProject === 'all') return this.trips.length;
+    return this.trips.filter(t => {
+      const pid = t.siteVisit?.project_id || t.siteVisit?.project?.project_id || t.siteVisit?.project?.id;
+      return String(pid) === String(this.selectedProject);
+    }).length;
+  }
+
+  get activeTripsCount(): number {
+    let list = this.trips;
+    if (this.selectedProject && this.selectedProject !== 'all') {
+      list = list.filter(t => {
+        const pid = t.siteVisit?.project_id || t.siteVisit?.project?.project_id || t.siteVisit?.project?.id;
+        return String(pid) === String(this.selectedProject);
+      });
+    }
+    return list.filter(t => t.trip_status !== 'COMPLETED').length;
+  }
+
+  get completedTripsCount(): number {
+    let list = this.trips;
+    if (this.selectedProject && this.selectedProject !== 'all') {
+      list = list.filter(t => {
+        const pid = t.siteVisit?.project_id || t.siteVisit?.project?.project_id || t.siteVisit?.project?.id;
+        return String(pid) === String(this.selectedProject);
+      });
+    }
+    return list.filter(t => t.trip_status === 'COMPLETED').length;
   }
 
   ngOnInit(): void {
+    this.currentUser = this.authService.getCurrentUser();
+    if (this.currentUser && (this.currentUser.is_active === false || this.currentUser.is_active === 0 || this.currentUser.is_active === '0' || this.currentUser.is_active === 'false')) {
+      this.authService.revokeSession('ACCOUNT_DEACTIVATED');
+      return;
+    }
+
+    const role = String(this.currentUser?.role || this.currentUser?.role_code || '').toUpperCase();
+    this.isAdminOrSuperAdmin = !role.includes('DRIVER');
+
+    if (this.isAdminOrSuperAdmin) {
+      this.loadProjects();
+    }
     this.loadTrips();
+  }
+
+  loadProjects(): void {
+    this.settingsService.getSettings().subscribe({
+      next: (res: any) => {
+        if (res && res.projects && res.projects.length > 0) {
+          this.projectsList = res.projects.map((p: any) => ({
+            project_id: p.project_id || p.id,
+            id: p.project_id || p.id,
+            name: p.name,
+            code: p.code || '',
+            location: p.location || ''
+          }));
+        }
+      }
+    });
+  }
+
+  onProjectFilterChange(): void {
+    this.currentPage = 1;
+    this.loadTrips();
+  }
+
+  setProjectFilter(projectId: string | number): void {
+    this.selectedProject = projectId;
+    this.currentPage = 1;
+    this.loadTrips();
+  }
+
+  clearProjectFilter(): void {
+    this.selectedProject = 'all';
+    this.currentPage = 1;
+    this.loadTrips();
+  }
+
+  getSelectedProjectName(): string {
+    if (this.selectedProject === 'all') return 'All Projects';
+    const prj = this.projectsList.find(p => (p.project_id || p.id) == this.selectedProject);
+    return prj ? prj.name : `Project #${this.selectedProject}`;
   }
 
   loadTrips(): void {
     this.loading = true;
-    this.tripService.getMyTrips().subscribe({
+    this.tripService.getMyTrips(this.selectedProject).subscribe({
       next: (res) => {
         this.loading = false;
         if (res.success) {
-          this.trips = res.trips;
+          this.trips = res.trips || [];
         }
       },
-      error: () => {
+      error: (err) => {
         this.loading = false;
+        if (err.status === 401 || err.status === 403 || err.error?.code === 'ACCOUNT_DEACTIVATED') {
+          this.authService.revokeSession('ACCOUNT_DEACTIVATED');
+        }
       }
     });
   }
@@ -93,8 +216,11 @@ export class DriverTripsComponent implements OnInit {
           setTimeout(() => this.statusMessage = '', 3500);
         }
       },
-      error: () => {
+      error: (err) => {
         this.updatingId = null;
+        if (err.status === 401 || err.status === 403 || err.error?.code === 'ACCOUNT_DEACTIVATED') {
+          this.authService.revokeSession('ACCOUNT_DEACTIVATED');
+        }
       }
     });
   }

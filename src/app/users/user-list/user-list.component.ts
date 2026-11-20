@@ -68,6 +68,11 @@ export class UserListComponent implements OnInit {
   addUserError = '';
   showNewPassword = false;
   vehicleTypes: string[] = ['SUV', 'Sedan', 'Luxury', 'Van'];
+  showAddVehicleTypeModal = false;
+  newVehicleTypeName = '';
+  addVehicleTypeError = '';
+  isCreatingVehicleType = false;
+  vehicleTypeTargetContext: 'new' | 'edit' = 'new';
   newUser = {
     name: '',
     email: '',
@@ -107,6 +112,84 @@ export class UserListComponent implements OnInit {
   ngOnInit(): void {
     this.loadProjects();
     this.loadUsers();
+    this.loadVehicleTypes();
+  }
+
+  loadVehicleTypes(): void {
+    this.userService.getVehicleTypes().subscribe({
+      next: (res: any) => {
+        if (res && res.success && Array.isArray(res.vehicleTypes) && res.vehicleTypes.length > 0) {
+          this.vehicleTypes = res.vehicleTypes;
+        }
+      },
+      error: () => {}
+    });
+  }
+
+  openAddVehicleTypeModal(context: 'new' | 'edit' = 'new'): void {
+    this.vehicleTypeTargetContext = context;
+    this.newVehicleTypeName = '';
+    this.addVehicleTypeError = '';
+    this.showAddVehicleTypeModal = true;
+  }
+
+  closeAddVehicleTypeModal(): void {
+    this.showAddVehicleTypeModal = false;
+    this.newVehicleTypeName = '';
+    this.addVehicleTypeError = '';
+  }
+
+  onVehicleTypeChange(val: string, context: 'new' | 'edit'): void {
+    if (val === '__ADD_NEW__') {
+      this.openAddVehicleTypeModal(context);
+    } else {
+      if (context === 'new') {
+        this.newUser.vehicle_type = val;
+      } else if (this.editingUser) {
+        this.editingUser.vehicle_type = val;
+      }
+    }
+  }
+
+  saveNewVehicleType(): void {
+    const name = (this.newVehicleTypeName || '').trim();
+    if (!name) {
+      this.addVehicleTypeError = 'Please enter a vehicle type name.';
+      return;
+    }
+
+    const alreadyExists = this.vehicleTypes.some(t => t.toLowerCase() === name.toLowerCase());
+    if (alreadyExists) {
+      this.addVehicleTypeError = `Vehicle type "${name}" already exists.`;
+      return;
+    }
+
+    this.isCreatingVehicleType = true;
+    this.addVehicleTypeError = '';
+
+    this.userService.createVehicleType(name).subscribe({
+      next: (res: any) => {
+        this.isCreatingVehicleType = false;
+        const createdType = res?.createdType || name;
+        if (res && res.vehicleTypes && Array.isArray(res.vehicleTypes)) {
+          this.vehicleTypes = res.vehicleTypes;
+        } else if (!this.vehicleTypes.includes(createdType)) {
+          this.vehicleTypes.push(createdType);
+        }
+
+        if (this.vehicleTypeTargetContext === 'new') {
+          this.newUser.vehicle_type = createdType;
+        } else if (this.editingUser) {
+          this.editingUser.vehicle_type = createdType;
+        }
+
+        this.closeAddVehicleTypeModal();
+      },
+      error: (err: any) => {
+        this.isCreatingVehicleType = false;
+        this.addVehicleTypeError = err.error?.message || 'Failed to create vehicle type.';
+      }
+    });
   }
 
   loadProjects(): void {
@@ -145,7 +228,7 @@ export class UserListComponent implements OnInit {
     this.userService.getUsers().subscribe({
       next: (res: any) => {
         this.loading = false;
-        if (res && res.success && res.users && res.users.length > 0) {
+        if (res && res.success && Array.isArray(res.users)) {
           this.users = res.users.map((u: any) => {
             const assignedList = u.assigned_projects || [];
             const assignedIds = u.assigned_project_ids || assignedList.map((p: any) => p.project_id || p.id);
@@ -223,12 +306,34 @@ export class UserListComponent implements OnInit {
   }
 
   get totalPages(): number {
-    return Math.ceil(this.filteredUsers.length / this.pageSize) || 1;
+    const size = Number(this.pageSize) || 10;
+    return Math.ceil(this.filteredUsers.length / size) || 1;
   }
 
   get pagedUsers(): any[] {
-    const start = (this.currentPage - 1) * this.pageSize;
-    return this.filteredUsers.slice(start, start + this.pageSize);
+    const size = Number(this.pageSize) || 10;
+    const page = Math.max(1, Number(this.currentPage) || 1);
+    const start = (page - 1) * size;
+    return this.filteredUsers.slice(start, start + size);
+  }
+
+  get userStartItem(): number {
+    if (!this.filteredUsers || this.filteredUsers.length === 0) return 0;
+    const size = Number(this.pageSize) || 10;
+    const page = Math.max(1, Number(this.currentPage) || 1);
+    return (page - 1) * size + 1;
+  }
+
+  get userEndItem(): number {
+    if (!this.filteredUsers || this.filteredUsers.length === 0) return 0;
+    const size = Number(this.pageSize) || 10;
+    const page = Math.max(1, Number(this.currentPage) || 1);
+    return Math.min(page * size, this.filteredUsers.length);
+  }
+
+  setPageSize(size: any): void {
+    this.pageSize = Number(size) || 10;
+    this.currentPage = 1;
   }
 
   // --- ADD USER MODAL ACTIONS ---
@@ -342,8 +447,9 @@ export class UserListComponent implements OnInit {
       },
       error: (err: any) => {
         this.isSubmitting = false;
-        const msg = err.error?.message || 'Failed to create user in database.';
-        this.addUserError = msg;
+        const baseMsg = err.error?.message || 'Failed to create user in database.';
+        const detail = err.error?.error ? ` (${err.error.error})` : '';
+        this.addUserError = `${baseMsg}${detail}`;
       }
     });
   }
@@ -506,7 +612,9 @@ export class UserListComponent implements OnInit {
       },
       error: (err: any) => {
         this.isEditing = false;
-        this.editUserError = err.error?.message || 'Failed to update user.';
+        const baseMsg = err.error?.message || 'Failed to update user.';
+        const detail = err.error?.error ? ` (${err.error.error})` : '';
+        this.editUserError = `${baseMsg}${detail}`;
       }
     });
   }

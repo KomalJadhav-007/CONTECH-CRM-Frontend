@@ -47,6 +47,20 @@ export class BuyerFormComponent implements OnInit {
 
   projects: any[] = [];
 
+  defaultLeadSources: { value: string; label: string }[] = [
+    { value: 'SimpliQualify', label: 'SimpliQualify AI Direct' },
+    { value: 'Google Ads', label: 'Google Search Ads' },
+    { value: 'Meta Ads', label: 'Meta / Instagram Ads' },
+    { value: 'Referral', label: 'Customer Referral' },
+    { value: 'Website', label: 'Developer Website Organic' },
+    { value: 'Property Portal', label: 'MagicBricks / 99acres' },
+    { value: 'Broker', label: 'Channel Partner / Broker' }
+  ];
+  leadSources: { value: string; label: string }[] = [];
+  isCreatingCustomLeadSource = false;
+  newCustomLeadSource = '';
+  previousLeadSource = 'Google Ads';
+
   defaultOccupations: string[] = [
     'Salaried IT / Tech Corporate',
     'Business Owner / Entrepreneur',
@@ -76,7 +90,7 @@ export class BuyerFormComponent implements OnInit {
     preferred_bhk: '3 BHK',
     family_size: 4,
     buying_timeframe: '<30 days',
-    lead_source: 'Instagram',
+    lead_source: 'Google Ads',
     financing_readiness: 'Pre-approved Loan',
     occupation: 'Salaried IT / Tech Corporate',
     assigned_rep_id: null,
@@ -92,6 +106,7 @@ export class BuyerFormComponent implements OnInit {
   buyerId: number | null = null;
 
   ngOnInit(): void {
+    this.loadLeadSources();
     this.loadOccupations();
     this.loadSalesReps();
     this.loadProjects();
@@ -138,6 +153,16 @@ export class BuyerFormComponent implements OnInit {
             allow_duplicate: false,
             duplicate_resolution_notes: b.duplicate_resolution_notes || ''
           };
+          this.previousLeadSource = this.buyerData.lead_source;
+          if (
+            this.buyerData.lead_source &&
+            !this.leadSources.some(s => s.value === this.buyerData.lead_source)
+          ) {
+            this.leadSources.unshift({
+              value: this.buyerData.lead_source,
+              label: this.buyerData.lead_source
+            });
+          }
           this.previousOccupation = this.buyerData.occupation;
           if (this.buyerData.occupation && !this.occupations.includes(this.buyerData.occupation)) {
             this.occupations.unshift(this.buyerData.occupation);
@@ -172,6 +197,82 @@ export class BuyerFormComponent implements OnInit {
     if (matched) {
       this.buyerData.preferred_project = matched.name;
     }
+  }
+
+  loadLeadSources(): void {
+    try {
+      const stored = localStorage.getItem('contech_custom_lead_sources');
+      const custom: string[] = stored ? JSON.parse(stored) : [];
+      const merged = [...this.defaultLeadSources];
+      for (const item of custom) {
+        if (
+          item &&
+          !merged.some(
+            s =>
+              s.value.toLowerCase() === item.toLowerCase() ||
+              s.label.toLowerCase() === item.toLowerCase()
+          )
+        ) {
+          merged.push({ value: item, label: item });
+        }
+      }
+      this.leadSources = merged;
+    } catch {
+      this.leadSources = [...this.defaultLeadSources];
+    }
+  }
+
+  onLeadSourceChange(val: string): void {
+    if (val === '__create_new_source__') {
+      this.isCreatingCustomLeadSource = true;
+      this.newCustomLeadSource = '';
+      setTimeout(() => {
+        this.buyerData.lead_source = this.previousLeadSource;
+      });
+    } else {
+      this.previousLeadSource = val;
+      this.isCreatingCustomLeadSource = false;
+    }
+  }
+
+  saveCustomLeadSource(event?: Event): void {
+    if (event) event.preventDefault();
+    const trimmed = this.newCustomLeadSource.trim();
+    if (!trimmed) return;
+
+    const existing = this.leadSources.find(
+      s =>
+        s.value.toLowerCase() === trimmed.toLowerCase() ||
+        s.label.toLowerCase() === trimmed.toLowerCase()
+    );
+
+    if (existing) {
+      this.buyerData.lead_source = existing.value;
+      this.previousLeadSource = existing.value;
+    } else {
+      this.leadSources.push({ value: trimmed, label: trimmed });
+      try {
+        const stored = localStorage.getItem('contech_custom_lead_sources');
+        const custom: string[] = stored ? JSON.parse(stored) : [];
+        if (!custom.includes(trimmed)) {
+          custom.push(trimmed);
+          localStorage.setItem('contech_custom_lead_sources', JSON.stringify(custom));
+        }
+      } catch (e) {
+        console.error('Failed to cache custom lead source', e);
+      }
+      this.buyerData.lead_source = trimmed;
+      this.previousLeadSource = trimmed;
+    }
+
+    this.isCreatingCustomLeadSource = false;
+    this.newCustomLeadSource = '';
+  }
+
+  cancelCustomLeadSource(): void {
+    this.isCreatingCustomLeadSource = false;
+    this.buyerData.lead_source = this.previousLeadSource;
+    this.newCustomLeadSource = '';
   }
 
   loadOccupations(): void {

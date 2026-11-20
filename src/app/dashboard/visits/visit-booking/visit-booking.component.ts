@@ -16,6 +16,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-visit-booking',
@@ -32,7 +34,9 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
     MatButtonModule,
     MatIconModule,
     MatChipsModule,
-    MatProgressBarModule
+    MatProgressBarModule,
+    MatDividerModule,
+    MatTooltipModule
   ],
   templateUrl: './visit-booking.component.html',
   styleUrl: './visit-booking.component.css'
@@ -52,6 +56,19 @@ export class VisitBookingComponent implements OnInit {
   vehicles: any[] = [];
   selectedVehicleId: number | null = null;
 
+  defaultTimeSlots: string[] = [
+    '09:30 AM - 11:00 AM',
+    '11:00 AM - 12:30 PM',
+    '02:00 PM - 03:30 PM',
+    '04:00 PM - 05:30 PM'
+  ];
+  timeSlots: string[] = [];
+  isCreatingCustomTimeSlot = false;
+  newCustomTimeSlot = '';
+  customSlotStartTime = '10:00';
+  customSlotEndTime = '11:30';
+  previousTimeSlot = '11:00 AM - 12:30 PM';
+
   bookingData: any = {
     buyer_id: null,
     project_id: null,
@@ -59,7 +76,7 @@ export class VisitBookingComponent implements OnInit {
     driver_id: null,
     vehicle_id: null,
     scheduled_date: new Date().toISOString().split('T')[0],
-    time_slot: '11:00 AM - 12:30 PM (Peak Slot)',
+    time_slot: '11:00 AM - 12:30 PM',
     cab_required: true,
     cab_number: '',
     pickup_address: 'Customer Residence / Office',
@@ -70,10 +87,210 @@ export class VisitBookingComponent implements OnInit {
   errorMessage = '';
 
   ngOnInit(): void {
+    this.loadTimeSlots();
     this.loadProjects();
     this.loadUsers();
     this.loadBuyers();
     this.loadVehicles();
+    this.loadDateVisits();
+  }
+
+  dateVisits: any[] = [];
+
+  loadDateVisits(): void {
+    if (!this.bookingData.scheduled_date) return;
+    this.visitService.getSiteVisits({ date: this.bookingData.scheduled_date }).subscribe({
+      next: (res: any) => {
+        if (res && res.success && Array.isArray(res.visits)) {
+          this.dateVisits = res.visits;
+        } else {
+          this.dateVisits = [];
+        }
+      },
+      error: () => {
+        this.dateVisits = [];
+      }
+    });
+  }
+
+  onDateChange(): void {
+    this.loadDateVisits();
+  }
+
+  getDriverSlotStatusText(driver: any): string {
+    const dId = driver.user_id || driver.id;
+    const currentSlot = this.bookingData.time_slot;
+    const sameSlotVisit = this.dateVisits.find(v => (v.driver_id === dId || v.driver?.user_id === dId) && v.time_slot === currentSlot);
+
+    if (sameSlotVisit) {
+      const isCompleted = sameSlotVisit.status === 'COMPLETED' || sameSlotVisit.trip?.trip_status === 'COMPLETED' || sameSlotVisit.status === 'DROPPED_AT_SITE';
+      if (isCompleted) {
+        return 'Available (Trip Completed)';
+      }
+      if (sameSlotVisit.status === 'CANCELLED') {
+        return 'Available';
+      }
+      return 'Busy (In Slot)';
+    }
+
+    const hasCompletedTrip = this.dateVisits.some(v => (v.driver_id === dId || v.driver?.user_id === dId) && (v.status === 'COMPLETED' || v.trip?.trip_status === 'COMPLETED' || v.status === 'DROPPED_AT_SITE'));
+    if (hasCompletedTrip) {
+      return 'Available (Trip Completed)';
+    }
+
+    return 'Available';
+  }
+
+  getDriverSlotStatusClass(driver: any): string {
+    const text = this.getDriverSlotStatusText(driver);
+    if (text.includes('Busy')) return 'status-busy';
+    if (text.includes('Trip Completed')) return 'status-available-completed';
+    return 'status-available';
+  }
+
+  getRepSlotStatusText(rep: any): string {
+    const rId = rep.user_id || rep.id;
+    const currentSlot = this.bookingData.time_slot;
+    const sameSlotVisit = this.dateVisits.find(v => (v.sales_rep_id === rId || v.salesRep?.user_id === rId) && v.time_slot === currentSlot);
+
+    if (sameSlotVisit) {
+      const isCompleted = sameSlotVisit.status === 'COMPLETED' || sameSlotVisit.status === 'DROPPED_AT_SITE';
+      if (isCompleted) {
+        return 'Available (Visit Completed)';
+      }
+      if (sameSlotVisit.status === 'CANCELLED') {
+        return 'Available';
+      }
+      return 'Busy (In Slot)';
+    }
+
+    const hasCompletedVisit = this.dateVisits.some(v => (v.sales_rep_id === rId || v.salesRep?.user_id === rId) && (v.status === 'COMPLETED' || v.status === 'DROPPED_AT_SITE'));
+    if (hasCompletedVisit) {
+      return 'Available (Visit Completed)';
+    }
+
+    return 'Available';
+  }
+
+  getRepSlotStatusClass(rep: any): string {
+    const text = this.getRepSlotStatusText(rep);
+    if (text.includes('Busy')) return 'status-busy';
+    if (text.includes('Completed')) return 'status-available-completed';
+    return 'status-available';
+  }
+
+  getSelectedDriverAvailabilitySummary(): string {
+    const driver = this.getSelectedDriver();
+    if (!driver) return 'No driver assigned';
+    const status = this.getDriverSlotStatusText(driver);
+    if (status.includes('Trip Completed')) {
+      return `Driver ${driver.name} is AVAILABLE (Previous trip completed; released for new bookings).`;
+    }
+    if (status.includes('Busy')) {
+      return `Driver ${driver.name} is assigned to an active trip in slot ${this.bookingData.time_slot}.`;
+    }
+    return `Driver ${driver.name} is AVAILABLE for this slot.`;
+  }
+
+  openDateTimePicker(inputEl: HTMLInputElement): void {
+    if (inputEl && typeof (inputEl as any).showPicker === 'function') {
+      try {
+        (inputEl as any).showPicker();
+      } catch (_) {}
+    }
+  }
+
+  loadTimeSlots(): void {
+    const saved = localStorage.getItem('contech_custom_time_slots');
+    let customList: string[] = [];
+    if (saved) {
+      try {
+        customList = JSON.parse(saved);
+      } catch {
+        customList = [];
+      }
+    }
+    this.timeSlots = [...this.defaultTimeSlots];
+    for (const slot of customList) {
+      if (slot && !this.timeSlots.some(s => s.toLowerCase() === slot.toLowerCase())) {
+        this.timeSlots.push(slot);
+      }
+    }
+  }
+
+  formatTime12h(time24: string): string {
+    if (!time24 || !time24.includes(':')) return time24;
+    const [hStr, mStr] = time24.split(':');
+    let h = parseInt(hStr, 10);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12;
+    if (h === 0) h = 12;
+    return `${String(h).padStart(2, '0')}:${mStr} ${ampm}`;
+  }
+
+  updateCustomSlotPreview(): void {
+    const start = this.formatTime12h(this.customSlotStartTime);
+    const end = this.formatTime12h(this.customSlotEndTime);
+    if (start && end) {
+      this.newCustomTimeSlot = `${start} - ${end}`;
+    } else if (start) {
+      this.newCustomTimeSlot = start;
+    }
+  }
+
+  onTimeSlotChange(value: string): void {
+    if (value === '__create_new_slot__') {
+      this.isCreatingCustomTimeSlot = true;
+      this.updateCustomSlotPreview();
+      setTimeout(() => {
+        this.bookingData.time_slot = this.previousTimeSlot;
+      });
+    } else {
+      this.previousTimeSlot = value;
+      this.isCreatingCustomTimeSlot = false;
+    }
+  }
+
+  saveCustomTimeSlot(event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    const trimmed = this.newCustomTimeSlot.trim();
+    if (!trimmed) return;
+
+    const existing = this.timeSlots.find(s => s.toLowerCase() === trimmed.toLowerCase());
+    if (existing) {
+      this.bookingData.time_slot = existing;
+      this.previousTimeSlot = existing;
+    } else {
+      this.timeSlots.push(trimmed);
+      this.bookingData.time_slot = trimmed;
+      this.previousTimeSlot = trimmed;
+
+      const saved = localStorage.getItem('contech_custom_time_slots');
+      let customList: string[] = [];
+      if (saved) {
+        try {
+          customList = JSON.parse(saved);
+        } catch {
+          customList = [];
+        }
+      }
+      if (!customList.some(s => s.toLowerCase() === trimmed.toLowerCase())) {
+        customList.push(trimmed);
+        localStorage.setItem('contech_custom_time_slots', JSON.stringify(customList));
+      }
+    }
+
+    this.isCreatingCustomTimeSlot = false;
+    this.newCustomTimeSlot = '';
+  }
+
+  cancelCustomTimeSlot(): void {
+    this.isCreatingCustomTimeSlot = false;
+    this.newCustomTimeSlot = '';
+    this.bookingData.time_slot = this.previousTimeSlot;
   }
 
   loadProjects(): void {
@@ -115,6 +332,9 @@ export class VisitBookingComponent implements OnInit {
           }
           if (this.drivers.length > 0 && !this.bookingData.driver_id) {
             this.bookingData.driver_id = this.drivers[0].user_id || this.drivers[0].id;
+          }
+          if (this.bookingData.driver_id) {
+            this.evaluateDriverWhatsApp(this.bookingData.driver_id);
           }
         }
       }
@@ -202,6 +422,7 @@ export class VisitBookingComponent implements OnInit {
 
   onDriverSelect(driverId: any): void {
     this.bookingData.driver_id = driverId ? parseInt(driverId, 10) : null;
+    this.evaluateDriverWhatsApp(this.bookingData.driver_id);
     if (this.bookingData.driver_id) {
       const selectedDriver = this.drivers.find(d => (d.user_id || d.id) === this.bookingData.driver_id);
       // If driver has a default vehicle in profile and no cab number is set yet:
@@ -234,11 +455,93 @@ export class VisitBookingComponent implements OnInit {
   }
 
   whatsappSuccessDispatch: any = null;
+  driverWhatsAppStatus: { present: boolean; message: string; phone?: string } | null = null;
+  driverWhatsAppWarning: string = '';
+
+  getSelectedDriver(): any {
+    if (!this.bookingData.driver_id) return null;
+    return this.drivers.find(d => (d.user_id || d.id) == this.bookingData.driver_id) || null;
+  }
 
   getSelectedDriverName(): string {
-    if (!this.bookingData.driver_id) return 'Unassigned';
-    const found = this.drivers.find(d => (d.user_id || d.id) === this.bookingData.driver_id);
-    return found ? found.name : 'Driver #' + this.bookingData.driver_id;
+    const driver = this.getSelectedDriver();
+    return driver ? driver.name : (this.bookingData.driver_id ? 'Driver #' + this.bookingData.driver_id : 'Unassigned');
+  }
+
+  getSelectedDriverRawPhone(): string {
+    const driver = this.getSelectedDriver();
+    return driver?.phone ? String(driver.phone).trim() : '';
+  }
+
+  getSelectedDriverPhone(): string {
+    return this.getSelectedDriverRawPhone();
+  }
+
+  getSelectedDriverCleanPhone(): string {
+    const raw = this.getSelectedDriverRawPhone();
+    const digits = raw.replace(/\D/g, '');
+    if (digits.length === 10) return '91' + digits;
+    if (digits.length === 12 && digits.startsWith('91')) return digits;
+    return digits || raw;
+  }
+
+  evaluateDriverWhatsApp(driverId: any): void {
+    if (!driverId) {
+      this.driverWhatsAppStatus = null;
+      this.driverWhatsAppWarning = '';
+      return;
+    }
+
+    const driver = this.drivers.find(d => (d.user_id || d.id) == driverId);
+    if (!driver) {
+      this.driverWhatsAppStatus = null;
+      this.driverWhatsAppWarning = '';
+      return;
+    }
+
+    const rawPhone = driver.phone ? String(driver.phone).trim() : '';
+    const digits = rawPhone.replace(/\D/g, '');
+
+    let isValid = false;
+    let cleanPhone = '';
+
+    if (digits.length === 10) {
+      if (/^[6-9]\d{9}$/.test(digits)) {
+        cleanPhone = '91' + digits;
+        isValid = true;
+      }
+    } else if (digits.length === 11 && digits.startsWith('0')) {
+      const local = digits.slice(1);
+      if (/^[6-9]\d{9}$/.test(local)) {
+        cleanPhone = '91' + local;
+        isValid = true;
+      }
+    } else if (digits.length === 12 && digits.startsWith('91')) {
+      const local = digits.slice(2);
+      if (/^[6-9]\d{9}$/.test(local)) {
+        cleanPhone = digits;
+        isValid = true;
+      }
+    } else if (digits.length >= 10 && digits.length <= 15) {
+      cleanPhone = digits;
+      isValid = true;
+    }
+
+    if (!rawPhone || !isValid) {
+      this.driverWhatsAppStatus = {
+        present: false,
+        phone: rawPhone || 'no phone registered',
+        message: `WhatsApp is not present for this number (${rawPhone || 'no phone registered'}).`
+      };
+      this.driverWhatsAppWarning = `WhatsApp is not present for this number (${rawPhone || 'no phone registered'}). The driver will not receive direct trip WhatsApp notifications.`;
+    } else {
+      this.driverWhatsAppStatus = {
+        present: true,
+        phone: cleanPhone,
+        message: `Direct WhatsApp active (+${cleanPhone}). Trip details will be sent directly without browser redirection.`
+      };
+      this.driverWhatsAppWarning = '';
+    }
   }
 
   getSelectedBuyerName(): string {
@@ -251,15 +554,14 @@ export class VisitBookingComponent implements OnInit {
     return found ? (found.phone || '7058533669') : '7058533669';
   }
 
-  buildDriverWhatsAppUrl(): string {
-    const driverPhone = '917058533669';
+  buildDriverTripMessage(): string {
     const driverName = this.getSelectedDriverName();
     const buyerName = this.getSelectedBuyerName();
     const buyerPhone = this.getSelectedBuyerPhone();
     const pickup = this.bookingData.pickup_address || 'Customer Residence / Office';
     const timeSlot = this.bookingData.time_slot || '04:00 PM - 05:30 PM';
     const date = this.bookingData.scheduled_date || 'Today';
-    const cab = this.bookingData.cab_number || 'KA-05-NB-4411';
+    const cab = this.bookingData.cab_number || 'Company Vehicle';
 
     const lines = [
       '🚗 *CONTECH CRM - DRIVER TRIP ASSIGNMENT* 🚗',
@@ -270,14 +572,38 @@ export class VisitBookingComponent implements OnInit {
       `👤 *Passenger / Client:* ${buyerName}`,
       `📞 *Client Contact:* ${buyerPhone}`,
       `📍 *Pickup Location:* ${pickup}`,
-      `🏢 *Destination:* Contech Sales Gallery, ITPL Main Road, Whitefield`,
+      `🏢 *Destination:* Contech Sales Gallery`,
       `📅 *Date:* ${date}`,
       `⏰ *Time Slot:* ${timeSlot}`,
       `🚘 *Vehicle:* ${cab}`,
       '',
       '⚡ _Please call the passenger 30 minutes in advance to confirm pickup coordination._'
     ];
-    return `https://api.whatsapp.com/send?phone=${driverPhone}&text=${encodeURIComponent(lines.join('\n'))}`;
+    return lines.join('\n');
+  }
+
+  // WhatsApp Automatic Popup Modal State
+  showWhatsAppModal = false;
+  whatsAppModalType: 'NOT_PRESENT' | 'SUCCESS' | 'ERROR' = 'NOT_PRESENT';
+  whatsAppModalTitle = '';
+  whatsAppModalMessage = '';
+  whatsAppModalPhone = '';
+  whatsAppModalDriverName = '';
+
+  openWhatsAppPopup(type: 'NOT_PRESENT' | 'SUCCESS' | 'ERROR', title: string, message: string, phone: string, driverName?: string): void {
+    this.whatsAppModalType = type;
+    this.whatsAppModalTitle = title;
+    this.whatsAppModalMessage = message;
+    this.whatsAppModalPhone = phone;
+    this.whatsAppModalDriverName = driverName || this.getSelectedDriverName();
+    this.showWhatsAppModal = true;
+  }
+
+  closeWhatsAppPopup(): void {
+    this.showWhatsAppModal = false;
+    if (this.whatsAppModalType === 'SUCCESS') {
+      this.router.navigate(['/visits']);
+    }
   }
 
   onSubmit(): void {
@@ -292,6 +618,7 @@ export class VisitBookingComponent implements OnInit {
 
     this.loading = true;
     this.errorMessage = '';
+    this.driverWhatsAppWarning = '';
 
     this.visitService.bookSiteVisit(this.bookingData).subscribe({
       next: (res) => {
@@ -299,27 +626,38 @@ export class VisitBookingComponent implements OnInit {
         if (res.success) {
           const driverName = this.getSelectedDriverName();
           const dispatch = res.whatsapp_dispatch;
-          const waUrl = dispatch?.web_whatsapp_url ||
-                        dispatch?.whatsapp_url ||
-                        this.buildDriverWhatsAppUrl();
+          const driverPhone = this.getSelectedDriverPhone();
 
-          // Automatically send WhatsApp message to driver in background/browser
-          if (this.bookingData.cab_required && this.bookingData.driver_id && waUrl) {
-            try {
-              window.open(waUrl, '_blank');
-            } catch (e) {
-              console.warn('Auto window.open intercepted:', e);
+          // DIRECT SERVER DISPATCH: Never redirect user to WhatsApp Web or window.open!
+
+          if (this.bookingData.cab_required && this.bookingData.driver_id) {
+            if (dispatch?.status === 'NOT_PRESENT' || (!dispatch?.sent && dispatch?.error_code === 'NOT_PRESENT')) {
+              // AUTOMATIC POP-UP MODAL: Pop up immediately on screen
+              const notPresentMsg = dispatch?.message || `WhatsApp is not present for this number: ${driverPhone}`;
+              this.driverWhatsAppWarning = notPresentMsg;
+              this.openWhatsAppPopup(
+                'NOT_PRESENT',
+                'WhatsApp Not Present for Driver',
+                notPresentMsg,
+                driverPhone,
+                driverName
+              );
+              return;
             }
           }
 
-          // Navigate to visits with dispatch details
-          this.router.navigate(['/visits'], {
-            queryParams: {
-              whatsapp_sent: 'true',
-              driver: driverName,
-              wa_url: encodeURIComponent(waUrl || '')
-            }
-          });
+          // Direct background dispatch completed via backend API without browser redirection
+          const successMsg = this.bookingData.cab_required && this.bookingData.driver_id
+            ? `Site visit booked! Trip assignment message dispatched directly to driver ${driverName} on WhatsApp via backend API (zero browser redirection).`
+            : 'Site visit booked successfully!';
+
+          this.openWhatsAppPopup(
+            'SUCCESS',
+            'Trip Dispatched to WhatsApp Directly',
+            successMsg,
+            driverPhone,
+            driverName
+          );
         }
       },
       error: (err) => {

@@ -1873,3 +1873,83 @@
   color: #334155;
   white-space: nowrap;
 }
+
+/* Vehicle Type Header & Quick Creation */
+.form-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+}
+
+.btn-create-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  background: transparent;
+  border: none;
+  color: #2563eb;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.btn-create-type:hover {
+  background: #eff6ff;
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.create-type-icon {
+  font-size: 13px !important;
+  width: 13px !important;
+  height: 13px !important;
+  line-height: 13px !important;
+}
+
+.modal-backdrop-nested {
+  z-index: 1100 !important;
+}
+
+.modal-card-sm {
+  max-width: 460px !important;
+}
+
+.existing-types-box {
+  margin-top: 1rem;
+  padding: 0.75rem 0.85rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+}
+
+.existing-types-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #64748b;
+  letter-spacing: 0.05em;
+  display: block;
+  margin-bottom: 0.45rem;
+}
+
+.types-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.type-chip {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #1e293b;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  padding: 0.15rem 0.55rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+}

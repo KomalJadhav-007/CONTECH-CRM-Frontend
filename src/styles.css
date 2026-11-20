@@ -387,6 +387,33 @@ button, input, select, textarea {
   background-color: var(--primary-hover) !important;
 }
 
+/* Explicit Global Overrides for Header Primary Action Buttons */
+.btn-action-primary,
+.mat-mdc-flat-button.btn-action-primary,
+.mat-mdc-raised-button.btn-action-primary,
+a.btn-action-primary,
+.btn-new,
+.mat-mdc-flat-button.btn-new,
+a.btn-new {
+  background: #0f172a !important;
+  background-color: #0f172a !important;
+  background-image: none !important;
+  color: #ffffff !important;
+}
+
+.btn-action-primary:hover,
+.mat-mdc-flat-button.btn-action-primary:hover,
+.mat-mdc-raised-button.btn-action-primary:hover,
+a.btn-action-primary:hover,
+.btn-new:hover,
+.mat-mdc-flat-button.btn-new:hover,
+a.btn-new:hover {
+  background: #1e293b !important;
+  background-color: #1e293b !important;
+  background-image: none !important;
+  color: #ffffff !important;
+}
+
 .mat-mdc-form-field {
   font-family: var(--font-main) !important;
 }

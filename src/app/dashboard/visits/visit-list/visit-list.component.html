@@ -9,7 +9,7 @@
       </p>
     </div>
     <div class="top-actions">
-      <a mat-flat-button color="primary" routerLink="/visits/book">
+      <a mat-flat-button class="btn-new" routerLink="/visits/book">
         <mat-icon>add</mat-icon> Schedule Site Visit
       </a>
     </div>
@@ -21,15 +21,11 @@
       <mat-icon style="font-size: 18px; width: 18px; height: 18px; vertical-align: middle;">check_circle</mat-icon>
       <span>{{ feedbackMessage }}</span>
     </div>
-    <a
-      *ngIf="lastWaUrl"
-      [href]="lastWaUrl"
-      target="_blank"
-      mat-stroked-button
-      style="border-color: #86efac; color: #166534; font-weight: 700; background: #ffffff; padding: 0 10px; height: 32px; font-size: 0.82rem;"
-    >
-      <mat-icon style="font-size: 16px; width: 16px; height: 16px; color: #16a34a; margin-right: 4px;">chat</mat-icon> Open Driver WhatsApp
-    </a>
+  </div>
+
+  <div *ngIf="feedbackErrorMessage" class="feedback-banner" style="display: flex; align-items: center; gap: 8px; background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 0.75rem 1.25rem; border-radius: 8px; margin-bottom: 1.5rem;">
+    <mat-icon style="font-size: 20px; width: 20px; height: 20px; color: #dc2626;">error</mat-icon>
+    <span style="font-weight: 600;">{{ feedbackErrorMessage }}</span>
   </div>
 
   <!-- Visits Filter & Search Toolbar - Space Optimized -->
@@ -82,19 +78,32 @@
       </button>
     </div>
 
-    <!-- Search Input -->
-    <div class="search-input-box">
-      <mat-icon class="search-box-icon">search</mat-icon>
-      <input
-        type="text"
-        [(ngModel)]="searchQuery"
-        (ngModelChange)="currentPage = 1"
-        placeholder="Search buyer, project, driver..."
-        class="search-text-input"
-      />
-      <button *ngIf="searchQuery" type="button" class="search-clear-btn" (click)="searchQuery = ''; currentPage = 1" title="Clear search">
-        <mat-icon>close</mat-icon>
-      </button>
+    <!-- Right Controls: Project Filter & Search Input -->
+    <div class="filters-right-group">
+      <!-- Project Filter Dropdown for Super Admin & Admin -->
+      <div class="filter-dropdown-wrap project-dropdown-wrap" *ngIf="isAdminOrSuperAdmin && projectsList.length > 0">
+        <mat-icon class="dropdown-prefix-icon">business</mat-icon>
+        <select [(ngModel)]="selectedProject" class="filter-native-select" (change)="onProjectFilterChange()">
+          <option value="all">All Projects ({{ projectsList.length }})</option>
+          <option *ngFor="let prj of projectsList" [value]="prj.project_id || prj.id">{{ prj.name }}</option>
+        </select>
+        <mat-icon class="dropdown-arrow-icon">arrow_drop_down</mat-icon>
+      </div>
+
+      <!-- Search Input -->
+      <div class="search-input-box">
+        <mat-icon class="search-box-icon">search</mat-icon>
+        <input
+          type="text"
+          [(ngModel)]="searchQuery"
+          (ngModelChange)="currentPage = 1"
+          placeholder="Search buyer, project, driver..."
+          class="search-text-input"
+        />
+        <button *ngIf="searchQuery" type="button" class="search-clear-btn" (click)="searchQuery = ''; currentPage = 1" title="Clear search">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -261,24 +270,24 @@
     <!-- Table Footer with Pagination & Summary -->
     <div class="table-footer-bar" *ngIf="filteredVisits.length > 0">
       <div class="footer-summary">
-        <span>Showing <strong>{{ pagedVisits.length }}</strong> of <strong>{{ filteredVisits.length }}</strong> visits</span>
+        <span>Showing <strong>{{ visitStartItem }}–{{ visitEndItem }}</strong> of <strong>{{ filteredVisits.length }}</strong> visits</span>
       </div>
 
       <div class="footer-controls">
         <div class="page-size-selector">
           <label>Rows per page:</label>
-          <select [(ngModel)]="pageSize" (change)="currentPage = 1" class="page-size-dropdown">
-            <option [value]="5">5</option>
-            <option [value]="10">10</option>
-            <option [value]="25">25</option>
-            <option [value]="50">50</option>
+          <select [ngModel]="pageSize" (ngModelChange)="setPageSize($event)" class="page-size-dropdown">
+            <option [ngValue]="5">5</option>
+            <option [ngValue]="10">10</option>
+            <option [ngValue]="25">25</option>
+            <option [ngValue]="50">50</option>
           </select>
         </div>
 
         <div class="page-navigator">
           <button
             type="button"
-            [disabled]="currentPage === 1"
+            [disabled]="currentPage <= 1"
             (click)="currentPage = currentPage - 1"
             class="page-nav-btn"
             aria-label="Previous page"
@@ -380,28 +389,140 @@
           </div>
 
           <div class="form-row-2" style="margin-top: 1rem;">
-            <!-- New Scheduled Date -->
+            <!-- New Scheduled Date (Date Only) -->
             <mat-form-field appearance="outline" class="w-100">
               <mat-label>New Scheduled Date *</mat-label>
               <input
+                #rescheduleDateInput
                 matInput
                 type="date"
                 [(ngModel)]="manageForm.new_date"
                 [min]="todayDateStr"
+                (click)="openDateTimePicker(rescheduleDateInput)"
                 required
               />
+              <button
+                mat-icon-button
+                matSuffix
+                type="button"
+                (click)="openDateTimePicker(rescheduleDateInput); $event.stopPropagation()"
+                matTooltip="Open Date Picker"
+              >
+                <mat-icon>calendar_month</mat-icon>
+              </button>
             </mat-form-field>
 
             <!-- New Time Slot -->
             <mat-form-field appearance="outline" class="w-100">
               <mat-label>New Walkthrough Time Slot *</mat-label>
-              <mat-select [(ngModel)]="manageForm.new_time_slot" required>
-                <mat-option value="09:30 AM - 11:00 AM (Morning Slot)">09:30 AM - 11:00 AM (Morning Slot)</mat-option>
-                <mat-option value="11:00 AM - 12:30 PM (Peak Slot)">11:00 AM - 12:30 PM (Peak Slot)</mat-option>
-                <mat-option value="02:00 PM - 03:30 PM (Afternoon Slot)">02:00 PM - 03:30 PM (Afternoon Slot)</mat-option>
-                <mat-option value="04:00 PM - 05:30 PM (Evening Sunset Slot)">04:00 PM - 05:30 PM (Evening Sunset Slot)</mat-option>
+              <mat-select
+                [(ngModel)]="manageForm.new_time_slot"
+                (selectionChange)="onTimeSlotChange($event.value)"
+                required
+              >
+                <mat-option *ngFor="let slot of timeSlots" [value]="slot">
+                  {{ slot }}
+                </mat-option>
+                <mat-divider></mat-divider>
+                <mat-option value="__create_new_slot__" class="create-new-option">
+                  <mat-icon class="create-new-icon">add_circle</mat-icon>
+                  <span class="create-new-text">+ Create Custom Time Slot...</span>
+                </mat-option>
               </mat-select>
             </mat-form-field>
+          </div>
+
+          <!-- Custom Time Slot Creator Panel inside Reschedule Modal -->
+          <div *ngIf="isCreatingCustomTimeSlot" class="custom-slot-banner">
+            <div class="custom-slot-header">
+              <div class="custom-slot-badge">
+                <mat-icon>schedule</mat-icon>
+                <span>SELECT EXACT TIME FOR TIME SLOT</span>
+              </div>
+              <button mat-icon-button type="button" class="btn-close-slot" (click)="cancelCustomTimeSlot()" matTooltip="Close">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+
+            <div class="custom-slot-body">
+              <div class="custom-slot-time-pickers">
+                <mat-form-field appearance="outline" class="slot-picker-field">
+                  <mat-label>Start Time *</mat-label>
+                  <input
+                    #startReschedInput
+                    matInput
+                    type="time"
+                    [(ngModel)]="customSlotStartTime"
+                    (ngModelChange)="updateCustomSlotPreview()"
+                    (click)="openDateTimePicker(startReschedInput)"
+                  />
+                  <button
+                    mat-icon-button
+                    matSuffix
+                    type="button"
+                    (click)="openDateTimePicker(startReschedInput); $event.stopPropagation()"
+                    matTooltip="Pick Start Time"
+                  >
+                    <mat-icon>access_time</mat-icon>
+                  </button>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="slot-picker-field">
+                  <mat-label>End Time *</mat-label>
+                  <input
+                    #endReschedInput
+                    matInput
+                    type="time"
+                    [(ngModel)]="customSlotEndTime"
+                    (ngModelChange)="updateCustomSlotPreview()"
+                    (click)="openDateTimePicker(endReschedInput)"
+                  />
+                  <button
+                    mat-icon-button
+                    matSuffix
+                    type="button"
+                    (click)="openDateTimePicker(endReschedInput); $event.stopPropagation()"
+                    matTooltip="Pick End Time"
+                  >
+                    <mat-icon>access_time</mat-icon>
+                  </button>
+                </mat-form-field>
+              </div>
+
+              <div class="custom-slot-row">
+                <mat-form-field appearance="outline" class="custom-slot-input-field">
+                  <mat-label>Exact Time Slot</mat-label>
+                  <mat-icon matPrefix class="field-icon">schedule</mat-icon>
+                  <input
+                    matInput
+                    type="text"
+                    [(ngModel)]="newCustomTimeSlot"
+                    placeholder="e.g. 10:00 AM - 11:30 AM"
+                    (keydown.enter)="saveCustomTimeSlot($event)"
+                  />
+                </mat-form-field>
+                <div class="custom-slot-btns">
+                  <button
+                    mat-flat-button
+                    color="primary"
+                    type="button"
+                    class="btn-save-slot"
+                    [disabled]="!newCustomTimeSlot.trim()"
+                    (click)="saveCustomTimeSlot()"
+                  >
+                    <mat-icon>check</mat-icon> Add &amp; Select
+                  </button>
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    class="btn-cancel-slot"
+                    (click)="cancelCustomTimeSlot()"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div style="margin-top: 0.5rem;">
@@ -518,5 +639,66 @@
         </button>
       </div>
     </mat-card>
+  </div>
+
+  <!-- Automatic WhatsApp Pop-up Modal (Zero Browser Redirection) -->
+  <div *ngIf="showWhatsAppModal" class="modal-backdrop" (click)="closeWhatsAppPopup()">
+    <div class="modal-card modal-wa-popup" (click)="$event.stopPropagation()" [ngClass]="{'popup-not-present': whatsAppModalType === 'NOT_PRESENT', 'popup-success': whatsAppModalType === 'SUCCESS'}">
+      <div class="wa-popup-header">
+        <div class="wa-popup-icon-wrapper" [ngClass]="{'icon-warn': whatsAppModalType === 'NOT_PRESENT', 'icon-check': whatsAppModalType === 'SUCCESS'}">
+          <mat-icon *ngIf="whatsAppModalType === 'NOT_PRESENT'">warning_amber</mat-icon>
+          <mat-icon *ngIf="whatsAppModalType === 'SUCCESS'">check_circle</mat-icon>
+        </div>
+        <div class="wa-popup-title-area">
+          <div class="wa-popup-pretitle">WHATSAPP DIRECT SERVER DISPATCH</div>
+          <h3 class="wa-popup-title">{{ whatsAppModalTitle }}</h3>
+        </div>
+        <button mat-icon-button type="button" class="btn-close-modal" (click)="closeWhatsAppPopup()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="wa-popup-body">
+        <div *ngIf="whatsAppModalType === 'NOT_PRESENT'" class="wa-popup-alert-box alert-danger">
+          <mat-icon class="box-icon">error</mat-icon>
+          <div class="box-text">
+            <strong>{{ whatsAppModalMessage }}</strong>
+          </div>
+        </div>
+
+        <div *ngIf="whatsAppModalType === 'SUCCESS'" class="wa-popup-alert-box alert-success">
+          <mat-icon class="box-icon">verified</mat-icon>
+          <div class="box-text">
+            <strong>{{ whatsAppModalMessage }}</strong>
+          </div>
+        </div>
+
+        <div class="wa-popup-details">
+          <div class="detail-row">
+            <span class="detail-label">Assigned Driver:</span>
+            <span class="detail-val"><strong>{{ whatsAppModalDriverName }}</strong></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Driver Phone:</span>
+            <span class="detail-val font-mono">{{ whatsAppModalPhone || 'No phone registered' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Dispatch Method:</span>
+            <span class="detail-val">Backend Server API (Zero browser redirection)</span>
+          </div>
+        </div>
+
+        <div *ngIf="whatsAppModalType === 'NOT_PRESENT'" class="wa-popup-help">
+          <mat-icon class="help-icon">info</mat-icon>
+          <span>The message could not be delivered to this driver because their mobile number is not registered on WhatsApp. You can update this driver's number in <strong>Settings &rarr; Users &amp; Roles</strong>.</span>
+        </div>
+      </div>
+
+      <div class="wa-popup-footer">
+        <button mat-flat-button color="primary" type="button" (click)="closeWhatsAppPopup()" class="btn-wa-dismiss">
+          <span>Acknowledge &amp; Close</span>
+        </button>
+      </div>
+    </div>
   </div>
 </div>

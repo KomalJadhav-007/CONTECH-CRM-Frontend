@@ -66,6 +66,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
     const user = this.authService.getCurrentUser();
     if (!user) return false;
 
+    // Immediately revoke all module visibility if account is deactivated
+    if (user.is_active === false || user.is_active === 0 || user.is_active === '0' || user.is_active === 'false') {
+      return false;
+    }
+
     const rawRole = (user.role ? (user.role.name || user.role.code || user.role) : (user.role_code || '')).toUpperCase().replace(/[\s\/-]+/g, '_').trim();
 
     // Universal super admins / directors have access to all modules
