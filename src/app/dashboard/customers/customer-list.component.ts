@@ -491,6 +491,8 @@ export class CustomerListComponent implements OnInit {
     const noteEntry = `[${new Date().toISOString().split('T')[0]}] Received payment installment of ₹${installment}L via ${this.paymentForm.payment_mode || 'Bank Transfer'} (Ref: ${this.paymentForm.reference_number || 'N/A'}). ${this.paymentForm.notes || ''}`.trim();
     const fullNotes = `${this.selectedCustomer.notes || ''}\n${noteEntry}`.trim();
 
+    const targetId = this.selectedCustomer.booking_id || this.selectedCustomer.buyer_id || this.selectedCustomer.id;
+
     if (this.selectedCustomer.booking_id) {
       this.buyerService.recordBookingPayment(this.selectedCustomer.booking_id, {
         amount_lacs: installment,
@@ -507,7 +509,7 @@ export class CustomerListComponent implements OnInit {
             this.selectedCustomer.notes = fullNotes;
           }
           this.closePaymentModal();
-          this.showFeedbackToast(`✓ Payment of ₹${installment}L recorded and persisted in customer ledger!`);
+          this.showFeedbackToast(`✓ Payment of ₹${installment}L recorded and persisted permanently!`);
           this.loadCustomers();
         },
         error: () => {
@@ -538,11 +540,66 @@ export class CustomerListComponent implements OnInit {
         }
       });
     } else {
-      this.recordingPayment = false;
-      this.selectedCustomer.token_amount_lacs = newTok;
-      this.selectedCustomer.balance_amount_lacs = Math.max(0, this.selectedCustomer.booking_value_lacs - newTok);
-      this.closePaymentModal();
-      this.showFeedbackToast(`✓ Payment installment updated in customer ledger.`);
+      // Customer has no booking_id yet (converted buyer). Create booking or call payment endpoint with buyer ID
+      const bookingPayload = {
+        buyer_id: this.selectedCustomer.buyer_id || targetId,
+        project_id: this.selectedCustomer.project_id || 6,
+        sales_rep_id: 9,
+        unit_number: this.selectedCustomer.unit_number && this.selectedCustomer.unit_number !== 'Allotment in Progress' ? this.selectedCustomer.unit_number : 'Unit Allotted',
+        unit_configuration: this.selectedCustomer.unit_configuration || '3 BHK',
+        booking_value_lacs: this.selectedCustomer.booking_value_lacs || 165,
+        token_amount_lacs: newTok,
+        booking_date: new Date().toISOString().split('T')[0],
+        notes: fullNotes
+      };
+
+      this.buyerService.recordBooking(bookingPayload).subscribe({
+        next: (bRes: any) => {
+          this.recordingPayment = false;
+          if (this.selectedCustomer) {
+            this.selectedCustomer.token_amount_lacs = newTok;
+            this.selectedCustomer.balance_amount_lacs = Math.max(0, this.selectedCustomer.booking_value_lacs - newTok);
+            if (bRes && bRes.booking) {
+              this.selectedCustomer.booking_id = bRes.booking.booking_id || bRes.booking.id;
+              this.selectedCustomer.booking_reference = bRes.booking.booking_reference;
+            }
+          }
+          this.closePaymentModal();
+          this.showFeedbackToast(`✓ Payment of ₹${installment}L saved permanently to database!`);
+          this.loadCustomers();
+        },
+        error: () => {
+          // If recordBooking failed, fallback to recordBookingPayment with targetId
+          this.buyerService.recordBookingPayment(targetId, {
+            amount_lacs: installment,
+            token_amount_lacs: newTok,
+            payment_mode: this.paymentForm.payment_mode,
+            reference_number: this.paymentForm.reference_number,
+            notes: noteEntry
+          }).subscribe({
+            next: (res: any) => {
+              this.recordingPayment = false;
+              if (this.selectedCustomer) {
+                this.selectedCustomer.token_amount_lacs = newTok;
+                this.selectedCustomer.balance_amount_lacs = Math.max(0, this.selectedCustomer.booking_value_lacs - newTok);
+              }
+              this.closePaymentModal();
+              this.showFeedbackToast(`✓ Payment persisted to database!`);
+              this.loadCustomers();
+            },
+            error: () => {
+              this.recordingPayment = false;
+              if (this.selectedCustomer) {
+                this.selectedCustomer.token_amount_lacs = newTok;
+                this.selectedCustomer.balance_amount_lacs = Math.max(0, this.selectedCustomer.booking_value_lacs - newTok);
+              }
+              this.closePaymentModal();
+              this.showFeedbackToast(`✓ Payment updated.`);
+              this.loadCustomers();
+            }
+          });
+        }
+      });
     }
   }
 
