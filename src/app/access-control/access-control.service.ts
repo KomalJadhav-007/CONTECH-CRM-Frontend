@@ -152,6 +152,7 @@ export class AccessControlService {
     'AI Buyer Score',
     'Site Visits',
     'Visit Copilot',
+    'Customers',
     'Revenue Leakage',
     'Follow-ups',
     'Alerts',
@@ -171,6 +172,7 @@ export class AccessControlService {
     'AI Buyer Score': 'Intelligence',
     'Site Visits': 'Site Visit Ops',
     'Visit Copilot': 'Site Visit Ops',
+    'Customers': 'Pipeline',
     'Revenue Leakage': 'Intelligence',
     'Follow-ups': 'Pipeline',
     'Alerts': 'Pipeline',
@@ -295,6 +297,7 @@ export class AccessControlService {
       'AI Buyer Score',
       'Site Visits',
       'Visit Copilot',
+      'Customers',
       'Revenue Leakage',
       'Follow-ups',
       'Alerts',
@@ -320,6 +323,7 @@ export class AccessControlService {
       'AI Buyer Score',
       'Site Visits',
       'Visit Copilot',
+      'Customers',
       'Revenue Leakage',
       'Follow-ups',
       'Alerts',
@@ -351,7 +355,7 @@ export class AccessControlService {
     });
 
     // 8. Executive Viewer
-    ['Dashboard', 'Prospects', 'Site Visits', 'Analytics', 'Revenue Leakage'].forEach(mod => {
+    ['Dashboard', 'Prospects', 'Customers', 'Site Visits', 'Analytics', 'Revenue Leakage'].forEach(mod => {
       matrix['Executive Viewer'][mod]['VIEW'] = true;
       matrix['Executive Viewer'][mod]['EXPORT'] = true;
     });

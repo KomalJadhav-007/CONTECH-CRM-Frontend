@@ -57,5 +57,9 @@ export class BuyerService {
   getBookings(params?: any): Observable<any> {
     return this.http.get<any>(`${environment.apiUrl}/bookings`, { params });
   }
+
+  updateBookingStatus(id: number, status: string, notes?: string): Observable<any> {
+    return this.http.put<any>(`${environment.apiUrl}/bookings/${id}/status`, { booking_status: status, notes });
+  }
 }
 

@@ -1,0 +1,573 @@
+<div class="customers-page-wrapper">
+  <!-- Loading Progress Bar -->
+  <mat-progress-bar *ngIf="loading" mode="indeterminate" class="page-progress-bar"></mat-progress-bar>
+
+  <!-- Page Header -->
+  <div class="page-title-row">
+    <div class="title-left">
+      <div class="section-tag">
+        PORTFOLIO &middot; REVENUE &amp; CONVERTED BUYERS
+      </div>
+      <div class="title-with-badge">
+        <h1 class="page-title">Customers</h1>
+        <span class="count-pill">{{ filteredCustomers.length }} Active Clients</span>
+      </div>
+      <p class="page-subtitle">
+        Customer portfolio with confirmed sales bookings, advance payments received, and active unit ownership across projects.
+      </p>
+    </div>
+    <div class="top-actions">
+      <button mat-stroked-button type="button" class="btn-action-stroked" (click)="exportCustomersCSV()"
+        matTooltip="Export customer allotment register to CSV">
+        <mat-icon>download</mat-icon>
+        <span>Export CSV</span>
+      </button>
+      <button mat-flat-button class="btn-action-primary" (click)="openNewBookingModal()"
+        style="background-color: #0f172a !important; color: #ffffff !important;">
+        <mat-icon style="color: #ffffff !important;">add_task</mat-icon>
+        <span style="color: #ffffff !important;">+ New Customer Booking</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Feedback Toast Banner -->
+  <div *ngIf="feedbackMessage" class="feedback-banner">
+    <div class="feedback-content">
+      <mat-icon class="feedback-icon">check_circle</mat-icon>
+      <span>{{ feedbackMessage }}</span>
+    </div>
+    <button class="feedback-close" (click)="feedbackMessage = ''">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Executive Summary KPI Cards -->
+  <div class="kpi-grid-4">
+    <!-- Card 1: Total Customers -->
+    <div class="kpi-card kpi-slate" matRipple>
+      <div class="kpi-top">
+        <span class="kpi-label">TOTAL CUSTOMERS</span>
+        <mat-icon class="kpi-icon-mini">how_to_reg</mat-icon>
+      </div>
+      <div class="kpi-value">{{ getTotalCustomersCount() }}</div>
+      <div class="kpi-subtext">Converted buyers with property units</div>
+    </div>
+
+    <!-- Card 2: Confirmed Bookings -->
+    <div class="kpi-card kpi-emerald" matRipple>
+      <div class="kpi-top">
+        <span class="kpi-label">CONFIRMED ALLOTMENTS</span>
+        <mat-icon class="kpi-icon-mini text-emerald">verified</mat-icon>
+      </div>
+      <div class="kpi-value text-emerald">{{ getConfirmedCount() }}</div>
+      <div class="kpi-subtext">Active confirmed sales contracts</div>
+    </div>
+
+    <!-- Card 3: Advance Payments Received -->
+    <div class="kpi-card kpi-indigo" matRipple>
+      <div class="kpi-top">
+        <span class="kpi-label">ADVANCE / TOKEN RECEIVED</span>
+        <mat-icon class="kpi-icon-mini text-indigo">payments</mat-icon>
+      </div>
+      <div class="kpi-value text-indigo">{{ getTotalAdvancePaidDisplay() }}</div>
+      <div class="kpi-subtext">Total cash advance in escrow/account</div>
+    </div>
+
+    <!-- Card 4: Total Booked Property Revenue -->
+    <div class="kpi-card kpi-amber" matRipple>
+      <div class="kpi-top">
+        <span class="kpi-label">TOTAL BOOKED VALUE</span>
+        <mat-icon class="kpi-icon-mini text-amber">apartment</mat-icon>
+      </div>
+      <div class="kpi-value text-amber">{{ getTotalBookedRevenueDisplay() }}</div>
+      <div class="kpi-subtext">Cumulative property portfolio value</div>
+    </div>
+  </div>
+
+  <!-- Filters Toolbar -->
+  <div class="filters-toolbar">
+    <!-- Search Box -->
+    <div class="search-input-box">
+      <mat-icon class="search-box-icon">search</mat-icon>
+      <input type="text" [(ngModel)]="searchQuery" placeholder="Search customer, phone, email, booking ref, unit..."
+        class="search-text-input" (input)="currentPage = 1" />
+      <button *ngIf="searchQuery" type="button" class="search-clear-btn" (click)="searchQuery = ''; currentPage = 1"
+        matTooltip="Clear search">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <!-- Project Filter -->
+    <div class="filter-dropdown-wrap">
+      <select [(ngModel)]="selectedProject" class="filter-native-select" (change)="currentPage = 1">
+        <option value="all">Project: All Projects</option>
+        <option *ngFor="let p of projectsList" [value]="p.project_id || p.id">{{ p.name }}</option>
+      </select>
+      <mat-icon class="dropdown-arrow-icon">arrow_drop_down</mat-icon>
+    </div>
+
+    <!-- Booking Status Filter -->
+    <div class="filter-dropdown-wrap">
+      <select [(ngModel)]="selectedStatus" class="filter-native-select" (change)="currentPage = 1">
+        <option value="all">Status: All Statuses</option>
+        <option value="CONFIRMED">Confirmed</option>
+        <option value="AGREEMENT_DONE">Agreement Executed</option>
+        <option value="ADVANCE_PAID">Advance Received</option>
+      </select>
+      <mat-icon class="dropdown-arrow-icon">arrow_drop_down</mat-icon>
+    </div>
+
+    <!-- Sort Options -->
+    <div class="filter-dropdown-wrap">
+      <select [(ngModel)]="sortField" class="filter-native-select">
+        <option value="booking_date">Sort: Booking Date</option>
+        <option value="booking_value">Sort: Booking Value</option>
+        <option value="token_amount">Sort: Advance Paid</option>
+        <option value="name">Sort: Customer Name</option>
+      </select>
+      <mat-icon class="dropdown-arrow-icon">arrow_drop_down</mat-icon>
+    </div>
+  </div>
+
+  <!-- Customers Table Container -->
+  <div class="table-card-container">
+    <div class="table-responsive">
+      <table class="customers-table">
+        <thead>
+          <tr>
+            <th class="col-customer" (click)="toggleSort('name')">
+              <div class="th-content">
+                <span>CUSTOMER &amp; REF</span>
+                <mat-icon class="sort-icon" *ngIf="sortField === 'name'">{{ sortDirection === 'asc' ? 'north' : 'south' }}</mat-icon>
+              </div>
+            </th>
+            <th class="col-property">
+              <div class="th-content">
+                <span>PROPERTY &amp; ALLOTTED UNIT</span>
+              </div>
+            </th>
+            <th class="col-commercials" (click)="toggleSort('booking_value')">
+              <div class="th-content">
+                <span>COMMERCIALS &amp; ADVANCE</span>
+                <mat-icon class="sort-icon" *ngIf="sortField === 'booking_value'">{{ sortDirection === 'asc' ? 'north' : 'south' }}</mat-icon>
+              </div>
+            </th>
+            <th class="col-payment" (click)="toggleSort('token_amount')">
+              <div class="th-content">
+                <span>PAYMENT STATUS</span>
+                <mat-icon class="sort-icon" *ngIf="sortField === 'token_amount'">{{ sortDirection === 'asc' ? 'north' : 'south' }}</mat-icon>
+              </div>
+            </th>
+            <th class="col-date" (click)="toggleSort('booking_date')">
+              <div class="th-content">
+                <span>BOOKING DATE</span>
+                <mat-icon class="sort-icon" *ngIf="sortField === 'booking_date'">{{ sortDirection === 'asc' ? 'north' : 'south' }}</mat-icon>
+              </div>
+            </th>
+            <th class="col-rep">
+              <div class="th-content">
+                <span>RELATIONSHIP MGR</span>
+              </div>
+            </th>
+            <th class="col-status">
+              <div class="th-content text-center">
+                <span>STATUS</span>
+              </div>
+            </th>
+            <th class="col-actions text-right">
+              <div class="th-content justify-end">
+                <span>ACTIONS</span>
+              </div>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Empty State -->
+          <tr *ngIf="pagedCustomers.length === 0">
+            <td colspan="8" class="empty-state-cell">
+              <div class="empty-state-wrap">
+                <mat-icon class="empty-icon">how_to_reg</mat-icon>
+                <h3 class="empty-title">No customer bookings found</h3>
+                <p class="empty-desc">
+                  When a prospect confirms a booking or pays advance money, they will automatically appear here in the Customer Portfolio.
+                </p>
+                <button mat-flat-button class="btn-action-primary" (click)="openNewBookingModal()"
+                  style="background-color: #0f172a !important; color: #ffffff !important;">
+                  <mat-icon style="color: #ffffff !important;">add</mat-icon> Record First Booking
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Data Rows -->
+          <tr *ngFor="let c of pagedCustomers" class="customer-row">
+            <!-- Customer & Reference -->
+            <td class="col-customer">
+              <div class="customer-profile-cell">
+                <div class="customer-avatar" [style.background]="getAvatarColor(c.customer_name)">
+                  {{ getInitials(c.customer_name) }}
+                </div>
+                <div class="customer-info">
+                  <a [routerLink]="['/buyers', c.buyer_id]" class="customer-name-link" matTooltip="Open Buyer 360 Profile">
+                    {{ c.customer_name }}
+                  </a>
+                  <div class="customer-meta-sub">
+                    <span class="booking-ref-badge">{{ c.booking_reference }}</span>
+                    <a *ngIf="c.phone" [href]="'tel:' + c.phone" class="phone-link" (click)="$event.stopPropagation()">
+                      <mat-icon class="mini-icon">call</mat-icon> {{ c.phone }}
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Property & Allotted Unit -->
+            <td class="col-property">
+              <div class="property-cell-wrap">
+                <div class="project-name-bold">
+                  <mat-icon class="proj-mini-icon">domain</mat-icon>
+                  <span>{{ c.project_name }}</span>
+                </div>
+                <div class="unit-details-sub">
+                  <span class="unit-tag">{{ c.unit_number }}</span>
+                  <span class="config-tag">{{ c.unit_configuration }}</span>
+                </div>
+              </div>
+            </td>
+
+            <!-- Commercials & Advance Paid -->
+            <td class="col-commercials">
+              <div class="commercials-cell-wrap">
+                <div class="value-main-row">
+                  <span class="val-label">Total:</span>
+                  <strong class="val-num">{{ formatAmount(c.booking_value_lacs) }}</strong>
+                </div>
+                <div class="token-advance-row">
+                  <span class="advance-tag">Advance Paid: {{ formatAmount(c.token_amount_lacs) }}</span>
+                </div>
+              </div>
+            </td>
+
+            <!-- Payment Progress / Milestone -->
+            <td class="col-payment">
+              <div class="payment-progress-wrap">
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" [style.width.%]="c.booking_value_lacs > 0 ? (c.token_amount_lacs / c.booking_value_lacs * 100) : 10"></div>
+                </div>
+                <div class="balance-sub-text">
+                  Balance: <strong>{{ formatAmount(c.balance_amount_lacs) }}</strong>
+                </div>
+              </div>
+            </td>
+
+            <!-- Booking Date -->
+            <td class="col-date">
+              <div class="date-cell-wrap">
+                <mat-icon class="date-icon">event</mat-icon>
+                <span>{{ c.booking_date }}</span>
+              </div>
+            </td>
+
+            <!-- Relationship Manager -->
+            <td class="col-rep">
+              <div class="rep-cell-wrap">
+                <span class="rep-name">{{ c.sales_rep_name }}</span>
+                <span class="rep-role">Sales Executive</span>
+              </div>
+            </td>
+
+            <!-- Status -->
+            <td class="col-status">
+              <div class="text-center">
+                <span class="status-pill status-confirmed">
+                  <span class="status-dot"></span>
+                  <span>{{ c.booking_status }}</span>
+                </span>
+              </div>
+            </td>
+
+            <!-- Actions -->
+            <td class="col-actions text-right">
+              <div class="actions-group justify-end">
+                <button mat-icon-button (click)="openPaymentModal(c, $event)" matTooltip="Record Advance / Milestone Payment" class="action-btn-pay">
+                  <mat-icon>payment</mat-icon>
+                </button>
+                <button mat-icon-button (click)="openCustomerDetails(c)" matTooltip="View Allotment Dossier" class="action-btn-view">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <a [routerLink]="['/buyers', c.buyer_id]" mat-icon-button matTooltip="Open Buyer 360" class="action-btn-link">
+                  <mat-icon>open_in_new</mat-icon>
+                </a>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Table Footer with Pagination -->
+    <div class="table-footer-bar" *ngIf="filteredCustomers.length > 0">
+      <div class="footer-summary">
+        <span>Showing <strong>{{ startItemIndex }}–{{ endItemIndex }}</strong> of <strong>{{ filteredCustomers.length }}</strong> customers</span>
+        <span class="footer-pipe">&middot;</span>
+        <span class="footer-total">Total Booked Portfolio: <strong>{{ getTotalBookedRevenueDisplay() }}</strong></span>
+      </div>
+
+      <div class="footer-controls">
+        <div class="page-size-selector">
+          <label>Rows:</label>
+          <select [(ngModel)]="pageSize" (change)="currentPage = 1" class="page-size-dropdown">
+            <option [ngValue]="5">5</option>
+            <option [ngValue]="10">10</option>
+            <option [ngValue]="25">25</option>
+          </select>
+        </div>
+
+        <div class="page-navigator">
+          <button type="button" [disabled]="currentPage <= 1" (click)="currentPage = currentPage - 1" class="page-nav-btn">&lsaquo;</button>
+          <span class="page-current-info">Page {{ currentPage }} of {{ totalPages }}</span>
+          <button type="button" [disabled]="currentPage >= totalPages" (click)="currentPage = currentPage + 1" class="page-nav-btn">&rsaquo;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Record New Customer Booking -->
+  <div *ngIf="showNewBookingModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <mat-icon class="modal-header-icon">add_task</mat-icon>
+          <div>
+            <h2 class="modal-title">Record Confirmed Customer Booking</h2>
+            <p class="modal-subtitle">Allot property unit and register advance payment received from buyer</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" type="button" (click)="closeNewBookingModal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div *ngIf="newBookingError" class="modal-error-banner">
+          {{ newBookingError }}
+        </div>
+
+        <div class="form-grid-2">
+          <!-- Prospect / Buyer Selection -->
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Select Prospect / Buyer *</mat-label>
+            <mat-select [(ngModel)]="newBookingForm.buyer_id" (selectionChange)="onProspectSelectChange()" required>
+              <mat-option *ngFor="let p of prospectsList" [value]="p.buyer_id || p.id">
+                {{ p.full_name || p.name }} ({{ p.phone }})
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Destination Project -->
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Allotted Project *</mat-label>
+            <mat-select [(ngModel)]="newBookingForm.project_id" required>
+              <mat-option *ngFor="let prj of projectsList" [value]="prj.project_id || prj.id">
+                {{ prj.name }} ({{ prj.location }})
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="form-grid-2">
+          <!-- Allotted Unit Number -->
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Allotted Unit Number *</mat-label>
+            <mat-icon matPrefix>apartment</mat-icon>
+            <input matInput type="text" [(ngModel)]="newBookingForm.unit_number" placeholder="e.g. Tower B - 1204" required />
+          </mat-form-field>
+
+          <!-- Unit Configuration -->
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Unit Configuration</mat-label>
+            <mat-select [(ngModel)]="newBookingForm.unit_configuration">
+              <mat-option value="1 BHK">1 BHK</mat-option>
+              <mat-option value="2 BHK">2 BHK</mat-option>
+              <mat-option value="3 BHK">3 BHK</mat-option>
+              <mat-option value="3 BHK Sky Residence">3 BHK Sky Residence</mat-option>
+              <mat-option value="4 BHK Luxury Penthouse">4 BHK Luxury Penthouse</mat-option>
+              <mat-option value="Commercial Retail">Commercial Retail</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="form-grid-3">
+          <!-- Booking Agreement Value (Lacs) -->
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Agreement Value (₹ Lacs) *</mat-label>
+            <mat-icon matPrefix>payments</mat-icon>
+            <input matInput type="number" [(ngModel)]="newBookingForm.booking_value_lacs" placeholder="150.00" required />
+          </mat-form-field>
+
+          <!-- Advance Token Paid (Lacs) -->
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Advance Received (₹ Lacs) *</mat-label>
+            <mat-icon matPrefix>account_balance_wallet</mat-icon>
+            <input matInput type="number" [(ngModel)]="newBookingForm.token_amount_lacs" placeholder="5.00" required />
+          </mat-form-field>
+
+          <!-- Booking Date -->
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Booking Date *</mat-label>
+            <input matInput type="date" [(ngModel)]="newBookingForm.booking_date" required />
+          </mat-form-field>
+        </div>
+
+        <!-- Sales Executive -->
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Assigned Relationship Manager / Sales Executive</mat-label>
+          <mat-select [(ngModel)]="newBookingForm.sales_rep_id">
+            <mat-option *ngFor="let u of usersList" [value]="u.user_id || u.id">
+              {{ u.name }} ({{ u.role?.name || u.designation || 'Sales' }})
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Payment Details & Milestone Remarks -->
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Payment Mode / Cheque / RTGS / Bank Loan Details</mat-label>
+          <textarea matInput rows="3" [(ngModel)]="newBookingForm.notes" placeholder="Cheque # / UTR details, HDFC/SBI Home Loan status, parking allotment..."></textarea>
+        </mat-form-field>
+      </div>
+
+      <div class="modal-footer">
+        <button mat-stroked-button type="button" (click)="closeNewBookingModal()" [disabled]="savingBooking">Cancel</button>
+        <button mat-flat-button color="primary" type="button" [disabled]="savingBooking" (click)="submitNewBooking()"
+          style="background-color: #0f172a !important; color: #ffffff !important;">
+          <mat-icon style="color: #ffffff !important;">verified</mat-icon>
+          <span style="color: #ffffff !important;">{{ savingBooking ? 'Saving Booking...' : 'Confirm & Allot Unit' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Customer Allotment Dossier Details -->
+  <div *ngIf="showDetailsModal && selectedCustomer" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <mat-icon class="modal-header-icon text-emerald">verified_user</mat-icon>
+          <div>
+            <h2 class="modal-title">{{ selectedCustomer.customer_name }}</h2>
+            <p class="modal-subtitle">Allotment Ref: {{ selectedCustomer.booking_reference }} &middot; {{ selectedCustomer.project_name }}</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" type="button" (click)="closeCustomerDetails()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="dossier-grid-summary">
+          <div class="dossier-summary-card">
+            <span class="d-label">Allotted Unit</span>
+            <strong class="d-val">{{ selectedCustomer.unit_number }}</strong>
+            <small class="d-sub">{{ selectedCustomer.unit_configuration }}</small>
+          </div>
+          <div class="dossier-summary-card">
+            <span class="d-label">Agreement Value</span>
+            <strong class="d-val text-indigo">{{ formatAmount(selectedCustomer.booking_value_lacs) }}</strong>
+            <small class="d-sub">Total Property Price</small>
+          </div>
+          <div class="dossier-summary-card">
+            <span class="d-label">Advance Paid</span>
+            <strong class="d-val text-emerald">{{ formatAmount(selectedCustomer.token_amount_lacs) }}</strong>
+            <small class="d-sub">Confirmed in Account</small>
+          </div>
+          <div class="dossier-summary-card">
+            <span class="d-label">Balance Due</span>
+            <strong class="d-val text-amber">{{ formatAmount(selectedCustomer.balance_amount_lacs) }}</strong>
+            <small class="d-sub">Milestone Payment</small>
+          </div>
+        </div>
+
+        <div class="dossier-section-row">
+          <h4 class="sec-title">Contact &amp; Account Details</h4>
+          <div class="meta-two-col">
+            <div><strong>Phone:</strong> {{ selectedCustomer.phone || 'N/A' }}</div>
+            <div><strong>Email:</strong> {{ selectedCustomer.email || 'N/A' }}</div>
+            <div><strong>Booking Date:</strong> {{ selectedCustomer.booking_date }}</div>
+            <div><strong>Relationship Manager:</strong> {{ selectedCustomer.sales_rep_name }}</div>
+          </div>
+        </div>
+
+        <div class="dossier-section-row" *ngIf="selectedCustomer.notes">
+          <h4 class="sec-title">Payment Notes &amp; Allotment History</h4>
+          <div class="notes-display-box">
+            {{ selectedCustomer.notes }}
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button mat-stroked-button type="button" (click)="closeCustomerDetails()">Close</button>
+        <button mat-stroked-button color="primary" type="button" (click)="openPaymentModal(selectedCustomer)">
+          <mat-icon>payment</mat-icon> Record Milestone Payment
+        </button>
+        <a [routerLink]="['/buyers', selectedCustomer.buyer_id]" mat-flat-button color="primary"
+          style="background-color: #0f172a !important; color: #ffffff !important;">
+          <span>Open Buyer 360 &rarr;</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Record Milestone / Advance Payment -->
+  <div *ngIf="showPaymentModal && selectedCustomer" class="modal-backdrop">
+    <div class="modal-card modal-sm">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title">Record Payment Installment</h2>
+          <p class="modal-subtitle">Customer: {{ selectedCustomer.customer_name }} ({{ selectedCustomer.unit_number }})</p>
+        </div>
+        <button class="close-modal-btn" type="button" (click)="closePaymentModal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="payment-balance-hint">
+          <span>Current Advance Paid: <strong>{{ formatAmount(selectedCustomer.token_amount_lacs) }}</strong></span>
+          <span>Balance Remaining: <strong class="text-amber">{{ formatAmount(selectedCustomer.balance_amount_lacs) }}</strong></span>
+        </div>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Payment Amount Received (₹ Lacs) *</mat-label>
+          <input matInput type="number" [(ngModel)]="paymentForm.amount_lacs" placeholder="10.00" required />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Payment Mode</mat-label>
+          <mat-select [(ngModel)]="paymentForm.payment_mode">
+            <mat-option value="RTGS / Bank Transfer">RTGS / Bank Transfer</mat-option>
+            <mat-option value="NEFT">NEFT</mat-option>
+            <mat-option value="Cheque Deposit">Cheque Deposit</mat-option>
+            <mat-option value="Demand Draft (DD)">Demand Draft (DD)</mat-option>
+            <mat-option value="Bank Loan Disbursement">Bank Loan Disbursement</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Transaction / UTR / Cheque Reference #</mat-label>
+          <input matInput type="text" [(ngModel)]="paymentForm.reference_number" placeholder="e.g. UTR-98234812" />
+        </mat-form-field>
+      </div>
+
+      <div class="modal-footer">
+        <button mat-stroked-button type="button" (click)="closePaymentModal()" [disabled]="recordingPayment">Cancel</button>
+        <button mat-flat-button color="primary" type="button" [disabled]="recordingPayment" (click)="submitRecordPayment()"
+          style="background-color: #0f172a !important; color: #ffffff !important;">
+          <mat-icon style="color: #ffffff !important;">check</mat-icon>
+          <span style="color: #ffffff !important;">{{ recordingPayment ? 'Updating...' : 'Record Payment' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+

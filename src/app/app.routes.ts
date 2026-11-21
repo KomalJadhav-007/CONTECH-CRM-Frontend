@@ -24,6 +24,11 @@ export const routes: Routes = [
     loadComponent: () => import('./dashboard/high-intent/high-intent-radar.component').then(m => m.HighIntentRadarComponent)
   },
   {
+    path: 'customers',
+    canActivate: [authGuard],
+    loadComponent: () => import('./dashboard/customers/customer-list.component').then(m => m.CustomerListComponent)
+  },
+  {
     path: 'control-tower',
     canActivate: [authGuard, roleGuard],
     data: { roles: ['DIRECTOR', 'SALES_MANAGER', 'ADMIN'] },
