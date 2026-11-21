@@ -59,8 +59,26 @@ export class BuyerListComponent implements OnInit {
   selectedOwner = 'all';
   selectedProject: string | number = 'all';
 
-  // View Mode: 'project_grid' (Cards Grid - click card to view prospects), 'project_cards' (Accordions), 'table' (Flat)
-  viewMode: 'project_grid' | 'project_cards' | 'table' = 'project_grid';
+  // View Mode: 'project_grid' (Cards Grid - click card to view prospects), 'project_cards' (Accordions), 'table' (Flat), 'kanban' (Pipeline Stages)
+  viewMode: 'project_grid' | 'project_cards' | 'table' | 'kanban' = 'project_grid';
+  dossierViewMode: 'table' | 'kanban' = 'table';
+
+  // Kanban Pipeline Stages Configuration
+  readonly KANBAN_STAGES: { key: string; label: string; code: string; color: string; bg: string; icon: string }[] = [
+    { key: 'New', label: 'New', code: 'NEW', color: '#3b82f6', bg: '#eff6ff', icon: 'fiber_new' },
+    { key: 'Contacted', label: 'Contacted', code: 'CONTACTED', color: '#06b6d4', bg: '#ecfeff', icon: 'phone_in_talk' },
+    { key: 'Qualified', label: 'Qualified', code: 'QUALIFIED', color: '#10b981', bg: '#f0fdf4', icon: 'verified' },
+    { key: 'High Intent', label: 'High Intent', code: 'HIGH_INTENT', color: '#f59e0b', bg: '#fffbeb', icon: 'trending_up' },
+    { key: 'Site Visit Scheduled', label: 'Site Visit Scheduled', code: 'VISIT_SCHEDULED', color: '#6366f1', bg: '#eef2ff', icon: 'calendar_month' },
+    { key: 'Visit Completed', label: 'Visit Completed', code: 'VISIT_COMPLETED', color: '#8b5cf6', bg: '#f5f3ff', icon: 'task_alt' },
+    { key: 'Negotiation', label: 'Negotiation', code: 'NEGOTIATION', color: '#ec4899', bg: '#fdf2f8', icon: 'handshake' },
+    { key: 'Booking Intent', label: 'Booking Intent', code: 'BOOKING_INTENT', color: '#f97316', bg: '#fff7ed', icon: 'receipt_long' },
+    { key: 'Booked', label: 'Booked', code: 'BOOKED', color: '#15803d', bg: '#dcfce7', icon: 'check_circle' }
+  ];
+
+  // Drag and Drop state for Kanban
+  draggedProspect: any = null;
+  dragOverStage: string | null = null;
 
   // Active Project Card selected in 'project_grid' view
   selectedProjectCardId: number | null = 1;
@@ -904,6 +922,200 @@ export class BuyerListComponent implements OnInit {
         this.feedbackMessage = '';
       }
     }, 3500);
+  }
+
+  get kanbanFilteredProspects(): any[] {
+    return this.prospects.filter(p => {
+      // 1. Quick Tabs
+      if (this.activeQuickTab === 'high_intent' && p.score < 85) return false;
+      if (this.activeQuickTab === 'visits' && !(p.stage || '').includes('Visit')) return false;
+      if (
+        this.activeQuickTab === 'negotiation' &&
+        p.stage !== 'Negotiation' &&
+        p.stage !== 'Booking Intent' &&
+        p.stage !== 'Booked'
+      )
+        return false;
+      if (this.activeQuickTab === 'sla' && !p.sla_breached && p.owner !== 'Unassigned') return false;
+
+      // 2. Search Query
+      if (this.searchQuery.trim()) {
+        const q = this.searchQuery.toLowerCase();
+        const match =
+          (p.name && p.name.toLowerCase().includes(q)) ||
+          (p.phone && p.phone.includes(q)) ||
+          (p.email && p.email.toLowerCase().includes(q)) ||
+          (p.source && p.source.toLowerCase().includes(q));
+        if (!match) return false;
+      }
+
+      // 3. Stage Filter (Only apply if explicitly chosen and not 'all')
+      if (this.selectedStage !== 'all') {
+        const pStageNorm = (p.stage || '').toLowerCase().replace(/_/g, ' ');
+        const sStageNorm = this.selectedStage.toLowerCase().replace(/_/g, ' ');
+        if (pStageNorm !== sStageNorm && (p.rawStage || '').toLowerCase() !== sStageNorm) {
+          return false;
+        }
+      }
+
+      // 4. Source Filter
+      if (this.selectedSource !== 'all' && (p.source || '').toLowerCase() !== this.selectedSource.toLowerCase()) {
+        return false;
+      }
+
+      // 5. Intent Band Filter
+      if (this.selectedIntentBand !== 'all') {
+        if (this.selectedIntentBand === 'very_high' && p.score < 90) return false;
+        if (this.selectedIntentBand === 'high' && (p.score < 80 || p.score >= 90)) return false;
+        if (this.selectedIntentBand === 'qualified' && p.score >= 80) return false;
+      }
+
+      // 6. Owner Filter
+      if (this.selectedOwner !== 'all') {
+        if (this.selectedOwner === 'Unassigned') {
+          if (p.owner !== 'Unassigned') return false;
+        } else {
+          if (
+            !p.owner.toLowerCase().includes(this.selectedOwner.toLowerCase()) &&
+            !this.selectedOwner.toLowerCase().includes(p.owner.toLowerCase())
+          ) {
+            return false;
+          }
+        }
+      }
+
+      // 7. Project Filter
+      if (this.selectedProject !== 'all') {
+        if (p.project_id != this.selectedProject) return false;
+      }
+
+      return true;
+    });
+  }
+
+  getProspectsForStage(stageKey: string, sourceList?: any[]): any[] {
+    const normKey = (stageKey || '').toLowerCase().replace(/_/g, ' ');
+    const list = sourceList || this.kanbanFilteredProspects;
+    return list.filter(p => {
+      const pStageNorm = (p.stage || '').toLowerCase().replace(/_/g, ' ');
+      const rawStageNorm = (p.rawStage || '').toLowerCase().replace(/_/g, ' ');
+      return pStageNorm === normKey || rawStageNorm === normKey;
+    });
+  }
+
+  getStageTotalExposure(stageKey: string, sourceList?: any[]): string {
+    const items = this.getProspectsForStage(stageKey, sourceList);
+    const totalLacs = items.reduce((acc, p) => acc + (parseFloat(p.budget_max_lacs || p.budget || 150) || 150), 0);
+    if (totalLacs >= 100) {
+      return `₹${(totalLacs / 100).toFixed(2)} Cr`;
+    }
+    return `₹${totalLacs.toFixed(2)} L`;
+  }
+
+  moveProspectStage(p: any, targetStageKey: string, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    if (!p || p.stage === targetStageKey) return;
+
+    const previousStage = p.stage;
+    const previousRawStage = p.rawStage;
+
+    const stageCodeMap: Record<string, string> = {
+      'New': 'NEW',
+      'Contacted': 'CONTACTED',
+      'Qualified': 'QUALIFIED',
+      'High Intent': 'HIGH_INTENT',
+      'Site Visit Scheduled': 'VISIT_SCHEDULED',
+      'Visit Completed': 'VISIT_COMPLETED',
+      'Negotiation': 'NEGOTIATION',
+      'Booking Intent': 'BOOKING_INTENT',
+      'Booked': 'BOOKED'
+    };
+
+    const newCode = stageCodeMap[targetStageKey] || targetStageKey.toUpperCase().replace(/\s+/g, '_');
+
+    // Optimistic UI update
+    p.stage = targetStageKey;
+    p.rawStage = newCode;
+    this.showFeedback(`✓ Moved ${p.name || 'Prospect'} to stage: "${targetStageKey}"`);
+
+    const buyerId = p.buyer_id || p.id;
+    this.buyerService.updateBuyer(buyerId, { lead_status: newCode }).subscribe({
+      next: (res) => {
+        if (res && res.buyer) {
+          p.rawStage = res.buyer.lead_status || newCode;
+        }
+      },
+      error: (err) => {
+        p.stage = previousStage;
+        p.rawStage = previousRawStage;
+        this.showFeedback(`Failed to update stage: ${err.error?.message || err.message}`);
+      }
+    });
+  }
+
+  moveProspectPrevStage(p: any, event?: Event): void {
+    if (event) event.stopPropagation();
+    const prev = this.getPreviousStage(p.stage);
+    if (prev) {
+      this.moveProspectStage(p, prev);
+    }
+  }
+
+  moveProspectNextStage(p: any, event?: Event): void {
+    if (event) event.stopPropagation();
+    const next = this.getNextStage(p.stage);
+    if (next) {
+      this.moveProspectStage(p, next);
+    }
+  }
+
+  getPreviousStage(currentStage: string): string | null {
+    const idx = this.KANBAN_STAGES.findIndex(s => s.key.toLowerCase() === (currentStage || '').toLowerCase());
+    if (idx > 0) {
+      return this.KANBAN_STAGES[idx - 1].key;
+    }
+    return null;
+  }
+
+  getNextStage(currentStage: string): string | null {
+    const idx = this.KANBAN_STAGES.findIndex(s => s.key.toLowerCase() === (currentStage || '').toLowerCase());
+    if (idx >= 0 && idx < this.KANBAN_STAGES.length - 1) {
+      return this.KANBAN_STAGES[idx + 1].key;
+    }
+    return null;
+  }
+
+  onDragStart(p: any, event: DragEvent): void {
+    this.draggedProspect = p;
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', String(p.buyer_id || p.id));
+    }
+  }
+
+  onDragOver(stageKey: string, event: DragEvent): void {
+    event.preventDefault();
+    this.dragOverStage = stageKey;
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+  }
+
+  onDragLeave(stageKey: string, event: DragEvent): void {
+    if (this.dragOverStage === stageKey) {
+      this.dragOverStage = null;
+    }
+  }
+
+  onDrop(targetStageKey: string, event: DragEvent): void {
+    event.preventDefault();
+    this.dragOverStage = null;
+    if (this.draggedProspect) {
+      this.moveProspectStage(this.draggedProspect, targetStageKey);
+      this.draggedProspect = null;
+    }
   }
 
   get filteredProspects(): any[] {

@@ -150,6 +150,11 @@
         <mat-icon class="toggle-icon">table_chart</mat-icon>
         <span>All Prospects</span>
       </button>
+      <button type="button" class="view-toggle-btn" [class.active]="viewMode === 'kanban'" (click)="viewMode = 'kanban'"
+        matTooltip="View Pipeline Kanban Board by Stages">
+        <mat-icon class="toggle-icon">view_kanban</mat-icon>
+        <span>Kanban Stages</span>
+      </button>
     </div>
   </div>
 
@@ -360,15 +365,35 @@
             <span class="stat-num">{{ selectedProjectGroup.exposureDisplay }}</span>
             <span class="stat-lbl">At Risk</span>
           </div>
-          <a [routerLink]="['/buyers/new']" class="btn-dossier-add-prospect">
-            <mat-icon>add</mat-icon> Add Prospect
+
+          <!-- View switcher within project dossier: Table vs Kanban -->
+          <div class="dossier-view-toggle">
+            <button type="button" class="btn-dossier-toggle" [class.active]="dossierViewMode === 'table'" (click)="dossierViewMode = 'table'" matTooltip="Table View">
+              <mat-icon>table_rows</mat-icon>
+              <span>Table</span>
+            </button>
+            <button type="button" class="btn-dossier-toggle" [class.active]="dossierViewMode === 'kanban'" (click)="dossierViewMode = 'kanban'" matTooltip="Kanban Stages Board">
+              <mat-icon>view_kanban</mat-icon>
+              <span>Kanban</span>
+            </button>
+          </div>
+
+          <a [routerLink]="['/buyers/new']" class="btn-dossier-add-prospect"
+            style="background-color: #0f172a !important; color: #ffffff !important;">
+            <mat-icon style="color: #ffffff !important;">add</mat-icon> Add Prospect
           </a>
         </div>
       </div>
 
       <!-- Dossier Table Body -->
       <div class="dossier-table-body">
-        <div class="table-responsive" *ngIf="selectedProjectGroup.prospects.length > 0">
+        <!-- Kanban Mode for Project Dossier -->
+        <div class="dossier-kanban-wrap" *ngIf="dossierViewMode === 'kanban' && selectedProjectGroup.prospects.length > 0">
+          <ng-container *ngTemplateOutlet="kanbanBoard; context: { prospectSource: selectedProjectGroup.prospects }"></ng-container>
+        </div>
+
+        <!-- Table Mode for Project Dossier -->
+        <div class="table-responsive" *ngIf="dossierViewMode === 'table' && selectedProjectGroup.prospects.length > 0">
           <table class="prospects-table">
             <thead>
               <tr>
@@ -658,7 +683,7 @@
         </div>
 
         <!-- Dossier Table Footer with Pagination & Summary -->
-        <div class="table-footer-bar" *ngIf="selectedProjectGroup.prospects.length > 0">
+        <div class="table-footer-bar" *ngIf="dossierViewMode === 'table' && selectedProjectGroup.prospects.length > 0">
           <div class="footer-summary">
             <span>Showing <strong>{{ dossierStartItem }}–{{ dossierEndItem }}</strong> of <strong>{{
                 selectedProjectGroup.prospects.length }}</strong> prospects</span>
@@ -1450,6 +1475,175 @@
       </div>
     </div>
   </div>
+
+  <!-- Global Pipeline Kanban View (by Stages) -->
+  <div *ngIf="viewMode === 'kanban'" class="global-kanban-view-wrap">
+    <div class="kanban-view-header-bar">
+      <div class="kanban-view-header-left">
+        <mat-icon class="kanban-header-icon">view_kanban</mat-icon>
+        <div>
+          <h2 class="kanban-header-title">Pipeline Stages Kanban Board</h2>
+          <p class="kanban-header-subtitle">
+            Visual stage-by-stage pipeline progression. Drag cards or use the stage selector / arrows to move prospects between stages.
+          </p>
+        </div>
+      </div>
+      <div class="kanban-view-header-right">
+        <span class="kanban-metric-pill">
+          <mat-icon>groups</mat-icon>
+          <strong>{{ kanbanFilteredProspects.length }}</strong> Prospects
+        </span>
+        <span class="kanban-metric-pill kanban-exposure-pill">
+          <mat-icon>shield</mat-icon>
+          Total Exposure: <strong>{{ getTotalExposureAtRisk() }}</strong>
+        </span>
+      </div>
+    </div>
+
+    <!-- Reusable Kanban Board -->
+    <ng-container *ngTemplateOutlet="kanbanBoard; context: { prospectSource: kanbanFilteredProspects }"></ng-container>
+  </div>
+
+  <!-- Reusable Kanban Board Template -->
+  <ng-template #kanbanBoard let-prospectSource="prospectSource">
+    <div class="kanban-scroll-wrapper">
+      <div class="kanban-board-track">
+        <div
+          *ngFor="let stage of KANBAN_STAGES"
+          class="kanban-column"
+          [class.drag-over]="dragOverStage === stage.key"
+          (dragover)="onDragOver(stage.key, $event)"
+          (dragleave)="onDragLeave(stage.key, $event)"
+          (drop)="onDrop(stage.key, $event)"
+        >
+          <!-- Column Header -->
+          <div class="kanban-col-header" [style.border-top-color]="stage.color">
+            <div class="col-title-row">
+              <div class="col-title-left">
+                <span class="stage-color-dot" [style.background-color]="stage.color"></span>
+                <span class="col-stage-name">{{ stage.label }}</span>
+              </div>
+              <span class="col-count-pill" [style.background-color]="stage.bg" [style.color]="stage.color">
+                {{ getProspectsForStage(stage.key, prospectSource).length }}
+              </span>
+            </div>
+            <div class="col-sub-meta">
+              <span class="col-exposure-text">Pipeline: {{ getStageTotalExposure(stage.key, prospectSource) }}</span>
+            </div>
+          </div>
+
+          <!-- Column Cards Container -->
+          <div class="kanban-cards-track">
+            <!-- Empty Dropzone Placeholder -->
+            <div
+              *ngIf="getProspectsForStage(stage.key, prospectSource).length === 0"
+              class="kanban-empty-dropzone"
+            >
+              <mat-icon class="drop-hint-icon">move_to_inbox</mat-icon>
+              <span>No prospects in {{ stage.label }}</span>
+              <small>Drag cards here to update stage</small>
+            </div>
+
+            <!-- Cards -->
+            <div
+              *ngFor="let p of getProspectsForStage(stage.key, prospectSource)"
+              class="kanban-card"
+              draggable="true"
+              (dragstart)="onDragStart(p, $event)"
+              [class.card-high-intent]="p.score >= 85"
+              [class.card-sla-breach]="p.sla_breached"
+            >
+              <!-- Card Header: Name + Score -->
+              <div class="kcard-header">
+                <div class="kcard-buyer-info">
+                  <a [routerLink]="['/buyers', p.buyer_id || p.id]" class="kcard-buyer-name" [title]="p.name">
+                    {{ p.name }}
+                  </a>
+                  <span class="kcard-buyer-id" *ngIf="p.code || p.buyer_id">#{{ p.code || p.buyer_id }}</span>
+                </div>
+                <div class="kcard-score-badge" [ngClass]="getScoreClass(p.score)" [matTooltip]="'Score: ' + p.score + '/100'">
+                  <span>{{ p.score }}</span>
+                  <span class="score-delta">{{ (p.delta !== undefined && p.delta !== null ? p.delta : 5) >= 0 ? '▲' : '▼' }}</span>
+                </div>
+              </div>
+
+              <!-- Project & Requirement Pills -->
+              <div class="kcard-meta-chips">
+                <span class="kchip-project" *ngIf="p.project_name || p.preferred_project" [title]="p.project_name || p.preferred_project">
+                  <mat-icon class="kchip-icon">domain</mat-icon>
+                  <span>{{ p.project_name || p.preferred_project }}</span>
+                </span>
+                <span class="kchip-bhk" *ngIf="p.bhk">{{ p.bhk }}</span>
+                <span class="kchip-budget" *ngIf="p.budget">{{ formatBudgetDisplay(p.budget) }}</span>
+              </div>
+
+              <!-- Contact & Owner -->
+              <div class="kcard-contact-row">
+                <span class="kcard-phone" *ngIf="p.phone">
+                  <mat-icon class="kcontact-icon">phone</mat-icon> {{ p.phone }}
+                </span>
+                <span class="kcard-owner" [class.unassigned-owner]="p.owner === 'Unassigned'">
+                  <mat-icon class="kcontact-icon">person</mat-icon> {{ getOwnerName(p.owner) }}
+                </span>
+              </div>
+
+              <!-- Next Best Action / SLA Breach -->
+              <div class="kcard-nba-row" *ngIf="p.next_best_action">
+                <div class="nba-indicator" [class.nba-urgent]="p.sla_breached">
+                  <mat-icon class="nba-icon">{{ p.sla_breached ? 'warning' : 'bolt' }}</mat-icon>
+                  <span class="nba-text">{{ p.next_best_action }}</span>
+                </div>
+              </div>
+
+              <!-- Exposure / At Risk -->
+              <div class="kcard-exposure-row">
+                <span class="kcard-exposure-lbl">Exposure:</span>
+                <span class="kcard-exposure-val">{{ p.at_risk || '₹1.50 Cr' }}</span>
+                <span *ngIf="p.sla_breached" class="kcard-sla-pill">SLA BREACH</span>
+              </div>
+
+              <!-- Card Move Footer: Quick Dropdown & Prev/Next Arrows -->
+              <div class="kcard-footer-controls" (click)="$event.stopPropagation()">
+                <button
+                  type="button"
+                  class="kbtn-step-arrow"
+                  [disabled]="!getPreviousStage(p.stage)"
+                  (click)="moveProspectPrevStage(p, $event)"
+                  [matTooltip]="getPreviousStage(p.stage) ? 'Move back to ' + getPreviousStage(p.stage) : 'Start of pipeline'"
+                >
+                  <mat-icon>chevron_left</mat-icon>
+                </button>
+
+                <div class="kcard-stage-select-wrap">
+                  <select
+                    class="kcard-stage-native-select"
+                    [ngModel]="p.stage"
+                    (change)="moveProspectStage(p, $any($event.target).value, $event)"
+                    title="Move to another stage"
+                  >
+                    <option *ngFor="let s of KANBAN_STAGES" [value]="s.key">
+                      {{ s.key === p.stage ? '✓ ' + s.label : 'Move to ' + s.label }}
+                    </option>
+                  </select>
+                  <mat-icon class="kcard-select-arrow">unfold_more</mat-icon>
+                </div>
+
+                <button
+                  type="button"
+                  class="kbtn-step-arrow"
+                  [disabled]="!getNextStage(p.stage)"
+                  (click)="moveProspectNextStage(p, $event)"
+                  [matTooltip]="getNextStage(p.stage) ? 'Advance to ' + getNextStage(p.stage) : 'Final pipeline stage'"
+                >
+                  <mat-icon>chevron_right</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-template>
 
   <!-- Excel & CSV Bulk Import Modal with Project Auto-Distribution (SOW Sec 6) -->
   <div *ngIf="showImportModal" class="modal-backdrop">
