@@ -76,11 +76,17 @@ export class CustomerListComponent implements OnInit {
   feedbackMessage = '';
 
   // Filter States
+  activeQuickTab: 'all' | 'confirmed' | 'advance' = 'all';
   searchQuery = '';
   selectedProject: string | number = 'all';
   selectedStatus = 'all';
   sortField: 'booking_date' | 'booking_value' | 'token_amount' | 'name' = 'booking_date';
   sortDirection: 'asc' | 'desc' = 'desc';
+
+  setQuickTab(tab: 'all' | 'confirmed' | 'advance'): void {
+    this.activeQuickTab = tab;
+    this.currentPage = 1;
+  }
 
   // Pagination
   currentPage = 1;
@@ -279,6 +285,13 @@ export class CustomerListComponent implements OnInit {
         if (c.booking_status !== this.selectedStatus) return false;
       }
 
+      // 4. Quick Tab Filter
+      if (this.activeQuickTab === 'confirmed') {
+        if (c.booking_status !== 'CONFIRMED' && c.booking_status !== 'AGREEMENT_DONE') return false;
+      } else if (this.activeQuickTab === 'advance') {
+        if (!c.token_amount_lacs || c.token_amount_lacs <= 0) return false;
+      }
+
       return true;
     });
 
@@ -328,6 +341,30 @@ export class CustomerListComponent implements OnInit {
 
   getConfirmedCount(): number {
     return this.customers.filter(c => c.booking_status === 'CONFIRMED' || c.booking_status === 'AGREEMENT_DONE').length;
+  }
+
+  getAdvancePaidCount(): number {
+    return this.customers.filter(c => (c.token_amount_lacs || 0) > 0).length;
+  }
+
+  getPaymentPercent(c: CustomerRecord): number {
+    if (!c.booking_value_lacs || c.booking_value_lacs <= 0) return 0;
+    const pct = ((c.token_amount_lacs || 0) / c.booking_value_lacs) * 100;
+    return Math.min(100, Math.round(pct * 10) / 10);
+  }
+
+  formatBookingDate(dateStr: string): string {
+    if (!dateStr) return '—';
+    try {
+      const parts = dateStr.split('T')[0].split('-');
+      if (parts.length === 3) {
+        const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+      }
+      return dateStr;
+    } catch {
+      return dateStr;
+    }
   }
 
   getTotalAdvancePaidDisplay(): string {

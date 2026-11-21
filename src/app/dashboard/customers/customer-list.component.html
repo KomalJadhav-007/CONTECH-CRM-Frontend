@@ -84,6 +84,22 @@
     </div>
   </div>
 
+  <!-- Quick Filter Tabs Row -->
+  <div class="quick-tabs-bar">
+    <button type="button" class="quick-tab-pill" [class.active]="activeQuickTab === 'all'" (click)="setQuickTab('all')">
+      <span>All Customers</span>
+      <span class="tab-badge">{{ customers.length }}</span>
+    </button>
+    <button type="button" class="quick-tab-pill" [class.active]="activeQuickTab === 'confirmed'" (click)="setQuickTab('confirmed')">
+      <span>Confirmed Allotments</span>
+      <span class="tab-badge">{{ getConfirmedCount() }}</span>
+    </button>
+    <button type="button" class="quick-tab-pill" [class.active]="activeQuickTab === 'advance'" (click)="setQuickTab('advance')">
+      <span>Advance Token Paid</span>
+      <span class="tab-badge">{{ getAdvancePaidCount() }}</span>
+    </button>
+  </div>
+
   <!-- Filters Toolbar -->
   <div class="filters-toolbar">
     <!-- Search Box -->
@@ -211,10 +227,11 @@
                   <a [routerLink]="['/buyers', c.buyer_id]" class="customer-name-link" matTooltip="Open Buyer 360 Profile">
                     {{ c.customer_name }}
                   </a>
-                  <div class="customer-meta-sub">
-                    <span class="booking-ref-badge">{{ c.booking_reference }}</span>
-                    <a *ngIf="c.phone" [href]="'tel:' + c.phone" class="phone-link" (click)="$event.stopPropagation()">
-                      <mat-icon class="mini-icon">call</mat-icon> {{ c.phone }}
+                  <div class="customer-sub-row">
+                    <span class="booking-ref-chip">{{ c.booking_reference }}</span>
+                    <a *ngIf="c.phone" [href]="'tel:' + c.phone" class="phone-chip" (click)="$event.stopPropagation()" matTooltip="Call Client">
+                      <mat-icon class="phone-mini-icon">call</mat-icon>
+                      <span>{{ c.phone }}</span>
                     </a>
                   </div>
                 </div>
@@ -224,13 +241,18 @@
             <!-- Property & Allotted Unit -->
             <td class="col-property">
               <div class="property-cell-wrap">
-                <div class="project-name-bold">
+                <div class="project-header-row">
                   <mat-icon class="proj-mini-icon">domain</mat-icon>
-                  <span>{{ c.project_name }}</span>
+                  <span class="proj-title">{{ c.project_name }}</span>
                 </div>
-                <div class="unit-details-sub">
-                  <span class="unit-tag">{{ c.unit_number }}</span>
-                  <span class="config-tag">{{ c.unit_configuration }}</span>
+                <div class="allotment-chips-row">
+                  <span class="unit-pill" matTooltip="Allotted Unit">
+                    <mat-icon class="chip-mini-icon">meeting_room</mat-icon>
+                    <span>{{ c.unit_number }}</span>
+                  </span>
+                  <span class="config-pill" *ngIf="c.unit_configuration" [title]="c.unit_configuration">
+                    {{ c.unit_configuration }}
+                  </span>
                 </div>
               </div>
             </td>
@@ -238,12 +260,15 @@
             <!-- Commercials & Advance Paid -->
             <td class="col-commercials">
               <div class="commercials-cell-wrap">
-                <div class="value-main-row">
+                <div class="val-main-row">
                   <span class="val-label">Total:</span>
-                  <strong class="val-num">{{ formatAmount(c.booking_value_lacs) }}</strong>
+                  <strong class="val-amount">{{ formatAmount(c.booking_value_lacs) }}</strong>
                 </div>
-                <div class="token-advance-row">
-                  <span class="advance-tag">Advance Paid: {{ formatAmount(c.token_amount_lacs) }}</span>
+                <div class="advance-badge-row">
+                  <span class="advance-pill">
+                    <mat-icon class="adv-mini-icon">verified</mat-icon>
+                    <span>Advance Paid: {{ formatAmount(c.token_amount_lacs) }}</span>
+                  </span>
                 </div>
               </div>
             </td>
@@ -251,11 +276,16 @@
             <!-- Payment Progress / Milestone -->
             <td class="col-payment">
               <div class="payment-progress-wrap">
-                <div class="progress-bar-bg">
-                  <div class="progress-bar-fill" [style.width.%]="c.booking_value_lacs > 0 ? (c.token_amount_lacs / c.booking_value_lacs * 100) : 10"></div>
+                <div class="progress-meta-top">
+                  <span class="pct-badge">{{ getPaymentPercent(c) }}% Paid</span>
+                  <span class="paid-val">{{ formatAmount(c.token_amount_lacs) }}</span>
                 </div>
-                <div class="balance-sub-text">
-                  Balance: <strong>{{ formatAmount(c.balance_amount_lacs) }}</strong>
+                <div class="progress-track">
+                  <div class="progress-fill" [style.width.%]="getPaymentPercent(c)"></div>
+                </div>
+                <div class="progress-balance-row">
+                  <span class="bal-label">Balance:</span>
+                  <span class="bal-num">{{ formatAmount(c.balance_amount_lacs) }}</span>
                 </div>
               </div>
             </td>
@@ -264,22 +294,29 @@
             <td class="col-date">
               <div class="date-cell-wrap">
                 <mat-icon class="date-icon">event</mat-icon>
-                <span>{{ c.booking_date }}</span>
+                <span class="date-text">{{ formatBookingDate(c.booking_date) }}</span>
               </div>
             </td>
 
             <!-- Relationship Manager -->
             <td class="col-rep">
               <div class="rep-cell-wrap">
-                <span class="rep-name">{{ c.sales_rep_name }}</span>
-                <span class="rep-role">Sales Executive</span>
+                <div class="rep-name-row">
+                  <mat-icon class="rep-icon">person</mat-icon>
+                  <span class="rep-name">{{ c.sales_rep_name }}</span>
+                </div>
+                <span class="rep-role">Sales Relationship Mgr</span>
               </div>
             </td>
 
             <!-- Status -->
             <td class="col-status">
               <div class="text-center">
-                <span class="status-pill status-confirmed">
+                <span class="status-pill" [ngClass]="{
+                  'status-confirmed': c.booking_status === 'CONFIRMED' || c.booking_status === 'AGREEMENT_DONE',
+                  'status-advance': c.booking_status === 'ADVANCE_PAID' || c.booking_status === 'TOKEN_RECEIVED',
+                  'status-pending': c.booking_status !== 'CONFIRMED' && c.booking_status !== 'AGREEMENT_DONE' && c.booking_status !== 'ADVANCE_PAID'
+                }">
                   <span class="status-dot"></span>
                   <span>{{ c.booking_status }}</span>
                 </span>
@@ -288,14 +325,16 @@
 
             <!-- Actions -->
             <td class="col-actions text-right">
-              <div class="actions-group justify-end">
-                <button mat-icon-button (click)="openPaymentModal(c, $event)" matTooltip="Record Advance / Milestone Payment" class="action-btn-pay">
-                  <mat-icon>payment</mat-icon>
+              <div class="row-actions-group">
+                <button mat-stroked-button type="button" class="action-btn-styled btn-pay" (click)="openPaymentModal(c, $event)" matTooltip="Record Advance / Milestone Payment">
+                  <mat-icon>payments</mat-icon>
+                  <span>Pay</span>
                 </button>
-                <button mat-icon-button (click)="openCustomerDetails(c)" matTooltip="View Allotment Dossier" class="action-btn-view">
+                <button mat-stroked-button type="button" class="action-btn-styled btn-dossier" (click)="openCustomerDetails(c)" matTooltip="View Allotment Dossier">
                   <mat-icon>visibility</mat-icon>
+                  <span>Dossier</span>
                 </button>
-                <a [routerLink]="['/buyers', c.buyer_id]" mat-icon-button matTooltip="Open Buyer 360" class="action-btn-link">
+                <a [routerLink]="['/buyers', c.buyer_id]" class="action-icon-btn" matTooltip="Open Buyer 360 Profile">
                   <mat-icon>open_in_new</mat-icon>
                 </a>
               </div>
