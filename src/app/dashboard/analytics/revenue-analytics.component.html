@@ -19,6 +19,148 @@
     </div>
   </div>
 
+  <!-- Time Period Filter Toolbar (Week & Month Filters) -->
+  <div class="analytics-filter-toolbar">
+    <div class="filter-controls-row">
+      <!-- Quick Preset Tabs: Week & Month -->
+      <div class="quick-preset-group">
+        <button
+          type="button"
+          class="filter-tab-btn"
+          [class.active]="selectedPeriod === 'all'"
+          (click)="setPeriod('all')">
+          <mat-icon class="tab-icon">all_inclusive</mat-icon>
+          All Time
+        </button>
+
+        <button
+          type="button"
+          class="filter-tab-btn"
+          [class.active]="selectedPeriod === 'this_week'"
+          (click)="setPeriod('this_week')">
+          <mat-icon class="tab-icon">date_range</mat-icon>
+          This Week
+        </button>
+
+        <button
+          type="button"
+          class="filter-tab-btn"
+          [class.active]="selectedPeriod === 'last_week'"
+          (click)="setPeriod('last_week')">
+          <mat-icon class="tab-icon">history</mat-icon>
+          Last Week
+        </button>
+
+        <button
+          type="button"
+          class="filter-tab-btn"
+          [class.active]="selectedPeriod === 'this_month'"
+          (click)="setPeriod('this_month')">
+          <mat-icon class="tab-icon">calendar_today</mat-icon>
+          This Month
+        </button>
+
+        <button
+          type="button"
+          class="filter-tab-btn"
+          [class.active]="selectedPeriod === 'last_month'"
+          (click)="setPeriod('last_month')">
+          <mat-icon class="tab-icon">calendar_view_month</mat-icon>
+          Last Month
+        </button>
+
+        <button
+          type="button"
+          class="filter-tab-btn"
+          [class.active]="selectedPeriod === 'custom' || showCustomDateInputs"
+          (click)="setPeriod('custom')">
+          <mat-icon class="tab-icon">tune</mat-icon>
+          Custom Range
+        </button>
+      </div>
+
+      <!-- Month & Year Dropdown Selectors -->
+      <div class="month-selector-group">
+        <div class="select-field-wrap">
+          <label class="select-field-label">
+            <mat-icon class="select-label-icon">event</mat-icon>
+            Month:
+          </label>
+          <select
+            class="period-select"
+            [ngModel]="selectedMonth"
+            (ngModelChange)="onMonthSelect($event)">
+            <option *ngFor="let m of monthsList" [value]="m.value">{{ m.name }}</option>
+          </select>
+        </div>
+
+        <div class="select-field-wrap">
+          <label class="select-field-label">Year:</label>
+          <select
+            class="period-select year-select"
+            [ngModel]="selectedYear"
+            (ngModelChange)="onYearSelect($event)">
+            <option *ngFor="let y of yearsList" [value]="y">{{ y }}</option>
+          </select>
+        </div>
+
+        <button
+          *ngIf="selectedPeriod !== 'all'"
+          type="button"
+          class="reset-filter-btn"
+          (click)="resetFilters()"
+          matTooltip="Reset all filters to All Time">
+          <mat-icon class="reset-icon">restart_alt</mat-icon>
+          Reset
+        </button>
+      </div>
+    </div>
+
+    <!-- Custom Date Inputs (Displayed when custom range is clicked) -->
+    <div class="custom-date-row" *ngIf="showCustomDateInputs">
+      <div class="custom-date-inputs">
+        <label class="date-input-label">
+          From:
+          <input
+            type="date"
+            class="date-input"
+            [(ngModel)]="customStartDate">
+        </label>
+        <label class="date-input-label">
+          To:
+          <input
+            type="date"
+            class="date-input"
+            [(ngModel)]="customEndDate">
+        </label>
+        <button
+          type="button"
+          class="apply-date-btn"
+          [disabled]="!customStartDate || !customEndDate"
+          (click)="applyCustomRange()">
+          Apply Range
+        </button>
+      </div>
+    </div>
+
+    <!-- Active Filter Status Badge & Summary -->
+    <div class="active-filter-strip">
+      <div class="filter-badge-left">
+        <span class="active-range-pill">
+          <mat-icon class="range-icon">calendar_month</mat-icon>
+          <strong>Filter:</strong> {{ filterLabel }}
+        </span>
+      </div>
+      <div class="filter-badge-right">
+        <span class="activity-summary-tag">
+          <strong>{{ analytics.total_buyers }}</strong> Leads &middot;
+          <strong>{{ analytics.total_visits || analytics.visits_scheduled_count }}</strong> Site Visits &middot;
+          <strong>{{ analytics.bookings_count }}</strong> Confirmed Bookings
+        </span>
+      </div>
+    </div>
+  </div>
+
   <!-- 8 Metrics Signal Cards Grid -->
   <div class="analytics-metrics-grid">
     <!-- Card 1 -->

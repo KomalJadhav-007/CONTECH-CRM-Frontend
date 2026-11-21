@@ -14,8 +14,8 @@ export class DashboardService {
     return this.http.get<any>(`${this.apiUrl}/stats`);
   }
 
-  getRevenueAnalytics(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/analytics`);
+  getRevenueAnalytics(params?: any): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/analytics`, { params });
   }
 }
 
