@@ -708,6 +708,12 @@
   border-radius: 4px;
 }
 
+.advance-pill.advance-zero {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #64748b;
+}
+
 .adv-mini-icon {
   font-size: 13px !important;
   width: 13px !important;
@@ -732,6 +738,10 @@
 .pct-badge {
   font-weight: 700;
   color: #047857;
+}
+
+.pct-badge.pct-zero {
+  color: #64748b;
 }
 
 .paid-val {

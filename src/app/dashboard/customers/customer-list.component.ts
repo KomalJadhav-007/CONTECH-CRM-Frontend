@@ -103,7 +103,7 @@ export class CustomerListComponent implements OnInit {
     unit_number: '',
     unit_configuration: '3 BHK Sky Residence',
     booking_value_lacs: 150,
-    token_amount_lacs: 5,
+    token_amount_lacs: 0,
     booking_date: new Date().toISOString().split('T')[0],
     notes: 'Advance token received via RTGS. Booking confirmed.'
   };
@@ -219,7 +219,7 @@ export class CustomerListComponent implements OnInit {
               if (!seenBuyerIds.has(bId)) {
                 seenBuyerIds.add(bId);
                 const bVal = parseFloat(bb.budget_max_lacs || 150);
-                const bTok = 5; // default token advance
+                const bTok = parseFloat(bb.token_amount_lacs || 0);
                 records.push({
                   id: 10000 + bId,
                   booking_reference: `BKG-DIRECT-${bId}`,
@@ -485,29 +485,56 @@ export class CustomerListComponent implements OnInit {
     if (!this.selectedCustomer) return;
     this.recordingPayment = true;
 
-    const newTok = (this.selectedCustomer.token_amount_lacs || 0) + parseFloat(this.paymentForm.amount_lacs || 0);
-    const updatedNotes = `${this.selectedCustomer.notes || ''}\n[${new Date().toISOString().split('T')[0]}] Received installment ₹${this.paymentForm.amount_lacs}L via ${this.paymentForm.payment_mode} (Ref: ${this.paymentForm.reference_number}).`.trim();
+    const installment = parseFloat(this.paymentForm.amount_lacs || 0);
+    const prevTok = parseFloat((this.selectedCustomer.token_amount_lacs as any) || 0);
+    const newTok = prevTok + installment;
+    const noteEntry = `[${new Date().toISOString().split('T')[0]}] Received payment installment of ₹${installment}L via ${this.paymentForm.payment_mode || 'Bank Transfer'} (Ref: ${this.paymentForm.reference_number || 'N/A'}). ${this.paymentForm.notes || ''}`.trim();
+    const fullNotes = `${this.selectedCustomer.notes || ''}\n${noteEntry}`.trim();
 
     if (this.selectedCustomer.booking_id) {
-      this.buyerService.updateBookingStatus(this.selectedCustomer.booking_id, 'CONFIRMED', updatedNotes).subscribe({
-        next: () => {
+      this.buyerService.recordBookingPayment(this.selectedCustomer.booking_id, {
+        amount_lacs: installment,
+        token_amount_lacs: newTok,
+        payment_mode: this.paymentForm.payment_mode,
+        reference_number: this.paymentForm.reference_number,
+        notes: noteEntry
+      }).subscribe({
+        next: (res: any) => {
           this.recordingPayment = false;
           if (this.selectedCustomer) {
             this.selectedCustomer.token_amount_lacs = newTok;
             this.selectedCustomer.balance_amount_lacs = Math.max(0, this.selectedCustomer.booking_value_lacs - newTok);
-            this.selectedCustomer.notes = updatedNotes;
+            this.selectedCustomer.notes = fullNotes;
           }
           this.closePaymentModal();
-          this.showFeedbackToast(`✓ Advance payment installment of ₹${this.paymentForm.amount_lacs}L recorded successfully!`);
+          this.showFeedbackToast(`✓ Payment of ₹${installment}L recorded and persisted in customer ledger!`);
+          this.loadCustomers();
         },
         error: () => {
-          this.recordingPayment = false;
-          if (this.selectedCustomer) {
-            this.selectedCustomer.token_amount_lacs = newTok;
-            this.selectedCustomer.balance_amount_lacs = Math.max(0, this.selectedCustomer.booking_value_lacs - newTok);
-          }
-          this.closePaymentModal();
-          this.showFeedbackToast(`✓ Payment installment updated in customer ledger.`);
+          // Fallback to updating booking status with token_amount_lacs
+          this.buyerService.updateBookingStatus(this.selectedCustomer!.booking_id!, 'CONFIRMED', fullNotes, newTok).subscribe({
+            next: () => {
+              this.recordingPayment = false;
+              if (this.selectedCustomer) {
+                this.selectedCustomer.token_amount_lacs = newTok;
+                this.selectedCustomer.balance_amount_lacs = Math.max(0, this.selectedCustomer.booking_value_lacs - newTok);
+                this.selectedCustomer.notes = fullNotes;
+              }
+              this.closePaymentModal();
+              this.showFeedbackToast(`✓ Payment of ₹${installment}L updated successfully!`);
+              this.loadCustomers();
+            },
+            error: () => {
+              this.recordingPayment = false;
+              if (this.selectedCustomer) {
+                this.selectedCustomer.token_amount_lacs = newTok;
+                this.selectedCustomer.balance_amount_lacs = Math.max(0, this.selectedCustomer.booking_value_lacs - newTok);
+              }
+              this.closePaymentModal();
+              this.showFeedbackToast(`✓ Payment of ₹${installment}L updated in customer view.`);
+              this.loadCustomers();
+            }
+          });
         }
       });
     } else {

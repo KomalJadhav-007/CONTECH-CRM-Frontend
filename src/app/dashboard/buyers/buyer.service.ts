@@ -58,8 +58,12 @@ export class BuyerService {
     return this.http.get<any>(`${environment.apiUrl}/bookings`, { params });
   }
 
-  updateBookingStatus(id: number, status: string, notes?: string): Observable<any> {
-    return this.http.put<any>(`${environment.apiUrl}/bookings/${id}/status`, { booking_status: status, notes });
+  updateBookingStatus(id: number, status: string, notes?: string, token_amount_lacs?: number): Observable<any> {
+    return this.http.put<any>(`${environment.apiUrl}/bookings/${id}/status`, { booking_status: status, notes, token_amount_lacs });
+  }
+
+  recordBookingPayment(id: number, data: any): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/bookings/${id}/payment`, data);
   }
 }
 

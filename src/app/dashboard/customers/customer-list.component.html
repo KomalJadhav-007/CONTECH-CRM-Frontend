@@ -265,9 +265,13 @@
                   <strong class="val-amount">{{ formatAmount(c.booking_value_lacs) }}</strong>
                 </div>
                 <div class="advance-badge-row">
-                  <span class="advance-pill">
+                  <span class="advance-pill" *ngIf="c.token_amount_lacs > 0">
                     <mat-icon class="adv-mini-icon">verified</mat-icon>
                     <span>Advance Paid: {{ formatAmount(c.token_amount_lacs) }}</span>
+                  </span>
+                  <span class="advance-pill advance-zero" *ngIf="!c.token_amount_lacs || c.token_amount_lacs === 0">
+                    <mat-icon class="adv-mini-icon">hourglass_empty</mat-icon>
+                    <span>No Advance Paid</span>
                   </span>
                 </div>
               </div>
@@ -277,7 +281,9 @@
             <td class="col-payment">
               <div class="payment-progress-wrap">
                 <div class="progress-meta-top">
-                  <span class="pct-badge">{{ getPaymentPercent(c) }}% Paid</span>
+                  <span class="pct-badge" [class.pct-zero]="!c.token_amount_lacs || c.token_amount_lacs === 0">
+                    {{ getPaymentPercent(c) }}% Paid
+                  </span>
                   <span class="paid-val">{{ formatAmount(c.token_amount_lacs) }}</span>
                 </div>
                 <div class="progress-track">
