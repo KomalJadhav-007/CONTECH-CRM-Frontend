@@ -220,21 +220,101 @@
     </mat-card>
   </div>
 
+  <!-- DYNAMIC VISUALIZATION & GRAPH FILTERS TOOLBAR (TWO FILTERS AS REQUESTED) -->
+  <div class="analytics-graph-toolbar">
+    <div class="graph-toolbar-header">
+      <div class="graph-toolbar-title-wrap">
+        <mat-icon class="graph-toolbar-icon">insights</mat-icon>
+        <div>
+          <span class="graph-toolbar-title">Interactive Chart &amp; Visualization Engine</span>
+          <span class="graph-toolbar-sub">Transform analytics sections into Bar, Line, Pie, Scatter, Histogram, Box, Heatmap, or Treemap views.</span>
+        </div>
+      </div>
+      <div class="graph-toolbar-actions">
+        <button
+          *ngIf="selectedGraphType !== 'default' || selectedGraphTarget !== 'all'"
+          type="button"
+          class="reset-graph-btn"
+          (click)="resetGraphTypes()"
+          matTooltip="Restore all modules to default table & funnel representation">
+          <mat-icon class="btn-icon-sm">replay</mat-icon>
+          Reset to Default
+        </button>
+      </div>
+    </div>
+
+    <div class="graph-filter-controls-grid">
+      <!-- Filter 1: Apply Graph To Section -->
+      <div class="filter-control-box">
+        <label class="filter-box-label">
+          <mat-icon class="box-label-icon">tab</mat-icon>
+          <span>FILTER 1: APPLY GRAPH TO SECTION</span>
+        </label>
+        <select
+          class="graph-select target-select"
+          [ngModel]="selectedGraphTarget"
+          (ngModelChange)="onGraphTargetChange($event)">
+          <option *ngFor="let t of graphTargets" [value]="t.value">{{ t.label }}</option>
+        </select>
+      </div>
+
+      <!-- Filter 2: Graph / Chart Type -->
+      <div class="filter-control-box">
+        <label class="filter-box-label">
+          <mat-icon class="box-label-icon">query_stats</mat-icon>
+          <span>FILTER 2: CHOOSE VISUALIZATION TYPE</span>
+        </label>
+        <select
+          class="graph-select type-select"
+          [ngModel]="selectedGraphType"
+          (ngModelChange)="onGraphTypeChange($event)">
+          <option *ngFor="let gt of graphTypes" [value]="gt.value">
+            {{ gt.label }} &mdash; {{ gt.desc }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Quick Visual Chart Type Selector Pills -->
+    <div class="chart-type-pills-row">
+      <button
+        *ngFor="let gt of graphTypes"
+        type="button"
+        class="chart-pill-btn"
+        [class.active]="selectedGraphType === gt.value"
+        (click)="onGraphTypeChange(gt.value)"
+        [matTooltip]="gt.desc">
+        <mat-icon class="pill-icon">{{ gt.icon }}</mat-icon>
+        <span>{{ gt.label }}</span>
+      </button>
+    </div>
+  </div>
+
   <!-- PIPELINE FUNNEL & INTENT BAND DISTRIBUTION (2 COLUMNS - SPACE OPTIMIZED) -->
   <div class="funnel-intent-split-grid">
-    <!-- PIPELINE FUNNEL SECTION -->
+    <!-- 1. PIPELINE FUNNEL SECTION -->
     <mat-card appearance="outlined" class="section-card funnel-card">
       <div class="section-header">
         <div>
           <h2 class="section-title">PIPELINE FUNNEL</h2>
           <p class="section-subtitle">Cumulative stage progression & drop-off</p>
         </div>
-        <div class="funnel-top-stat">
+        <div class="header-right-controls">
+          <div class="card-chart-switch">
+            <mat-icon class="switch-icon">auto_graph</mat-icon>
+            <select
+              class="card-chart-select"
+              [ngModel]="getEffectiveGraphType('pipeline_funnel')"
+              (ngModelChange)="setSectionGraphType('pipeline_funnel', $event)">
+              <option *ngFor="let gt of graphTypes" [value]="gt.value">{{ gt.label }}</option>
+            </select>
+          </div>
           <span class="funnel-stat-tag">Stage Conversion</span>
         </div>
       </div>
 
-      <div class="funnel-container">
+      <!-- VIEW 1: Default Funnel -->
+      <div *ngIf="getEffectiveGraphType('pipeline_funnel') === 'default'" class="funnel-container">
         <div class="funnel-row" *ngFor="let stage of analytics.pipeline_funnel">
           <div class="funnel-label">{{ stage.stage }}</div>
           <div class="funnel-bar-area">
@@ -249,21 +329,171 @@
           </div>
         </div>
       </div>
+
+      <!-- VIEW 2: Bar Chart -->
+      <div *ngIf="getEffectiveGraphType('pipeline_funnel') === 'bar'" class="chart-box">
+        <div class="bar-chart-vertical">
+          <div class="bar-col" *ngFor="let stage of analytics.pipeline_funnel">
+            <div class="bar-col-val">{{ stage.count }}</div>
+            <div class="bar-col-track">
+              <div class="bar-col-fill" [style.height.%]="getFunnelWidth(stage.count, stage.max_count)"></div>
+            </div>
+            <div class="bar-col-label" [matTooltip]="stage.stage">{{ stage.stage }}</div>
+            <span class="bar-col-sub" [class.negative]="stage.drop_off !== '0%' && stage.drop_off !== '-0%'">{{ stage.drop_off }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 3: Line Chart -->
+      <div *ngIf="getEffectiveGraphType('pipeline_funnel') === 'line'" class="chart-box">
+        <ng-container *ngIf="getLineChartData(analytics.pipeline_funnel, 'count') as lineData">
+          <svg class="svg-line-chart" viewBox="0 0 520 200" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="funnelGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.35" />
+                <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.02" />
+              </linearGradient>
+            </defs>
+            <line x1="32" y1="148" x2="488" y2="148" stroke="#e2e8f0" stroke-dasharray="3 3" />
+            <polygon [attr.points]="lineData.areaPoints" fill="url(#funnelGrad)" />
+            <polyline [attr.points]="lineData.polyPoints" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+            <g *ngFor="let pt of lineData.points">
+              <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="5" fill="#ffffff" stroke="#2563eb" stroke-width="2.5" />
+              <text [attr.x]="pt.x" [attr.y]="pt.y - 10" text-anchor="middle" font-size="11" font-weight="700" fill="#0f172a">{{ pt.val }}</text>
+              <text [attr.x]="pt.x" [attr.y]="172" text-anchor="middle" font-size="9.5" fill="#64748b">{{ pt.name | slice:0:7 }}</text>
+            </g>
+          </svg>
+        </ng-container>
+      </div>
+
+      <!-- VIEW 4: Pie Chart -->
+      <div *ngIf="getEffectiveGraphType('pipeline_funnel') === 'pie'" class="chart-box">
+        <div class="pie-chart-wrap">
+          <div class="pie-svg-container">
+            <svg class="donut-svg" viewBox="0 0 200 200">
+              <circle cx="100" cy="100" r="70" fill="transparent" stroke="#f1f5f9" stroke-width="26" />
+              <circle *ngFor="let slice of getPieChartSlices(analytics.pipeline_funnel, 'count')"
+                cx="100" cy="100" r="70" fill="transparent"
+                [attr.stroke]="slice.color" stroke-width="26"
+                [attr.stroke-dasharray]="slice.strokeDash"
+                [attr.stroke-dashoffset]="slice.strokeOffset"
+                transform="rotate(-90 100 100)" />
+              <text x="100" y="96" text-anchor="middle" font-size="20" font-weight="800" fill="#0f172a">{{ analytics.total_buyers }}</text>
+              <text x="100" y="114" text-anchor="middle" font-size="10" font-weight="600" fill="#64748b">STAGE LEADS</text>
+            </svg>
+          </div>
+          <div class="chart-legend-grid">
+            <div class="legend-item" *ngFor="let s of getPieChartSlices(analytics.pipeline_funnel, 'count')">
+              <span class="legend-dot" [style.background-color]="s.color"></span>
+              <span class="legend-label" [matTooltip]="s.name">{{ s.name }}:</span>
+              <span class="legend-val">{{ s.val }} ({{ s.pct }}%)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 5: Scatter Plot -->
+      <div *ngIf="getEffectiveGraphType('pipeline_funnel') === 'scatter'" class="chart-box">
+        <svg class="svg-scatter-chart" viewBox="0 0 500 200">
+          <line x1="35" y1="165" x2="475" y2="165" stroke="#cbd5e1" stroke-width="1.5" />
+          <line x1="35" y1="25" x2="35" y2="165" stroke="#cbd5e1" stroke-width="1.5" />
+          <g *ngFor="let pt of getScatterPlotPoints(analytics.pipeline_funnel, 'count', 'count', 500, 200)">
+            <circle [attr.cx]="pt.cx" [attr.cy]="pt.cy" [attr.r]="pt.r" [attr.fill]="pt.color" fill-opacity="0.8" stroke="#ffffff" stroke-width="1.5">
+              <title>{{ pt.name }}: {{ pt.xVal }} leads</title>
+            </circle>
+            <text [attr.x]="pt.cx" [attr.y]="pt.cy - 10" text-anchor="middle" font-size="10" font-weight="700" fill="#1e293b">{{ pt.name }} ({{ pt.xVal }})</text>
+          </g>
+          <text x="250" y="192" text-anchor="middle" font-size="10" fill="#64748b">Pipeline Conversion Stages</text>
+        </svg>
+      </div>
+
+      <!-- VIEW 6: Histogram -->
+      <div *ngIf="getEffectiveGraphType('pipeline_funnel') === 'histogram'" class="chart-box">
+        <div class="histogram-wrap">
+          <div class="hist-bar-col" *ngFor="let bin of getHistogramBins(analytics.pipeline_funnel, 'count')">
+            <span class="hist-count-tag">{{ bin.count }} stages</span>
+            <div class="hist-track">
+              <div class="hist-fill" [style.height.%]="bin.pct"></div>
+            </div>
+            <span class="hist-bin-label">{{ bin.label }} leads</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 7: Box Plot -->
+      <div *ngIf="getEffectiveGraphType('pipeline_funnel') === 'box'" class="chart-box">
+        <ng-container *ngIf="getBoxPlotStats(analytics.pipeline_funnel, 'count') as bp">
+          <div class="boxplot-container">
+            <div class="boxplot-stats-row">
+              <div class="bp-stat-pill"><span class="bp-lbl">MIN:</span> <strong>{{ bp.min }}</strong></div>
+              <div class="bp-stat-pill"><span class="bp-lbl">Q1:</span> <strong>{{ bp.q1 }}</strong></div>
+              <div class="bp-stat-pill highlight"><span class="bp-lbl">MEDIAN:</span> <strong>{{ bp.median }}</strong></div>
+              <div class="bp-stat-pill"><span class="bp-lbl">Q3:</span> <strong>{{ bp.q3 }}</strong></div>
+              <div class="bp-stat-pill"><span class="bp-lbl">MAX:</span> <strong>{{ bp.max }}</strong></div>
+              <div class="bp-stat-pill"><span class="bp-lbl">IQR:</span> <strong>{{ bp.iqr }}</strong></div>
+            </div>
+            <div class="boxplot-visual-wrap">
+              <svg viewBox="0 0 480 80" class="bp-svg">
+                <line x1="40" y1="40" x2="440" y2="40" stroke="#94a3b8" stroke-width="2" />
+                <line x1="40" y1="25" x2="40" y2="55" stroke="#475569" stroke-width="2.5" />
+                <line x1="440" y1="25" x2="440" y2="55" stroke="#475569" stroke-width="2.5" />
+                <rect x="140" y="20" width="180" height="40" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="2" />
+                <line x1="220" y1="20" x2="220" y2="60" stroke="#1d4ed8" stroke-width="3" />
+              </svg>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+
+      <!-- VIEW 8: Heatmap -->
+      <div *ngIf="getEffectiveGraphType('pipeline_funnel') === 'heatmap'" class="chart-box">
+        <div class="heatmap-matrix">
+          <div class="heatmap-row" *ngFor="let row of getHeatmapMatrix(analytics.pipeline_funnel, 'pipeline_funnel')">
+            <span class="heatmap-row-label">{{ row.rowName }}</span>
+            <div class="heatmap-cells">
+              <div class="heatmap-cell" *ngFor="let c of row.cols" [style.background-color]="'rgba(37, 99, 235, ' + c.intensity + ')'" [class.cell-dark]="c.intensity > 0.45">
+                <span class="cell-lbl">{{ c.label }}:</span>
+                <span class="cell-val">{{ c.value }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 9: Treemap -->
+      <div *ngIf="getEffectiveGraphType('pipeline_funnel') === 'treemap'" class="chart-box">
+        <div class="treemap-grid">
+          <div class="treemap-tile" *ngFor="let tm of getTreemapItems(analytics.pipeline_funnel, 'count')" [style.flex-grow]="tm.flexGrow" [style.background-color]="tm.color">
+            <span class="tile-title">{{ tm.name }}</span>
+            <span class="tile-val">{{ tm.val }} leads ({{ tm.pct }}%)</span>
+          </div>
+        </div>
+      </div>
     </mat-card>
 
-    <!-- INTENT BAND DISTRIBUTION SECTION -->
+    <!-- 2. INTENT BAND DISTRIBUTION SECTION -->
     <mat-card appearance="outlined" class="section-card intent-band-card">
       <div class="section-header">
         <div>
           <h2 class="section-title">INTENT BAND DISTRIBUTION</h2>
           <p class="section-subtitle">Contech CRM Buyer Score v1 Breakdown</p>
         </div>
-        <div class="intent-top-stat">
+        <div class="header-right-controls">
+          <div class="card-chart-switch">
+            <mat-icon class="switch-icon">auto_graph</mat-icon>
+            <select
+              class="card-chart-select"
+              [ngModel]="getEffectiveGraphType('intent_bands')"
+              (ngModelChange)="setSectionGraphType('intent_bands', $event)">
+              <option *ngFor="let gt of graphTypes" [value]="gt.value">{{ gt.label }}</option>
+            </select>
+          </div>
           <span class="intent-stat-tag">{{ analytics.total_buyers }} Total Buyers</span>
         </div>
       </div>
 
-      <div class="intent-bands-vertical-list">
+      <!-- VIEW 1: Default Intent Band Rows -->
+      <div *ngIf="getEffectiveGraphType('intent_bands') === 'default'" class="intent-bands-vertical-list">
         <div class="intent-band-row" *ngFor="let band of analytics.intent_bands">
           <div class="intent-band-row-top">
             <div class="band-meta">
@@ -285,6 +515,145 @@
         </div>
       </div>
 
+      <!-- VIEW 2: Bar Chart -->
+      <div *ngIf="getEffectiveGraphType('intent_bands') === 'bar'" class="chart-box">
+        <div class="bar-chart-vertical">
+          <div class="bar-col" *ngFor="let band of analytics.intent_bands">
+            <div class="bar-col-val">{{ band.count }}</div>
+            <div class="bar-col-track">
+              <div class="bar-col-fill" [ngClass]="getBandColorClass(band.label)" [style.height.%]="getIntentBandPct(band.count)"></div>
+            </div>
+            <div class="bar-col-label" [matTooltip]="band.label">{{ band.label }}</div>
+            <span class="bar-col-sub">{{ getIntentBandPct(band.count) }}%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 3: Line Chart -->
+      <div *ngIf="getEffectiveGraphType('intent_bands') === 'line'" class="chart-box">
+        <ng-container *ngIf="getLineChartData(analytics.intent_bands, 'count') as lineData">
+          <svg class="svg-line-chart" viewBox="0 0 520 200" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="intentGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#10b981" stop-opacity="0.35" />
+                <stop offset="100%" stop-color="#10b981" stop-opacity="0.02" />
+              </linearGradient>
+            </defs>
+            <line x1="32" y1="148" x2="488" y2="148" stroke="#e2e8f0" stroke-dasharray="3 3" />
+            <polygon [attr.points]="lineData.areaPoints" fill="url(#intentGrad)" />
+            <polyline [attr.points]="lineData.polyPoints" fill="none" stroke="#059669" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+            <g *ngFor="let pt of lineData.points">
+              <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="5" fill="#ffffff" stroke="#059669" stroke-width="2.5" />
+              <text [attr.x]="pt.x" [attr.y]="pt.y - 10" text-anchor="middle" font-size="11" font-weight="700" fill="#0f172a">{{ pt.val }}</text>
+              <text [attr.x]="pt.x" [attr.y]="172" text-anchor="middle" font-size="9.5" fill="#64748b">{{ pt.name | slice:0:8 }}</text>
+            </g>
+          </svg>
+        </ng-container>
+      </div>
+
+      <!-- VIEW 4: Pie Chart -->
+      <div *ngIf="getEffectiveGraphType('intent_bands') === 'pie'" class="chart-box">
+        <div class="pie-chart-wrap">
+          <div class="pie-svg-container">
+            <svg class="donut-svg" viewBox="0 0 200 200">
+              <circle cx="100" cy="100" r="70" fill="transparent" stroke="#f1f5f9" stroke-width="26" />
+              <circle *ngFor="let slice of getPieChartSlices(analytics.intent_bands, 'count')"
+                cx="100" cy="100" r="70" fill="transparent"
+                [attr.stroke]="slice.color" stroke-width="26"
+                [attr.stroke-dasharray]="slice.strokeDash"
+                [attr.stroke-dashoffset]="slice.strokeOffset"
+                transform="rotate(-90 100 100)" />
+              <text x="100" y="96" text-anchor="middle" font-size="20" font-weight="800" fill="#0f172a">{{ analytics.total_buyers }}</text>
+              <text x="100" y="114" text-anchor="middle" font-size="10" font-weight="600" fill="#64748b">TOTAL BUYERS</text>
+            </svg>
+          </div>
+          <div class="chart-legend-grid">
+            <div class="legend-item" *ngFor="let s of getPieChartSlices(analytics.intent_bands, 'count')">
+              <span class="legend-dot" [style.background-color]="s.color"></span>
+              <span class="legend-label" [matTooltip]="s.name">{{ s.name }}:</span>
+              <span class="legend-val">{{ s.val }} ({{ s.pct }}%)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 5: Scatter Plot -->
+      <div *ngIf="getEffectiveGraphType('intent_bands') === 'scatter'" class="chart-box">
+        <svg class="svg-scatter-chart" viewBox="0 0 500 200">
+          <line x1="35" y1="165" x2="475" y2="165" stroke="#cbd5e1" stroke-width="1.5" />
+          <line x1="35" y1="25" x2="35" y2="165" stroke="#cbd5e1" stroke-width="1.5" />
+          <g *ngFor="let pt of getScatterPlotPoints(analytics.intent_bands, 'count', 'count', 500, 200)">
+            <circle [attr.cx]="pt.cx" [attr.cy]="pt.cy" [attr.r]="pt.r" [attr.fill]="pt.color" fill-opacity="0.8" stroke="#ffffff" stroke-width="1.5">
+              <title>{{ pt.name }}: {{ pt.xVal }} buyers</title>
+            </circle>
+            <text [attr.x]="pt.cx" [attr.y]="pt.cy - 10" text-anchor="middle" font-size="10" font-weight="700" fill="#1e293b">{{ pt.name }} ({{ pt.xVal }})</text>
+          </g>
+          <text x="250" y="192" text-anchor="middle" font-size="10" fill="#64748b">Intent Tier Distribution Spectrum</text>
+        </svg>
+      </div>
+
+      <!-- VIEW 6: Histogram -->
+      <div *ngIf="getEffectiveGraphType('intent_bands') === 'histogram'" class="chart-box">
+        <div class="histogram-wrap">
+          <div class="hist-bar-col" *ngFor="let bin of getHistogramBins(analytics.intent_bands, 'count')">
+            <span class="hist-count-tag">{{ bin.count }} bands</span>
+            <div class="hist-track">
+              <div class="hist-fill bg-emerald" [style.height.%]="bin.pct"></div>
+            </div>
+            <span class="hist-bin-label">{{ bin.label }} buyers</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 7: Box Plot -->
+      <div *ngIf="getEffectiveGraphType('intent_bands') === 'box'" class="chart-box">
+        <ng-container *ngIf="getBoxPlotStats(analytics.intent_bands, 'count') as bp">
+          <div class="boxplot-container">
+            <div class="boxplot-stats-row">
+              <div class="bp-stat-pill"><span class="bp-lbl">MIN:</span> <strong>{{ bp.min }}</strong></div>
+              <div class="bp-stat-pill"><span class="bp-lbl">Q1:</span> <strong>{{ bp.q1 }}</strong></div>
+              <div class="bp-stat-pill highlight"><span class="bp-lbl">MEDIAN:</span> <strong>{{ bp.median }}</strong></div>
+              <div class="bp-stat-pill"><span class="bp-lbl">Q3:</span> <strong>{{ bp.q3 }}</strong></div>
+              <div class="bp-stat-pill"><span class="bp-lbl">MAX:</span> <strong>{{ bp.max }}</strong></div>
+            </div>
+            <div class="boxplot-visual-wrap">
+              <svg viewBox="0 0 480 80" class="bp-svg">
+                <line x1="40" y1="40" x2="440" y2="40" stroke="#94a3b8" stroke-width="2" />
+                <line x1="40" y1="25" x2="40" y2="55" stroke="#475569" stroke-width="2.5" />
+                <line x1="440" y1="25" x2="440" y2="55" stroke="#475569" stroke-width="2.5" />
+                <rect x="120" y="20" width="220" height="40" rx="4" fill="#d1fae5" stroke="#059669" stroke-width="2" />
+                <line x1="240" y1="20" x2="240" y2="60" stroke="#047857" stroke-width="3" />
+              </svg>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+
+      <!-- VIEW 8: Heatmap -->
+      <div *ngIf="getEffectiveGraphType('intent_bands') === 'heatmap'" class="chart-box">
+        <div class="heatmap-matrix">
+          <div class="heatmap-row" *ngFor="let row of getHeatmapMatrix(analytics.intent_bands, 'intent_bands')">
+            <span class="heatmap-row-label">{{ row.rowName }}</span>
+            <div class="heatmap-cells">
+              <div class="heatmap-cell" *ngFor="let c of row.cols" [style.background-color]="'rgba(16, 185, 129, ' + c.intensity + ')'" [class.cell-dark]="c.intensity > 0.45">
+                <span class="cell-lbl">{{ c.label }}:</span>
+                <span class="cell-val">{{ c.value }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 9: Treemap -->
+      <div *ngIf="getEffectiveGraphType('intent_bands') === 'treemap'" class="chart-box">
+        <div class="treemap-grid">
+          <div class="treemap-tile" *ngFor="let tm of getTreemapItems(analytics.intent_bands, 'count')" [style.flex-grow]="tm.flexGrow" [style.background-color]="tm.color">
+            <span class="tile-title">{{ tm.name }}</span>
+            <span class="tile-val">{{ tm.val }} buyers ({{ tm.pct }}%)</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Quick Executive Quality Callout -->
       <div class="intent-quality-callout">
         <div class="quality-item">
@@ -302,14 +671,28 @@
 
   <!-- SOURCE & OWNER PERFORMANCE (2 COLUMNS) -->
   <div class="tables-split-grid">
-    <!-- SOURCE PERFORMANCE -->
+    <!-- 3. SOURCE PERFORMANCE -->
     <mat-card appearance="outlined" class="section-card performance-table-card">
       <div class="section-header">
-        <h2 class="section-title">SOURCE PERFORMANCE</h2>
-        <p class="section-subtitle">Which channels produce real intent</p>
+        <div>
+          <h2 class="section-title">SOURCE PERFORMANCE</h2>
+          <p class="section-subtitle">Which channels produce real intent</p>
+        </div>
+        <div class="header-right-controls">
+          <div class="card-chart-switch">
+            <mat-icon class="switch-icon">auto_graph</mat-icon>
+            <select
+              class="card-chart-select"
+              [ngModel]="getEffectiveGraphType('source_performance')"
+              (ngModelChange)="setSectionGraphType('source_performance', $event)">
+              <option *ngFor="let gt of graphTypes" [value]="gt.value">{{ gt.label }}</option>
+            </select>
+          </div>
+        </div>
       </div>
 
-      <div class="table-scroll-wrap">
+      <!-- VIEW 1: Default Table -->
+      <div *ngIf="getEffectiveGraphType('source_performance') === 'default'" class="table-scroll-wrap">
         <table class="analytics-table">
           <thead>
             <tr>
@@ -331,16 +714,180 @@
           </tbody>
         </table>
       </div>
-    </mat-card>
 
-    <!-- OWNER PERFORMANCE -->
-    <mat-card appearance="outlined" class="section-card performance-table-card">
-      <div class="section-header">
-        <h2 class="section-title">OWNER PERFORMANCE</h2>
-        <p class="section-subtitle">Pipeline health by account executive</p>
+      <!-- VIEW 2: Bar Chart (Grouped) -->
+      <div *ngIf="getEffectiveGraphType('source_performance') === 'bar'" class="chart-box">
+        <div class="bar-chart-grouped">
+          <div class="grouped-col" *ngFor="let s of analytics.source_performance">
+            <div class="bars-subgroup">
+              <div class="mini-bar bg-blue" [style.height.%]="(s.buyers / getMaxValue(analytics.source_performance, 'buyers')) * 100" [matTooltip]="'Buyers: ' + s.buyers">
+                <span class="mini-bar-val">{{ s.buyers }}</span>
+              </div>
+              <div class="mini-bar bg-emerald" [style.height.%]="(s.high_intent / getMaxValue(analytics.source_performance, 'buyers')) * 100" [matTooltip]="'High Intent: ' + s.high_intent">
+                <span class="mini-bar-val">{{ s.high_intent }}</span>
+              </div>
+              <div class="mini-bar bg-amber" [style.height.%]="(s.booked / getMaxValue(analytics.source_performance, 'buyers')) * 100" [matTooltip]="'Booked: ' + s.booked">
+                <span class="mini-bar-val">{{ s.booked }}</span>
+              </div>
+            </div>
+            <span class="grouped-col-label" [matTooltip]="s.name">{{ s.name }}</span>
+          </div>
+        </div>
+        <div class="chart-legend-inline">
+          <span class="legend-badge"><span class="badge-dot bg-blue"></span> Buyers</span>
+          <span class="legend-badge"><span class="badge-dot bg-emerald"></span> High Intent</span>
+          <span class="legend-badge"><span class="badge-dot bg-amber"></span> Booked</span>
+        </div>
       </div>
 
-      <div class="table-scroll-wrap">
+      <!-- VIEW 3: Line Chart -->
+      <div *ngIf="getEffectiveGraphType('source_performance') === 'line'" class="chart-box">
+        <ng-container *ngIf="getLineChartData(analytics.source_performance, 'buyers') as lineData">
+          <svg class="svg-line-chart" viewBox="0 0 520 200" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="sourceGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.3" />
+                <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.02" />
+              </linearGradient>
+            </defs>
+            <line x1="32" y1="148" x2="488" y2="148" stroke="#e2e8f0" stroke-dasharray="3 3" />
+            <polygon [attr.points]="lineData.areaPoints" fill="url(#sourceGrad)" />
+            <polyline [attr.points]="lineData.polyPoints" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+            <g *ngFor="let pt of lineData.points">
+              <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="5" fill="#ffffff" stroke="#2563eb" stroke-width="2.5" />
+              <text [attr.x]="pt.x" [attr.y]="pt.y - 10" text-anchor="middle" font-size="11" font-weight="700" fill="#0f172a">{{ pt.val }}</text>
+              <text [attr.x]="pt.x" [attr.y]="172" text-anchor="middle" font-size="9.5" fill="#64748b">{{ pt.name | slice:0:8 }}</text>
+            </g>
+          </svg>
+        </ng-container>
+      </div>
+
+      <!-- VIEW 4: Pie Chart -->
+      <div *ngIf="getEffectiveGraphType('source_performance') === 'pie'" class="chart-box">
+        <div class="pie-chart-wrap">
+          <div class="pie-svg-container">
+            <svg class="donut-svg" viewBox="0 0 200 200">
+              <circle cx="100" cy="100" r="70" fill="transparent" stroke="#f1f5f9" stroke-width="26" />
+              <circle *ngFor="let slice of getPieChartSlices(analytics.source_performance, 'buyers')"
+                cx="100" cy="100" r="70" fill="transparent"
+                [attr.stroke]="slice.color" stroke-width="26"
+                [attr.stroke-dasharray]="slice.strokeDash"
+                [attr.stroke-dashoffset]="slice.strokeOffset"
+                transform="rotate(-90 100 100)" />
+              <text x="100" y="96" text-anchor="middle" font-size="20" font-weight="800" fill="#0f172a">{{ analytics.total_buyers }}</text>
+              <text x="100" y="114" text-anchor="middle" font-size="10" font-weight="600" fill="#64748b">SOURCE LEADS</text>
+            </svg>
+          </div>
+          <div class="chart-legend-grid">
+            <div class="legend-item" *ngFor="let s of getPieChartSlices(analytics.source_performance, 'buyers')">
+              <span class="legend-dot" [style.background-color]="s.color"></span>
+              <span class="legend-label" [matTooltip]="s.name">{{ s.name }}:</span>
+              <span class="legend-val">{{ s.val }} ({{ s.pct }}%)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 5: Scatter Plot -->
+      <div *ngIf="getEffectiveGraphType('source_performance') === 'scatter'" class="chart-box">
+        <svg class="svg-scatter-chart" viewBox="0 0 500 200">
+          <line x1="35" y1="165" x2="475" y2="165" stroke="#cbd5e1" stroke-width="1.5" />
+          <line x1="35" y1="25" x2="35" y2="165" stroke="#cbd5e1" stroke-width="1.5" />
+          <g *ngFor="let pt of getScatterPlotPoints(analytics.source_performance, 'buyers', 'high_intent', 500, 200)">
+            <circle [attr.cx]="pt.cx" [attr.cy]="pt.cy" [attr.r]="pt.r" [attr.fill]="pt.color" fill-opacity="0.8" stroke="#ffffff" stroke-width="1.5">
+              <title>{{ pt.name }} - Buyers: {{ pt.xVal }}, High Intent: {{ pt.yVal }}</title>
+            </circle>
+            <text [attr.x]="pt.cx" [attr.y]="pt.cy - 12" text-anchor="middle" font-size="10" font-weight="700" fill="#1e293b">{{ pt.name }}</text>
+          </g>
+          <text x="250" y="192" text-anchor="middle" font-size="10" fill="#64748b">X: Total Buyers &bull; Y: High Intent Qualified</text>
+        </svg>
+      </div>
+
+      <!-- VIEW 6: Histogram -->
+      <div *ngIf="getEffectiveGraphType('source_performance') === 'histogram'" class="chart-box">
+        <div class="histogram-wrap">
+          <div class="hist-bar-col" *ngFor="let bin of getHistogramBins(analytics.source_performance, 'buyers')">
+            <span class="hist-count-tag">{{ bin.count }} sources</span>
+            <div class="hist-track">
+              <div class="hist-fill bg-blue" [style.height.%]="bin.pct"></div>
+            </div>
+            <span class="hist-bin-label">{{ bin.label }} buyers</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 7: Box Plot -->
+      <div *ngIf="getEffectiveGraphType('source_performance') === 'box'" class="chart-box">
+        <ng-container *ngIf="getBoxPlotStats(analytics.source_performance, 'buyers') as bp">
+          <div class="boxplot-container">
+            <div class="boxplot-stats-row">
+              <div class="bp-stat-pill"><span class="bp-lbl">MIN:</span> <strong>{{ bp.min }}</strong></div>
+              <div class="bp-stat-pill"><span class="bp-lbl">Q1:</span> <strong>{{ bp.q1 }}</strong></div>
+              <div class="bp-stat-pill highlight"><span class="bp-lbl">MEDIAN:</span> <strong>{{ bp.median }}</strong></div>
+              <div class="bp-stat-pill"><span class="bp-lbl">Q3:</span> <strong>{{ bp.q3 }}</strong></div>
+              <div class="bp-stat-pill"><span class="bp-lbl">MAX:</span> <strong>{{ bp.max }}</strong></div>
+            </div>
+            <div class="boxplot-visual-wrap">
+              <svg viewBox="0 0 480 80" class="bp-svg">
+                <line x1="40" y1="40" x2="440" y2="40" stroke="#94a3b8" stroke-width="2" />
+                <line x1="40" y1="25" x2="40" y2="55" stroke="#475569" stroke-width="2.5" />
+                <line x1="440" y1="25" x2="440" y2="55" stroke="#475569" stroke-width="2.5" />
+                <rect x="140" y="20" width="160" height="40" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="2" />
+                <line x1="210" y1="20" x2="210" y2="60" stroke="#1d4ed8" stroke-width="3" />
+              </svg>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+
+      <!-- VIEW 8: Heatmap -->
+      <div *ngIf="getEffectiveGraphType('source_performance') === 'heatmap'" class="chart-box">
+        <div class="heatmap-matrix">
+          <div class="heatmap-row" *ngFor="let row of getHeatmapMatrix(analytics.source_performance, 'source_performance')">
+            <span class="heatmap-row-label">{{ row.rowName }}</span>
+            <div class="heatmap-cells">
+              <div class="heatmap-cell" *ngFor="let c of row.cols" [style.background-color]="'rgba(37, 99, 235, ' + c.intensity + ')'" [class.cell-dark]="c.intensity > 0.45">
+                <span class="cell-lbl">{{ c.label }}:</span>
+                <span class="cell-val">{{ c.value }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 9: Treemap -->
+      <div *ngIf="getEffectiveGraphType('source_performance') === 'treemap'" class="chart-box">
+        <div class="treemap-grid">
+          <div class="treemap-tile" *ngFor="let tm of getTreemapItems(analytics.source_performance, 'buyers')" [style.flex-grow]="tm.flexGrow" [style.background-color]="tm.color">
+            <span class="tile-title">{{ tm.name }}</span>
+            <span class="tile-val">{{ tm.val }} buyers ({{ tm.pct }}%)</span>
+          </div>
+        </div>
+      </div>
+    </mat-card>
+
+    <!-- 4. OWNER PERFORMANCE -->
+    <mat-card appearance="outlined" class="section-card performance-table-card">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">OWNER PERFORMANCE</h2>
+          <p class="section-subtitle">Pipeline health by account executive</p>
+        </div>
+        <div class="header-right-controls">
+          <div class="card-chart-switch">
+            <mat-icon class="switch-icon">auto_graph</mat-icon>
+            <select
+              class="card-chart-select"
+              [ngModel]="getEffectiveGraphType('owner_performance')"
+              (ngModelChange)="setSectionGraphType('owner_performance', $event)">
+              <option *ngFor="let gt of graphTypes" [value]="gt.value">{{ gt.label }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 1: Default Table -->
+      <div *ngIf="getEffectiveGraphType('owner_performance') === 'default'" class="table-scroll-wrap">
         <table class="analytics-table">
           <thead>
             <tr>
@@ -362,17 +909,181 @@
           </tbody>
         </table>
       </div>
+
+      <!-- VIEW 2: Bar Chart (Grouped) -->
+      <div *ngIf="getEffectiveGraphType('owner_performance') === 'bar'" class="chart-box">
+        <div class="bar-chart-grouped">
+          <div class="grouped-col" *ngFor="let o of analytics.owner_performance">
+            <div class="bars-subgroup">
+              <div class="mini-bar bg-blue" [style.height.%]="(o.buyers / getMaxValue(analytics.owner_performance, 'buyers')) * 100" [matTooltip]="'Buyers: ' + o.buyers">
+                <span class="mini-bar-val">{{ o.buyers }}</span>
+              </div>
+              <div class="mini-bar bg-emerald" [style.height.%]="(o.high_intent / getMaxValue(analytics.owner_performance, 'buyers')) * 100" [matTooltip]="'High Intent: ' + o.high_intent">
+                <span class="mini-bar-val">{{ o.high_intent }}</span>
+              </div>
+              <div class="mini-bar bg-amber" [style.height.%]="(o.booked / getMaxValue(analytics.owner_performance, 'buyers')) * 100" [matTooltip]="'Booked: ' + o.booked">
+                <span class="mini-bar-val">{{ o.booked }}</span>
+              </div>
+            </div>
+            <span class="grouped-col-label" [matTooltip]="o.name">{{ o.name }}</span>
+          </div>
+        </div>
+        <div class="chart-legend-inline">
+          <span class="legend-badge"><span class="badge-dot bg-blue"></span> Buyers</span>
+          <span class="legend-badge"><span class="badge-dot bg-emerald"></span> High Intent</span>
+          <span class="legend-badge"><span class="badge-dot bg-amber"></span> Booked</span>
+        </div>
+      </div>
+
+      <!-- VIEW 3: Line Chart -->
+      <div *ngIf="getEffectiveGraphType('owner_performance') === 'line'" class="chart-box">
+        <ng-container *ngIf="getLineChartData(analytics.owner_performance, 'buyers') as lineData">
+          <svg class="svg-line-chart" viewBox="0 0 520 200" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="ownerGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.3" />
+                <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0.02" />
+              </linearGradient>
+            </defs>
+            <line x1="32" y1="148" x2="488" y2="148" stroke="#e2e8f0" stroke-dasharray="3 3" />
+            <polygon [attr.points]="lineData.areaPoints" fill="url(#ownerGrad)" />
+            <polyline [attr.points]="lineData.polyPoints" fill="none" stroke="#7c3aed" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+            <g *ngFor="let pt of lineData.points">
+              <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="5" fill="#ffffff" stroke="#7c3aed" stroke-width="2.5" />
+              <text [attr.x]="pt.x" [attr.y]="pt.y - 10" text-anchor="middle" font-size="11" font-weight="700" fill="#0f172a">{{ pt.val }}</text>
+              <text [attr.x]="pt.x" [attr.y]="172" text-anchor="middle" font-size="9.5" fill="#64748b">{{ pt.name | slice:0:8 }}</text>
+            </g>
+          </svg>
+        </ng-container>
+      </div>
+
+      <!-- VIEW 4: Pie Chart -->
+      <div *ngIf="getEffectiveGraphType('owner_performance') === 'pie'" class="chart-box">
+        <div class="pie-chart-wrap">
+          <div class="pie-svg-container">
+            <svg class="donut-svg" viewBox="0 0 200 200">
+              <circle cx="100" cy="100" r="70" fill="transparent" stroke="#f1f5f9" stroke-width="26" />
+              <circle *ngFor="let slice of getPieChartSlices(analytics.owner_performance, 'buyers')"
+                cx="100" cy="100" r="70" fill="transparent"
+                [attr.stroke]="slice.color" stroke-width="26"
+                [attr.stroke-dasharray]="slice.strokeDash"
+                [attr.stroke-dashoffset]="slice.strokeOffset"
+                transform="rotate(-90 100 100)" />
+              <text x="100" y="96" text-anchor="middle" font-size="20" font-weight="800" fill="#0f172a">{{ analytics.total_buyers }}</text>
+              <text x="100" y="114" text-anchor="middle" font-size="10" font-weight="600" fill="#64748b">EXECUTIVE LEADS</text>
+            </svg>
+          </div>
+          <div class="chart-legend-grid">
+            <div class="legend-item" *ngFor="let s of getPieChartSlices(analytics.owner_performance, 'buyers')">
+              <span class="legend-dot" [style.background-color]="s.color"></span>
+              <span class="legend-label" [matTooltip]="s.name">{{ s.name }}:</span>
+              <span class="legend-val">{{ s.val }} ({{ s.pct }}%)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 5: Scatter Plot -->
+      <div *ngIf="getEffectiveGraphType('owner_performance') === 'scatter'" class="chart-box">
+        <svg class="svg-scatter-chart" viewBox="0 0 500 200">
+          <line x1="35" y1="165" x2="475" y2="165" stroke="#cbd5e1" stroke-width="1.5" />
+          <line x1="35" y1="25" x2="35" y2="165" stroke="#cbd5e1" stroke-width="1.5" />
+          <g *ngFor="let pt of getScatterPlotPoints(analytics.owner_performance, 'buyers', 'high_intent', 500, 200)">
+            <circle [attr.cx]="pt.cx" [attr.cy]="pt.cy" [attr.r]="pt.r" [attr.fill]="pt.color" fill-opacity="0.8" stroke="#ffffff" stroke-width="1.5">
+              <title>{{ pt.name }} - Buyers: {{ pt.xVal }}, High Intent: {{ pt.yVal }}</title>
+            </circle>
+            <text [attr.x]="pt.cx" [attr.y]="pt.cy - 12" text-anchor="middle" font-size="10" font-weight="700" fill="#1e293b">{{ pt.name }}</text>
+          </g>
+          <text x="250" y="192" text-anchor="middle" font-size="10" fill="#64748b">X: Assigned Buyers &bull; Y: High Intent Conversion</text>
+        </svg>
+      </div>
+
+      <!-- VIEW 6: Histogram -->
+      <div *ngIf="getEffectiveGraphType('owner_performance') === 'histogram'" class="chart-box">
+        <div class="histogram-wrap">
+          <div class="hist-bar-col" *ngFor="let bin of getHistogramBins(analytics.owner_performance, 'buyers')">
+            <span class="hist-count-tag">{{ bin.count }} executives</span>
+            <div class="hist-track">
+              <div class="hist-fill bg-violet" [style.height.%]="bin.pct"></div>
+            </div>
+            <span class="hist-bin-label">{{ bin.label }} buyers</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 7: Box Plot -->
+      <div *ngIf="getEffectiveGraphType('owner_performance') === 'box'" class="chart-box">
+        <ng-container *ngIf="getBoxPlotStats(analytics.owner_performance, 'buyers') as bp">
+          <div class="boxplot-container">
+            <div class="boxplot-stats-row">
+              <div class="bp-stat-pill"><span class="bp-lbl">MIN:</span> <strong>{{ bp.min }}</strong></div>
+              <div class="bp-stat-pill"><span class="bp-lbl">Q1:</span> <strong>{{ bp.q1 }}</strong></div>
+              <div class="bp-stat-pill highlight"><span class="bp-lbl">MEDIAN:</span> <strong>{{ bp.median }}</strong></div>
+              <div class="bp-stat-pill"><span class="bp-lbl">Q3:</span> <strong>{{ bp.q3 }}</strong></div>
+              <div class="bp-stat-pill"><span class="bp-lbl">MAX:</span> <strong>{{ bp.max }}</strong></div>
+            </div>
+            <div class="boxplot-visual-wrap">
+              <svg viewBox="0 0 480 80" class="bp-svg">
+                <line x1="40" y1="40" x2="440" y2="40" stroke="#94a3b8" stroke-width="2" />
+                <line x1="40" y1="25" x2="40" y2="55" stroke="#475569" stroke-width="2.5" />
+                <line x1="440" y1="25" x2="440" y2="55" stroke="#475569" stroke-width="2.5" />
+                <rect x="140" y="20" width="160" height="40" rx="4" fill="#ede9fe" stroke="#7c3aed" stroke-width="2" />
+                <line x1="210" y1="20" x2="210" y2="60" stroke="#6d28d9" stroke-width="3" />
+              </svg>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+
+      <!-- VIEW 8: Heatmap -->
+      <div *ngIf="getEffectiveGraphType('owner_performance') === 'heatmap'" class="chart-box">
+        <div class="heatmap-matrix">
+          <div class="heatmap-row" *ngFor="let row of getHeatmapMatrix(analytics.owner_performance, 'owner_performance')">
+            <span class="heatmap-row-label">{{ row.rowName }}</span>
+            <div class="heatmap-cells">
+              <div class="heatmap-cell" *ngFor="let c of row.cols" [style.background-color]="'rgba(124, 58, 237, ' + c.intensity + ')'" [class.cell-dark]="c.intensity > 0.45">
+                <span class="cell-lbl">{{ c.label }}:</span>
+                <span class="cell-val">{{ c.value }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 9: Treemap -->
+      <div *ngIf="getEffectiveGraphType('owner_performance') === 'treemap'" class="chart-box">
+        <div class="treemap-grid">
+          <div class="treemap-tile" *ngFor="let tm of getTreemapItems(analytics.owner_performance, 'buyers')" [style.flex-grow]="tm.flexGrow" [style.background-color]="tm.color">
+            <span class="tile-title">{{ tm.name }}</span>
+            <span class="tile-val">{{ tm.val }} buyers ({{ tm.pct }}%)</span>
+          </div>
+        </div>
+      </div>
     </mat-card>
   </div>
 
-  <!-- PROJECT PERFORMANCE -->
+  <!-- 5. PROJECT PERFORMANCE -->
   <mat-card appearance="outlined" class="section-card project-performance-card">
     <div class="section-header">
-      <h2 class="section-title">PROJECT PERFORMANCE</h2>
-      <p class="section-subtitle">Demand and risk by project</p>
+      <div>
+        <h2 class="section-title">PROJECT PERFORMANCE</h2>
+        <p class="section-subtitle">Demand and risk by project</p>
+      </div>
+      <div class="header-right-controls">
+        <div class="card-chart-switch">
+          <mat-icon class="switch-icon">auto_graph</mat-icon>
+          <select
+            class="card-chart-select"
+            [ngModel]="getEffectiveGraphType('project_performance')"
+            (ngModelChange)="setSectionGraphType('project_performance', $event)">
+            <option *ngFor="let gt of graphTypes" [value]="gt.value">{{ gt.label }}</option>
+          </select>
+        </div>
+      </div>
     </div>
 
-    <div class="table-scroll-wrap">
+    <!-- VIEW 1: Default Table -->
+    <div *ngIf="getEffectiveGraphType('project_performance') === 'default'" class="table-scroll-wrap">
       <table class="analytics-table">
         <thead>
           <tr>
@@ -393,6 +1104,156 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- VIEW 2: Bar Chart (Grouped) -->
+    <div *ngIf="getEffectiveGraphType('project_performance') === 'bar'" class="chart-box">
+      <div class="bar-chart-grouped">
+        <div class="grouped-col" *ngFor="let p of analytics.project_performance">
+          <div class="bars-subgroup">
+            <div class="mini-bar bg-blue" [style.height.%]="(p.buyers / getMaxValue(analytics.project_performance, 'buyers')) * 100" [matTooltip]="'Buyers: ' + p.buyers">
+              <span class="mini-bar-val">{{ p.buyers }}</span>
+            </div>
+            <div class="mini-bar bg-emerald" [style.height.%]="(p.high_intent / getMaxValue(analytics.project_performance, 'buyers')) * 100" [matTooltip]="'High Intent: ' + p.high_intent">
+              <span class="mini-bar-val">{{ p.high_intent }}</span>
+            </div>
+            <div class="mini-bar bg-amber" [style.height.%]="(p.booked / getMaxValue(analytics.project_performance, 'buyers')) * 100" [matTooltip]="'Booked: ' + p.booked">
+              <span class="mini-bar-val">{{ p.booked }}</span>
+            </div>
+          </div>
+          <span class="grouped-col-label" [matTooltip]="p.name">{{ p.name }}</span>
+        </div>
+      </div>
+      <div class="chart-legend-inline">
+        <span class="legend-badge"><span class="badge-dot bg-blue"></span> Buyers</span>
+        <span class="legend-badge"><span class="badge-dot bg-emerald"></span> High Intent</span>
+        <span class="legend-badge"><span class="badge-dot bg-amber"></span> Booked</span>
+      </div>
+    </div>
+
+    <!-- VIEW 3: Line Chart -->
+    <div *ngIf="getEffectiveGraphType('project_performance') === 'line'" class="chart-box">
+      <ng-container *ngIf="getLineChartData(analytics.project_performance, 'buyers') as lineData">
+        <svg class="svg-line-chart" viewBox="0 0 520 200" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="projectGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#0284c7" stop-opacity="0.35" />
+              <stop offset="100%" stop-color="#0284c7" stop-opacity="0.02" />
+            </linearGradient>
+          </defs>
+          <line x1="32" y1="148" x2="488" y2="148" stroke="#e2e8f0" stroke-dasharray="3 3" />
+          <polygon [attr.points]="lineData.areaPoints" fill="url(#projectGrad)" />
+          <polyline [attr.points]="lineData.polyPoints" fill="none" stroke="#0284c7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+          <g *ngFor="let pt of lineData.points">
+            <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="5" fill="#ffffff" stroke="#0284c7" stroke-width="2.5" />
+            <text [attr.x]="pt.x" [attr.y]="pt.y - 10" text-anchor="middle" font-size="11" font-weight="700" fill="#0f172a">{{ pt.val }}</text>
+            <text [attr.x]="pt.x" [attr.y]="172" text-anchor="middle" font-size="9.5" fill="#64748b">{{ pt.name | slice:0:10 }}</text>
+          </g>
+        </svg>
+      </ng-container>
+    </div>
+
+    <!-- VIEW 4: Pie Chart -->
+    <div *ngIf="getEffectiveGraphType('project_performance') === 'pie'" class="chart-box">
+      <div class="pie-chart-wrap">
+        <div class="pie-svg-container">
+          <svg class="donut-svg" viewBox="0 0 200 200">
+            <circle cx="100" cy="100" r="70" fill="transparent" stroke="#f1f5f9" stroke-width="26" />
+            <circle *ngFor="let slice of getPieChartSlices(analytics.project_performance, 'buyers')"
+              cx="100" cy="100" r="70" fill="transparent"
+              [attr.stroke]="slice.color" stroke-width="26"
+              [attr.stroke-dasharray]="slice.strokeDash"
+              [attr.stroke-dashoffset]="slice.strokeOffset"
+              transform="rotate(-90 100 100)" />
+            <text x="100" y="96" text-anchor="middle" font-size="20" font-weight="800" fill="#0f172a">{{ analytics.total_buyers }}</text>
+            <text x="100" y="114" text-anchor="middle" font-size="10" font-weight="600" fill="#64748b">PROJECT DEMAND</text>
+          </svg>
+        </div>
+        <div class="chart-legend-grid">
+          <div class="legend-item" *ngFor="let s of getPieChartSlices(analytics.project_performance, 'buyers')">
+            <span class="legend-dot" [style.background-color]="s.color"></span>
+            <span class="legend-label" [matTooltip]="s.name">{{ s.name }}:</span>
+            <span class="legend-val">{{ s.val }} ({{ s.pct }}%)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 5: Scatter Plot -->
+    <div *ngIf="getEffectiveGraphType('project_performance') === 'scatter'" class="chart-box">
+      <svg class="svg-scatter-chart" viewBox="0 0 500 200">
+        <line x1="35" y1="165" x2="475" y2="165" stroke="#cbd5e1" stroke-width="1.5" />
+        <line x1="35" y1="25" x2="35" y2="165" stroke="#cbd5e1" stroke-width="1.5" />
+        <g *ngFor="let pt of getScatterPlotPoints(analytics.project_performance, 'buyers', 'high_intent', 500, 200)">
+          <circle [attr.cx]="pt.cx" [attr.cy]="pt.cy" [attr.r]="pt.r" [attr.fill]="pt.color" fill-opacity="0.8" stroke="#ffffff" stroke-width="1.5">
+            <title>{{ pt.name }} - Buyers: {{ pt.xVal }}, High Intent: {{ pt.yVal }}</title>
+          </circle>
+          <text [attr.x]="pt.cx" [attr.y]="pt.cy - 12" text-anchor="middle" font-size="10" font-weight="700" fill="#1e293b">{{ pt.name }}</text>
+        </g>
+        <text x="250" y="192" text-anchor="middle" font-size="10" fill="#64748b">X: Project Buyers &bull; Y: High Intent Qualified</text>
+      </svg>
+    </div>
+
+    <!-- VIEW 6: Histogram -->
+    <div *ngIf="getEffectiveGraphType('project_performance') === 'histogram'" class="chart-box">
+      <div class="histogram-wrap">
+        <div class="hist-bar-col" *ngFor="let bin of getHistogramBins(analytics.project_performance, 'buyers')">
+          <span class="hist-count-tag">{{ bin.count }} projects</span>
+          <div class="hist-track">
+            <div class="hist-fill bg-cyan" [style.height.%]="bin.pct"></div>
+          </div>
+          <span class="hist-bin-label">{{ bin.label }} buyers</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 7: Box Plot -->
+    <div *ngIf="getEffectiveGraphType('project_performance') === 'box'" class="chart-box">
+      <ng-container *ngIf="getBoxPlotStats(analytics.project_performance, 'buyers') as bp">
+        <div class="boxplot-container">
+          <div class="boxplot-stats-row">
+            <div class="bp-stat-pill"><span class="bp-lbl">MIN:</span> <strong>{{ bp.min }}</strong></div>
+            <div class="bp-stat-pill"><span class="bp-lbl">Q1:</span> <strong>{{ bp.q1 }}</strong></div>
+            <div class="bp-stat-pill highlight"><span class="bp-lbl">MEDIAN:</span> <strong>{{ bp.median }}</strong></div>
+            <div class="bp-stat-pill"><span class="bp-lbl">Q3:</span> <strong>{{ bp.q3 }}</strong></div>
+            <div class="bp-stat-pill"><span class="bp-lbl">MAX:</span> <strong>{{ bp.max }}</strong></div>
+          </div>
+          <div class="boxplot-visual-wrap">
+            <svg viewBox="0 0 480 80" class="bp-svg">
+              <line x1="40" y1="40" x2="440" y2="40" stroke="#94a3b8" stroke-width="2" />
+              <line x1="40" y1="25" x2="40" y2="55" stroke="#475569" stroke-width="2.5" />
+              <line x1="440" y1="25" x2="440" y2="55" stroke="#475569" stroke-width="2.5" />
+              <rect x="140" y="20" width="160" height="40" rx="4" fill="#e0f2fe" stroke="#0284c7" stroke-width="2" />
+              <line x1="210" y1="20" x2="210" y2="60" stroke="#0369a1" stroke-width="3" />
+            </svg>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+
+    <!-- VIEW 8: Heatmap -->
+    <div *ngIf="getEffectiveGraphType('project_performance') === 'heatmap'" class="chart-box">
+      <div class="heatmap-matrix">
+        <div class="heatmap-row" *ngFor="let row of getHeatmapMatrix(analytics.project_performance, 'project_performance')">
+          <span class="heatmap-row-label">{{ row.rowName }}</span>
+          <div class="heatmap-cells">
+            <div class="heatmap-cell" *ngFor="let c of row.cols" [style.background-color]="'rgba(2, 132, 199, ' + c.intensity + ')'" [class.cell-dark]="c.intensity > 0.45">
+              <span class="cell-lbl">{{ c.label }}:</span>
+              <span class="cell-val">{{ c.value }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 9: Treemap -->
+    <div *ngIf="getEffectiveGraphType('project_performance') === 'treemap'" class="chart-box">
+      <div class="treemap-grid">
+        <div class="treemap-tile" *ngFor="let tm of getTreemapItems(analytics.project_performance, 'buyers')" [style.flex-grow]="tm.flexGrow" [style.background-color]="tm.color">
+          <span class="tile-title">{{ tm.name }}</span>
+          <span class="tile-val">{{ tm.val }} buyers ({{ tm.pct }}%)</span>
+        </div>
+      </div>
     </div>
   </mat-card>
 </div>

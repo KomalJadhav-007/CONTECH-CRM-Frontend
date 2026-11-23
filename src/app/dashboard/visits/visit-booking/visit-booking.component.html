@@ -22,7 +22,8 @@
         {{ errorMessage }}
       </div>
 
-      <div *ngIf="driverWhatsAppWarning && !errorMessage" class="error-alert warning-alert" style="background: #fffbeb; border-color: #fde68a; color: #92400e; display: flex; align-items: center; gap: 0.5rem;">
+      <div *ngIf="driverWhatsAppWarning && !errorMessage" class="error-alert warning-alert"
+        style="background: #fffbeb; border-color: #fde68a; color: #92400e; display: flex; align-items: center; gap: 0.5rem;">
         <mat-icon style="font-size: 18px; width: 18px; height: 18px; color: #d97706;">warning</mat-icon>
         <span>{{ driverWhatsAppWarning }}</span>
       </div>
@@ -64,8 +65,8 @@
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>VISIT DATE</mat-label>
             <input #visitDateInput matInput type="date" [(ngModel)]="bookingData.scheduled_date"
-              (ngModelChange)="onDateChange()"
-              (click)="openDateTimePicker(visitDateInput)" name="scheduled_date" required />
+              (ngModelChange)="onDateChange()" (click)="openDateTimePicker(visitDateInput)" name="scheduled_date"
+              required />
             <button mat-icon-button matSuffix type="button"
               (click)="openDateTimePicker(visitDateInput); $event.stopPropagation()" matTooltip="Open Date Picker">
               <mat-icon>calendar_month</mat-icon>
@@ -77,7 +78,8 @@
             <mat-select [(ngModel)]="bookingData.time_slot" name="time_slot"
               (selectionChange)="onTimeSlotChange($event.value)">
               <mat-option *ngFor="let slot of timeSlots" [value]="slot" [disabled]="isSlotEnded(slot)">
-                {{ slot }} <span *ngIf="isSlotEnded(slot)" class="slot-avail-tag status-busy" style="margin-left: 0.4rem; font-size: 0.68rem;">Ended</span>
+                {{ slot }} <span *ngIf="isSlotEnded(slot)" class="slot-avail-tag status-busy"
+                  style="margin-left: 0.4rem; font-size: 0.68rem;">Ended</span>
               </mat-option>
               <mat-divider></mat-divider>
               <mat-option value="__create_new_slot__" class="create-new-option">
@@ -90,8 +92,10 @@
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>ASSIGNED SALES EXECUTIVE</mat-label>
             <mat-select [(ngModel)]="bookingData.sales_rep_id" name="sales_rep_id">
-              <mat-option *ngFor="let s of salesExecutives" [value]="s.user_id || s.id" [disabled]="isRepBusyInSelectedSlot(s.user_id || s.id)">
-                {{ s.name }} &mdash; <span class="slot-avail-tag" [ngClass]="getRepSlotStatusClass(s)">{{ getRepSlotStatusText(s) }}</span>
+              <mat-option *ngFor="let s of salesExecutives" [value]="s.user_id || s.id"
+                [disabled]="isRepBusyInSelectedSlot(s.user_id || s.id)">
+                {{ s.name }} &mdash; <span class="slot-avail-tag" [ngClass]="getRepSlotStatusClass(s)">{{
+                  getRepSlotStatusText(s) }}</span>
               </mat-option>
             </mat-select>
           </mat-form-field>
@@ -191,8 +195,10 @@
               <mat-select [(ngModel)]="bookingData.driver_id" (selectionChange)="onDriverSelect($event.value)"
                 name="driver_id">
                 <mat-option [value]="null">-- Select Company Driver / Auto-Dispatch --</mat-option>
-                <mat-option *ngFor="let d of drivers" [value]="d.user_id || d.id" [disabled]="isDriverBusyInSelectedSlot(d.user_id || d.id)">
-                  {{ d.name }} &mdash; <span class="slot-avail-tag" [ngClass]="getDriverSlotStatusClass(d)">{{ getDriverSlotStatusText(d) }}</span>
+                <mat-option *ngFor="let d of drivers" [value]="d.user_id || d.id"
+                  [disabled]="isDriverBusyInSelectedSlot(d.user_id || d.id)">
+                  {{ d.name }} &mdash; <span class="slot-avail-tag" [ngClass]="getDriverSlotStatusClass(d)">{{
+                    getDriverSlotStatusText(d) }}</span>
                 </mat-option>
               </mat-select>
             </mat-form-field>
@@ -208,15 +214,16 @@
             <mat-form-field appearance="outline" class="w-100">
               <mat-label>DRIVER WHATSAPP NUMBER (SPECIFIC)</mat-label>
               <mat-icon matPrefix class="field-icon" style="color: #10b981; margin-right: 6px;">phone</mat-icon>
-              <input matInput type="tel" [(ngModel)]="bookingData.driver_phone" (ngModelChange)="onDriverPhoneChange($event)"
-                name="driver_phone" placeholder="e.g. 7058533669" maxlength="15" />
+              <input matInput type="tel" [(ngModel)]="bookingData.driver_phone"
+                (ngModelChange)="onDriverPhoneChange($event)" name="driver_phone" placeholder="e.g. 7058533669"
+                maxlength="15" />
             </mat-form-field>
 
             <!-- Real-time WhatsApp Presence Feedback directly under the phone field -->
             <div *ngIf="driverWhatsAppStatus" class="driver-wa-live-badge"
-              [class.wa-present]="driverWhatsAppStatus.present"
-              [class.wa-not-present]="!driverWhatsAppStatus.present">
-              <mat-icon class="wa-badge-icon">{{ driverWhatsAppStatus.present ? 'check_circle' : 'error_outline' }}</mat-icon>
+              [class.wa-present]="driverWhatsAppStatus.present" [class.wa-not-present]="!driverWhatsAppStatus.present">
+              <mat-icon class="wa-badge-icon">{{ driverWhatsAppStatus.present ? 'check_circle' : 'error_outline'
+                }}</mat-icon>
               <span class="wa-badge-text">
                 {{ driverWhatsAppStatus.message }}
               </span>
@@ -226,8 +233,9 @@
           <div class="cab-input-container">
             <mat-form-field appearance="outline" class="w-100">
               <mat-label>DISPATCHED CAB REGISTRATION NO.</mat-label>
-              <input matInput type="text" [(ngModel)]="bookingData.cab_number" (ngModelChange)="onCabNumberChange($event)"
-                name="cab_number" placeholder="e.g. KA-01-MJ-8822" class="font-mono text-uppercase" />
+              <input matInput type="text" [(ngModel)]="bookingData.cab_number"
+                (ngModelChange)="onCabNumberChange($event)" name="cab_number" placeholder="e.g. KA-01-MJ-8822"
+                class="font-mono text-uppercase" />
             </mat-form-field>
 
             <div *ngIf="bookingData.cab_number" class="cab-assigned-badge">
@@ -241,7 +249,8 @@
           <mat-icon class="fleet-status-icon">directions_car</mat-icon>
           <div class="fleet-status-text">
             <span>
-              Assigned Driver: <strong>{{ getSelectedDriverName() }}</strong> ({{ getSelectedDriverPhone() || 'No Phone' }}) &bull;
+              Assigned Driver: <strong>{{ getSelectedDriverName() }}</strong> ({{ getSelectedDriverPhone() || 'No Phone'
+              }}) &bull;
               Dispatched Cab: <strong class="font-mono">{{ bookingData.cab_number || 'No Vehicle Assigned' }}</strong>
             </span>
             <span class="fleet-reassign-hint">
@@ -270,7 +279,8 @@
                 <span class="wa-badge">DIRECT BACKEND DISPATCH</span>
               </div>
               <p class="wa-desc">
-                When booked, trip assignment is dispatched directly from the server to <strong>{{ getSelectedDriverName() }}</strong>'s WhatsApp (+{{ getSelectedDriverCleanPhone() }}).
+                When booked, trip assignment is dispatched directly from the server to <strong>{{
+                  getSelectedDriverName() }}</strong>'s WhatsApp (+{{ getSelectedDriverCleanPhone() }}).
                 <strong>Zero browser redirection:</strong> executed 100% in backend without opening WhatsApp Web.
               </p>
             </div>
@@ -308,9 +318,11 @@
 
   <!-- Automatic WhatsApp Pop-up Modal (Zero Browser Redirection) -->
   <div *ngIf="showWhatsAppModal" class="modal-backdrop" (click)="closeWhatsAppPopup()">
-    <div class="modal-card modal-wa-popup" (click)="$event.stopPropagation()" [ngClass]="{'popup-not-present': whatsAppModalType === 'NOT_PRESENT', 'popup-success': whatsAppModalType === 'SUCCESS'}">
+    <div class="modal-card modal-wa-popup" (click)="$event.stopPropagation()"
+      [ngClass]="{'popup-not-present': whatsAppModalType === 'NOT_PRESENT', 'popup-success': whatsAppModalType === 'SUCCESS'}">
       <div class="wa-popup-header">
-        <div class="wa-popup-icon-wrapper" [ngClass]="{'icon-warn': whatsAppModalType === 'NOT_PRESENT', 'icon-check': whatsAppModalType === 'SUCCESS'}">
+        <div class="wa-popup-icon-wrapper"
+          [ngClass]="{'icon-warn': whatsAppModalType === 'NOT_PRESENT', 'icon-check': whatsAppModalType === 'SUCCESS'}">
           <mat-icon *ngIf="whatsAppModalType === 'NOT_PRESENT'">warning_amber</mat-icon>
           <mat-icon *ngIf="whatsAppModalType === 'SUCCESS'">check_circle</mat-icon>
         </div>
@@ -355,7 +367,9 @@
 
         <div *ngIf="whatsAppModalType === 'NOT_PRESENT'" class="wa-popup-help">
           <mat-icon class="help-icon">info</mat-icon>
-          <span>The site visit is booked, but this driver cannot receive automated WhatsApp trip coordinates because their mobile number is not registered on WhatsApp. You can update the driver's phone in <strong>Settings &rarr; Users &amp; Roles</strong>.</span>
+          <span>The site visit is booked, but this driver cannot receive automated WhatsApp trip coordinates because
+            their mobile number is not registered on WhatsApp. You can update the driver's phone in <strong>Settings
+              &rarr; Users &amp; Roles</strong>.</span>
         </div>
       </div>
 
