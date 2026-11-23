@@ -24,6 +24,32 @@
     {{ statusMessage }}
   </div>
 
+  <!-- Live Driver Real-Time Duty Status Card -->
+  <div class="driver-live-duty-card" [ngClass]="liveDutyStatus.class" *ngIf="trips.length > 0">
+    <div class="duty-card-left">
+      <div class="duty-icon-box">
+        <mat-icon>{{ liveDutyStatus.icon }}</mat-icon>
+      </div>
+      <div class="duty-text-box">
+        <div class="duty-status-badge-row">
+          <span class="duty-pill">{{ liveDutyStatus.pillText }}</span>
+          <span class="duty-title">{{ liveDutyStatus.title }}</span>
+        </div>
+        <p class="duty-subtitle">{{ liveDutyStatus.subtitle }}</p>
+      </div>
+    </div>
+    <div class="duty-card-right" *ngIf="!isAdminOrSuperAdmin && liveDutyStatus.activeTrip && liveDutyStatus.status === 'BUSY'">
+      <button
+        mat-flat-button
+        class="duty-quick-action-btn"
+        (click)="updateStatus(liveDutyStatus.activeTrip, 'COMPLETED')"
+        [disabled]="updatingId === liveDutyStatus.activeTrip.id"
+      >
+        <mat-icon>stop</mat-icon> End Trip &amp; Become Available
+      </button>
+    </div>
+  </div>
+
   <!-- Trips Filter Bar -->
   <div class="filters-bar" *ngIf="trips.length > 0 || selectedProject !== 'all'">
     <div class="filter-tabs-group">
@@ -200,7 +226,26 @@
           <mat-icon style="margin-right: 6px; color: #16a34a;">check_circle</mat-icon> Trip Completed
         </button>
 
-        <!-- Driver Real-Time Availability Notification -->
+        <!-- Driver Real-Time Status Notification per Card -->
+        <!-- Ongoing Active Trip -->
+        <div *ngIf="trip.trip_status === 'STARTED' || trip.trip_status === 'ARRIVED_PICKUP' || trip.trip_status === 'PASSENGER_ONBOARD'" class="driver-busy-status-badge on-trip">
+          <mat-icon class="busy-icon">timelapse</mat-icon>
+          <div class="busy-text">
+            <span class="busy-title">STATUS: BUSY (TRIP IN PROGRESS)</span>
+            <span class="busy-subtitle">Currently en route. Once you click "End Trip", you become AVAILABLE for next booking.</span>
+          </div>
+        </div>
+
+        <!-- Assigned Trip -->
+        <div *ngIf="trip.trip_status === 'ASSIGNED'" class="driver-busy-status-badge assigned">
+          <mat-icon class="busy-icon">pending_actions</mat-icon>
+          <div class="busy-text">
+            <span class="busy-title">STATUS: RESERVED (PICKUP SCHEDULED)</span>
+            <span class="busy-subtitle">Reserved for this visit. Click "Start Trip" to commence transit.</span>
+          </div>
+        </div>
+
+        <!-- Completed Trip: Driver Released & Available -->
         <div *ngIf="trip.trip_status === 'COMPLETED'" class="driver-available-status-badge">
           <mat-icon class="avail-icon">verified</mat-icon>
           <div class="avail-text">

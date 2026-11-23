@@ -837,3 +837,227 @@
   color: #166534;
   font-weight: 500;
 }
+
+/* Driver Busy / Reserved Badges per Card */
+.driver-busy-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  border-radius: 8px;
+  padding: 0.65rem 0.85rem;
+  margin-top: 0.6rem;
+  width: 100%;
+}
+
+.driver-busy-status-badge.on-trip {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+}
+
+.driver-busy-status-badge.on-trip .busy-icon {
+  color: #ea580c;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.driver-busy-status-badge.on-trip .busy-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #c2410c;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.driver-busy-status-badge.on-trip .busy-subtitle {
+  font-size: 0.74rem;
+  color: #9a3412;
+  font-weight: 500;
+}
+
+.driver-busy-status-badge.assigned {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+}
+
+.driver-busy-status-badge.assigned .busy-icon {
+  color: #2563eb;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.driver-busy-status-badge.assigned .busy-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #1d4ed8;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.driver-busy-status-badge.assigned .busy-subtitle {
+  font-size: 0.74rem;
+  color: #1e40af;
+  font-weight: 500;
+}
+
+/* Live Driver Duty Status Top Banner */
+.driver-live-duty-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.25rem;
+  border-radius: 12px;
+  padding: 1rem 1.4rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+}
+
+.driver-live-duty-card.duty-available {
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  border: 1.5px solid #86efac;
+}
+
+.driver-live-duty-card.duty-busy {
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+  border: 1.5px solid #fdba74;
+}
+
+.driver-live-duty-card.duty-assigned {
+  background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+  border: 1.5px solid #93c5fd;
+}
+
+.duty-card-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.duty-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.duty-available .duty-icon-box {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.duty-busy .duty-icon-box {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.duty-assigned .duty-icon-box {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.duty-icon-box mat-icon {
+  font-size: 26px;
+  width: 26px;
+  height: 26px;
+}
+
+.duty-text-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.duty-status-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.duty-pill {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+.duty-available .duty-pill {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.duty-busy .duty-pill {
+  background: #ea580c;
+  color: #ffffff;
+}
+
+.duty-assigned .duty-pill {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.duty-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.duty-available .duty-title {
+  color: #14532d;
+}
+
+.duty-busy .duty-title {
+  color: #7c2d12;
+}
+
+.duty-assigned .duty-title {
+  color: #1e3a8a;
+}
+
+.duty-subtitle {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.duty-available .duty-subtitle {
+  color: #15803d;
+}
+
+.duty-busy .duty-subtitle {
+  color: #9a3412;
+}
+
+.duty-assigned .duty-subtitle {
+  color: #1e40af;
+}
+
+.duty-card-right {
+  flex-shrink: 0;
+}
+
+.duty-quick-action-btn {
+  background: #ea580c !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  font-size: 0.82rem !important;
+  border-radius: 8px !important;
+  padding: 0.45rem 1rem !important;
+  box-shadow: 0 2px 6px rgba(234, 88, 12, 0.3) !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.duty-quick-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(234, 88, 12, 0.4) !important;
+}

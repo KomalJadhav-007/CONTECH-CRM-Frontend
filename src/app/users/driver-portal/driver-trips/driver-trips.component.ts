@@ -124,6 +124,79 @@ export class DriverTripsComponent implements OnInit {
     return list.filter(t => t.trip_status === 'COMPLETED').length;
   }
 
+  get liveDutyStatus(): {
+    status: 'AVAILABLE' | 'BUSY' | 'ASSIGNED',
+    pillText: string,
+    title: string,
+    subtitle: string,
+    icon: string,
+    class: string,
+    activeTrip?: any
+  } {
+    if (this.isAdminOrSuperAdmin) {
+      const activeCount = this.activeTripsCount;
+      const completedCount = this.completedTripsCount;
+      if (activeCount > 0) {
+        return {
+          status: 'BUSY',
+          pillText: 'LIVE FLEET DISPATCH',
+          title: `FLEET STATUS: ${activeCount} ACTIVE JOURNEYS IN TRANSIT`,
+          subtitle: `${activeCount} driver(s) currently en route. Once a driver completes their trip, they are immediately released to AVAILABLE.`,
+          icon: 'directions_car',
+          class: 'duty-busy'
+        };
+      }
+      return {
+        status: 'AVAILABLE',
+        pillText: 'FLEET READY',
+        title: 'FLEET STATUS: ALL DRIVERS & VEHICLES AVAILABLE',
+        subtitle: `All ${completedCount} site visit trips completed. Drivers & vehicles are released and available for next site visit booking.`,
+        icon: 'verified',
+        class: 'duty-available'
+      };
+    }
+
+    // Individual Driver View: Once the trip is completed, driver is available
+    const ongoingTrip = this.trips.find(t =>
+      t.trip_status === 'STARTED' ||
+      t.trip_status === 'ARRIVED_PICKUP' ||
+      t.trip_status === 'PASSENGER_ONBOARD'
+    );
+    if (ongoingTrip) {
+      return {
+        status: 'BUSY',
+        pillText: 'DUTY STATUS: BUSY',
+        title: `ON ACTIVE TRIP (${ongoingTrip.siteVisit?.time_slot || 'Today'})`,
+        subtitle: `En route with passenger ${ongoingTrip.passenger_name || 'Buyer'} (${ongoingTrip.passenger_phone || ''}). Once you complete this trip, your status immediately becomes AVAILABLE for next booking.`,
+        icon: 'directions_car',
+        class: 'duty-busy',
+        activeTrip: ongoingTrip
+      };
+    }
+
+    const assignedTrip = this.trips.find(t => t.trip_status === 'ASSIGNED');
+    if (assignedTrip) {
+      return {
+        status: 'ASSIGNED',
+        pillText: 'DUTY STATUS: RESERVED',
+        title: `SCHEDULED FOR UPCOMING PICKUP (${assignedTrip.siteVisit?.time_slot || 'Today'})`,
+        subtitle: `Assigned for passenger ${assignedTrip.passenger_name || 'Buyer'}. Click "Start Trip" when commencing transit.`,
+        icon: 'pending_actions',
+        class: 'duty-assigned',
+        activeTrip: assignedTrip
+      };
+    }
+
+    return {
+      status: 'AVAILABLE',
+      pillText: 'DUTY STATUS: AVAILABLE',
+      title: 'STATUS: AVAILABLE (READY FOR NEXT BOOKING)',
+      subtitle: 'All assigned site visit trips are completed. Driver and vehicle released to fleet pool and available for new dispatches.',
+      icon: 'verified',
+      class: 'duty-available'
+    };
+  }
+
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
     if (this.currentUser && (this.currentUser.is_active === false || this.currentUser.is_active === 0 || this.currentUser.is_active === '0' || this.currentUser.is_active === 'false')) {

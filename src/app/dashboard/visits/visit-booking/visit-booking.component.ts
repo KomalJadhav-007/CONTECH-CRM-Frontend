@@ -182,7 +182,13 @@ export class VisitBookingComponent implements OnInit {
     const vId = vehicleId ? Number(vehicleId) : null;
     const cleanCab = cabNumber ? cabNumber.trim().toUpperCase() : null;
     return this.dateVisits.some(v => {
-      if (v.status === 'CANCELLED' || v.time_slot !== this.bookingData.time_slot) return false;
+      if (
+        v.status === 'CANCELLED' ||
+        v.status === 'COMPLETED' ||
+        v.trip?.trip_status === 'COMPLETED' ||
+        v.status === 'DROPPED_AT_SITE' ||
+        v.time_slot !== this.bookingData.time_slot
+      ) return false;
       if (vId && v.vehicle_id === vId) return true;
       if (cleanCab && v.cab_number && v.cab_number.trim().toUpperCase() === cleanCab) return true;
       return false;
