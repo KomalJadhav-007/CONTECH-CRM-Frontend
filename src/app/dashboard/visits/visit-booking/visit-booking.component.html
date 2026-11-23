@@ -247,6 +247,34 @@
           </div>
         </div>
 
+        <!-- Free WhatsApp Automated API Configuration Bar -->
+        <div class="whatsapp-free-api-strip" *ngIf="bookingData.cab_required">
+          <div class="api-strip-content">
+            <mat-icon class="strip-icon">bolt</mat-icon>
+            <div class="strip-text">
+              <span class="strip-title">FREE WHATSAPP API AUTO-DISPATCH (CALLMEBOT)</span>
+              <span class="strip-sub">Enter the driver's free CallMeBot API key for 100% automated background delivery to their phone.</span>
+            </div>
+          </div>
+          <div class="api-strip-input-group">
+            <input
+              type="text"
+              [(ngModel)]="bookingData.whatsapp_api_key"
+              name="whatsapp_api_key"
+              placeholder="CallMeBot Free API Key (e.g. 123456)"
+              class="api-key-input"
+            />
+            <a
+              href="https://wa.me/34941830740?text=I%20allow%20callmebot%20to%20send%20me%20messages"
+              target="_blank"
+              class="btn-get-key"
+              title="Click to send 'I allow callmebot to send me messages' on WhatsApp to get your free key"
+            >
+              Get Free Key &rarr;
+            </a>
+          </div>
+        </div>
+
         <div class="fleet-assignment-status" *ngIf="bookingData.cab_required">
           <mat-icon class="fleet-status-icon">directions_car</mat-icon>
           <div class="fleet-status-text">
@@ -318,15 +346,24 @@
     </form>
   </mat-card>
 
-  <!-- Automatic WhatsApp Pop-up Modal (Zero Browser Redirection) -->
+  <!-- Automatic WhatsApp Pop-up Modal (Zero Browser Redirection & Free API Hub) -->
   <div *ngIf="showWhatsAppModal" class="modal-backdrop" (click)="closeWhatsAppPopup()">
     <div class="modal-card modal-wa-popup" (click)="$event.stopPropagation()"
-      [ngClass]="{'popup-not-present': whatsAppModalType === 'NOT_PRESENT', 'popup-success': whatsAppModalType === 'SUCCESS'}">
+      [ngClass]="{
+        'popup-not-present': whatsAppModalType === 'NOT_PRESENT',
+        'popup-success': whatsAppModalType === 'SUCCESS',
+        'popup-action': whatsAppModalType === 'ACTION_REQUIRED' || whatsAppModalType === 'INVALID_KEY'
+      }">
       <div class="wa-popup-header">
         <div class="wa-popup-icon-wrapper"
-          [ngClass]="{'icon-warn': whatsAppModalType === 'NOT_PRESENT', 'icon-check': whatsAppModalType === 'SUCCESS'}">
+          [ngClass]="{
+            'icon-warn': whatsAppModalType === 'NOT_PRESENT',
+            'icon-check': whatsAppModalType === 'SUCCESS',
+            'icon-action': whatsAppModalType === 'ACTION_REQUIRED' || whatsAppModalType === 'INVALID_KEY'
+          }">
           <mat-icon *ngIf="whatsAppModalType === 'NOT_PRESENT'">warning_amber</mat-icon>
           <mat-icon *ngIf="whatsAppModalType === 'SUCCESS'">check_circle</mat-icon>
+          <mat-icon *ngIf="whatsAppModalType === 'ACTION_REQUIRED' || whatsAppModalType === 'INVALID_KEY'">chat</mat-icon>
         </div>
         <div class="wa-popup-title-area">
           <div class="wa-popup-pretitle">WHATSAPP DIRECT SERVER DISPATCH</div>
@@ -352,6 +389,13 @@
           </div>
         </div>
 
+        <div *ngIf="whatsAppModalType === 'ACTION_REQUIRED' || whatsAppModalType === 'INVALID_KEY'" class="wa-popup-alert-box alert-info">
+          <mat-icon class="box-icon">info</mat-icon>
+          <div class="box-text">
+            <strong>{{ whatsAppModalMessage }}</strong>
+          </div>
+        </div>
+
         <div class="wa-popup-details">
           <div class="detail-row">
             <span class="detail-label">Assigned Driver:</span>
@@ -362,8 +406,41 @@
             <span class="detail-val font-mono">{{ whatsAppModalPhone || 'No phone registered' }}</span>
           </div>
           <div class="detail-row">
-            <span class="detail-label">Dispatch Method:</span>
-            <span class="detail-val">Backend Server API (Zero browser redirection)</span>
+            <span class="detail-label">Dispatch Engine:</span>
+            <span class="detail-val">CallMeBot Free WhatsApp API (Automated Background Dispatch)</span>
+          </div>
+        </div>
+
+        <!-- 1-Click WhatsApp Direct Fallback if key is not active -->
+        <div *ngIf="(whatsAppModalType === 'ACTION_REQUIRED' || whatsAppModalType === 'INVALID_KEY') && whatsAppModalWaUrl" class="wa-direct-send-block">
+          <div class="wa-action-caption">
+            <span>Instant 1-Click Message:</span>
+          </div>
+          <button mat-stroked-button type="button" class="btn-wa-direct-send" (click)="sendViaDirectWhatsApp()">
+            <mat-icon>send</mat-icon>
+            <span>Open &amp; Send to {{ whatsAppModalDriverName }} on WhatsApp</span>
+          </button>
+        </div>
+
+        <!-- Setup Free CallMeBot Key for Future Automatic Background Dispatches -->
+        <div *ngIf="whatsAppModalType === 'ACTION_REQUIRED' || whatsAppModalType === 'INVALID_KEY'" class="wa-key-setup-box">
+          <div class="setup-header">
+            <mat-icon class="setup-icon">bolt</mat-icon>
+            <span class="setup-title">Activate Free 100% Background WhatsApp Dispatch:</span>
+          </div>
+          <div class="setup-instructions">
+            <ol>
+              <li>Driver sends <code>I allow callmebot to send me messages</code> to <strong>+34 941 83 07 40</strong> on WhatsApp.</li>
+              <li>CallMeBot instantly sends back their 6-digit API Key (100% Free).</li>
+              <li>Paste it here to link automatic background dispatch for this driver:</li>
+            </ol>
+          </div>
+          <div class="key-input-row">
+            <input type="text" [(ngModel)]="whatsAppInputApiKey" [ngModelOptions]="{standalone: true}" placeholder="Enter CallMeBot API Key (e.g. 123456)" class="api-key-input" />
+            <button mat-flat-button color="primary" type="button" class="btn-save-key" [disabled]="isSavingApiKey || !whatsAppInputApiKey" (click)="saveCallMeBotKeyAndTest()">
+              <span *ngIf="!isSavingApiKey">Save &amp; Test Free API</span>
+              <span *ngIf="isSavingApiKey">Testing...</span>
+            </button>
           </div>
         </div>
 
@@ -379,6 +456,7 @@
         <button mat-flat-button color="primary" type="button" (click)="closeWhatsAppPopup()" class="btn-wa-dismiss">
           <span *ngIf="whatsAppModalType === 'NOT_PRESENT'">Acknowledge &amp; Review Booking</span>
           <span *ngIf="whatsAppModalType === 'SUCCESS'">Go to Visits Command Hub &rarr;</span>
+          <span *ngIf="whatsAppModalType === 'ACTION_REQUIRED' || whatsAppModalType === 'INVALID_KEY'">Done &amp; Go to Visits &rarr;</span>
         </button>
       </div>
     </div>
