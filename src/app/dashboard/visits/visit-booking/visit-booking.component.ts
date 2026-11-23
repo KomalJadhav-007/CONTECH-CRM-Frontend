@@ -622,7 +622,7 @@ export class VisitBookingComponent implements OnInit {
         this.driverWhatsAppStatus = {
           present: false,
           phone: 'no phone specified',
-          message: 'No phone number specified for assigned driver.'
+          message: 'Enter driver WhatsApp number'
         };
         this.driverWhatsAppWarning = 'No phone number specified for assigned driver. Enter a valid mobile number to enable direct backend WhatsApp dispatch.';
       } else {
@@ -662,14 +662,14 @@ export class VisitBookingComponent implements OnInit {
       this.driverWhatsAppStatus = {
         present: false,
         phone: rawPhone,
-        message: `WhatsApp is not present for this number (${rawPhone}): Must be a valid 10-digit mobile number.`
+        message: `WhatsApp not present for this number (${rawPhone})`
       };
       this.driverWhatsAppWarning = `WhatsApp is not present for this number (${rawPhone}). Please enter a valid 10-digit mobile number.`;
     } else {
       this.driverWhatsAppStatus = {
         present: true,
         phone: cleanPhone,
-        message: `Direct WhatsApp active (+${cleanPhone}). Trip details will be dispatched directly by backend (zero browser redirection).`
+        message: `Direct WhatsApp active (+${cleanPhone})`
       };
       this.driverWhatsAppWarning = '';
     }

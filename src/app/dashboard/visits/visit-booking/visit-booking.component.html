@@ -210,16 +210,14 @@
               <mat-icon matPrefix class="field-icon" style="color: #10b981; margin-right: 6px;">phone</mat-icon>
               <input matInput type="tel" [(ngModel)]="bookingData.driver_phone" (ngModelChange)="onDriverPhoneChange($event)"
                 name="driver_phone" placeholder="e.g. 7058533669" maxlength="15" />
-              <mat-hint>Backend sends WhatsApp trip alert to this specific number</mat-hint>
             </mat-form-field>
 
             <!-- Real-time WhatsApp Presence Feedback directly under the phone field -->
             <div *ngIf="driverWhatsAppStatus" class="driver-wa-live-badge"
               [class.wa-present]="driverWhatsAppStatus.present"
               [class.wa-not-present]="!driverWhatsAppStatus.present">
-              <mat-icon class="wa-badge-icon">{{ driverWhatsAppStatus.present ? 'check_circle' : 'error' }}</mat-icon>
+              <mat-icon class="wa-badge-icon">{{ driverWhatsAppStatus.present ? 'check_circle' : 'error_outline' }}</mat-icon>
               <span class="wa-badge-text">
-                <strong *ngIf="!driverWhatsAppStatus.present">WhatsApp is not present for this number: </strong>
                 {{ driverWhatsAppStatus.message }}
               </span>
             </div>
@@ -230,8 +228,12 @@
               <mat-label>DISPATCHED CAB REGISTRATION NO.</mat-label>
               <input matInput type="text" [(ngModel)]="bookingData.cab_number" (ngModelChange)="onCabNumberChange($event)"
                 name="cab_number" placeholder="e.g. KA-01-MJ-8822" class="font-mono text-uppercase" />
-              <mat-hint>Assign any company fleet car or alternate vehicle</mat-hint>
             </mat-form-field>
+
+            <div *ngIf="bookingData.cab_number" class="cab-assigned-badge">
+              <mat-icon>directions_car</mat-icon>
+              <span>Dispatched: <strong>{{ bookingData.cab_number }}</strong></span>
+            </div>
           </div>
         </div>
 

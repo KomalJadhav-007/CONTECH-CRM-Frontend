@@ -636,7 +636,9 @@
 }
 
 /* Driver WhatsApp presence live badges and banners */
-.driver-select-container {
+.driver-select-container,
+.driver-phone-container,
+.cab-input-container {
   display: flex;
   flex-direction: column;
   position: relative;
@@ -645,15 +647,28 @@
 }
 
 .driver-wa-live-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  margin-top: 0.35rem;
+  margin-bottom: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  line-height: 1.35;
+  box-sizing: border-box;
+}
+
+.driver-wa-live-badge .wa-badge-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.78rem;
-  font-weight: 600;
-  margin-top: 0.35rem;
-  padding: 0.35rem 0.65rem;
-  border-radius: 6px;
-  line-height: 1.3;
+  justify-content: center;
 }
 
 .driver-wa-live-badge.wa-checking {
@@ -664,14 +679,50 @@
 
 .driver-wa-live-badge.wa-present {
   background: #f0fdf4;
-  color: #166534;
+  color: #15803d;
   border: 1px solid #bbf7d0;
+}
+
+.driver-wa-live-badge.wa-present .wa-badge-icon {
+  color: #16a34a;
 }
 
 .driver-wa-live-badge.wa-not-present {
   background: #fef2f2;
-  color: #991b1b;
+  color: #dc2626;
   border: 1px solid #fecaca;
+}
+
+.driver-wa-live-badge.wa-not-present .wa-badge-icon {
+  color: #dc2626;
+}
+
+.cab-assigned-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  margin-top: 0.35rem;
+  margin-bottom: 0.5rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+  font-weight: 500;
+  box-sizing: border-box;
+}
+
+.cab-assigned-badge mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  flex-shrink: 0;
+  color: #64748b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .wa-not-present-warning-pill {
