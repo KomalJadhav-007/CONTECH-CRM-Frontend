@@ -149,13 +149,20 @@ export class VisitBookingComponent implements OnInit {
     return now.getTime() >= slotEndTime.getTime();
   }
 
+  // Normalize time slot strings (handles en-dashes, hyphens, and whitespace differences)
+  normalizeSlot(slot: string | null | undefined): string {
+    if (!slot) return '';
+    return String(slot).replace(/[–—]/g, '-').replace(/\s+/g, ' ').trim().toUpperCase();
+  }
+
   // Bug 9 & 13 Fix: Check if sales executive is busy in chosen slot
   isRepBusyInSelectedSlot(repId: any): boolean {
     if (!repId || !this.bookingData.time_slot) return false;
     const targetId = Number(repId);
+    const curSlot = this.normalizeSlot(this.bookingData.time_slot);
     return this.dateVisits.some(v =>
       (v.sales_rep_id === targetId || v.salesRep?.user_id === targetId) &&
-      v.time_slot === this.bookingData.time_slot &&
+      this.normalizeSlot(v.time_slot) === curSlot &&
       v.status !== 'CANCELLED' &&
       v.status !== 'COMPLETED' &&
       v.status !== 'DROPPED_AT_SITE'
@@ -166,9 +173,10 @@ export class VisitBookingComponent implements OnInit {
   isDriverBusyInSelectedSlot(driverId: any): boolean {
     if (!driverId || !this.bookingData.time_slot) return false;
     const targetId = Number(driverId);
+    const curSlot = this.normalizeSlot(this.bookingData.time_slot);
     return this.dateVisits.some(v =>
       (v.driver_id === targetId || v.driver?.user_id === targetId) &&
-      v.time_slot === this.bookingData.time_slot &&
+      this.normalizeSlot(v.time_slot) === curSlot &&
       v.status !== 'CANCELLED' &&
       v.status !== 'COMPLETED' &&
       v.trip?.trip_status !== 'COMPLETED' &&
@@ -181,13 +189,14 @@ export class VisitBookingComponent implements OnInit {
     if (!this.bookingData.time_slot) return false;
     const vId = vehicleId ? Number(vehicleId) : null;
     const cleanCab = cabNumber ? cabNumber.trim().toUpperCase() : null;
+    const curSlot = this.normalizeSlot(this.bookingData.time_slot);
     return this.dateVisits.some(v => {
       if (
         v.status === 'CANCELLED' ||
         v.status === 'COMPLETED' ||
         v.trip?.trip_status === 'COMPLETED' ||
         v.status === 'DROPPED_AT_SITE' ||
-        v.time_slot !== this.bookingData.time_slot
+        this.normalizeSlot(v.time_slot) !== curSlot
       ) return false;
       if (vId && v.vehicle_id === vId) return true;
       if (cleanCab && v.cab_number && v.cab_number.trim().toUpperCase() === cleanCab) return true;
@@ -211,8 +220,8 @@ export class VisitBookingComponent implements OnInit {
 
   getDriverSlotStatusText(driver: any): string {
     const dId = driver.user_id || driver.id;
-    const currentSlot = this.bookingData.time_slot;
-    const sameSlotVisit = this.dateVisits.find(v => (v.driver_id === dId || v.driver?.user_id === dId) && v.time_slot === currentSlot);
+    const currentSlot = this.normalizeSlot(this.bookingData.time_slot);
+    const sameSlotVisit = this.dateVisits.find(v => (v.driver_id === dId || v.driver?.user_id === dId) && this.normalizeSlot(v.time_slot) === currentSlot);
 
     if (sameSlotVisit) {
       const isCompleted = sameSlotVisit.status === 'COMPLETED' || sameSlotVisit.trip?.trip_status === 'COMPLETED' || sameSlotVisit.status === 'DROPPED_AT_SITE';
@@ -238,6 +247,60 @@ export class VisitBookingComponent implements OnInit {
     if (text.includes('Busy')) return 'status-busy';
     if (text.includes('Trip Completed')) return 'status-available-completed';
     return 'status-available';
+  }
+
+  getVehicleSlotStatusText(vehicleId: any, cabNumber?: string): string {
+    if (!this.bookingData.time_slot) return 'Available';
+    const vId = vehicleId ? Number(vehicleId) : null;
+    const cleanCab = cabNumber ? cabNumber.trim().toUpperCase() : null;
+    const curSlot = this.normalizeSlot(this.bookingData.time_slot);
+
+    const sameSlotVisit = this.dateVisits.find(v => {
+      if (this.normalizeSlot(v.time_slot) !== curSlot) return false;
+      if (vId && v.vehicle_id === vId) return true;
+      if (cleanCab && v.cab_number && v.cab_number.trim().toUpperCase() === cleanCab) return true;
+      return false;
+    });
+
+    if (sameSlotVisit) {
+      const isCompleted = sameSlotVisit.status === 'COMPLETED' || sameSlotVisit.trip?.trip_status === 'COMPLETED' || sameSlotVisit.status === 'DROPPED_AT_SITE';
+      if (isCompleted) {
+        return 'Available (Trip Completed)';
+      }
+      if (sameSlotVisit.status === 'CANCELLED') {
+        return 'Available';
+      }
+      return 'Busy (In Slot)';
+    }
+
+    const hasCompletedTrip = this.dateVisits.some(v => {
+      const matchVehicle = (vId && v.vehicle_id === vId) || (cleanCab && v.cab_number && v.cab_number.trim().toUpperCase() === cleanCab);
+      return matchVehicle && (v.status === 'COMPLETED' || v.trip?.trip_status === 'COMPLETED' || v.status === 'DROPPED_AT_SITE');
+    });
+    if (hasCompletedTrip) {
+      return 'Available (Trip Completed)';
+    }
+
+    return 'Available';
+  }
+
+  getVehicleSlotStatusClass(vehicleId: any, cabNumber?: string): string {
+    const text = this.getVehicleSlotStatusText(vehicleId, cabNumber);
+    if (text.includes('Busy')) return 'status-busy';
+    if (text.includes('Trip Completed')) return 'status-available-completed';
+    return 'status-available';
+  }
+
+  getVehicleAvailabilitySummary(vehicleId: any, cabNumber?: string): string {
+    const cab = cabNumber || 'selected vehicle';
+    const text = this.getVehicleSlotStatusText(vehicleId, cabNumber);
+    if (text.includes('Trip Completed')) {
+      return `Vehicle ${cab} is AVAILABLE (Previous trip completed; released for new bookings).`;
+    }
+    if (text.includes('Busy')) {
+      return `Vehicle ${cab} is currently assigned to an active site visit in slot ${this.bookingData.time_slot}.`;
+    }
+    return `Vehicle ${cab} is AVAILABLE for this slot.`;
   }
 
   getRepSlotStatusText(rep: any): string {

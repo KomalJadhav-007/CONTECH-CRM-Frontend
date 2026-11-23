@@ -238,9 +238,11 @@
                 class="font-mono text-uppercase" />
             </mat-form-field>
 
-            <div *ngIf="bookingData.cab_number" class="cab-assigned-badge">
-              <mat-icon>directions_car</mat-icon>
-              <span>Dispatched: <strong>{{ bookingData.cab_number }}</strong></span>
+            <!-- Real-time Vehicle Availability Feedback directly under the vehicle field -->
+            <div *ngIf="bookingData.cab_number" class="cab-assigned-badge"
+              [ngClass]="getVehicleSlotStatusClass(bookingData.vehicle_id, bookingData.cab_number)">
+              <mat-icon>{{ isVehicleBusyInSelectedSlot(bookingData.vehicle_id, bookingData.cab_number) ? 'warning' : 'verified' }}</mat-icon>
+              <span>{{ getVehicleAvailabilitySummary(bookingData.vehicle_id, bookingData.cab_number) }}</span>
             </div>
           </div>
         </div>

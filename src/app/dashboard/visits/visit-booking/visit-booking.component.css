@@ -711,6 +711,29 @@
   color: #334155;
   font-weight: 500;
   box-sizing: border-box;
+  transition: all 0.15s ease;
+}
+
+.cab-assigned-badge.status-available,
+.cab-assigned-badge.status-available-completed {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+.cab-assigned-badge.status-available mat-icon,
+.cab-assigned-badge.status-available-completed mat-icon {
+  color: #16a34a !important;
+}
+
+.cab-assigned-badge.status-busy {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.cab-assigned-badge.status-busy mat-icon {
+  color: #dc2626 !important;
 }
 
 .cab-assigned-badge mat-icon {
