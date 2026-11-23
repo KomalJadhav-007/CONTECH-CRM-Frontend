@@ -170,6 +170,42 @@
 }
 
 /* Grids */
+.phone-country-input-wrap {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.country-code-field {
+  width: 120px;
+  flex-shrink: 0;
+}
+
+.phone-number-field {
+  flex: 1;
+}
+
+.budget-warning-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  padding: 0.45rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 0.85rem;
+}
+
+.budget-warning-badge mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #dc2626;
+}
+
 .form-grid-3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

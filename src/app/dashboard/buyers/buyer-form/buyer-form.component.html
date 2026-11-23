@@ -85,25 +85,41 @@
 
             <div class="form-grid-3">
               <mat-form-field appearance="outline" class="w-full">
-                <mat-label>Full Name</mat-label>
+                <mat-label>Full Name *</mat-label>
                 <mat-icon matPrefix class="field-icon">person</mat-icon>
                 <input matInput type="text" [(ngModel)]="buyerData.full_name" name="full_name" placeholder="e.g. Rahul Sharma" required />
               </mat-form-field>
 
-              <mat-form-field appearance="outline" class="w-full">
-                <mat-label>Phone Number</mat-label>
-                <mat-icon matPrefix class="field-icon">phone</mat-icon>
-                <input
-                  matInput
-                  type="tel"
-                  [(ngModel)]="buyerData.phone"
-                  name="phone"
-                  (blur)="checkDuplicateContact()"
-                  placeholder="7058533669"
-                  required
-                />
-              </mat-form-field>
+              <!-- Phone with Country Code & Length Limits (Bugs 3, 4, 5) -->
+              <div class="phone-country-input-wrap">
+                <mat-form-field appearance="outline" class="country-code-field">
+                  <mat-label>Country</mat-label>
+                  <mat-select [(ngModel)]="buyerData.country_code" name="country_code">
+                    <mat-option *ngFor="let c of countryCodes" [value]="c.code">
+                      {{ c.label }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
 
+                <mat-form-field appearance="outline" class="phone-number-field">
+                  <mat-label>Phone Number *</mat-label>
+                  <mat-icon matPrefix class="field-icon">phone</mat-icon>
+                  <input
+                    matInput
+                    type="tel"
+                    [(ngModel)]="buyerData.phone"
+                    name="phone"
+                    (input)="onPhoneInput($event)"
+                    (blur)="checkDuplicateContact()"
+                    placeholder="9822012345"
+                    [maxlength]="buyerData.country_code === '+91' ? 10 : 15"
+                    required
+                  />
+                  <mat-hint *ngIf="buyerData.country_code === '+91'">10-digit number</mat-hint>
+                </mat-form-field>
+              </div>
+
+              <!-- Email Field with Format Validation (Bug 2) -->
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Email Address</mat-label>
                 <mat-icon matPrefix class="field-icon">mail</mat-icon>
@@ -113,8 +129,9 @@
                   [(ngModel)]="buyerData.email"
                   name="email"
                   (blur)="checkDuplicateContact()"
-                  placeholder="rahul.sharma@example.com"
+                  placeholder="e.g. rahul.sharma@example.com"
                 />
+                <mat-hint>Valid email (e.g. name&#64;example.com)</mat-hint>
               </mat-form-field>
             </div>
 
@@ -167,19 +184,25 @@
               </div>
             </div>
 
+            <!-- Bug 7 Fix: Inline Budget Range Validation Warning -->
+            <div *ngIf="buyerData.budget_min_lacs !== null && buyerData.budget_max_lacs !== null && (+buyerData.budget_min_lacs > +buyerData.budget_max_lacs)" class="budget-warning-badge">
+              <mat-icon>warning</mat-icon>
+              <span>Invalid Budget Range: Minimum budget (₹{{ buyerData.budget_min_lacs }} Lacs) cannot be greater than Maximum budget (₹{{ buyerData.budget_max_lacs }} Lacs).</span>
+            </div>
+
             <!-- Row 1: Property Specs & Budget -->
             <div class="form-grid-4">
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Min Budget (₹ Lacs)</mat-label>
                 <mat-icon matPrefix class="field-icon">currency_rupee</mat-icon>
-                <input matInput type="number" [(ngModel)]="buyerData.budget_min_lacs" name="budget_min_lacs" placeholder="120" />
+                <input matInput type="number" [(ngModel)]="buyerData.budget_min_lacs" name="budget_min_lacs" placeholder="120" min="0" />
                 <span matTextSuffix class="text-suffix">Lacs</span>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Max Budget (₹ Lacs)</mat-label>
                 <mat-icon matPrefix class="field-icon">currency_rupee</mat-icon>
-                <input matInput type="number" [(ngModel)]="buyerData.budget_max_lacs" name="budget_max_lacs" placeholder="180" />
+                <input matInput type="number" [(ngModel)]="buyerData.budget_max_lacs" name="budget_max_lacs" placeholder="180" min="0" />
                 <span matTextSuffix class="text-suffix">Lacs</span>
               </mat-form-field>
 
@@ -230,7 +253,7 @@
                   <mat-divider></mat-divider>
                   <mat-option value="__create_new_source__" class="create-new-option">
                     <mat-icon class="create-new-icon">add_circle</mat-icon>
-                    <span class="create-new-text">+ Create Custom Lead Source...</span>
+                    <span class="create-new-text">Create Custom Lead Source...</span>
                   </mat-option>
                 </mat-select>
               </mat-form-field>
@@ -249,7 +272,7 @@
                   <mat-divider></mat-divider>
                   <mat-option value="__create_new__" class="create-new-option">
                     <mat-icon class="create-new-icon">add_circle</mat-icon>
-                    <span class="create-new-text">+ Create Custom Occupation...</span>
+                    <span class="create-new-text">Create Custom Occupation...</span>
                   </mat-option>
                 </mat-select>
               </mat-form-field>

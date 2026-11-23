@@ -639,6 +639,9 @@
 .driver-select-container {
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
 }
 
 .driver-wa-live-badge {

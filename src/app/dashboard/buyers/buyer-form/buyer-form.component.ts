@@ -77,9 +77,21 @@ export class BuyerFormComponent implements OnInit {
   newCustomOccupation = '';
   previousOccupation = 'Salaried IT / Tech Corporate';
 
+  countryCodes: { code: string; label: string }[] = [
+    { code: '+91', label: '🇮🇳 +91 (India)' },
+    { code: '+1', label: '🇺🇸 +1 (US / Canada)' },
+    { code: '+971', label: '🇦🇪 +971 (UAE / Dubai)' },
+    { code: '+44', label: '🇬🇧 +44 (UK)' },
+    { code: '+65', label: '🇸🇬 +65 (Singapore)' },
+    { code: '+61', label: '🇦🇺 +61 (Australia)' },
+    { code: '+966', label: '🇸🇦 +966 (Saudi Arabia)' },
+    { code: '+974', label: '🇶🇦 +974 (Qatar)' }
+  ];
+
   buyerData: any = {
     full_name: '',
     phone: '',
+    country_code: '+91',
     email: '',
     project_id: null,
     preferred_project: '',
@@ -104,6 +116,28 @@ export class BuyerFormComponent implements OnInit {
   errorMessage = '';
   isEditMode = false;
   buyerId: number | null = null;
+
+  isFakeOrSequentialPhone(phone: string): boolean {
+    if (!phone) return false;
+    const digits = phone.replace(/\D/g, '');
+    const sequentialPatterns = [
+      '1234567890', '0123456789', '9876543210', '0987654321',
+      '0000000000', '1111111111', '2222222222', '3333333333',
+      '4444444444', '5555555555', '6666666666', '7777777777',
+      '8888888888', '9999999999'
+    ];
+    if (sequentialPatterns.includes(digits)) return true;
+    if (digits.length === 10 && /^(\d)\1{9}$/.test(digits)) return true;
+    return false;
+  }
+
+  onPhoneInput(event: any): void {
+    const val = event.target?.value || '';
+    const maxLen = this.buyerData.country_code === '+91' ? 10 : 15;
+    const clean = val.replace(/\D/g, '').slice(0, maxLen);
+    this.buyerData.phone = clean;
+    if (event.target) event.target.value = clean;
+  }
 
   ngOnInit(): void {
     this.loadLeadSources();
@@ -133,7 +167,8 @@ export class BuyerFormComponent implements OnInit {
           const b = res.buyer;
           this.buyerData = {
             full_name: b.full_name || '',
-            phone: (b.phone && b.phone.trim()) ? b.phone.trim() : '7058533669',
+            phone: (b.phone && b.phone.trim()) ? b.phone.trim() : '',
+            country_code: b.country_code || '+91',
             email: b.email || '',
             project_id: b.project_id || (b.project ? b.project.project_id : null),
             preferred_project: b.preferred_project || (b.project ? b.project.name : ''),
@@ -377,9 +412,62 @@ export class BuyerFormComponent implements OnInit {
   }
 
   onSubmit() {
-    if (!this.buyerData.full_name || !this.buyerData.phone) {
-      this.errorMessage = 'Full name and phone number are required.';
+    this.errorMessage = '';
+
+    // Bug 1 Fix: Target Project is required
+    if (!this.buyerData.project_id) {
+      this.errorMessage = 'Target Project is required. Please select a project for this prospect.';
       return;
+    }
+
+    if (!this.buyerData.full_name || !this.buyerData.full_name.trim()) {
+      this.errorMessage = 'Full name is required.';
+      return;
+    }
+
+    // Bug 3, 4, 5 Fix: Phone number validation
+    if (!this.buyerData.phone || !this.buyerData.phone.trim()) {
+      this.errorMessage = 'Phone number is required.';
+      return;
+    }
+
+    const phoneDigits = this.buyerData.phone.replace(/\D/g, '');
+    if (this.buyerData.country_code === '+91') {
+      if (phoneDigits.length !== 10) {
+        this.errorMessage = 'Phone number must be exactly 10 digits for Indian mobile numbers.';
+        return;
+      }
+      if (!/^[6-9]\d{9}$/.test(phoneDigits)) {
+        this.errorMessage = 'Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9.';
+        return;
+      }
+    } else if (phoneDigits.length < 7 || phoneDigits.length > 15) {
+      this.errorMessage = 'Please enter a valid phone number between 7 and 15 digits.';
+      return;
+    }
+
+    if (this.isFakeOrSequentialPhone(phoneDigits)) {
+      this.errorMessage = 'Invalid phone number. Sequential or placeholder phone numbers (e.g. 1234567890) are not permitted.';
+      return;
+    }
+
+    // Bug 2 Fix: Email validation
+    if (this.buyerData.email && this.buyerData.email.trim()) {
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(this.buyerData.email.trim())) {
+        this.errorMessage = 'Please enter a valid email address (e.g. name@example.com).';
+        return;
+      }
+    }
+
+    // Bug 7 Fix: Minimum budget <= Maximum budget
+    if (this.buyerData.budget_min_lacs !== null && this.buyerData.budget_max_lacs !== null) {
+      const minB = Number(this.buyerData.budget_min_lacs);
+      const maxB = Number(this.buyerData.budget_max_lacs);
+      if (minB > maxB) {
+        this.errorMessage = `Minimum budget (₹${minB} Lacs) cannot be greater than Maximum budget (₹${maxB} Lacs).`;
+        return;
+      }
     }
 
     this.loading = true;

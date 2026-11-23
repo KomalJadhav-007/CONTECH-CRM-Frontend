@@ -63,11 +63,14 @@
 }
 
 .card-value {
-  font-size: 2.15rem;
+  font-size: clamp(1.35rem, 1.75vw, 1.9rem);
   font-weight: 800;
   color: #0f172a;
   margin-top: 0.35rem;
   letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .card-value.highlight-avail {
@@ -1597,10 +1600,13 @@
 }
 
 .d-card-value {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   font-weight: 800;
   color: #0f172a;
   margin-top: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .d-card-meta {

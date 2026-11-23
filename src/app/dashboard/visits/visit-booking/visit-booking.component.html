@@ -76,13 +76,13 @@
             <mat-label>AVAILABLE TIME SLOT</mat-label>
             <mat-select [(ngModel)]="bookingData.time_slot" name="time_slot"
               (selectionChange)="onTimeSlotChange($event.value)">
-              <mat-option *ngFor="let slot of timeSlots" [value]="slot">
-                {{ slot }}
+              <mat-option *ngFor="let slot of timeSlots" [value]="slot" [disabled]="isSlotEnded(slot)">
+                {{ slot }} <span *ngIf="isSlotEnded(slot)" class="slot-avail-tag status-busy" style="margin-left: 0.4rem; font-size: 0.68rem;">Ended</span>
               </mat-option>
               <mat-divider></mat-divider>
               <mat-option value="__create_new_slot__" class="create-new-option">
                 <mat-icon class="create-new-icon">add_circle</mat-icon>
-                <span class="create-new-text">+ Create Custom Time Slot...</span>
+                <span class="create-new-text">Create Custom Time Slot...</span>
               </mat-option>
             </mat-select>
           </mat-form-field>
@@ -90,7 +90,7 @@
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>ASSIGNED SALES EXECUTIVE</mat-label>
             <mat-select [(ngModel)]="bookingData.sales_rep_id" name="sales_rep_id">
-              <mat-option *ngFor="let s of salesExecutives" [value]="s.user_id || s.id">
+              <mat-option *ngFor="let s of salesExecutives" [value]="s.user_id || s.id" [disabled]="isRepBusyInSelectedSlot(s.user_id || s.id)">
                 {{ s.name }} &mdash; <span class="slot-avail-tag" [ngClass]="getRepSlotStatusClass(s)">{{ getRepSlotStatusText(s) }}</span>
               </mat-option>
             </mat-select>
@@ -190,7 +190,8 @@
               <mat-label>ASSIGNED DRIVER</mat-label>
               <mat-select [(ngModel)]="bookingData.driver_id" (selectionChange)="onDriverSelect($event.value)"
                 name="driver_id">
-                <mat-option *ngFor="let d of drivers" [value]="d.user_id || d.id">
+                <mat-option [value]="null">-- Select Company Driver / Auto-Dispatch --</mat-option>
+                <mat-option *ngFor="let d of drivers" [value]="d.user_id || d.id" [disabled]="isDriverBusyInSelectedSlot(d.user_id || d.id)">
                   {{ d.name }} &mdash; <span class="slot-avail-tag" [ngClass]="getDriverSlotStatusClass(d)">{{ getDriverSlotStatusText(d) }}</span>
                 </mat-option>
               </mat-select>

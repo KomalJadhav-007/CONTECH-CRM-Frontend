@@ -106,6 +106,7 @@ export class VisitBookingComponent implements OnInit {
         } else {
           this.dateVisits = [];
         }
+        this.validateAndAdjustExecutiveSelection();
       },
       error: () => {
         this.dateVisits = [];
@@ -115,6 +116,90 @@ export class VisitBookingComponent implements OnInit {
 
   onDateChange(): void {
     this.loadDateVisits();
+  }
+
+  // Bug 10 Fix: Check if a time slot has already ended
+  isSlotEnded(slot: string): boolean {
+    if (!slot || !this.bookingData.scheduled_date) return false;
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const todayStr = `${year}-${month}-${day}`;
+
+    if (this.bookingData.scheduled_date < todayStr) return true;
+    if (this.bookingData.scheduled_date > todayStr) return false;
+
+    let endTimePart = slot;
+    if (slot.includes('-')) {
+      endTimePart = slot.split('-')[1].trim();
+    }
+    const match = endTimePart.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+    if (!match) return false;
+
+    let hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+    const ampm = (match[3] || '').toUpperCase();
+
+    if (ampm === 'PM' && hours !== 12) hours += 12;
+    if (ampm === 'AM' && hours === 12) hours = 0;
+
+    const slotEndTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
+    return now.getTime() >= slotEndTime.getTime();
+  }
+
+  // Bug 9 & 13 Fix: Check if sales executive is busy in chosen slot
+  isRepBusyInSelectedSlot(repId: any): boolean {
+    if (!repId || !this.bookingData.time_slot) return false;
+    const targetId = Number(repId);
+    return this.dateVisits.some(v =>
+      (v.sales_rep_id === targetId || v.salesRep?.user_id === targetId) &&
+      v.time_slot === this.bookingData.time_slot &&
+      v.status !== 'CANCELLED' &&
+      v.status !== 'COMPLETED' &&
+      v.status !== 'DROPPED_AT_SITE'
+    );
+  }
+
+  // Bug 11 Fix: Check if driver is busy in chosen slot
+  isDriverBusyInSelectedSlot(driverId: any): boolean {
+    if (!driverId || !this.bookingData.time_slot) return false;
+    const targetId = Number(driverId);
+    return this.dateVisits.some(v =>
+      (v.driver_id === targetId || v.driver?.user_id === targetId) &&
+      v.time_slot === this.bookingData.time_slot &&
+      v.status !== 'CANCELLED' &&
+      v.status !== 'COMPLETED' &&
+      v.trip?.trip_status !== 'COMPLETED' &&
+      v.status !== 'DROPPED_AT_SITE'
+    );
+  }
+
+  // Bug 11 Fix: Check if vehicle is busy in chosen slot
+  isVehicleBusyInSelectedSlot(vehicleId: any, cabNumber?: string): boolean {
+    if (!this.bookingData.time_slot) return false;
+    const vId = vehicleId ? Number(vehicleId) : null;
+    const cleanCab = cabNumber ? cabNumber.trim().toUpperCase() : null;
+    return this.dateVisits.some(v => {
+      if (v.status === 'CANCELLED' || v.time_slot !== this.bookingData.time_slot) return false;
+      if (vId && v.vehicle_id === vId) return true;
+      if (cleanCab && v.cab_number && v.cab_number.trim().toUpperCase() === cleanCab) return true;
+      return false;
+    });
+  }
+
+  // Bug 9 & 13 Fix: Auto-adjust executive selection when time slot or date changes
+  validateAndAdjustExecutiveSelection(): void {
+    if (!this.salesExecutives || this.salesExecutives.length === 0) return;
+    const currentRepBusy = this.bookingData.sales_rep_id && this.isRepBusyInSelectedSlot(this.bookingData.sales_rep_id);
+    if (currentRepBusy || !this.bookingData.sales_rep_id) {
+      const availableRep = this.salesExecutives.find(s => !this.isRepBusyInSelectedSlot(s.user_id || s.id));
+      if (availableRep) {
+        this.bookingData.sales_rep_id = availableRep.user_id || availableRep.id;
+      } else {
+        this.bookingData.sales_rep_id = null;
+      }
+    }
   }
 
   getDriverSlotStatusText(driver: any): string {
@@ -248,6 +333,7 @@ export class VisitBookingComponent implements OnInit {
     } else {
       this.previousTimeSlot = value;
       this.isCreatingCustomTimeSlot = false;
+      this.validateAndAdjustExecutiveSelection();
     }
   }
 
@@ -317,21 +403,31 @@ export class VisitBookingComponent implements OnInit {
         if (res && res.success && res.users) {
           const active = res.users.filter((u: any) => u.is_active !== false);
           const execs = active.filter((u: any) => {
-            const r = (u.role?.name || u.role_name || u.role || '').toLowerCase();
+            const r = ((u.role?.name || '') + ' ' + (u.role_name || '') + ' ' + (u.role || '') + ' ' + (u.role_code || '')).toLowerCase();
             return !r.includes('driver');
           });
-          const drvs = active.filter((u: any) => {
-            const r = (u.role?.name || u.role_name || u.role || '').toLowerCase();
+          let drvs = active.filter((u: any) => {
+            const r = ((u.role?.name || '') + ' ' + (u.role_name || '') + ' ' + (u.role || '') + ' ' + (u.role_code || '')).toLowerCase();
             return r.includes('driver');
           });
+
+          // Bug 8 Fix: Fallback to all driver candidates if drvs is empty
+          if (drvs.length === 0) {
+            drvs = res.users.filter((u: any) => {
+              const str = ((u.role?.name || '') + ' ' + (u.role_code || '') + ' ' + (u.name || '')).toLowerCase();
+              return str.includes('driver');
+            });
+          }
+
           this.salesExecutives = execs;
           this.drivers = drvs;
 
-          if (this.salesExecutives.length > 0 && !this.bookingData.sales_rep_id) {
-            this.bookingData.sales_rep_id = this.salesExecutives[0].user_id || this.salesExecutives[0].id;
-          }
+          // Bug 9 & 13 Fix: Auto-select an available (non-busy) sales executive
+          this.validateAndAdjustExecutiveSelection();
+
           if (this.drivers.length > 0 && !this.bookingData.driver_id) {
-            this.bookingData.driver_id = this.drivers[0].user_id || this.drivers[0].id;
+            const availDrv = this.drivers.find(d => !this.isDriverBusyInSelectedSlot(d.user_id || d.id)) || this.drivers[0];
+            this.bookingData.driver_id = availDrv.user_id || availDrv.id;
           }
           if (this.bookingData.driver_id) {
             this.evaluateDriverWhatsApp(this.bookingData.driver_id);
@@ -551,7 +647,7 @@ export class VisitBookingComponent implements OnInit {
 
   getSelectedBuyerPhone(): string {
     const found = this.buyers.find(b => (b.buyer_id || b.id) == this.bookingData.buyer_id);
-    return found ? (found.phone || '7058533669') : '7058533669';
+    return found?.phone ? found.phone : '';
   }
 
   buildDriverTripMessage(): string {
@@ -613,6 +709,36 @@ export class VisitBookingComponent implements OnInit {
     }
     if (!this.bookingData.project_id) {
       this.errorMessage = 'Please select a destination project first.';
+      return;
+    }
+
+    // Bug 10 Fix: Reject submission if slot has already ended
+    if (this.isSlotEnded(this.bookingData.time_slot)) {
+      this.errorMessage = `Time slot "${this.bookingData.time_slot}" has already ended. Please select an upcoming slot or future date.`;
+      return;
+    }
+
+    // Bug 9 & 13 Fix: Reject submission if assigned sales executive is busy
+    if (!this.bookingData.sales_rep_id) {
+      this.errorMessage = 'Please select an available sales executive for this visit slot.';
+      return;
+    }
+    if (this.isRepBusyInSelectedSlot(this.bookingData.sales_rep_id)) {
+      const busyRep = this.salesExecutives.find(s => (s.user_id || s.id) == this.bookingData.sales_rep_id);
+      this.errorMessage = `Sales executive ${busyRep ? busyRep.name : 'assigned'} is already booked for another site visit in slot ${this.bookingData.time_slot}. Please choose an available executive.`;
+      return;
+    }
+
+    // Bug 11 Fix: Reject overlapping vehicle assignment
+    if (this.bookingData.cab_required && this.isVehicleBusyInSelectedSlot(this.bookingData.vehicle_id, this.bookingData.cab_number)) {
+      this.errorMessage = `Vehicle "${this.bookingData.cab_number || 'selected'}" is already scheduled for another site visit in slot ${this.bookingData.time_slot}. Please assign an available vehicle.`;
+      return;
+    }
+
+    // Bug 11 Fix: Reject overlapping driver assignment
+    if (this.bookingData.cab_required && this.bookingData.driver_id && this.isDriverBusyInSelectedSlot(this.bookingData.driver_id)) {
+      const busyDrv = this.drivers.find(d => (d.user_id || d.id) == this.bookingData.driver_id);
+      this.errorMessage = `Driver ${busyDrv ? busyDrv.name : 'assigned'} is already booked for an active trip in slot ${this.bookingData.time_slot}. Please assign an available driver.`;
       return;
     }
 
