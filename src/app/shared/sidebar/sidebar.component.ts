@@ -114,7 +114,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
                this.canAccess('My Trips');
       case 'administration':
         return this.canAccess('Projects') ||
-               this.canAccess('Fleet') ||
                this.canAccess('Team') ||
                this.canAccess('Access Control') ||
                this.canAccess('Settings') ||
