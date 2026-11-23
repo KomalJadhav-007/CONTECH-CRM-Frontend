@@ -184,7 +184,7 @@
           </mat-form-field>
         </div>
 
-        <div class="form-grid-2" *ngIf="bookingData.cab_required" style="margin-top: 0.5rem;">
+        <div class="form-grid-3" *ngIf="bookingData.cab_required" style="margin-top: 0.5rem;">
           <div class="driver-select-container">
             <mat-form-field appearance="outline" class="w-100">
               <mat-label>ASSIGNED DRIVER</mat-label>
@@ -202,8 +202,18 @@
               <mat-icon>verified</mat-icon>
               <span>{{ getSelectedDriverAvailabilitySummary() }}</span>
             </div>
+          </div>
 
-            <!-- Real-time WhatsApp Presence Feedback directly on the driver field -->
+          <div class="driver-phone-container">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>DRIVER WHATSAPP NUMBER (SPECIFIC)</mat-label>
+              <mat-icon matPrefix class="field-icon" style="color: #10b981; margin-right: 6px;">phone</mat-icon>
+              <input matInput type="tel" [(ngModel)]="bookingData.driver_phone" (ngModelChange)="onDriverPhoneChange($event)"
+                name="driver_phone" placeholder="e.g. 7058533669" maxlength="15" />
+              <mat-hint>Backend sends WhatsApp trip alert to this specific number</mat-hint>
+            </mat-form-field>
+
+            <!-- Real-time WhatsApp Presence Feedback directly under the phone field -->
             <div *ngIf="driverWhatsAppStatus" class="driver-wa-live-badge"
               [class.wa-present]="driverWhatsAppStatus.present"
               [class.wa-not-present]="!driverWhatsAppStatus.present">
@@ -215,19 +225,21 @@
             </div>
           </div>
 
-          <mat-form-field appearance="outline" class="w-100">
-            <mat-label>DISPATCHED CAB REGISTRATION NO.</mat-label>
-            <input matInput type="text" [(ngModel)]="bookingData.cab_number" (ngModelChange)="onCabNumberChange($event)"
-              name="cab_number" placeholder="e.g. KA-01-MJ-8822" class="font-mono text-uppercase" />
-            <mat-hint>Assign any company fleet car or alternate vehicle to this driver</mat-hint>
-          </mat-form-field>
+          <div class="cab-input-container">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>DISPATCHED CAB REGISTRATION NO.</mat-label>
+              <input matInput type="text" [(ngModel)]="bookingData.cab_number" (ngModelChange)="onCabNumberChange($event)"
+                name="cab_number" placeholder="e.g. KA-01-MJ-8822" class="font-mono text-uppercase" />
+              <mat-hint>Assign any company fleet car or alternate vehicle</mat-hint>
+            </mat-form-field>
+          </div>
         </div>
 
         <div class="fleet-assignment-status" *ngIf="bookingData.cab_required">
           <mat-icon class="fleet-status-icon">directions_car</mat-icon>
           <div class="fleet-status-text">
             <span>
-              Assigned Driver: <strong>{{ getSelectedDriverName() }}</strong> &bull;
+              Assigned Driver: <strong>{{ getSelectedDriverName() }}</strong> ({{ getSelectedDriverPhone() || 'No Phone' }}) &bull;
               Dispatched Cab: <strong class="font-mono">{{ bookingData.cab_number || 'No Vehicle Assigned' }}</strong>
             </span>
             <span class="fleet-reassign-hint">
@@ -253,11 +265,11 @@
             <div class="wa-title-block">
               <div class="wa-title-row">
                 <span class="wa-title">Direct Automated WhatsApp Notification to Driver</span>
-                <span class="wa-badge">DIRECT DISPATCH</span>
+                <span class="wa-badge">DIRECT BACKEND DISPATCH</span>
               </div>
               <p class="wa-desc">
-                When booked, trip assignment is sent directly from the server to <strong>{{ getSelectedDriverName() }}</strong>'s WhatsApp (+{{ getSelectedDriverCleanPhone() }}).
-                <strong>Zero browser redirection:</strong> you will stay on your dashboard without WhatsApp Web opening.
+                When booked, trip assignment is dispatched directly from the server to <strong>{{ getSelectedDriverName() }}</strong>'s WhatsApp (+{{ getSelectedDriverCleanPhone() }}).
+                <strong>Zero browser redirection:</strong> executed 100% in backend without opening WhatsApp Web.
               </p>
             </div>
           </div>

@@ -34,8 +34,9 @@ export class VisitService {
     return this.http.post<any>(`${this.apiUrl}/${id}/discovery`, data);
   }
 
-  notifyDriverWhatsApp(visitId: number): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/${visitId}/notify-driver-whatsapp`, {});
+  notifyDriverWhatsApp(visitId: number, driverPhone?: string): Observable<any> {
+    const body = driverPhone ? { driver_phone: driverPhone } : {};
+    return this.http.post<any>(`${this.apiUrl}/${visitId}/notify-driver-whatsapp`, body);
   }
 
   checkDriverWhatsAppPresence(driverId: number): Observable<any> {

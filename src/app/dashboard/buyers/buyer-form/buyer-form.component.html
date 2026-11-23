@@ -6,9 +6,11 @@
         <mat-icon>{{ isEditMode ? 'edit_note' : 'person_add' }}</mat-icon>
         <span>{{ isEditMode ? 'EDIT PROSPECT DETAILS' : 'NEW PROSPECT INTAKE' }}</span>
       </div>
-      <h1 class="page-title">{{ isEditMode ? 'Edit Prospect Details · ' + (buyerData.full_name || 'Prospect') : 'Register New Buyer Profile' }}</h1>
+      <h1 class="page-title">{{ isEditMode ? 'Edit Prospect Details · ' + (buyerData.full_name || 'Prospect') :
+        'Register New Buyer Profile' }}</h1>
       <p class="page-subtitle">
-        {{ isEditMode ? 'Update buyer contact, requirements, project allocation, and 4-dimension scoring parameters' : 'Enquiry intake with automated 4-dimension readiness scoring & intelligent Next Best Action assignment' }}
+        {{ isEditMode ? 'Update buyer contact, requirements, project allocation, and 4-dimension scoring parameters' :
+        'Enquiry intake with automated 4-dimension readiness scoring & intelligent Next Best Action assignment' }}
       </p>
     </div>
     <div class="header-actions">
@@ -22,7 +24,7 @@
   <div class="form-container">
     <mat-card class="form-card mat-elevation-z2">
       <mat-progress-bar *ngIf="loading" mode="indeterminate" class="form-progress"></mat-progress-bar>
-      
+
       <mat-card-content class="form-card-body">
         <form (ngSubmit)="onSubmit()">
           <!-- Error Alert -->
@@ -41,13 +43,16 @@
                 <strong class="duplicate-title">Potential Duplicate Prospect Detected</strong>
                 <p class="duplicate-desc">
                   A prospect record with matching contact details already exists in the CRM:
-                  <strong>{{ duplicateInfo.full_name }}</strong> ({{ duplicateInfo.phone }} &middot; {{ duplicateInfo.email || 'No email' }}).
-                  Managed by <strong>{{ duplicateInfo.assignedRep?.name || 'Unassigned' }}</strong> with Intent Score <strong>{{ duplicateInfo.intent_score || '85' }}/100</strong>.
+                  <strong>{{ duplicateInfo.full_name }}</strong> ({{ duplicateInfo.phone }} &middot; {{
+                  duplicateInfo.email || 'No email' }}).
+                  Managed by <strong>{{ duplicateInfo.assignedRep?.name || 'Unassigned' }}</strong> with Intent Score
+                  <strong>{{ duplicateInfo.intent_score || '85' }}/100</strong>.
                 </p>
               </div>
             </div>
             <div class="duplicate-actions">
-              <a mat-stroked-button color="accent" [routerLink]="['/buyers', duplicateInfo.id || duplicateInfo.buyer_id]">
+              <a mat-stroked-button color="accent"
+                [routerLink]="['/buyers', duplicateInfo.id || duplicateInfo.buyer_id]">
                 <mat-icon>open_in_new</mat-icon> View Existing Dossier
               </a>
               <button mat-flat-button color="warn" type="button" (click)="allowDuplicateProceed()">
@@ -65,7 +70,8 @@
               </div>
               <div class="section-meta">
                 <h2 class="section-heading">1. Contact &amp; Demographic Details</h2>
-                <p class="section-subheading">Core identity and location parameters used for deduplication &amp; reachability</p>
+                <p class="section-subheading">Core identity and location parameters used for deduplication &amp;
+                  reachability</p>
               </div>
             </div>
 
@@ -74,12 +80,15 @@
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Target / Main Project Prospect is Looking For *</mat-label>
                 <mat-icon matPrefix class="field-icon" style="color: #4f46e5;">domain</mat-icon>
-                <mat-select [(ngModel)]="buyerData.project_id" name="project_id" (selectionChange)="onProjectSelect($event.value)" required>
+                <mat-select [(ngModel)]="buyerData.project_id" name="project_id"
+                  (selectionChange)="onProjectSelect($event.value)" required>
                   <mat-option *ngFor="let p of projects" [value]="p.project_id || p.id">
-                    <strong>{{ p.name }}</strong> &nbsp;&middot;&nbsp; {{ p.code || 'BLR' }} &nbsp;&middot;&nbsp; {{ p.location || 'Bengaluru' }}
+                    <strong>{{ p.name }}</strong> &nbsp;&middot;&nbsp; {{ p.code || 'BLR' }} &nbsp;&middot;&nbsp; {{
+                    p.location || 'Bengaluru' }}
                   </mat-option>
                 </mat-select>
-                <mat-hint>Categorizes prospect into this project's dedicated container and enables filtering by project</mat-hint>
+                <mat-hint>Categorizes prospect into this project's dedicated container and enables filtering by
+                  project</mat-hint>
               </mat-form-field>
             </div>
 
@@ -87,7 +96,8 @@
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Full Name *</mat-label>
                 <mat-icon matPrefix class="field-icon">person</mat-icon>
-                <input matInput type="text" [(ngModel)]="buyerData.full_name" name="full_name" placeholder="e.g. Rahul Sharma" required />
+                <input matInput type="text" [(ngModel)]="buyerData.full_name" name="full_name"
+                  placeholder="e.g. Rahul Sharma" required />
               </mat-form-field>
 
               <!-- Phone with Country Code & Length Limits (Bugs 3, 4, 5) -->
@@ -104,17 +114,9 @@
                 <mat-form-field appearance="outline" class="phone-number-field">
                   <mat-label>Phone Number *</mat-label>
                   <mat-icon matPrefix class="field-icon">phone</mat-icon>
-                  <input
-                    matInput
-                    type="tel"
-                    [(ngModel)]="buyerData.phone"
-                    name="phone"
-                    (input)="onPhoneInput($event)"
-                    (blur)="checkDuplicateContact()"
-                    placeholder="9822012345"
-                    [maxlength]="buyerData.country_code === '+91' ? 10 : 15"
-                    required
-                  />
+                  <input matInput type="tel" [(ngModel)]="buyerData.phone" name="phone" (input)="onPhoneInput($event)"
+                    (blur)="checkDuplicateContact()" placeholder="9822012345"
+                    [maxlength]="buyerData.country_code === '+91' ? 10 : 15" required />
                   <mat-hint *ngIf="buyerData.country_code === '+91'">10-digit number</mat-hint>
                 </mat-form-field>
               </div>
@@ -123,14 +125,8 @@
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Email Address</mat-label>
                 <mat-icon matPrefix class="field-icon">mail</mat-icon>
-                <input
-                  matInput
-                  type="email"
-                  [(ngModel)]="buyerData.email"
-                  name="email"
-                  (blur)="checkDuplicateContact()"
-                  placeholder="e.g. rahul.sharma@example.com"
-                />
+                <input matInput type="email" [(ngModel)]="buyerData.email" name="email" (blur)="checkDuplicateContact()"
+                  placeholder="e.g. rahul.sharma@example.com" />
                 <mat-hint>Valid email (e.g. name&#64;example.com)</mat-hint>
               </mat-form-field>
             </div>
@@ -139,19 +135,22 @@
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Current Residence / Locality</mat-label>
                 <mat-icon matPrefix class="field-icon">home</mat-icon>
-                <input matInput type="text" [(ngModel)]="buyerData.current_residence" name="current_residence" placeholder="e.g. Indiranagar, Bengaluru" />
+                <input matInput type="text" [(ngModel)]="buyerData.current_residence" name="current_residence"
+                  placeholder="e.g. Indiranagar, Bengaluru" />
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Workplace Location / Tech Park</mat-label>
                 <mat-icon matPrefix class="field-icon">business</mat-icon>
-                <input matInput type="text" [(ngModel)]="buyerData.workplace_location" name="workplace_location" placeholder="e.g. Manyata Embassy Business Park" />
+                <input matInput type="text" [(ngModel)]="buyerData.workplace_location" name="workplace_location"
+                  placeholder="e.g. Manyata Embassy Business Park" />
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Family Size</mat-label>
                 <mat-icon matPrefix class="field-icon">groups</mat-icon>
-                <input matInput type="number" [(ngModel)]="buyerData.family_size" name="family_size" min="1" max="15" placeholder="4" />
+                <input matInput type="number" [(ngModel)]="buyerData.family_size" name="family_size" min="1" max="15"
+                  placeholder="4" />
               </mat-form-field>
             </div>
 
@@ -160,13 +159,8 @@
               <mat-form-field appearance="outline" class="w-full textarea-field">
                 <mat-label>Additional Prospect Information</mat-label>
                 <mat-icon matPrefix class="field-icon">notes</mat-icon>
-                <textarea
-                  matInput
-                  rows="3"
-                  [(ngModel)]="buyerData.additional_info"
-                  name="additional_info"
-                  placeholder="e.g. Key decision makers, designation, referral context, specific background, or special preferences..."
-                ></textarea>
+                <textarea matInput rows="3" [(ngModel)]="buyerData.additional_info" name="additional_info"
+                  placeholder="e.g. Key decision makers, designation, referral context, specific background, or special preferences..."></textarea>
                 <mat-hint>Extra context, background or special notes related to this prospect</mat-hint>
               </mat-form-field>
             </div>
@@ -180,14 +174,18 @@
               </div>
               <div class="section-meta">
                 <h2 class="section-heading">2. Buying Intent &amp; 4-Dimension Attributes</h2>
-                <p class="section-subheading">Feeds automated multi-dimension scoring (Profile Fit, Budget Fit, Digital Intent, Readiness)</p>
+                <p class="section-subheading">Feeds automated multi-dimension scoring (Profile Fit, Budget Fit, Digital
+                  Intent, Readiness)</p>
               </div>
             </div>
 
             <!-- Bug 7 Fix: Inline Budget Range Validation Warning -->
-            <div *ngIf="buyerData.budget_min_lacs !== null && buyerData.budget_max_lacs !== null && (+buyerData.budget_min_lacs > +buyerData.budget_max_lacs)" class="budget-warning-badge">
+            <div
+              *ngIf="buyerData.budget_min_lacs !== null && buyerData.budget_max_lacs !== null && (+buyerData.budget_min_lacs > +buyerData.budget_max_lacs)"
+              class="budget-warning-badge">
               <mat-icon>warning</mat-icon>
-              <span>Invalid Budget Range: Minimum budget (₹{{ buyerData.budget_min_lacs }} Lacs) cannot be greater than Maximum budget (₹{{ buyerData.budget_max_lacs }} Lacs).</span>
+              <span>Invalid Budget Range: Minimum budget (₹{{ buyerData.budget_min_lacs }} Lacs) cannot be greater than
+                Maximum budget (₹{{ buyerData.budget_max_lacs }} Lacs).</span>
             </div>
 
             <!-- Row 1: Property Specs & Budget -->
@@ -195,14 +193,16 @@
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Min Budget (₹ Lacs)</mat-label>
                 <mat-icon matPrefix class="field-icon">currency_rupee</mat-icon>
-                <input matInput type="number" [(ngModel)]="buyerData.budget_min_lacs" name="budget_min_lacs" placeholder="120" min="0" />
+                <input matInput type="number" [(ngModel)]="buyerData.budget_min_lacs" name="budget_min_lacs"
+                  placeholder="120" min="0" />
                 <span matTextSuffix class="text-suffix">Lacs</span>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Max Budget (₹ Lacs)</mat-label>
                 <mat-icon matPrefix class="field-icon">currency_rupee</mat-icon>
-                <input matInput type="number" [(ngModel)]="buyerData.budget_max_lacs" name="budget_max_lacs" placeholder="180" min="0" />
+                <input matInput type="number" [(ngModel)]="buyerData.budget_max_lacs" name="budget_max_lacs"
+                  placeholder="180" min="0" />
                 <span matTextSuffix class="text-suffix">Lacs</span>
               </mat-form-field>
 
@@ -242,11 +242,8 @@
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Lead Acquisition Source</mat-label>
                 <mat-icon matPrefix class="field-icon">campaign</mat-icon>
-                <mat-select
-                  [(ngModel)]="buyerData.lead_source"
-                  name="lead_source"
-                  (selectionChange)="onLeadSourceChange($event.value)"
-                >
+                <mat-select [(ngModel)]="buyerData.lead_source" name="lead_source"
+                  (selectionChange)="onLeadSourceChange($event.value)">
                   <mat-option *ngFor="let src of leadSources" [value]="src.value">
                     {{ src.label }}
                   </mat-option>
@@ -261,11 +258,8 @@
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Occupation / Profile Fit</mat-label>
                 <mat-icon matPrefix class="field-icon">work</mat-icon>
-                <mat-select
-                  [(ngModel)]="buyerData.occupation"
-                  name="occupation"
-                  (selectionChange)="onOccupationChange($event.value)"
-                >
+                <mat-select [(ngModel)]="buyerData.occupation" name="occupation"
+                  (selectionChange)="onOccupationChange($event.value)">
                   <mat-option *ngFor="let occ of occupations" [value]="occ">
                     {{ occ }}
                   </mat-option>
@@ -308,44 +302,29 @@
                   <mat-icon>add_circle</mat-icon>
                   <span>CREATE NEW LEAD ACQUISITION SOURCE</span>
                 </div>
-                <button mat-icon-button type="button" class="btn-close-occ" (click)="cancelCustomLeadSource()" matTooltip="Close">
+                <button mat-icon-button type="button" class="btn-close-occ" (click)="cancelCustomLeadSource()"
+                  matTooltip="Close">
                   <mat-icon>close</mat-icon>
                 </button>
               </div>
 
               <div class="custom-occ-body">
-                <p class="custom-occ-desc">Type your custom lead acquisition source to add it instantly to the dropdown and select it for this buyer:</p>
+                <p class="custom-occ-desc">Type your custom lead acquisition source to add it instantly to the dropdown
+                  and select it for this buyer:</p>
                 <div class="custom-occ-row">
                   <mat-form-field appearance="outline" class="custom-occ-input-field">
                     <mat-label>New Lead Acquisition Source</mat-label>
                     <mat-icon matPrefix class="field-icon">campaign</mat-icon>
-                    <input
-                      matInput
-                      type="text"
-                      [(ngModel)]="newCustomLeadSource"
-                      name="newCustomLeadSource"
+                    <input matInput type="text" [(ngModel)]="newCustomLeadSource" name="newCustomLeadSource"
                       placeholder="e.g. Walk-in Experience Centre, Property Expo, LinkedIn Ads..."
-                      (keydown.enter)="saveCustomLeadSource($event)"
-                      autofocus
-                    />
+                      (keydown.enter)="saveCustomLeadSource($event)" autofocus />
                   </mat-form-field>
                   <div class="custom-occ-btns">
-                    <button
-                      mat-flat-button
-                      color="primary"
-                      type="button"
-                      class="btn-save-occ"
-                      [disabled]="!newCustomLeadSource.trim()"
-                      (click)="saveCustomLeadSource()"
-                    >
+                    <button mat-flat-button color="primary" type="button" class="btn-save-occ"
+                      [disabled]="!newCustomLeadSource.trim()" (click)="saveCustomLeadSource()">
                       <mat-icon>check</mat-icon> Add &amp; Select
                     </button>
-                    <button
-                      mat-stroked-button
-                      type="button"
-                      class="btn-cancel-occ"
-                      (click)="cancelCustomLeadSource()"
-                    >
+                    <button mat-stroked-button type="button" class="btn-cancel-occ" (click)="cancelCustomLeadSource()">
                       Cancel
                     </button>
                   </div>
@@ -360,44 +339,29 @@
                   <mat-icon>add_circle</mat-icon>
                   <span>CREATE NEW OCCUPATION / PROFILE FIT</span>
                 </div>
-                <button mat-icon-button type="button" class="btn-close-occ" (click)="cancelCustomOccupation()" matTooltip="Close">
+                <button mat-icon-button type="button" class="btn-close-occ" (click)="cancelCustomOccupation()"
+                  matTooltip="Close">
                   <mat-icon>close</mat-icon>
                 </button>
               </div>
 
               <div class="custom-occ-body">
-                <p class="custom-occ-desc">Type your custom occupation or profile fit to add it instantly to the dropdown and select it for this buyer:</p>
+                <p class="custom-occ-desc">Type your custom occupation or profile fit to add it instantly to the
+                  dropdown and select it for this buyer:</p>
                 <div class="custom-occ-row">
                   <mat-form-field appearance="outline" class="custom-occ-input-field">
                     <mat-label>New Occupation Title</mat-label>
                     <mat-icon matPrefix class="field-icon">work_outline</mat-icon>
-                    <input
-                      matInput
-                      type="text"
-                      [(ngModel)]="newCustomOccupation"
-                      name="newCustomOccupation"
+                    <input matInput type="text" [(ngModel)]="newCustomOccupation" name="newCustomOccupation"
                       placeholder="e.g. Architect & Interior Consultant, Government / PSU Officer..."
-                      (keydown.enter)="saveCustomOccupation($event)"
-                      autofocus
-                    />
+                      (keydown.enter)="saveCustomOccupation($event)" autofocus />
                   </mat-form-field>
                   <div class="custom-occ-btns">
-                    <button
-                      mat-flat-button
-                      color="primary"
-                      type="button"
-                      class="btn-save-occ"
-                      [disabled]="!newCustomOccupation.trim()"
-                      (click)="saveCustomOccupation()"
-                    >
+                    <button mat-flat-button color="primary" type="button" class="btn-save-occ"
+                      [disabled]="!newCustomOccupation.trim()" (click)="saveCustomOccupation()">
                       <mat-icon>check</mat-icon> Add &amp; Select
                     </button>
-                    <button
-                      mat-stroked-button
-                      type="button"
-                      class="btn-cancel-occ"
-                      (click)="cancelCustomOccupation()"
-                    >
+                    <button mat-stroked-button type="button" class="btn-cancel-occ" (click)="cancelCustomOccupation()">
                       Cancel
                     </button>
                   </div>
@@ -414,19 +378,15 @@
               </div>
               <div class="section-meta">
                 <h2 class="section-heading">3. Initial Requirements &amp; Discovery Notes</h2>
-                <p class="section-subheading">Specific buyer floor preferences, Vaastu requirements, balcony orientations, or milestone constraints</p>
+                <p class="section-subheading">Specific buyer floor preferences, Vaastu requirements, balcony
+                  orientations, or milestone constraints</p>
               </div>
             </div>
 
             <mat-form-field appearance="outline" class="w-full textarea-field">
               <mat-label>Initial Requirements &amp; Discovery Notes</mat-label>
-              <textarea
-                matInput
-                rows="4"
-                [(ngModel)]="buyerData.notes"
-                name="notes"
-                placeholder="e.g. Buyer looking for East-facing 3 BHK on higher floors (10th+), 2 covered parking slots, ready to commit token within 15 days if pricing is within ₹1.80 Cr budget."
-              ></textarea>
+              <textarea matInput rows="4" [(ngModel)]="buyerData.notes" name="notes"
+                placeholder="e.g. Buyer looking for East-facing 3 BHK on higher floors (10th+), 2 covered parking slots, ready to commit token within 15 days if pricing is within ₹1.80 Cr budget."></textarea>
             </mat-form-field>
           </div>
 
@@ -438,7 +398,8 @@
             <div class="banner-content">
               <strong>Automated 4-Dimension Readiness Scoring Engine</strong>
               <p>
-                Upon submission, the platform evaluates Digital Intent (25%), Budget Fit (30%), Profile Fit (20%), and Velocity/Timeframe (25%)
+                Upon submission, the platform evaluates Digital Intent (25%), Budget Fit (30%), Profile Fit (20%), and
+                Velocity/Timeframe (25%)
                 to generate the initial 0&ndash;100 score, intent band classification, and automated SLA follow-up task.
               </p>
             </div>
@@ -451,7 +412,8 @@
             </a>
             <button mat-flat-button color="primary" type="submit" class="btn-submit" [disabled]="loading">
               <mat-icon *ngIf="!loading">{{ isEditMode ? 'save' : 'check_circle' }}</mat-icon>
-              <span *ngIf="!loading">{{ isEditMode ? 'Save Prospect Changes' : 'Save & Calculate Readiness Score →' }}</span>
+              <span *ngIf="!loading">{{ isEditMode ? 'Save Prospect Changes' : 'Save & Calculate Readiness Score →'
+                }}</span>
               <span *ngIf="loading">Saving Profile...</span>
             </button>
           </div>

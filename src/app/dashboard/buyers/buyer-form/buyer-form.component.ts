@@ -223,7 +223,7 @@ export class BuyerFormComponent implements OnInit {
           if (matched) this.buyerData.preferred_project = matched.name;
         }
       },
-      error: () => {}
+      error: () => { }
     });
   }
 

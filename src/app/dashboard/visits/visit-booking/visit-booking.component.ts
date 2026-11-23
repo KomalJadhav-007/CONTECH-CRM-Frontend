@@ -75,6 +75,7 @@ export class VisitBookingComponent implements OnInit {
     sales_rep_id: null,
     driver_id: null,
     vehicle_id: null,
+    driver_phone: '',
     scheduled_date: new Date().toISOString().split('T')[0],
     time_slot: '11:00 AM - 12:30 PM',
     cab_required: true,
@@ -428,9 +429,16 @@ export class VisitBookingComponent implements OnInit {
           if (this.drivers.length > 0 && !this.bookingData.driver_id) {
             const availDrv = this.drivers.find(d => !this.isDriverBusyInSelectedSlot(d.user_id || d.id)) || this.drivers[0];
             this.bookingData.driver_id = availDrv.user_id || availDrv.id;
+            if (!this.bookingData.driver_phone && availDrv.phone) {
+              this.bookingData.driver_phone = String(availDrv.phone).trim();
+            }
           }
           if (this.bookingData.driver_id) {
-            this.evaluateDriverWhatsApp(this.bookingData.driver_id);
+            if (!this.bookingData.driver_phone) {
+              const curDrv = this.drivers.find(d => (d.user_id || d.id) === this.bookingData.driver_id);
+              if (curDrv?.phone) this.bookingData.driver_phone = String(curDrv.phone).trim();
+            }
+            this.evaluateDriverWhatsApp(this.bookingData.driver_phone || this.bookingData.driver_id);
           }
         }
       }
@@ -518,19 +526,29 @@ export class VisitBookingComponent implements OnInit {
 
   onDriverSelect(driverId: any): void {
     this.bookingData.driver_id = driverId ? parseInt(driverId, 10) : null;
-    this.evaluateDriverWhatsApp(this.bookingData.driver_id);
     if (this.bookingData.driver_id) {
       const selectedDriver = this.drivers.find(d => (d.user_id || d.id) === this.bookingData.driver_id);
-      // If driver has a default vehicle in profile and no cab number is set yet:
-      if (!this.bookingData.cab_number && selectedDriver?.vehicle_number) {
-        this.bookingData.cab_number = selectedDriver.vehicle_number;
-        const matchingVeh = this.vehicles.find(v => v.registration_number === selectedDriver.vehicle_number);
-        if (matchingVeh) {
-          this.selectedVehicleId = matchingVeh.vehicle_id || matchingVeh.id;
-          this.bookingData.vehicle_id = matchingVeh.vehicle_id || matchingVeh.id;
+      if (selectedDriver) {
+        this.bookingData.driver_phone = selectedDriver.phone ? String(selectedDriver.phone).trim() : '';
+        // If driver has a default vehicle in profile and no cab number is set yet:
+        if (!this.bookingData.cab_number && selectedDriver.vehicle_number) {
+          this.bookingData.cab_number = selectedDriver.vehicle_number;
+          const matchingVeh = this.vehicles.find(v => v.registration_number === selectedDriver.vehicle_number);
+          if (matchingVeh) {
+            this.selectedVehicleId = matchingVeh.vehicle_id || matchingVeh.id;
+            this.bookingData.vehicle_id = matchingVeh.vehicle_id || matchingVeh.id;
+          }
         }
       }
+    } else {
+      this.bookingData.driver_phone = '';
     }
+    this.evaluateDriverWhatsApp(this.bookingData.driver_phone || this.bookingData.driver_id);
+  }
+
+  onDriverPhoneChange(phone: string): void {
+    this.bookingData.driver_phone = phone;
+    this.evaluateDriverWhatsApp(phone);
   }
 
   onCabNumberChange(cabNum: string): void {
@@ -565,6 +583,9 @@ export class VisitBookingComponent implements OnInit {
   }
 
   getSelectedDriverRawPhone(): string {
+    if (this.bookingData.driver_phone && String(this.bookingData.driver_phone).trim()) {
+      return String(this.bookingData.driver_phone).trim();
+    }
     const driver = this.getSelectedDriver();
     return driver?.phone ? String(driver.phone).trim() : '';
   }
@@ -581,23 +602,37 @@ export class VisitBookingComponent implements OnInit {
     return digits || raw;
   }
 
-  evaluateDriverWhatsApp(driverId: any): void {
-    if (!driverId) {
-      this.driverWhatsAppStatus = null;
-      this.driverWhatsAppWarning = '';
+  evaluateDriverWhatsApp(phoneOrDriverId?: any): void {
+    let rawPhone = '';
+    if (typeof phoneOrDriverId === 'string') {
+      rawPhone = phoneOrDriverId.trim();
+    } else if (typeof phoneOrDriverId === 'number' || (phoneOrDriverId && !isNaN(phoneOrDriverId))) {
+      const driver = this.drivers.find(d => (d.user_id || d.id) == phoneOrDriverId);
+      rawPhone = driver?.phone ? String(driver.phone).trim() : '';
+    } else {
+      rawPhone = this.bookingData.driver_phone ? String(this.bookingData.driver_phone).trim() : '';
+      if (!rawPhone && this.bookingData.driver_id) {
+        const driver = this.getSelectedDriver();
+        rawPhone = driver?.phone ? String(driver.phone).trim() : '';
+      }
+    }
+
+    if (!rawPhone) {
+      if (this.bookingData.driver_id) {
+        this.driverWhatsAppStatus = {
+          present: false,
+          phone: 'no phone specified',
+          message: 'No phone number specified for assigned driver.'
+        };
+        this.driverWhatsAppWarning = 'No phone number specified for assigned driver. Enter a valid mobile number to enable direct backend WhatsApp dispatch.';
+      } else {
+        this.driverWhatsAppStatus = null;
+        this.driverWhatsAppWarning = '';
+      }
       return;
     }
 
-    const driver = this.drivers.find(d => (d.user_id || d.id) == driverId);
-    if (!driver) {
-      this.driverWhatsAppStatus = null;
-      this.driverWhatsAppWarning = '';
-      return;
-    }
-
-    const rawPhone = driver.phone ? String(driver.phone).trim() : '';
     const digits = rawPhone.replace(/\D/g, '');
-
     let isValid = false;
     let cleanPhone = '';
 
@@ -612,7 +647,7 @@ export class VisitBookingComponent implements OnInit {
         cleanPhone = '91' + local;
         isValid = true;
       }
-    } else if (digits.length === 12 && digits.startsWith('91')) {
+    } else if (digits.length >= 12 && digits.startsWith('91')) {
       const local = digits.slice(2);
       if (/^[6-9]\d{9}$/.test(local)) {
         cleanPhone = digits;
@@ -623,18 +658,18 @@ export class VisitBookingComponent implements OnInit {
       isValid = true;
     }
 
-    if (!rawPhone || !isValid) {
+    if (!isValid) {
       this.driverWhatsAppStatus = {
         present: false,
-        phone: rawPhone || 'no phone registered',
-        message: `WhatsApp is not present for this number (${rawPhone || 'no phone registered'}).`
+        phone: rawPhone,
+        message: `WhatsApp is not present for this number (${rawPhone}): Must be a valid 10-digit mobile number.`
       };
-      this.driverWhatsAppWarning = `WhatsApp is not present for this number (${rawPhone || 'no phone registered'}). The driver will not receive direct trip WhatsApp notifications.`;
+      this.driverWhatsAppWarning = `WhatsApp is not present for this number (${rawPhone}). Please enter a valid 10-digit mobile number.`;
     } else {
       this.driverWhatsAppStatus = {
         present: true,
         phone: cleanPhone,
-        message: `Direct WhatsApp active (+${cleanPhone}). Trip details will be sent directly without browser redirection.`
+        message: `Direct WhatsApp active (+${cleanPhone}). Trip details will be dispatched directly by backend (zero browser redirection).`
       };
       this.driverWhatsAppWarning = '';
     }
