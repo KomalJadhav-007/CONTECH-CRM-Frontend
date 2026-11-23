@@ -996,183 +996,41 @@
   color: #16a34a;
 }
 
-/* CallMeBot Free WhatsApp API Strip & Modal Enhancements */
-.whatsapp-free-api-strip {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-radius: 8px;
-  padding: 0.6rem 0.85rem;
-  margin-bottom: 1.25rem;
-  font-size: 0.8rem;
-  color: #166534;
-}
-
-.strip-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.strip-badge {
-  background: #16a34a;
-  color: #ffffff;
-  font-weight: 700;
-  font-size: 0.68rem;
-  padding: 0.15rem 0.45rem;
-  border-radius: 4px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.strip-text {
-  font-weight: 500;
-}
-
-.btn-get-key {
-  font-size: 0.75rem;
-  color: #15803d;
-  text-decoration: underline;
-  white-space: nowrap;
-  font-weight: 600;
-}
-
-.btn-get-key:hover {
-  color: #166534;
-}
-
-.wa-popup-icon-wrapper.icon-action {
-  background: #eff6ff;
-  color: #2563eb;
-  border: 1px solid #bfdbfe;
-}
-
-.wa-popup-alert-box.alert-info {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  color: #1e40af;
-}
-
+/* Direct Frontend WhatsApp Dispatch Button */
 .wa-direct-send-block {
-  margin-bottom: 1rem;
-  padding: 0.75rem 1rem;
-  background: #f8fafc;
-  border: 1px dashed #cbd5e1;
-  border-radius: 8px;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-}
-
-.wa-action-caption {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #64748b;
-  text-transform: uppercase;
 }
 
 .btn-wa-direct-send {
   background: #25d366 !important;
   color: #ffffff !important;
   border: none !important;
-  font-weight: 600 !important;
+  font-weight: 700 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   gap: 0.5rem !important;
-  height: 38px !important;
+  height: 42px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.35) !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-wa-direct-send:hover {
+  background: #20ba5a !important;
+  box-shadow: 0 6px 16px rgba(37, 211, 102, 0.45) !important;
+  transform: translateY(-1px);
 }
 
 .btn-wa-direct-send mat-icon {
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
 }
 
-.wa-key-setup-box {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-radius: 8px;
-  padding: 0.85rem 1rem;
-  margin-bottom: 1rem;
-}
-
-.setup-header {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin-bottom: 0.4rem;
-}
-
-.setup-icon {
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
-  color: #16a34a;
-}
-
-.setup-title {
-  font-weight: 700;
-  font-size: 0.82rem;
-  color: #15803d;
-}
-
-.setup-instructions {
-  font-size: 0.78rem;
-  color: #166534;
-  line-height: 1.45;
-  margin-bottom: 0.65rem;
-}
-
-.setup-instructions ol {
-  margin: 0;
-  padding-left: 1.2rem;
-}
-
-.setup-instructions li {
-  margin-bottom: 0.2rem;
-}
-
-.setup-instructions code {
-  background: #dcfce7;
-  padding: 0.1rem 0.3rem;
-  border-radius: 3px;
-  font-weight: 600;
-  color: #14532d;
-}
-
-.key-input-row {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.api-key-input {
-  flex: 1;
-  height: 36px;
-  border: 1px solid #86efac;
-  border-radius: 6px;
-  padding: 0 0.75rem;
-  font-size: 0.82rem;
-  outline: none;
-  background: #ffffff;
-}
-
-.api-key-input:focus {
-  border-color: #22c55e;
-  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
-}
-
-.btn-save-key {
-  height: 36px !important;
-  font-size: 0.8rem !important;
-  font-weight: 600 !important;
-  white-space: nowrap;
-}
 
 
 

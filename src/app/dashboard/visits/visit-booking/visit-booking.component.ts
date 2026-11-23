@@ -76,7 +76,6 @@ export class VisitBookingComponent implements OnInit {
     driver_id: null,
     vehicle_id: null,
     driver_phone: '',
-    whatsapp_api_key: '',
     scheduled_date: new Date().toISOString().split('T')[0],
     time_slot: '11:00 AM - 12:30 PM',
     cab_required: true,
@@ -89,10 +88,6 @@ export class VisitBookingComponent implements OnInit {
   errorMessage = '';
 
   ngOnInit(): void {
-    const savedApiKey = localStorage.getItem('contech_callmebot_api_key');
-    if (savedApiKey) {
-      this.bookingData.whatsapp_api_key = savedApiKey;
-    }
     this.loadTimeSlots();
     this.loadProjects();
     this.loadUsers();
@@ -787,27 +782,22 @@ export class VisitBookingComponent implements OnInit {
     return lines.join('\n');
   }
 
-  // WhatsApp Automatic Popup Modal State
+  // WhatsApp Direct Frontend Popup Modal State
   showWhatsAppModal = false;
-  whatsAppModalType: 'NOT_PRESENT' | 'SUCCESS' | 'ACTION_REQUIRED' | 'INVALID_KEY' = 'SUCCESS';
+  whatsAppModalType: 'NOT_PRESENT' | 'SUCCESS' = 'SUCCESS';
   whatsAppModalTitle = '';
   whatsAppModalMessage = '';
   whatsAppModalPhone = '';
   whatsAppModalDriverName = '';
   whatsAppModalWaUrl = '';
-  whatsAppModalInstructions = '';
-  whatsAppInputApiKey = '';
-  isSavingApiKey = false;
-  apiKeySaveSuccess = false;
 
   openWhatsAppPopup(
-    type: 'NOT_PRESENT' | 'SUCCESS' | 'ACTION_REQUIRED' | 'INVALID_KEY',
+    type: 'NOT_PRESENT' | 'SUCCESS',
     title: string,
     message: string,
     phone: string,
     driverName?: string,
-    waUrl?: string,
-    instructions?: string
+    waUrl?: string
   ): void {
     this.whatsAppModalType = type;
     this.whatsAppModalTitle = title;
@@ -815,52 +805,18 @@ export class VisitBookingComponent implements OnInit {
     this.whatsAppModalPhone = phone;
     this.whatsAppModalDriverName = driverName || this.getSelectedDriverName();
     this.whatsAppModalWaUrl = waUrl || '';
-    this.whatsAppModalInstructions = instructions || '';
-    this.whatsAppInputApiKey = this.bookingData.whatsapp_api_key || localStorage.getItem('contech_callmebot_api_key') || '';
-    this.apiKeySaveSuccess = false;
     this.showWhatsAppModal = true;
   }
 
   closeWhatsAppPopup(): void {
     this.showWhatsAppModal = false;
-    if (this.whatsAppModalType === 'SUCCESS' || this.apiKeySaveSuccess) {
-      this.router.navigate(['/visits']);
-    }
+    this.router.navigate(['/visits']);
   }
 
   sendViaDirectWhatsApp(): void {
     if (this.whatsAppModalWaUrl) {
       window.open(this.whatsAppModalWaUrl, '_blank');
     }
-  }
-
-  saveCallMeBotKeyAndTest(): void {
-    if (!this.whatsAppInputApiKey || !this.whatsAppInputApiKey.trim()) return;
-    const key = this.whatsAppInputApiKey.trim();
-    this.isSavingApiKey = true;
-    localStorage.setItem('contech_callmebot_api_key', key);
-    this.bookingData.whatsapp_api_key = key;
-
-    const phone = this.whatsAppModalPhone || this.getSelectedDriverPhone();
-    this.visitService.testWhatsAppDispatch({ phone, apikey: key }).subscribe({
-      next: (res: any) => {
-        this.isSavingApiKey = false;
-        if (res.success || res.result?.sent) {
-          this.apiKeySaveSuccess = true;
-          this.whatsAppModalType = 'SUCCESS';
-          this.whatsAppModalTitle = 'Free WhatsApp API Connected!';
-          this.whatsAppModalMessage = `CallMeBot Free API key saved! Automatic message successfully dispatched to driver ${this.whatsAppModalDriverName} (+${phone}). All future bookings will dispatch automatically in the background.`;
-        } else {
-          this.apiKeySaveSuccess = true;
-          this.whatsAppModalMessage = res.result?.message || 'API Key saved! To activate it on WhatsApp, please send "I allow callmebot to send me messages" to +34 941 83 07 40 on WhatsApp.';
-        }
-      },
-      error: () => {
-        this.isSavingApiKey = false;
-        this.apiKeySaveSuccess = true;
-        this.whatsAppModalMessage = 'API Key saved in Contech CRM! Future bookings will dispatch using this key.';
-      }
-    });
   }
 
   onSubmit(): void {
@@ -907,62 +863,31 @@ export class VisitBookingComponent implements OnInit {
     this.errorMessage = '';
     this.driverWhatsAppWarning = '';
 
-    // Automatically inject saved CallMeBot API key if not manually typed
-    if (!this.bookingData.whatsapp_api_key) {
-      const savedKey = localStorage.getItem('contech_callmebot_api_key');
-      if (savedKey) this.bookingData.whatsapp_api_key = savedKey;
-    }
-
     this.visitService.bookSiteVisit(this.bookingData).subscribe({
       next: (res) => {
         this.loading = false;
         if (res.success) {
           const driverName = this.getSelectedDriverName();
-          const dispatch = res.whatsapp_dispatch;
-          const driverPhone = this.getSelectedDriverPhone();
+          const driverPhone = this.getSelectedDriverCleanPhone();
 
           if (this.bookingData.cab_required && this.bookingData.driver_id) {
-            // Case 1: Driver phone is invalid or not registered on WhatsApp
-            if (dispatch?.status === 'NOT_PRESENT' || (!dispatch?.sent && dispatch?.error_code === 'NOT_PRESENT')) {
-              const notPresentMsg = dispatch?.message || `WhatsApp is not present for this number: ${driverPhone}`;
-              this.driverWhatsAppWarning = notPresentMsg;
-              this.openWhatsAppPopup(
-                'NOT_PRESENT',
-                'WhatsApp Number Verification',
-                notPresentMsg,
-                driverPhone,
-                driverName
-              );
-              return;
-            }
+            // Direct Frontend WhatsApp Dispatch (No backend processing)
+            const tripMsg = this.buildDriverTripMessage();
+            const directWaUrl = `https://api.whatsapp.com/send?phone=${driverPhone}&text=${encodeURIComponent(tripMsg)}`;
 
-            // Case 2: Successfully dispatched via CallMeBot Free API
-            if (dispatch?.sent === true) {
-              const deliveredMsg = `Site visit booked! Trip assignment message was delivered automatically to driver ${driverName} (+${driverPhone}) on WhatsApp via ${dispatch?.provider || 'CallMeBot Free API'}.`;
-              this.openWhatsAppPopup(
-                'SUCCESS',
-                'Trip Dispatched to WhatsApp Directly',
-                deliveredMsg,
-                driverPhone,
-                driverName,
-                dispatch?.wa_url
-              );
-              return;
+            try {
+              window.open(directWaUrl, '_blank');
+            } catch (e) {
+              console.warn('Browser blocked popup, available via dialog button', e);
             }
-
-            // Case 3: Free API Key is needed or needs activation
-            const actionMsg = dispatch?.status === 'INVALID_API_KEY'
-              ? (dispatch?.message || 'CallMeBot API key was not verified or needs activation.')
-              : `Site visit booked! Click below to send the trip assignment to driver ${driverName} on WhatsApp immediately, or save a free CallMeBot key for automated dispatch.`;
 
             this.openWhatsAppPopup(
-              dispatch?.status === 'INVALID_API_KEY' ? 'INVALID_KEY' : 'ACTION_REQUIRED',
-              'Driver WhatsApp Notification Ready',
-              actionMsg,
+              'SUCCESS',
+              'Trip Dispatched to Driver on WhatsApp',
+              `Site visit booked! Trip details have been dispatched directly to driver ${driverName} (+${driverPhone}) on WhatsApp.`,
               driverPhone,
               driverName,
-              dispatch?.wa_url,
-              dispatch?.instructions
+              directWaUrl
             );
             return;
           }
