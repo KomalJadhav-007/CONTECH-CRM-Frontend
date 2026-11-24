@@ -1489,6 +1489,16 @@
         </div>
       </div>
       <div class="kanban-view-header-right">
+        <!-- Quick Slide Navigation Controls -->
+        <div class="kanban-slide-nav-buttons">
+          <button type="button" class="btn-slide-nav" (click)="slideKanban('left')" matTooltip="Slide left to earlier stages">
+            <mat-icon>chevron_left</mat-icon> Slide Left
+          </button>
+          <button type="button" class="btn-slide-nav" (click)="slideKanban('right')" matTooltip="Slide right to later stages">
+            Slide Right <mat-icon>chevron_right</mat-icon>
+          </button>
+        </div>
+
         <span class="kanban-metric-pill">
           <mat-icon>groups</mat-icon>
           <strong>{{ kanbanFilteredProspects.length }}</strong> Prospects
@@ -1506,7 +1516,17 @@
 
   <!-- Reusable Kanban Board Template -->
   <ng-template #kanbanBoard let-prospectSource="prospectSource">
-    <div class="kanban-scroll-wrapper">
+    <div
+      class="kanban-scroll-wrapper"
+      [class.is-dragging-scroll]="isKanbanDragging"
+      (dragover)="onKanbanScrollWrapperDragOver($event)"
+      (dragleave)="stopAutoScroll()"
+      (drop)="stopAutoScroll()"
+      (mousedown)="onKanbanMouseDown($event)"
+      (mousemove)="onKanbanMouseMove($event)"
+      (mouseup)="onKanbanMouseUp()"
+      (mouseleave)="onKanbanMouseUp()"
+    >
       <div class="kanban-board-track">
         <div
           *ngFor="let stage of KANBAN_STAGES"
@@ -1517,7 +1537,12 @@
           (drop)="onDrop(stage.key, $event)"
         >
           <!-- Column Header -->
-          <div class="kanban-col-header" [style.border-top-color]="stage.color">
+          <div
+            class="kanban-col-header"
+            [style.border-top-color]="stage.color"
+            (dragover)="onDragOver(stage.key, $event)"
+            (drop)="onDrop(stage.key, $event)"
+          >
             <div class="col-title-row">
               <div class="col-title-left">
                 <span class="stage-color-dot" [style.background-color]="stage.color"></span>
@@ -1533,11 +1558,19 @@
           </div>
 
           <!-- Column Cards Container -->
-          <div class="kanban-cards-track">
+          <div
+            class="kanban-cards-track"
+            [class.drag-over]="dragOverStage === stage.key"
+            (dragover)="onDragOver(stage.key, $event)"
+            (drop)="onDrop(stage.key, $event)"
+          >
             <!-- Empty Dropzone Placeholder -->
             <div
               *ngIf="getProspectsForStage(stage.key, prospectSource).length === 0"
               class="kanban-empty-dropzone"
+              [class.drag-over]="dragOverStage === stage.key"
+              (dragover)="onDragOver(stage.key, $event)"
+              (drop)="onDrop(stage.key, $event)"
             >
               <mat-icon class="drop-hint-icon">move_to_inbox</mat-icon>
               <span>No prospects in {{ stage.label }}</span>
@@ -1550,6 +1583,10 @@
               class="kanban-card"
               draggable="true"
               (dragstart)="onDragStart(p, $event)"
+              (dragend)="onDragEnd()"
+              (dragover)="onDragOver(stage.key, $event)"
+              (drop)="onDrop(stage.key, $event)"
+              [class.is-being-dragged]="draggedProspect === p"
               [class.card-high-intent]="p.score >= 85"
               [class.card-sla-breach]="p.sla_breached"
             >
@@ -1603,7 +1640,7 @@
               </div>
 
               <!-- Card Move Footer: Quick Dropdown & Prev/Next Arrows -->
-              <div class="kcard-footer-controls" (click)="$event.stopPropagation()">
+              <div class="kcard-footer-controls" draggable="false" (mousedown)="$event.stopPropagation()" (click)="$event.stopPropagation()">
                 <button
                   type="button"
                   class="kbtn-step-arrow"

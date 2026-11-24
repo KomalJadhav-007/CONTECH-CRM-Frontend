@@ -3766,11 +3766,54 @@ button.btn-action-primary:hover,
   color: #d97706;
 }
 
+/* Quick Slide Navigation Buttons */
+.kanban-slide-nav-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-right: 0.5rem;
+}
+
+.btn-slide-nav {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  color: #334155;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.35rem 0.65rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.btn-slide-nav:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
+  transform: translateY(-1px);
+}
+
+.btn-slide-nav mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
 /* Kanban Board Track & Layout */
 .kanban-scroll-wrapper {
   overflow-x: auto;
   padding-bottom: 0.75rem;
   -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  cursor: grab;
+}
+
+.kanban-scroll-wrapper.is-dragging-scroll {
+  cursor: grabbing;
 }
 
 .kanban-board-track {
@@ -3792,10 +3835,17 @@ button.btn-action-primary:hover,
   min-height: 480px;
 }
 
-.kanban-column.drag-over {
-  border-color: #3b82f6;
-  background: #eff6ff;
+.kanban-column.drag-over,
+.kanban-cards-track.drag-over,
+.kanban-empty-dropzone.drag-over {
+  border-color: #3b82f6 !important;
+  background: #eff6ff !important;
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+}
+
+.kanban-card.is-being-dragged {
+  opacity: 0.45;
+  transform: scale(0.97);
 }
 
 .kanban-col-header {

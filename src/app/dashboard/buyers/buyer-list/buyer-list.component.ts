@@ -79,6 +79,10 @@ export class BuyerListComponent implements OnInit {
   // Drag and Drop state for Kanban
   draggedProspect: any = null;
   dragOverStage: string | null = null;
+  isKanbanDragging = false;
+  kanbanStartX = 0;
+  kanbanScrollLeft = 0;
+  private autoScrollInterval: any = null;
 
   // Active Project Card selected in 'project_grid' view
   selectedProjectCardId: number | null = 1;
@@ -1046,6 +1050,17 @@ export class BuyerListComponent implements OnInit {
     p.rawStage = newCode;
     this.showFeedback(`✓ Moved ${p.name || 'Prospect'} to stage: "${targetStageKey}"`);
 
+    // Reset filters that would inadvertently hide the moved prospect from view
+    if (this.selectedStage !== 'all' && this.selectedStage !== targetStageKey) {
+      this.selectedStage = 'all';
+    }
+    if (this.activeQuickTab === 'visits' && !targetStageKey.toLowerCase().includes('visit')) {
+      this.activeQuickTab = 'all';
+    }
+    if (this.activeQuickTab === 'negotiation' && !['Negotiation', 'Booking Intent', 'Booked'].includes(targetStageKey)) {
+      this.activeQuickTab = 'all';
+    }
+
     const buyerId = p.buyer_id || p.id;
     this.buyerService.updateBuyer(buyerId, { lead_status: newCode }).subscribe({
       next: (res) => {
@@ -1093,6 +1108,74 @@ export class BuyerListComponent implements OnInit {
     return null;
   }
 
+  // --- Kanban Drag, Drop & Horizontal Sliding Engine ---
+
+  slideKanban(direction: 'left' | 'right', amount = 340): void {
+    const el = document.querySelector('.kanban-scroll-wrapper') as HTMLElement;
+    if (el) {
+      el.scrollBy({ left: direction === 'right' ? amount : -amount, behavior: 'smooth' });
+    }
+  }
+
+  startAutoScroll(direction: 'left' | 'right'): void {
+    if (this.autoScrollInterval) return;
+    this.autoScrollInterval = setInterval(() => {
+      const el = document.querySelector('.kanban-scroll-wrapper') as HTMLElement;
+      if (el) {
+        el.scrollLeft += direction === 'right' ? 24 : -24;
+      }
+    }, 25);
+  }
+
+  stopAutoScroll(): void {
+    if (this.autoScrollInterval) {
+      clearInterval(this.autoScrollInterval);
+      this.autoScrollInterval = null;
+    }
+  }
+
+  onKanbanScrollWrapperDragOver(event: DragEvent): void {
+    event.preventDefault();
+    const wrapper = event.currentTarget as HTMLElement;
+    if (!wrapper) return;
+    const rect = wrapper.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const edgeThreshold = 100;
+    if (x < edgeThreshold) {
+      this.startAutoScroll('left');
+    } else if (x > rect.width - edgeThreshold) {
+      this.startAutoScroll('right');
+    } else {
+      this.stopAutoScroll();
+    }
+  }
+
+  onKanbanMouseDown(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (target.closest('.kanban-card') || target.closest('button') || target.closest('select') || target.closest('a') || target.closest('input')) {
+      return;
+    }
+    const wrapper = document.querySelector('.kanban-scroll-wrapper') as HTMLElement;
+    if (!wrapper) return;
+    this.isKanbanDragging = true;
+    this.kanbanStartX = event.pageX - wrapper.offsetLeft;
+    this.kanbanScrollLeft = wrapper.scrollLeft;
+  }
+
+  onKanbanMouseMove(event: MouseEvent): void {
+    if (!this.isKanbanDragging) return;
+    event.preventDefault();
+    const wrapper = document.querySelector('.kanban-scroll-wrapper') as HTMLElement;
+    if (!wrapper) return;
+    const x = event.pageX - wrapper.offsetLeft;
+    const walk = (x - this.kanbanStartX) * 1.5;
+    wrapper.scrollLeft = this.kanbanScrollLeft - walk;
+  }
+
+  onKanbanMouseUp(): void {
+    this.isKanbanDragging = false;
+  }
+
   onDragStart(p: any, event: DragEvent): void {
     this.draggedProspect = p;
     if (event.dataTransfer) {
@@ -1101,8 +1184,15 @@ export class BuyerListComponent implements OnInit {
     }
   }
 
+  onDragEnd(): void {
+    this.stopAutoScroll();
+    this.dragOverStage = null;
+    this.draggedProspect = null;
+  }
+
   onDragOver(stageKey: string, event: DragEvent): void {
     event.preventDefault();
+    event.stopPropagation();
     this.dragOverStage = stageKey;
     if (event.dataTransfer) {
       event.dataTransfer.dropEffect = 'move';
@@ -1110,6 +1200,11 @@ export class BuyerListComponent implements OnInit {
   }
 
   onDragLeave(stageKey: string, event: DragEvent): void {
+    const currentTarget = event.currentTarget as HTMLElement;
+    const relatedTarget = event.relatedTarget as HTMLElement;
+    if (currentTarget && relatedTarget && currentTarget.contains(relatedTarget)) {
+      return;
+    }
     if (this.dragOverStage === stageKey) {
       this.dragOverStage = null;
     }
@@ -1117,11 +1212,15 @@ export class BuyerListComponent implements OnInit {
 
   onDrop(targetStageKey: string, event: DragEvent): void {
     event.preventDefault();
+    event.stopPropagation();
+    this.stopAutoScroll();
     this.dragOverStage = null;
-    if (this.draggedProspect) {
-      this.moveProspectStage(this.draggedProspect, targetStageKey);
-      this.draggedProspect = null;
+    const buyerId = event.dataTransfer?.getData('text/plain') || this.draggedProspect?.buyer_id || this.draggedProspect?.id;
+    const prospect = this.draggedProspect || this.prospects.find(p => (p.buyer_id || p.id) == buyerId);
+    if (prospect) {
+      this.moveProspectStage(prospect, targetStageKey);
     }
+    this.draggedProspect = null;
   }
 
   get filteredProspects(): any[] {
