@@ -101,11 +101,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
     switch (section) {
       case 'intelligence':
         return this.canAccess('Dashboard') ||
-               this.canAccess('Revenue Leakage') ||
                this.canAccess('AI Buyer Score') ||
                this.canAccess('Analytics');
       case 'pipeline':
         return this.canAccess('Prospects') ||
+               this.canAccess('Customers') ||
+               this.canAccess('Revenue Leakage') ||
                this.canAccess('Follow-ups') ||
                this.canAccess('Alerts');
       case 'siteVisitOps':
