@@ -1830,7 +1830,6 @@
           <div class="form-group-custom">
             <label class="form-label-custom">Due Date & Time (SLA Target)</label>
             <input #followUpDueInput type="datetime-local" [(ngModel)]="followUpModalForm.due_at"
-              [min]="minDueDateTime"
               (click)="openDateTimePicker(followUpDueInput)" class="form-input-custom" />
           </div>
           <div class="form-group-custom">

@@ -397,7 +397,6 @@
                 matInput
                 type="date"
                 [(ngModel)]="manageForm.new_date"
-                [min]="todayDateString"
                 (ngModelChange)="onRescheduleDateChange()"
                 (click)="openDateTimePicker(rescheduleDateInput)"
                 required

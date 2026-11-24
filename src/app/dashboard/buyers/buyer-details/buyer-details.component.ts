@@ -145,11 +145,6 @@ export class BuyerDetailsComponent implements OnInit {
       return;
     }
 
-    if (this.followUpForm.due_at && new Date(this.followUpForm.due_at).getTime() < Date.now() - 60000) {
-      alert('Cannot schedule follow-up in the past. Please select an upcoming date and time.');
-      return;
-    }
-
     this.savingFollowUp = true;
     const payload = {
       buyer_id: this.buyer.buyer_id || this.buyer.id,

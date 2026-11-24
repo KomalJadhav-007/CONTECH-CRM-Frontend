@@ -279,7 +279,7 @@ export class VisitListComponent implements OnInit {
     const now = new Date();
     const todayStr = this.getTodayDateString();
 
-    if (this.manageForm.new_date < todayStr) return true;
+    if (this.manageForm.new_date < todayStr) return false;
     if (this.manageForm.new_date > todayStr) return false;
 
     let endTimePart = slot;
@@ -302,20 +302,6 @@ export class VisitListComponent implements OnInit {
 
   onRescheduleDateChange(): void {
     const today = this.getTodayDateString();
-    if (this.manageForm.new_date && this.manageForm.new_date < today) {
-      this.manageForm.new_date = today;
-      this.cancelError = 'Past dates cannot be selected for site visit reschedule. Date reset to today.';
-      setTimeout(() => {
-        if (this.cancelError.includes('Past dates cannot be selected')) {
-          this.cancelError = '';
-        }
-      }, 5000);
-    } else {
-      if (this.cancelError.includes('Past dates cannot be selected')) {
-        this.cancelError = '';
-      }
-    }
-
     if (this.manageForm.new_date === today && this.isRescheduleSlotEnded(this.manageForm.new_time_slot)) {
       const nextAvail = this.timeSlots.find(s => !this.isRescheduleSlotEnded(s));
       if (nextAvail) {
@@ -550,12 +536,6 @@ export class VisitListComponent implements OnInit {
       if (!this.manageForm.new_date || !this.manageForm.new_time_slot) {
         this.cancelling = false;
         this.cancelError = 'Please select both a new scheduled date and time slot for the reschedule.';
-        return;
-      }
-      const today = this.getTodayDateString();
-      if (this.manageForm.new_date < today) {
-        this.cancelling = false;
-        this.cancelError = 'Past dates cannot be selected for site visit reschedule. Please select today or a future date.';
         return;
       }
       if (this.isRescheduleSlotEnded(this.manageForm.new_time_slot)) {

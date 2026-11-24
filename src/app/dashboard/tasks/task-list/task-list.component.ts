@@ -291,11 +291,6 @@ export class TaskListComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.createForm.due_at && new Date(this.createForm.due_at).getTime() < Date.now() - 60000) {
-      alert('Cannot schedule follow-up in the past. Please select an upcoming date and time.');
-      return;
-    }
-
     this.creatingTask = true;
     this.taskService.createTask(this.createForm).subscribe({
       next: (res) => {
@@ -612,10 +607,6 @@ export class TaskListComponent implements OnInit, OnDestroy {
 
   submitTaskCompletion(): void {
     if (!this.selectedTaskForCompletion) return;
-    if (this.schedule_next_follow_up && this.next_follow_up_date && new Date(this.next_follow_up_date).getTime() < Date.now() - 60000) {
-      alert('Cannot schedule next follow-up in the past. Please select an upcoming date and time.');
-      return;
-    }
     this.completingTask = true;
     const id = this.selectedTaskForCompletion.follow_up_task_id || this.selectedTaskForCompletion.id;
     const notesWithChannel = `[Action: ${this.action_channel}] ${this.outcome_notes || ''}`.trim();

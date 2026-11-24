@@ -121,21 +121,11 @@ export class VisitBookingComponent implements OnInit {
 
   ensureValidDateAndSlot(): void {
     const today = this.getTodayDateString();
-    if (!this.bookingData.scheduled_date || this.bookingData.scheduled_date < today) {
+    if (!this.bookingData.scheduled_date) {
       this.bookingData.scheduled_date = today;
     }
 
     if (this.bookingData.scheduled_date === today) {
-      const allSlotsEnded = this.timeSlots.length > 0 && this.timeSlots.every(s => this.isSlotEnded(s));
-      if (allSlotsEnded) {
-        this.bookingData.scheduled_date = this.getTomorrowDateString();
-        if (this.timeSlots.length > 0) {
-          this.bookingData.time_slot = this.timeSlots[0];
-          this.previousTimeSlot = this.timeSlots[0];
-        }
-        return;
-      }
-
       if (this.isSlotEnded(this.bookingData.time_slot)) {
         const nextAvail = this.timeSlots.find(s => !this.isSlotEnded(s));
         if (nextAvail) {
@@ -167,20 +157,6 @@ export class VisitBookingComponent implements OnInit {
 
   onDateChange(): void {
     const today = this.getTodayDateString();
-    if (this.bookingData.scheduled_date && this.bookingData.scheduled_date < today) {
-      this.bookingData.scheduled_date = today;
-      this.errorMessage = 'Past dates cannot be selected for site visit booking. Date has been reset to today.';
-      setTimeout(() => {
-        if (this.errorMessage.includes('Past dates cannot be selected')) {
-          this.errorMessage = '';
-        }
-      }, 5000);
-    } else {
-      if (this.errorMessage.includes('Past dates cannot be selected')) {
-        this.errorMessage = '';
-      }
-    }
-
     if (this.bookingData.scheduled_date === today && this.isSlotEnded(this.bookingData.time_slot)) {
       const nextAvail = this.timeSlots.find(s => !this.isSlotEnded(s));
       if (nextAvail) {
@@ -192,7 +168,7 @@ export class VisitBookingComponent implements OnInit {
     this.loadDateVisits();
   }
 
-  // Bug 10 Fix: Check if a time slot has already ended
+  // Check if a time slot on today has ended in wall-clock time (past dates allow all slots)
   isSlotEnded(slot: string): boolean {
     if (!slot || !this.bookingData.scheduled_date) return false;
     const now = new Date();
@@ -201,7 +177,8 @@ export class VisitBookingComponent implements OnInit {
     const day = String(now.getDate()).padStart(2, '0');
     const todayStr = `${year}-${month}-${day}`;
 
-    if (this.bookingData.scheduled_date < todayStr) return true;
+    // Past dates and future dates allow any slot for historical or scheduled bookings
+    if (this.bookingData.scheduled_date < todayStr) return false;
     if (this.bookingData.scheduled_date > todayStr) return false;
 
     let endTimePart = slot;
@@ -928,9 +905,8 @@ export class VisitBookingComponent implements OnInit {
       return;
     }
 
-    const today = this.getTodayDateString();
-    if (!this.bookingData.scheduled_date || this.bookingData.scheduled_date < today) {
-      this.errorMessage = 'Past dates cannot be selected for site visit booking. Please select today or a future date.';
+    if (!this.bookingData.scheduled_date) {
+      this.errorMessage = 'Please select a visit date.';
       return;
     }
 
