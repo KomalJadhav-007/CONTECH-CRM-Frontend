@@ -80,6 +80,16 @@ export class VisitDiscoveryComponent implements OnInit {
     'Lower Floor (Garden View)'
   ];
 
+  getTodayDateString(): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  todayDateString: string = this.getTodayDateString();
+
   discoveryData: any = {
     outcome: 'HOT_NEGOTIATION',
     shortlisted_units: 'Tower B - Unit 402 (3BHK East Facing)',
@@ -89,14 +99,14 @@ export class VisitDiscoveryComponent implements OnInit {
     token_amount_lacs: '5.00',
     token_payment_mode: 'UPI / Immediate Transfer',
     booking_reference_number: 'CON-BK-8492',
-    expected_agreement_date: '2026-10-30',
+    expected_agreement_date: this.getTodayDateString(),
     
     // Section 2: Future Visit & Walkthrough Intent
     future_visit_intent: 'VISIT_DIFFERENT_FLATS', // 'NONE' | 'VISIT_DIFFERENT_FLATS' | 'VISIT_OTHER_SITES' | 'BOTH'
     preferred_alternate_flats: 'Higher floor (10-16), 3BHK East-facing unit with panoramic balcony view',
     alternate_flat_specs: '3 BHK • Floor 10+ • East Facing',
     target_alternate_projects: 'Contech Skyline Elegance (Hebbal)',
-    alternate_visit_date: '2026-10-27',
+    alternate_visit_date: this.getTodayDateString(),
     alternate_visit_time_slot: '02:00 PM - 03:30 PM',
     transport_required: true,
     client_site_notes: 'Client likes project layout & amenities, but requested to check higher floor 3BHK units with uninterrupted view, and also requested a visit pass to Contech Skyline Elegance (Hebbal) for family comparison.',

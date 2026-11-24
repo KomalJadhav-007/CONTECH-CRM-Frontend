@@ -147,6 +147,12 @@ export class TaskListComponent implements OnInit, OnDestroy {
   next_follow_up_date = '';
   next_follow_up_priority = 'HIGH';
 
+  get minDueDateTime(): string {
+    const now = new Date();
+    const tzOffset = now.getTimezoneOffset() * 60000;
+    return new Date(now.getTime() - tzOffset).toISOString().slice(0, 16);
+  }
+
   ngOnInit(): void {
     try {
       const savedFilter = localStorage.getItem('contech_tasks_filter_status');
@@ -282,6 +288,11 @@ export class TaskListComponent implements OnInit, OnDestroy {
     }
     if (!this.createForm.buyer_id) {
       alert('Please select a prospect for this follow-up');
+      return;
+    }
+
+    if (this.createForm.due_at && new Date(this.createForm.due_at).getTime() < Date.now() - 60000) {
+      alert('Cannot schedule follow-up in the past. Please select an upcoming date and time.');
       return;
     }
 
@@ -601,6 +612,10 @@ export class TaskListComponent implements OnInit, OnDestroy {
 
   submitTaskCompletion(): void {
     if (!this.selectedTaskForCompletion) return;
+    if (this.schedule_next_follow_up && this.next_follow_up_date && new Date(this.next_follow_up_date).getTime() < Date.now() - 60000) {
+      alert('Cannot schedule next follow-up in the past. Please select an upcoming date and time.');
+      return;
+    }
     this.completingTask = true;
     const id = this.selectedTaskForCompletion.follow_up_task_id || this.selectedTaskForCompletion.id;
     const notesWithChannel = `[Action: ${this.action_channel}] ${this.outcome_notes || ''}`.trim();

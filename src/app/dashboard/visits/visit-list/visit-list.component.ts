@@ -229,7 +229,16 @@ export class VisitListComponent implements OnInit {
   // Site Visit Management Modal: Reschedule vs Permanent Cancellation
   showCancelModal = false;
   selectedVisitForCancel: any = null;
-  todayDateStr: string = new Date().toISOString().slice(0, 10);
+  getTodayDateString(): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  todayDateString: string = this.getTodayDateString();
+  todayDateStr: string = this.getTodayDateString();
 
   defaultTimeSlots: string[] = [
     '09:30 AM - 11:00 AM',
@@ -264,6 +273,57 @@ export class VisitListComponent implements OnInit {
   cancelling = false;
   cancelError = '';
   waSendingId: number | null = null;
+
+  isRescheduleSlotEnded(slot: string): boolean {
+    if (!slot || !this.manageForm.new_date) return false;
+    const now = new Date();
+    const todayStr = this.getTodayDateString();
+
+    if (this.manageForm.new_date < todayStr) return true;
+    if (this.manageForm.new_date > todayStr) return false;
+
+    let endTimePart = slot;
+    if (slot.includes('-')) {
+      endTimePart = slot.split('-')[1].trim();
+    }
+    const match = endTimePart.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+    if (!match) return false;
+
+    let hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+    const ampm = (match[3] || '').toUpperCase();
+
+    if (ampm === 'PM' && hours !== 12) hours += 12;
+    if (ampm === 'AM' && hours === 12) hours = 0;
+
+    const slotEndTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
+    return now.getTime() >= slotEndTime.getTime();
+  }
+
+  onRescheduleDateChange(): void {
+    const today = this.getTodayDateString();
+    if (this.manageForm.new_date && this.manageForm.new_date < today) {
+      this.manageForm.new_date = today;
+      this.cancelError = 'Past dates cannot be selected for site visit reschedule. Date reset to today.';
+      setTimeout(() => {
+        if (this.cancelError.includes('Past dates cannot be selected')) {
+          this.cancelError = '';
+        }
+      }, 5000);
+    } else {
+      if (this.cancelError.includes('Past dates cannot be selected')) {
+        this.cancelError = '';
+      }
+    }
+
+    if (this.manageForm.new_date === today && this.isRescheduleSlotEnded(this.manageForm.new_time_slot)) {
+      const nextAvail = this.timeSlots.find(s => !this.isRescheduleSlotEnded(s));
+      if (nextAvail) {
+        this.manageForm.new_time_slot = nextAvail;
+        this.previousTimeSlot = nextAvail;
+      }
+    }
+  }
 
   openDateTimePicker(inputEl: HTMLInputElement): void {
     if (inputEl && typeof (inputEl as any).showPicker === 'function') {
@@ -329,7 +389,32 @@ export class VisitListComponent implements OnInit {
       event.preventDefault();
       event.stopPropagation();
     }
-    const trimmed = this.newCustomTimeSlot.trim();
+    if (!this.customSlotStartTime || !this.customSlotEndTime) {
+      this.cancelError = 'Please specify both start and end time for the custom time slot.';
+      return;
+    }
+
+    if (this.customSlotStartTime >= this.customSlotEndTime) {
+      this.cancelError = 'End time must be later than start time.';
+      return;
+    }
+
+    const start = this.formatTime12h(this.customSlotStartTime);
+    const end = this.formatTime12h(this.customSlotEndTime);
+    const slotStr = `${start} - ${end}`;
+
+    // If date is today, check if this custom time slot has already ended in real time
+    if (this.manageForm.new_date === this.getTodayDateString()) {
+      const now = new Date();
+      const [endH, endM] = this.customSlotEndTime.split(':').map(Number);
+      const slotEndDateTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), endH, endM, 0);
+      if (now.getTime() >= slotEndDateTime.getTime()) {
+        this.cancelError = `Cannot add custom time slot "${slotStr}": The end time has already passed for today. Please select a future time.`;
+        return;
+      }
+    }
+
+    const trimmed = slotStr.trim();
     if (!trimmed) return;
 
     const existing = this.timeSlots.find(s => s.toLowerCase() === trimmed.toLowerCase());
@@ -358,6 +443,7 @@ export class VisitListComponent implements OnInit {
 
     this.isCreatingCustomTimeSlot = false;
     this.newCustomTimeSlot = '';
+    this.cancelError = '';
   }
 
   cancelCustomTimeSlot(): void {
@@ -411,12 +497,13 @@ export class VisitListComponent implements OnInit {
     this.isCreatingCustomTimeSlot = false;
     this.loadTimeSlots();
 
-    const nextDate = new Date();
-    nextDate.setDate(nextDate.getDate() + 1);
-    const defaultDateStr = nextDate.toISOString().slice(0, 10);
-    const chosenDate = visit.scheduled_date ? String(visit.scheduled_date).split('T')[0] : defaultDateStr;
+    const today = this.getTodayDateString();
+    let chosenDate = visit.scheduled_date ? String(visit.scheduled_date).split('T')[0] : today;
+    if (chosenDate < today) {
+      chosenDate = today;
+    }
 
-    const chosenSlot = visit.time_slot || '02:00 PM - 03:30 PM';
+    let chosenSlot = visit.time_slot || '02:00 PM - 03:30 PM';
     if (chosenSlot && !this.timeSlots.some(s => s.toLowerCase() === chosenSlot.toLowerCase())) {
       this.timeSlots.push(chosenSlot);
     }
@@ -431,6 +518,15 @@ export class VisitListComponent implements OnInit {
       cancel_reason: isNoShow ? 'Buyer unresponsive at scheduled pickup time' : 'Buyer lost interest / dropped inquiry',
       notes: ''
     };
+
+    // If date is today, ensure slot is not ended
+    if (this.manageForm.new_date === today && this.isRescheduleSlotEnded(this.manageForm.new_time_slot)) {
+      const nextAvail = this.timeSlots.find(s => !this.isRescheduleSlotEnded(s));
+      if (nextAvail) {
+        this.manageForm.new_time_slot = nextAvail;
+        this.previousTimeSlot = nextAvail;
+      }
+    }
   }
 
   openCancelModal(visit: any, isNoShow: boolean = false): void {
@@ -454,6 +550,17 @@ export class VisitListComponent implements OnInit {
       if (!this.manageForm.new_date || !this.manageForm.new_time_slot) {
         this.cancelling = false;
         this.cancelError = 'Please select both a new scheduled date and time slot for the reschedule.';
+        return;
+      }
+      const today = this.getTodayDateString();
+      if (this.manageForm.new_date < today) {
+        this.cancelling = false;
+        this.cancelError = 'Past dates cannot be selected for site visit reschedule. Please select today or a future date.';
+        return;
+      }
+      if (this.isRescheduleSlotEnded(this.manageForm.new_time_slot)) {
+        this.cancelling = false;
+        this.cancelError = `Time slot "${this.manageForm.new_time_slot}" has already ended. Please select an upcoming slot or future date.`;
         return;
       }
       payload = {

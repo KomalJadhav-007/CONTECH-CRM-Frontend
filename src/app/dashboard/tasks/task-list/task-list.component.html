@@ -483,6 +483,7 @@
                   matInput
                   type="datetime-local"
                   [(ngModel)]="next_follow_up_date"
+                  [min]="minDueDateTime"
                   (click)="openDateTimePicker(nextTaskDateInput)"
                 />
                 <button
@@ -642,6 +643,7 @@
               matInput
               type="datetime-local"
               [(ngModel)]="createForm.due_at"
+              [min]="minDueDateTime"
               (click)="openDateTimePicker(createDueAtInput)"
             />
             <button

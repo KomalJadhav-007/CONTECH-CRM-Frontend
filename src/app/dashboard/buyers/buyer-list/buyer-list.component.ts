@@ -113,6 +113,12 @@ export class BuyerListComponent implements OnInit {
     notes: ''
   };
 
+  get minDueDateTime(): string {
+    const now = new Date();
+    const tzOffset = now.getTimezoneOffset() * 60000;
+    return new Date(now.getTime() - tzOffset).toISOString().slice(0, 16);
+  }
+
   // Quick Tab Filter
   activeQuickTab: 'all' | 'high_intent' | 'visits' | 'negotiation' | 'sla' = 'all';
 
@@ -859,6 +865,13 @@ export class BuyerListComponent implements OnInit {
 
   submitFollowUpModal(): void {
     if (!this.selectedBuyerForFollowUp || !this.followUpModalForm.title || !this.followUpModalForm.title.trim()) return;
+    if (this.followUpModalForm.due_at) {
+      const selectedTime = new Date(this.followUpModalForm.due_at).getTime();
+      if (selectedTime < Date.now() - 60000) {
+        this.showFeedback('Cannot schedule follow-up in the past. Please select an upcoming date and time.');
+        return;
+      }
+    }
     this.savingFollowUp = true;
     const p = this.selectedBuyerForFollowUp;
     const score = parseInt(this.followUpModalForm.manual_intent_score) || 85;

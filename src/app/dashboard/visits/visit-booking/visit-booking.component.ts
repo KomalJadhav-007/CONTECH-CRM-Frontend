@@ -69,6 +69,26 @@ export class VisitBookingComponent implements OnInit {
   customSlotEndTime = '11:30';
   previousTimeSlot = '11:00 AM - 12:30 PM';
 
+  getTodayDateString(): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  getTomorrowDateString(): string {
+    const tmrw = new Date();
+    tmrw.setDate(tmrw.getDate() + 1);
+    const year = tmrw.getFullYear();
+    const month = String(tmrw.getMonth() + 1).padStart(2, '0');
+    const day = String(tmrw.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  todayDateString: string = this.getTodayDateString();
+  minBookingDate: string = this.getTodayDateString();
+
   bookingData: any = {
     buyer_id: null,
     project_id: null,
@@ -76,7 +96,7 @@ export class VisitBookingComponent implements OnInit {
     driver_id: null,
     vehicle_id: null,
     driver_phone: '',
-    scheduled_date: new Date().toISOString().split('T')[0],
+    scheduled_date: this.getTodayDateString(),
     time_slot: '11:00 AM - 12:30 PM',
     cab_required: true,
     cab_number: '',
@@ -88,12 +108,42 @@ export class VisitBookingComponent implements OnInit {
   errorMessage = '';
 
   ngOnInit(): void {
+    this.todayDateString = this.getTodayDateString();
+    this.minBookingDate = this.todayDateString;
     this.loadTimeSlots();
+    this.ensureValidDateAndSlot();
     this.loadProjects();
     this.loadUsers();
     this.loadBuyers();
     this.loadVehicles();
     this.loadDateVisits();
+  }
+
+  ensureValidDateAndSlot(): void {
+    const today = this.getTodayDateString();
+    if (!this.bookingData.scheduled_date || this.bookingData.scheduled_date < today) {
+      this.bookingData.scheduled_date = today;
+    }
+
+    if (this.bookingData.scheduled_date === today) {
+      const allSlotsEnded = this.timeSlots.length > 0 && this.timeSlots.every(s => this.isSlotEnded(s));
+      if (allSlotsEnded) {
+        this.bookingData.scheduled_date = this.getTomorrowDateString();
+        if (this.timeSlots.length > 0) {
+          this.bookingData.time_slot = this.timeSlots[0];
+          this.previousTimeSlot = this.timeSlots[0];
+        }
+        return;
+      }
+
+      if (this.isSlotEnded(this.bookingData.time_slot)) {
+        const nextAvail = this.timeSlots.find(s => !this.isSlotEnded(s));
+        if (nextAvail) {
+          this.bookingData.time_slot = nextAvail;
+          this.previousTimeSlot = nextAvail;
+        }
+      }
+    }
   }
 
   dateVisits: any[] = [];
@@ -116,6 +166,29 @@ export class VisitBookingComponent implements OnInit {
   }
 
   onDateChange(): void {
+    const today = this.getTodayDateString();
+    if (this.bookingData.scheduled_date && this.bookingData.scheduled_date < today) {
+      this.bookingData.scheduled_date = today;
+      this.errorMessage = 'Past dates cannot be selected for site visit booking. Date has been reset to today.';
+      setTimeout(() => {
+        if (this.errorMessage.includes('Past dates cannot be selected')) {
+          this.errorMessage = '';
+        }
+      }, 5000);
+    } else {
+      if (this.errorMessage.includes('Past dates cannot be selected')) {
+        this.errorMessage = '';
+      }
+    }
+
+    if (this.bookingData.scheduled_date === today && this.isSlotEnded(this.bookingData.time_slot)) {
+      const nextAvail = this.timeSlots.find(s => !this.isSlotEnded(s));
+      if (nextAvail) {
+        this.bookingData.time_slot = nextAvail;
+        this.previousTimeSlot = nextAvail;
+      }
+    }
+
     this.loadDateVisits();
   }
 
@@ -412,7 +485,32 @@ export class VisitBookingComponent implements OnInit {
       event.preventDefault();
       event.stopPropagation();
     }
-    const trimmed = this.newCustomTimeSlot.trim();
+    if (!this.customSlotStartTime || !this.customSlotEndTime) {
+      this.errorMessage = 'Please specify both start and end time for the custom time slot.';
+      return;
+    }
+
+    if (this.customSlotStartTime >= this.customSlotEndTime) {
+      this.errorMessage = 'End time must be later than start time.';
+      return;
+    }
+
+    const start = this.formatTime12h(this.customSlotStartTime);
+    const end = this.formatTime12h(this.customSlotEndTime);
+    const slotStr = `${start} - ${end}`;
+
+    // If date is today, check if this custom time slot has already ended in real time
+    if (this.bookingData.scheduled_date === this.getTodayDateString()) {
+      const now = new Date();
+      const [endH, endM] = this.customSlotEndTime.split(':').map(Number);
+      const slotEndDateTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), endH, endM, 0);
+      if (now.getTime() >= slotEndDateTime.getTime()) {
+        this.errorMessage = `Cannot add custom time slot "${slotStr}": The end time has already passed for today. Please select a future time.`;
+        return;
+      }
+    }
+
+    const trimmed = slotStr.trim();
     if (!trimmed) return;
 
     const existing = this.timeSlots.find(s => s.toLowerCase() === trimmed.toLowerCase());
@@ -441,6 +539,7 @@ export class VisitBookingComponent implements OnInit {
 
     this.isCreatingCustomTimeSlot = false;
     this.newCustomTimeSlot = '';
+    this.errorMessage = '';
   }
 
   cancelCustomTimeSlot(): void {
@@ -826,6 +925,12 @@ export class VisitBookingComponent implements OnInit {
     }
     if (!this.bookingData.project_id) {
       this.errorMessage = 'Please select a destination project first.';
+      return;
+    }
+
+    const today = this.getTodayDateString();
+    if (!this.bookingData.scheduled_date || this.bookingData.scheduled_date < today) {
+      this.errorMessage = 'Past dates cannot be selected for site visit booking. Please select today or a future date.';
       return;
     }
 

@@ -65,6 +65,7 @@
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>VISIT DATE</mat-label>
             <input #visitDateInput matInput type="date" [(ngModel)]="bookingData.scheduled_date"
+              [min]="todayDateString"
               (ngModelChange)="onDateChange()" (click)="openDateTimePicker(visitDateInput)" name="scheduled_date"
               required />
             <button mat-icon-button matSuffix type="button"

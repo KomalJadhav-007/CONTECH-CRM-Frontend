@@ -62,6 +62,12 @@ export class BuyerDetailsComponent implements OnInit {
     manual_intent_band: 'HIGH'
   };
 
+  get minDueDateTime(): string {
+    const now = new Date();
+    const tzOffset = now.getTimezoneOffset() * 60000;
+    return new Date(now.getTime() - tzOffset).toISOString().slice(0, 16);
+  }
+
   // Booking Modal State (SOW Sec 13)
   showBookingModal = false;
   bookingForm: any = {
@@ -136,6 +142,11 @@ export class BuyerDetailsComponent implements OnInit {
   submitAddFollowUp(): void {
     if (!this.followUpForm.title) {
       alert('Please enter a follow-up task title');
+      return;
+    }
+
+    if (this.followUpForm.due_at && new Date(this.followUpForm.due_at).getTime() < Date.now() - 60000) {
+      alert('Cannot schedule follow-up in the past. Please select an upcoming date and time.');
       return;
     }
 

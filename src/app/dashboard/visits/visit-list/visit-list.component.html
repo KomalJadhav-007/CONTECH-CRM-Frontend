@@ -397,6 +397,8 @@
                 matInput
                 type="date"
                 [(ngModel)]="manageForm.new_date"
+                [min]="todayDateString"
+                (ngModelChange)="onRescheduleDateChange()"
                 (click)="openDateTimePicker(rescheduleDateInput)"
                 required
               />
@@ -419,8 +421,8 @@
                 (selectionChange)="onTimeSlotChange($event.value)"
                 required
               >
-                <mat-option *ngFor="let slot of timeSlots" [value]="slot">
-                  {{ slot }}
+                <mat-option *ngFor="let slot of timeSlots" [value]="slot" [disabled]="isRescheduleSlotEnded(slot)">
+                  {{ slot }} <span *ngIf="isRescheduleSlotEnded(slot)" class="slot-avail-tag status-busy" style="margin-left: 0.4rem; font-size: 0.68rem;">Ended</span>
                 </mat-option>
                 <mat-divider></mat-divider>
                 <mat-option value="__create_new_slot__" class="create-new-option">
