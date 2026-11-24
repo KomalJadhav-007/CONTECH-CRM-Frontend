@@ -76,14 +76,14 @@ export class CustomerListComponent implements OnInit {
   feedbackMessage = '';
 
   // Filter States
-  activeQuickTab: 'all' | 'confirmed' | 'advance' = 'all';
+  activeQuickTab: 'all' | 'paid' | 'unpaid' | 'confirmed' = 'all';
   searchQuery = '';
   selectedProject: string | number = 'all';
   selectedStatus = 'all';
   sortField: 'booking_date' | 'booking_value' | 'token_amount' | 'name' = 'booking_date';
   sortDirection: 'asc' | 'desc' = 'desc';
 
-  setQuickTab(tab: 'all' | 'confirmed' | 'advance'): void {
+  setQuickTab(tab: 'all' | 'paid' | 'unpaid' | 'confirmed'): void {
     this.activeQuickTab = tab;
     this.currentPage = 1;
   }
@@ -119,6 +119,13 @@ export class CustomerListComponent implements OnInit {
     reference_number: '',
     notes: ''
   };
+
+  // Cancel Booking & Unit Release Modal
+  showCancelBookingModal = false;
+  cancellingBooking = false;
+  bookingToCancel: CustomerRecord | null = null;
+  cancelReason = 'Customer requested cancellation (Zero payment provisional booking)';
+  cancelError = '';
 
   ngOnInit(): void {
     this.loadProjects();
@@ -172,6 +179,11 @@ export class CustomerListComponent implements OnInit {
         const seenBuyerIds = new Set<number>();
 
         for (const b of bookingsList) {
+          const statusUpper = (b.booking_status || 'CONFIRMED').toUpperCase();
+          if (statusUpper === 'CANCELLED') {
+            continue;
+          }
+
           const buyer = b.buyer || {};
           const project = b.project || {};
           const rep = b.salesRep || {};
@@ -286,10 +298,12 @@ export class CustomerListComponent implements OnInit {
       }
 
       // 4. Quick Tab Filter
-      if (this.activeQuickTab === 'confirmed') {
-        if (c.booking_status !== 'CONFIRMED' && c.booking_status !== 'AGREEMENT_DONE') return false;
-      } else if (this.activeQuickTab === 'advance') {
+      if (this.activeQuickTab === 'paid') {
         if (!c.token_amount_lacs || c.token_amount_lacs <= 0) return false;
+      } else if (this.activeQuickTab === 'unpaid') {
+        if (c.token_amount_lacs && c.token_amount_lacs > 0) return false;
+      } else if (this.activeQuickTab === 'confirmed') {
+        if (c.booking_status !== 'CONFIRMED' && c.booking_status !== 'AGREEMENT_DONE') return false;
       }
 
       return true;
@@ -345,6 +359,18 @@ export class CustomerListComponent implements OnInit {
 
   getAdvancePaidCount(): number {
     return this.customers.filter(c => (c.token_amount_lacs || 0) > 0).length;
+  }
+
+  getUnpaidCount(): number {
+    return this.customers.filter(c => !c.token_amount_lacs || c.token_amount_lacs === 0).length;
+  }
+
+  isPaidCustomer(c: CustomerRecord): boolean {
+    return (c.token_amount_lacs || 0) > 0;
+  }
+
+  isUnpaidCustomer(c: CustomerRecord): boolean {
+    return !c.token_amount_lacs || c.token_amount_lacs === 0;
   }
 
   getPaymentPercent(c: CustomerRecord): number {
@@ -601,6 +627,63 @@ export class CustomerListComponent implements OnInit {
         }
       });
     }
+  }
+
+  openCancelBookingModal(c: CustomerRecord, event?: Event): void {
+    if (event) event.stopPropagation();
+    this.bookingToCancel = c;
+    this.cancelReason = 'Customer requested cancellation (Zero payment provisional booking)';
+    this.cancelError = '';
+    this.cancellingBooking = false;
+    this.showCancelBookingModal = true;
+  }
+
+  closeCancelBookingModal(): void {
+    this.showCancelBookingModal = false;
+    this.bookingToCancel = null;
+    this.cancelError = '';
+    this.cancellingBooking = false;
+  }
+
+  submitCancelBooking(): void {
+    if (!this.bookingToCancel) return;
+    this.cancellingBooking = true;
+    this.cancelError = '';
+
+    const targetId = this.bookingToCancel.booking_id || this.bookingToCancel.buyer_id || this.bookingToCancel.id;
+    const ref = this.bookingToCancel.booking_reference;
+    const unit = this.bookingToCancel.unit_number;
+    const proj = this.bookingToCancel.project_name;
+    const name = this.bookingToCancel.customer_name;
+
+    this.buyerService.cancelBooking(targetId, this.cancelReason, false).subscribe({
+      next: (res: any) => {
+        this.cancellingBooking = false;
+        this.closeCancelBookingModal();
+        this.showFeedbackToast(`✓ Booking ${ref} removed. Unit ${unit} at ${proj} is now AVAILABLE again.`);
+        this.loadCustomers();
+      },
+      error: (err: any) => {
+        // Fallback: update status to CANCELLED via updateBookingStatus
+        if (this.bookingToCancel?.booking_id) {
+          this.buyerService.updateBookingStatus(this.bookingToCancel.booking_id, 'CANCELLED', this.cancelReason).subscribe({
+            next: () => {
+              this.cancellingBooking = false;
+              this.closeCancelBookingModal();
+              this.showFeedbackToast(`✓ Customer ${name} booking cancelled. Unit ${unit} is now AVAILABLE again.`);
+              this.loadCustomers();
+            },
+            error: (e: any) => {
+              this.cancellingBooking = false;
+              this.cancelError = e.error?.message || 'Failed to cancel booking. Please try again.';
+            }
+          });
+        } else {
+          this.cancellingBooking = false;
+          this.cancelError = err.error?.message || 'Failed to cancel customer booking.';
+        }
+      }
+    });
   }
 
   exportCustomersCSV(): void {

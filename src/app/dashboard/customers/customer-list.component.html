@@ -90,13 +90,19 @@
       <span>All Customers</span>
       <span class="tab-badge">{{ customers.length }}</span>
     </button>
+    <button type="button" class="quick-tab-pill" [class.active]="activeQuickTab === 'paid'" (click)="setQuickTab('paid')">
+      <mat-icon class="tab-mini-icon text-emerald">verified</mat-icon>
+      <span>Advance Token Paid</span>
+      <span class="tab-badge tab-badge-paid">{{ getAdvancePaidCount() }}</span>
+    </button>
+    <button type="button" class="quick-tab-pill" [class.active]="activeQuickTab === 'unpaid'" (click)="setQuickTab('unpaid')">
+      <mat-icon class="tab-mini-icon text-amber">hourglass_empty</mat-icon>
+      <span>Booked Only (Zero Payment)</span>
+      <span class="tab-badge tab-badge-unpaid">{{ getUnpaidCount() }}</span>
+    </button>
     <button type="button" class="quick-tab-pill" [class.active]="activeQuickTab === 'confirmed'" (click)="setQuickTab('confirmed')">
       <span>Confirmed Allotments</span>
       <span class="tab-badge">{{ getConfirmedCount() }}</span>
-    </button>
-    <button type="button" class="quick-tab-pill" [class.active]="activeQuickTab === 'advance'" (click)="setQuickTab('advance')">
-      <span>Advance Token Paid</span>
-      <span class="tab-badge">{{ getAdvancePaidCount() }}</span>
     </button>
   </div>
 
@@ -224,9 +230,17 @@
                   {{ getInitials(c.customer_name) }}
                 </div>
                 <div class="customer-info">
-                  <a [routerLink]="['/buyers', c.buyer_id]" class="customer-name-link" matTooltip="Open Buyer 360 Profile">
-                    {{ c.customer_name }}
-                  </a>
+                  <div class="customer-name-row">
+                    <a [routerLink]="['/buyers', c.buyer_id]" class="customer-name-link" matTooltip="Open Buyer 360 Profile">
+                      {{ c.customer_name }}
+                    </a>
+                    <span class="cust-type-tag cust-type-paid" *ngIf="isPaidCustomer(c)">
+                      <mat-icon class="tag-icon">verified</mat-icon> Paid
+                    </span>
+                    <span class="cust-type-tag cust-type-unpaid" *ngIf="isUnpaidCustomer(c)" matTooltip="Zero Advance Payment: Booking can be cancelled to release unit">
+                      <mat-icon class="tag-icon">hourglass_empty</mat-icon> Booked Only (Unpaid)
+                    </span>
+                  </div>
                   <div class="customer-sub-row">
                     <span class="booking-ref-chip">{{ c.booking_reference }}</span>
                     <a *ngIf="c.phone" [href]="'tel:' + c.phone" class="phone-chip" (click)="$event.stopPropagation()" matTooltip="Call Client">
@@ -340,6 +354,21 @@
                   <mat-icon>visibility</mat-icon>
                   <span>Dossier</span>
                 </button>
+
+                <!-- Release Unit & Remove Booking for Type 2 (Zero Payment Bookings) -->
+                <button *ngIf="isUnpaidCustomer(c)" mat-stroked-button type="button" class="action-btn-styled btn-release-unit"
+                  (click)="openCancelBookingModal(c, $event)" matTooltip="Remove customer & release unit back to AVAILABLE">
+                  <mat-icon class="text-rose">event_busy</mat-icon>
+                  <span class="text-rose font-medium">Release</span>
+                </button>
+
+                <!-- Protected indicator for Type 1 (Paid Customers) -->
+                <button *ngIf="isPaidCustomer(c)" mat-stroked-button type="button" class="action-btn-styled btn-locked-paid"
+                  matTooltip="Protected: Advance payment received (₹{{ c.token_amount_lacs }}L). Refund clearance required.">
+                  <mat-icon class="text-slate">lock</mat-icon>
+                  <span class="text-slate">Protected</span>
+                </button>
+
                 <a [routerLink]="['/buyers', c.buyer_id]" class="action-icon-btn" matTooltip="Open Buyer 360 Profile">
                   <mat-icon>open_in_new</mat-icon>
                 </a>
@@ -610,6 +639,94 @@
           style="background-color: #0f172a !important; color: #ffffff !important;">
           <mat-icon style="color: #ffffff !important;">check</mat-icon>
           <span style="color: #ffffff !important;">{{ recordingPayment ? 'Updating...' : 'Record Payment' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Cancel Booking & Release Property Unit (Type 2: Unpaid / Booked Only) -->
+  <div *ngIf="showCancelBookingModal && bookingToCancel" class="modal-backdrop">
+    <div class="modal-card modal-md">
+      <div class="modal-header modal-header-danger">
+        <div class="header-danger-wrap">
+          <div class="header-icon-danger">
+            <mat-icon>event_busy</mat-icon>
+          </div>
+          <div>
+            <h2 class="modal-title">Cancel Booking &amp; Release Unit</h2>
+            <p class="modal-subtitle">Customer: {{ bookingToCancel.customer_name }} &bull; Ref: {{ bookingToCancel.booking_reference }}</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" type="button" (click)="closeCancelBookingModal()" [disabled]="cancellingBooking">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Prominent Warning Notice -->
+        <div class="release-alert-banner">
+          <mat-icon class="alert-icon text-amber">info</mat-icon>
+          <div class="alert-text">
+            <strong>Provisional / Zero Payment Booking:</strong>
+            <p>This customer has paid <strong>₹0.00 Lacs</strong> advance. Cancelling will remove the customer from the converted portfolio and immediately restore property unit <strong>{{ bookingToCancel.unit_number }}</strong> back to <strong>AVAILABLE</strong> status in inventory.</p>
+          </div>
+        </div>
+
+        <!-- Booking & Unit Summary Details -->
+        <div class="release-summary-card">
+          <div class="summary-field-row">
+            <span class="sf-label">Customer Name</span>
+            <span class="sf-value font-semibold">{{ bookingToCancel.customer_name }}</span>
+          </div>
+          <div class="summary-field-row">
+            <span class="sf-label">Property Project</span>
+            <span class="sf-value">{{ bookingToCancel.project_name }}</span>
+          </div>
+          <div class="summary-field-row highlight-row">
+            <span class="sf-label">Allotted Unit to Release</span>
+            <span class="sf-value text-emerald font-bold">
+              <mat-icon class="sf-mini-icon">meeting_room</mat-icon> {{ bookingToCancel.unit_number }} &bull; {{ bookingToCancel.unit_configuration }}
+            </span>
+          </div>
+          <div class="summary-field-row">
+            <span class="sf-label">Booking Value</span>
+            <span class="sf-value">{{ formatAmount(bookingToCancel.booking_value_lacs) }}</span>
+          </div>
+          <div class="summary-field-row">
+            <span class="sf-label">Advance Paid</span>
+            <span class="sf-value text-rose font-semibold">{{ formatAmount(bookingToCancel.token_amount_lacs) }} (Zero Advance)</span>
+          </div>
+          <div class="summary-field-row">
+            <span class="sf-label">Pipeline Action</span>
+            <span class="sf-value text-slate">Buyer lead returns to active <strong>Negotiation</strong> stage</span>
+          </div>
+        </div>
+
+        <!-- Cancellation Reason -->
+        <mat-form-field appearance="outline" class="w-full mt-4">
+          <mat-label>Reason for Cancellation / Unit Release</mat-label>
+          <mat-select [(ngModel)]="cancelReason">
+            <mat-option value="Customer requested cancellation (Zero payment provisional booking)">Customer requested cancellation (Zero payment)</mat-option>
+            <mat-option value="Provisional booking time window expired without advance token">Provisional booking time window expired without advance token</mat-option>
+            <mat-option value="Client opted for different property / configuration">Client opted for different property / configuration</mat-option>
+            <mat-option value="Budget / Financial loan constraint">Budget / Financial loan constraint</mat-option>
+            <mat-option value="Management unit release override">Management unit release override</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <div *ngIf="cancelError" class="modal-error-box">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ cancelError }}</span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button mat-stroked-button type="button" (click)="closeCancelBookingModal()" [disabled]="cancellingBooking">
+          Keep Booking
+        </button>
+        <button mat-flat-button class="btn-confirm-release" type="button" [disabled]="cancellingBooking" (click)="submitCancelBooking()">
+          <mat-icon>delete_forever</mat-icon>
+          <span>{{ cancellingBooking ? 'Releasing Unit...' : 'Cancel Booking & Release Unit' }}</span>
         </button>
       </div>
     </div>

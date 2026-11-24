@@ -62,6 +62,12 @@ export class BuyerService {
     return this.http.put<any>(`${environment.apiUrl}/bookings/${id}/status`, { booking_status: status, notes, token_amount_lacs });
   }
 
+  cancelBooking(id: number, cancellation_reason?: string, force: boolean = false): Observable<any> {
+    return this.http.delete<any>(`${environment.apiUrl}/bookings/${id}`, {
+      body: { cancellation_reason, force }
+    });
+  }
+
   recordBookingPayment(id: number, data: any): Observable<any> {
     return this.http.post<any>(`${environment.apiUrl}/bookings/${id}/payment`, data);
   }
