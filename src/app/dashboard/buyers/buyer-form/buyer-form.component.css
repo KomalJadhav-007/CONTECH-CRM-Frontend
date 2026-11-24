@@ -245,15 +245,15 @@
 /* Hide Number Input Spinners */
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
-  appearance: none;
   -webkit-appearance: none;
+  appearance: none;
   margin: 0;
 }
 
 input[type="number"] {
-  appearance: textfield;
   -moz-appearance: textfield;
-  -webkit-appearance: textfield;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 /* Textarea Field */

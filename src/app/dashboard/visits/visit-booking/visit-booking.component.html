@@ -165,7 +165,7 @@
       <!-- Section 3: Luxury Cab Pickup Logistics -->
       <div class="form-section">
         <div class="section-heading">3. FLEET VEHICLE &amp; CAB PICKUP LOGISTICS (SOW SEC 11)</div>
-        <div class="form-grid-2">
+        <div class="form-grid-fleet-top">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>CAB PICKUP REQUIRED?</mat-label>
             <mat-select [(ngModel)]="bookingData.cab_required" name="cab_required">
@@ -188,7 +188,7 @@
           </mat-form-field>
         </div>
 
-        <div class="form-grid-3" *ngIf="bookingData.cab_required" style="margin-top: 0.5rem;">
+        <div class="form-grid-fleet-driver" *ngIf="bookingData.cab_required" style="margin-top: 0.5rem;">
           <div class="driver-select-container">
             <mat-form-field appearance="outline" class="w-100">
               <mat-label>ASSIGNED DRIVER</mat-label>
@@ -262,48 +262,58 @@
           </div>
         </div>
 
-        <div class="form-field full-width" *ngIf="bookingData.cab_required" style="margin-top: 0.5rem;">
+        <!-- 2-Column Row for Pickup Address & Special Notes when cab is required -->
+        <div class="form-grid-2" *ngIf="bookingData.cab_required" style="margin-top: 0.75rem;">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>BUYER PICKUP ADDRESS</mat-label>
             <input matInput type="text" [(ngModel)]="bookingData.pickup_address" name="pickup_address"
               placeholder="Customer Residence / Office" />
           </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>SPECIAL VISIT NOTES</mat-label>
+            <input matInput type="text" [(ngModel)]="bookingData.notes" name="notes"
+              placeholder="Confirm buyer preferred floor plan copies ready in sales lounge." />
+          </mat-form-field>
+        </div>
+
+        <!-- If cab is not required, show notes as full width -->
+        <div class="form-field full-width" *ngIf="!bookingData.cab_required" style="margin-top: 0.75rem;">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>SPECIAL VISIT NOTES</mat-label>
+            <textarea matInput rows="2" [(ngModel)]="bookingData.notes" name="notes"
+              placeholder="Confirm buyer preferred floor plan copies ready in sales lounge."></textarea>
+          </mat-form-field>
         </div>
 
         <!-- Direct Frontend WhatsApp Notification to Driver Card -->
         <div class="whatsapp-dispatch-card" *ngIf="bookingData.cab_required && bookingData.driver_id">
-          <div class="wa-header">
-            <div class="wa-icon-box">
-              <mat-icon>chat</mat-icon>
-            </div>
-            <div class="wa-title-block">
-              <div class="wa-title-row">
-                <span class="wa-title">Direct WhatsApp Notification to Driver</span>
-                <span class="wa-badge">DIRECT FRONTEND DISPATCH</span>
+          <div class="wa-compact-row">
+            <div class="wa-header-group">
+              <div class="wa-icon-box">
+                <mat-icon>chat</mat-icon>
               </div>
-              <p class="wa-desc">
-                When booked, trip assignment coordinates are sent directly to driver <strong>{{
-                  getSelectedDriverName() }}</strong>'s WhatsApp (+{{ getSelectedDriverCleanPhone() }}).
-              </p>
+              <div class="wa-title-block">
+                <div class="wa-title-row">
+                  <span class="wa-title">Direct WhatsApp Notification to Driver</span>
+                  <span class="wa-badge">DIRECT FRONTEND DISPATCH</span>
+                </div>
+                <p class="wa-desc">
+                  When booked, trip assignment coordinates are sent directly to driver <strong>{{
+                    getSelectedDriverName() }}</strong>'s WhatsApp (+{{ getSelectedDriverCleanPhone() }}).
+                </p>
+              </div>
             </div>
-          </div>
-          <div class="wa-preview-pill">
-            <mat-icon class="preview-icon">contact_phone</mat-icon>
-            <span>Passenger: <strong>{{ getSelectedBuyerName() }}</strong> ({{ getSelectedBuyerPhone() }}) &bull;
-              Pickup: <strong>{{ bookingData.pickup_address || 'Customer Residence' }}</strong></span>
+            <div class="wa-preview-pill">
+              <mat-icon class="preview-icon">contact_phone</mat-icon>
+              <span>Passenger: <strong>{{ getSelectedBuyerName() }}</strong> ({{ getSelectedBuyerPhone() }}) &bull;
+                Pickup: <strong>{{ bookingData.pickup_address || 'Customer Residence' }}</strong></span>
+            </div>
           </div>
           <div *ngIf="driverWhatsAppStatus && !driverWhatsAppStatus.present" class="wa-not-present-warning-pill">
             <mat-icon class="pill-warn-icon">error_outline</mat-icon>
             <span><strong>WhatsApp is not present for this number:</strong> {{ driverWhatsAppStatus.message }}</span>
           </div>
-        </div>
-
-        <div class="form-field full-width" style="margin-top: 0.5rem;">
-          <mat-form-field appearance="outline" class="w-100">
-            <mat-label>SPECIAL VISIT NOTES</mat-label>
-            <textarea matInput rows="3" [(ngModel)]="bookingData.notes" name="notes"
-              placeholder="Confirm buyer preferred floor plan copies ready in sales lounge."></textarea>
-          </mat-form-field>
         </div>
       </div>
 
