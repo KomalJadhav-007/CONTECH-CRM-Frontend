@@ -148,7 +148,12 @@
                   [class.status-inactive]="u.status !== 'active'">
                   {{ u.status === 'active' ? 'Active' : 'Inactive' }}
                 </span>
-                <button type="button" class="btn-deactivate" (click)="toggleDeactivate(u)">
+                <button type="button" class="btn-deactivate"
+                  [disabled]="isProtectedUser(u)"
+                  [attr.disabled]="isProtectedUser(u) ? '' : null"
+                  [class.disabled]="isProtectedUser(u)"
+                  [title]="getDeactivateTooltip(u)"
+                  (click)="toggleDeactivate(u)">
                   {{ u.status === 'active' ? 'Deactivate' : 'Activate' }}
                 </button>
               </div>
@@ -163,7 +168,12 @@
                 <button type="button" class="btn-edit-user" (click)="openEditUserModal(u)" title="Edit user details">
                   Edit
                 </button>
-                <button type="button" class="btn-delete-user" (click)="deleteUser(u)" title="Delete user from database">
+                <button type="button" class="btn-delete-user"
+                  [disabled]="isProtectedUser(u)"
+                  [attr.disabled]="isProtectedUser(u) ? '' : null"
+                  [class.disabled]="isProtectedUser(u)"
+                  [title]="getDeleteTooltip(u)"
+                  (click)="deleteUser(u)">
                   Delete
                 </button>
               </div>
@@ -681,12 +691,14 @@
           </div>
 
           <div class="form-group checkbox-group">
-            <label class="checkbox-container">
+            <label class="checkbox-container" [class.disabled]="isProtectedUser(editingUser)">
               <input type="checkbox" [checked]="editingUser.status === 'active'"
+                [disabled]="isProtectedUser(editingUser)"
                 (change)="editingUser.status = editingUser.status === 'active' ? 'inactive' : 'active'" />
               <span class="checkbox-label">
                 <strong>Account Active</strong>
-                <span class="checkbox-desc">Enable or suspend system access for this user</span>
+                <span class="checkbox-desc" *ngIf="!isProtectedUser(editingUser)">Enable or suspend system access for this user</span>
+                <span class="checkbox-desc text-amber" *ngIf="isProtectedUser(editingUser)">Cannot deactivate own account or Root Super Admin</span>
               </span>
             </label>
           </div>

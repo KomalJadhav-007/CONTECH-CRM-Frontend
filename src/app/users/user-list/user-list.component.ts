@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { UserService } from '../user.service';
 import { AccessControlService, RoleMeta } from '../../access-control/access-control.service';
 import { SettingsService } from '../../settings/settings.service';
+import { AuthService } from '../../auth/auth.service';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -42,6 +43,7 @@ export class UserListComponent implements OnInit {
   private userService = inject(UserService);
   public accessControlService = inject(AccessControlService);
   private settingsService = inject(SettingsService);
+  private authService = inject(AuthService);
 
   loading = false;
   searchQuery = '';
@@ -99,6 +101,74 @@ export class UserListComponent implements OnInit {
     if (!role) return false;
     const r = role.toLowerCase();
     return r.includes('driver') || r.includes('fleet') || r.includes('chauffeur');
+  }
+
+  isOwnAccount(user: any): boolean {
+    if (!user) return false;
+    const current = this.authService.getCurrentUser();
+    if (!current) return false;
+    const currentId = current.user_id || current.id;
+    const userId = user.user_id || user.id;
+    if (currentId && userId && Number(currentId) === Number(userId)) {
+      return true;
+    }
+    if (current.email && user.email && current.email.toLowerCase().trim() === user.email.toLowerCase().trim()) {
+      return true;
+    }
+    return false;
+  }
+
+  isRootAdmin(user: any): boolean {
+    if (!user) return false;
+    const email = (user.email || '').toLowerCase().trim();
+    const userId = Number(user.user_id || user.id);
+    if (email === 'director@contechcrm.com' || userId === 1) {
+      return true;
+    }
+    return false;
+  }
+
+  isSoleSuperAdmin(user: any): boolean {
+    if (!user) return false;
+    const roleName = (user.role || '').toLowerCase();
+    if (roleName.includes('super admin') || roleName.includes('director')) {
+      const activeSuperAdmins = this.users.filter(u => {
+        const r = (u.role || '').toLowerCase();
+        return (r.includes('super admin') || r.includes('director')) && u.status === 'active';
+      });
+      return activeSuperAdmins.length <= 1;
+    }
+    return false;
+  }
+
+  isProtectedUser(user: any): boolean {
+    return this.isOwnAccount(user) || this.isRootAdmin(user) || this.isSoleSuperAdmin(user);
+  }
+
+  getDeactivateTooltip(user: any): string {
+    if (this.isOwnAccount(user)) {
+      return 'Cannot deactivate your own account (Safety Guard)';
+    }
+    if (this.isRootAdmin(user)) {
+      return 'Cannot deactivate the Root Super Admin account (director@contechcrm.com)';
+    }
+    if (this.isSoleSuperAdmin(user)) {
+      return 'Cannot deactivate the only active Super Admin account';
+    }
+    return user.status === 'active' ? 'Deactivate user' : 'Activate user';
+  }
+
+  getDeleteTooltip(user: any): string {
+    if (this.isOwnAccount(user)) {
+      return 'Cannot delete your own account (Safety Guard)';
+    }
+    if (this.isRootAdmin(user)) {
+      return 'Cannot delete the Root Super Admin account (director@contechcrm.com)';
+    }
+    if (this.isSoleSuperAdmin(user)) {
+      return 'Cannot delete the only active Super Admin account';
+    }
+    return 'Delete user from database';
   }
 
   get roles(): string[] {
@@ -549,12 +619,13 @@ export class UserListComponent implements OnInit {
     this.editUserError = '';
 
     const assignedIds = this.editingUser.all_projects ? [] : (this.editingUser.assigned_project_ids || []);
+    const shouldBeActive = this.isProtectedUser(this.editingUser) ? true : (this.editingUser.status === 'active');
     const payload: any = {
       name: this.editingUser.name.trim(),
       email: this.editingUser.email.trim().toLowerCase(),
       phone: this.editingUser.phone ? this.editingUser.phone.trim() : null,
       role: this.editingUser.role,
-      is_active: this.editingUser.status === 'active',
+      is_active: shouldBeActive,
       assigned_project_ids: assignedIds
     };
 
@@ -634,6 +705,11 @@ export class UserListComponent implements OnInit {
   }
 
   toggleDeactivate(user: any): void {
+    if (this.isProtectedUser(user)) {
+      this.showFeedback(this.getDeactivateTooltip(user), 'warn');
+      return;
+    }
+
     if (user.status === 'active') {
       // Deactivating: check open assignments safeguard first
       this.userService.getOpenAssignments(user.id).subscribe({
@@ -673,6 +749,11 @@ export class UserListComponent implements OnInit {
   }
 
   deleteUser(user: any): void {
+    if (this.isProtectedUser(user)) {
+      this.showFeedback(this.getDeleteTooltip(user), 'warn');
+      return;
+    }
+
     this.userService.getOpenAssignments(user.id).subscribe({
       next: (res: any) => {
         if (res && res.has_open_items) {

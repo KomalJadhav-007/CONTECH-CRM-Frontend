@@ -498,6 +498,16 @@
   border-color: #94a3b8;
 }
 
+.btn-deactivate:disabled,
+.btn-deactivate.disabled {
+  opacity: 0.45;
+  cursor: not-allowed !important;
+  background: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #94a3b8 !important;
+  pointer-events: auto !important;
+}
+
 .last-login-cell {
   color: #64748b;
   font-size: 0.78rem;
@@ -577,6 +587,16 @@
   background: #ffe4e6;
   border-color: #fda4af;
   color: #9f1239;
+}
+
+.btn-delete-user:disabled,
+.btn-delete-user.disabled {
+  opacity: 0.45;
+  cursor: not-allowed !important;
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #94a3b8 !important;
+  pointer-events: auto !important;
 }
 
 .empty-table-cell {
