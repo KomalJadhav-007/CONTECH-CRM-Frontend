@@ -1,10 +1,23 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, FormControl, FormGroupDirective, NgForm } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { BuyerService } from '../buyer.service';
 import { UserService } from '../../../users/user.service';
 import { SettingsService } from '../../../settings/settings.service';
+import { ErrorStateMatcher } from '@angular/material/core';
+
+export class ImmediateErrorStateMatcher implements ErrorStateMatcher {
+  constructor(private isInvalidFn?: () => boolean) {}
+
+  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+    if (this.isInvalidFn && this.isInvalidFn()) {
+      return true;
+    }
+    const isSubmitted = !!(form && form.submitted);
+    return !!(control && control.invalid && (control.dirty || control.touched || isSubmitted || !!control.value));
+  }
+}
 
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -116,6 +129,23 @@ export class BuyerFormComponent implements OnInit {
   errorMessage = '';
   isEditMode = false;
   buyerId: number | null = null;
+
+  emailErrorMatcher = new ImmediateErrorStateMatcher(() => this.isEmailInvalid());
+
+  isEmailInvalid(): boolean {
+    if (!this.buyerData || !this.buyerData.email) return false;
+    const email = (this.buyerData.email || '').trim();
+    if (!email) return false;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return !emailRegex.test(email);
+  }
+
+  getEmailErrorMessage(): string {
+    if (this.isEmailInvalid()) {
+      return 'Please enter a valid email address (e.g. name@example.com)';
+    }
+    return '';
+  }
 
   isFakeOrSequentialPhone(phone: string): boolean {
     if (!phone) return false;

@@ -122,12 +122,21 @@
               </div>
 
               <!-- Email Field with Format Validation (Bug 2) -->
-              <mat-form-field appearance="outline" class="w-full">
+              <mat-form-field appearance="outline" class="w-full" [class.mat-form-field-invalid]="isEmailInvalid()">
                 <mat-label>Email Address</mat-label>
                 <mat-icon matPrefix class="field-icon">mail</mat-icon>
-                <input matInput type="email" [(ngModel)]="buyerData.email" name="email" (blur)="checkDuplicateContact()"
+                <input matInput type="email"
+                  [(ngModel)]="buyerData.email"
+                  name="email"
+                  #emailInput="ngModel"
+                  pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                  [errorStateMatcher]="emailErrorMatcher"
+                  (blur)="checkDuplicateContact()"
                   placeholder="e.g. rahul.sharma@example.com" />
-                <mat-hint>Valid email (e.g. name&#64;example.com)</mat-hint>
+                <mat-hint *ngIf="!isEmailInvalid()">Valid email (e.g. name&#64;example.com)</mat-hint>
+                <mat-error *ngIf="isEmailInvalid() || (emailInput.invalid && (emailInput.dirty || emailInput.touched || emailInput.value))">
+                  Please enter a valid email address (e.g. name&#64;example.com)
+                </mat-error>
               </mat-form-field>
             </div>
 
