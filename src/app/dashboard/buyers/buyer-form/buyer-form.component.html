@@ -104,9 +104,15 @@
               <div class="phone-country-input-wrap">
                 <mat-form-field appearance="outline" class="country-code-field">
                   <mat-label>Country</mat-label>
-                  <mat-select [(ngModel)]="buyerData.country_code" name="country_code">
+                  <mat-select [(ngModel)]="buyerData.country_code" name="country_code"
+                    (selectionChange)="onCountryCodeChange($event.value)">
                     <mat-option *ngFor="let c of countryCodes" [value]="c.code">
                       {{ c.label }}
+                    </mat-option>
+                    <mat-divider></mat-divider>
+                    <mat-option value="__create_new_country__" class="create-new-option">
+                      <mat-icon class="create-new-icon">add_circle</mat-icon>
+                      <span class="create-new-text">+ Add Custom Country Code...</span>
                     </mat-option>
                   </mat-select>
                 </mat-form-field>
@@ -138,6 +144,64 @@
                   Please enter a valid email address (e.g. name&#64;example.com)
                 </mat-error>
               </mat-form-field>
+            </div>
+
+            <!-- Custom Country Code Creator Panel -->
+            <div *ngIf="isCreatingCustomCountryCode" class="custom-occupation-banner custom-country-banner">
+              <div class="custom-occ-header">
+                <div class="custom-occ-badge">
+                  <mat-icon>add_circle</mat-icon>
+                  <span>CREATE CUSTOM COUNTRY CODE</span>
+                </div>
+                <button mat-icon-button type="button" class="btn-close-occ" (click)="cancelCustomCountryCode()"
+                  matTooltip="Close">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+
+              <div class="custom-occ-body">
+                <p class="custom-occ-desc">Enter country details to add a new international dialing code to your dropdown and select it instantly:</p>
+                <div class="custom-country-row">
+                  <mat-form-field appearance="outline" class="custom-country-name-field">
+                    <mat-label>Country / Territory Name *</mat-label>
+                    <mat-icon matPrefix class="field-icon">public</mat-icon>
+                    <input matInput type="text" [(ngModel)]="newCustomCountryName" name="newCustomCountryName"
+                      placeholder="e.g. Kuwait, Germany, Mauritius"
+                      (keydown.enter)="saveCustomCountryCode($event)" autofocus />
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="custom-country-dial-field">
+                    <mat-label>Dialing Code *</mat-label>
+                    <mat-icon matPrefix class="field-icon">dialpad</mat-icon>
+                    <input matInput type="text" [(ngModel)]="newCustomCountryDial" name="newCustomCountryDial"
+                      placeholder="e.g. +965, +49, +230"
+                      (keydown.enter)="saveCustomCountryCode($event)" />
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="custom-country-flag-field">
+                    <mat-label>Flag / ISO (Optional)</mat-label>
+                    <mat-icon matPrefix class="field-icon">flag</mat-icon>
+                    <input matInput type="text" [(ngModel)]="newCustomCountryFlag" name="newCustomCountryFlag"
+                      placeholder="e.g. 🇰🇼 or KW"
+                      (keydown.enter)="saveCustomCountryCode($event)" />
+                  </mat-form-field>
+
+                  <div class="custom-occ-btns">
+                    <button mat-flat-button color="primary" type="button" class="btn-save-occ"
+                      [disabled]="!newCustomCountryName.trim() || !newCustomCountryDial.trim()" (click)="saveCustomCountryCode()">
+                      <mat-icon>check</mat-icon> Add &amp; Select
+                    </button>
+                    <button mat-stroked-button type="button" class="btn-cancel-occ" (click)="cancelCustomCountryCode()">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+
+                <div *ngIf="customCountryPreview" class="custom-country-preview-chip">
+                  <span class="preview-label">Live Preview:</span>
+                  <span class="preview-badge">{{ customCountryPreview }}</span>
+                </div>
+              </div>
             </div>
 
             <div class="form-grid-3" style="margin-top: 0.25rem;">

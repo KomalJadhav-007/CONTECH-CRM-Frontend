@@ -177,7 +177,7 @@
 }
 
 .country-code-field {
-  width: 120px;
+  width: 135px;
   flex-shrink: 0;
 }
 
@@ -552,6 +552,68 @@ input[type="number"] {
   background: #ffffff;
 }
 
+/* Custom Country Code Banner & Row Styles */
+.custom-country-banner {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 1px solid #bfdbfe;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.custom-country-banner .custom-occ-badge {
+  color: #1d4ed8;
+  border-color: #93c5fd;
+}
+
+.custom-country-banner .custom-occ-desc {
+  color: #1e40af;
+}
+
+.custom-country-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.custom-country-name-field {
+  flex: 2;
+  min-width: 180px;
+}
+
+.custom-country-dial-field {
+  flex: 1;
+  min-width: 120px;
+}
+
+.custom-country-flag-field {
+  flex: 1;
+  min-width: 110px;
+}
+
+.custom-country-preview-chip {
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+}
+
+.custom-country-preview-chip .preview-label {
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+.custom-country-preview-chip .preview-badge {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  padding: 0.2rem 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
 /* Responsive Breakpoints */
 @media (max-width: 992px) {
   .form-grid-4 {
@@ -572,11 +634,15 @@ input[type="number"] {
     grid-template-columns: 1fr;
   }
   
-  .custom-occ-row {
+  .custom-occ-row,
+  .custom-country-row {
     flex-direction: column;
   }
   
   .custom-occ-input-field,
+  .custom-country-name-field,
+  .custom-country-dial-field,
+  .custom-country-flag-field,
   .custom-occ-btns {
     width: 100%;
   }

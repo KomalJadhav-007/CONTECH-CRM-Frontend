@@ -90,7 +90,7 @@ export class BuyerFormComponent implements OnInit {
   newCustomOccupation = '';
   previousOccupation = 'Salaried IT / Tech Corporate';
 
-  countryCodes: { code: string; label: string }[] = [
+  defaultCountryCodes: { code: string; label: string }[] = [
     { code: '+91', label: '🇮🇳 +91 (India)' },
     { code: '+1', label: '🇺🇸 +1 (US / Canada)' },
     { code: '+971', label: '🇦🇪 +971 (UAE / Dubai)' },
@@ -98,8 +98,41 @@ export class BuyerFormComponent implements OnInit {
     { code: '+65', label: '🇸🇬 +65 (Singapore)' },
     { code: '+61', label: '🇦🇺 +61 (Australia)' },
     { code: '+966', label: '🇸🇦 +966 (Saudi Arabia)' },
-    { code: '+974', label: '🇶🇦 +974 (Qatar)' }
+    { code: '+974', label: '🇶🇦 +974 (Qatar)' },
+    { code: '+965', label: '🇰🇼 +965 (Kuwait)' },
+    { code: '+968', label: '🇴🇲 +968 (Oman)' },
+    { code: '+973', label: '🇧🇭 +973 (Bahrain)' },
+    { code: '+49', label: '🇩🇪 +49 (Germany)' },
+    { code: '+33', label: '🇫🇷 +33 (France)' },
+    { code: '+60', label: '🇲🇾 +60 (Malaysia)' },
+    { code: '+64', label: '🇳🇿 +64 (New Zealand)' },
+    { code: '+81', label: '🇯🇵 +81 (Japan)' },
+    { code: '+27', label: '🇿🇦 +27 (South Africa)' },
+    { code: '+39', label: '🇮🇹 +39 (Italy)' },
+    { code: '+34', label: '🇪🇸 +34 (Spain)' },
+    { code: '+41', label: '🇨🇭 +41 (Switzerland)' },
+    { code: '+31', label: '🇳🇱 +31 (Netherlands)' },
+    { code: '+353', label: '🇮🇪 +353 (Ireland)' },
+    { code: '+46', label: '🇸🇪 +46 (Sweden)' },
+    { code: '+977', label: '🇳🇵 +977 (Nepal)' },
+    { code: '+880', label: '🇧🇩 +880 (Bangladesh)' },
+    { code: '+94', label: '🇱🇰 +94 (Sri Lanka)' },
+    { code: '+62', label: '🇮🇩 +62 (Indonesia)' },
+    { code: '+63', label: '🇵🇭 +63 (Philippines)' },
+    { code: '+66', label: '🇹🇭 +66 (Thailand)' },
+    { code: '+254', label: '🇰🇪 +254 (Kenya)' },
+    { code: '+234', label: '🇳🇬 +234 (Nigeria)' },
+    { code: '+55', label: '🇧🇷 +55 (Brazil)' },
+    { code: '+52', label: '🇲🇽 +52 (Mexico)' },
+    { code: '+86', label: '🇨🇳 +86 (China)' },
+    { code: '+852', label: '🇭🇰 +852 (Hong Kong)' }
   ];
+  countryCodes: { code: string; label: string }[] = [];
+  isCreatingCustomCountryCode = false;
+  newCustomCountryName = '';
+  newCustomCountryDial = '';
+  newCustomCountryFlag = '';
+  previousCountryCode = '+91';
 
   buyerData: any = {
     full_name: '',
@@ -170,6 +203,7 @@ export class BuyerFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadCountryCodes();
     this.loadLeadSources();
     this.loadOccupations();
     this.loadSalesReps();
@@ -231,6 +265,16 @@ export class BuyerFormComponent implements OnInit {
           this.previousOccupation = this.buyerData.occupation;
           if (this.buyerData.occupation && !this.occupations.includes(this.buyerData.occupation)) {
             this.occupations.unshift(this.buyerData.occupation);
+          }
+          this.previousCountryCode = this.buyerData.country_code;
+          if (
+            this.buyerData.country_code &&
+            !this.countryCodes.some(c => c.code === this.buyerData.country_code)
+          ) {
+            this.countryCodes.unshift({
+              code: this.buyerData.country_code,
+              label: `${this.buyerData.country_code} (Saved)`
+            });
           }
         }
       },
@@ -389,6 +433,118 @@ export class BuyerFormComponent implements OnInit {
     this.isCreatingCustomOccupation = false;
     this.buyerData.occupation = this.previousOccupation;
     this.newCustomOccupation = '';
+  }
+
+  loadCountryCodes(): void {
+    try {
+      const stored = localStorage.getItem('contech_custom_country_codes');
+      const custom: { code: string; label: string }[] = stored ? JSON.parse(stored) : [];
+      const combined = [...this.defaultCountryCodes];
+      custom.forEach(item => {
+        if (!combined.some(existing => existing.code === item.code)) {
+          combined.push(item);
+        }
+      });
+      this.countryCodes = combined;
+    } catch {
+      this.countryCodes = [...this.defaultCountryCodes];
+    }
+  }
+
+  onCountryCodeChange(val: string): void {
+    if (val === '__create_new_country__') {
+      this.openCustomCountryCreator();
+    } else {
+      this.previousCountryCode = val;
+      this.isCreatingCustomCountryCode = false;
+    }
+  }
+
+  openCustomCountryCreator(event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    this.isCreatingCustomCountryCode = true;
+    this.newCustomCountryName = '';
+    this.newCustomCountryDial = '';
+    this.newCustomCountryFlag = '';
+    setTimeout(() => {
+      this.buyerData.country_code = this.previousCountryCode;
+    });
+  }
+
+  cancelCustomCountryCode(): void {
+    this.isCreatingCustomCountryCode = false;
+    this.buyerData.country_code = this.previousCountryCode;
+    this.newCustomCountryName = '';
+    this.newCustomCountryDial = '';
+    this.newCustomCountryFlag = '';
+  }
+
+  get customCountryPreview(): string {
+    const dial = this.formatDialCode(this.newCustomCountryDial);
+    const name = this.newCustomCountryName.trim();
+    const flag = this.newCustomCountryFlag.trim();
+    if (!dial && !name) return '';
+    return `${flag ? flag + ' ' : ''}${dial || '+...'} (${name || 'Country Name'})`;
+  }
+
+  private formatDialCode(dial: string): string {
+    let clean = (dial || '').trim();
+    if (!clean) return '';
+    if (!clean.startsWith('+')) {
+      clean = '+' + clean;
+    }
+    return clean;
+  }
+
+  saveCustomCountryCode(event?: Event): void {
+    if (event) event.preventDefault();
+    const name = this.newCustomCountryName.trim();
+    let dial = this.formatDialCode(this.newCustomCountryDial);
+    const flag = this.newCustomCountryFlag.trim();
+
+    if (!name || !dial) {
+      alert('Please enter both country name and dialing code.');
+      return;
+    }
+
+    if (!/^\+\d{1,5}$/.test(dial)) {
+      alert('Please enter a valid dialing code with digits (e.g. +965, +49, +230).');
+      return;
+    }
+
+    const label = `${flag ? flag + ' ' : ''}${dial} (${name})`;
+    const newEntry = { code: dial, label };
+
+    const existingIndex = this.countryCodes.findIndex(c => c.code === dial);
+    if (existingIndex >= 0) {
+      this.countryCodes[existingIndex] = newEntry;
+    } else {
+      this.countryCodes.push(newEntry);
+    }
+
+    try {
+      const stored = localStorage.getItem('contech_custom_country_codes');
+      const custom: { code: string; label: string }[] = stored ? JSON.parse(stored) : [];
+      const cIdx = custom.findIndex(c => c.code === dial);
+      if (cIdx >= 0) {
+        custom[cIdx] = newEntry;
+      } else {
+        custom.push(newEntry);
+      }
+      localStorage.setItem('contech_custom_country_codes', JSON.stringify(custom));
+    } catch (e) {
+      console.error('Failed to cache custom country code', e);
+    }
+
+    this.buyerData.country_code = dial;
+    this.previousCountryCode = dial;
+    this.isCreatingCustomCountryCode = false;
+    this.newCustomCountryName = '';
+    this.newCustomCountryDial = '';
+    this.newCustomCountryFlag = '';
   }
 
   loadSalesReps(): void {
